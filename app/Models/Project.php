@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+
+class Project extends Model
+{
+    use SoftDeletes, LogsActivity;
+
+    protected $fillable = [
+        'name', 'description', 'client_id', 'manager_id',
+        'status', 'start_date', 'end_date', 'budget', 'progress',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'budget' => 'decimal:2',
+        ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->logAll()->useLogName('project');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function members()
+    {
+        return $this->hasMany(ProjectMember::class);
+    }
+
+    public function milestones()
+    {
+        return $this->hasMany(Milestone::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(BugTicket::class);
+    }
+
+    public function customerRequests()
+    {
+        return $this->hasMany(CustomerRequest::class);
+    }
+
+    public function campaigns()
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function kbArticles()
+    {
+        return $this->hasMany(KbArticle::class);
+    }
+
+    public function slaPolicies()
+    {
+        return $this->hasMany(SlaPolicy::class);
+    }
+}
