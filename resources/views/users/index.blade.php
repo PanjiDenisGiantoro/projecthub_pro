@@ -67,7 +67,8 @@
                         <div class="flex gap-3">
                             <a href="{{ route('users.edit', $u) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</a>
                             @if($u->id !== auth()->id())
-                            <form method="POST" action="{{ route('users.destroy', $u) }}" onsubmit="return confirm('Hapus user {{ $u->name }}?')">
+                            <form method="POST" action="{{ route('users.destroy', $u) }}"
+                                  data-confirm-delete="{{ $u->name }}" data-confirm-label="Hapus User">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Hapus</button>
                             </form>

@@ -12,13 +12,37 @@ class Task extends Model
     use SoftDeletes, LogsActivity;
 
     protected $fillable = [
-        'project_id', 'milestone_id', 'ticket_id', 'title', 'description',
-        'assigned_to', 'created_by', 'status', 'priority', 'due_date', 'estimated_hours',
+        'project_id', 'milestone_id', 'ticket_id', 'sprint_id', 'title', 'description',
+        'assigned_to', 'created_by', 'status', 'priority', 'start_date', 'due_date',
+        'estimated_hours', 'story_points', 'sort_order', 'recurring_definition_id',
     ];
 
     protected function casts(): array
     {
-        return ['due_date' => 'date'];
+        return ['start_date' => 'date', 'due_date' => 'date'];
+    }
+
+    public function daysRemaining(): ?int
+    {
+        if (!$this->due_date || $this->status === 'done') return null;
+        return (int) now()->startOfDay()->diffInDays($this->due_date->startOfDay(), false);
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->due_date && $this->due_date->isPast() && $this->status !== 'done';
+    }
+
+    public function timeProgressPercent(): int
+    {
+        if (!$this->estimated_hours || $this->estimated_hours <= 0) return 0;
+        return min(100, (int) round(($this->totalMinutes() / 60) / $this->estimated_hours * 100));
+    }
+
+    public function durationDays(): ?int
+    {
+        if (!$this->start_date || !$this->due_date) return null;
+        return (int) $this->start_date->diffInDays($this->due_date) + 1;
     }
 
     public function getActivitylogOptions(): LogOptions
@@ -59,5 +83,35 @@ class Task extends Model
     public function totalMinutes(): int
     {
         return (int) $this->timeLogs()->sum('minutes');
+    }
+
+    public function sprint()
+    {
+        return $this->belongsTo(Sprint::class);
+    }
+
+    public function recurringDefinition()
+    {
+        return $this->belongsTo(RecurringTaskDefinition::class, 'recurring_definition_id');
+    }
+
+    public function dependencies()
+    {
+        return $this->hasMany(TaskDependency::class, 'task_id');
+    }
+
+    public function blockedBy()
+    {
+        return $this->belongsToMany(Task::class, 'task_dependencies', 'task_id', 'depends_on_task_id');
+    }
+
+    public function blocks()
+    {
+        return $this->belongsToMany(Task::class, 'task_dependencies', 'depends_on_task_id', 'task_id');
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->blockedBy()->whereNotIn('status', ['done'])->exists();
     }
 }

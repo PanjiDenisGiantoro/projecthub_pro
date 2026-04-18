@@ -36,13 +36,14 @@ class TaskWebController extends Controller
             'title'           => 'required|string|max:255',
             'assigned_to'     => 'nullable|exists:users,id',
             'milestone_id'    => 'nullable|exists:milestones,id',
+            'start_date'      => 'nullable|date',
             'due_date'        => 'nullable|date',
             'priority'        => 'in:low,medium,high,urgent',
             'estimated_hours' => 'nullable|integer|min:1',
         ]);
 
         $task = $project->tasks()->create([
-            ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'priority', 'due_date', 'estimated_hours'),
+            ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'priority', 'start_date', 'due_date', 'estimated_hours'),
             'created_by' => auth()->id(),
         ]);
 
@@ -63,7 +64,7 @@ class TaskWebController extends Controller
     public function update(Request $request, Project $project, Task $task)
     {
         $old = $task->status;
-        $task->update($request->only('title', 'description', 'assigned_to', 'milestone_id', 'status', 'priority', 'due_date', 'estimated_hours'));
+        $task->update($request->only('title', 'description', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours'));
 
         if ($old !== $task->status) {
             $notify = $task->creator_id ?? $project->manager_id;
@@ -79,6 +80,23 @@ class TaskWebController extends Controller
     {
         $task->delete();
         return redirect()->route('tasks.index', $project)->with('success', 'Task dihapus.');
+    }
+
+    public function moveStatus(Request $request, Project $project, Task $task)
+    {
+        $request->validate(['status' => 'required|in:todo,in_progress,review,done']);
+        $old = $task->status;
+        $task->update(['status' => $request->status]);
+
+        if ($old !== $task->status) {
+            $notify = $task->created_by ?? $project->manager_id;
+            if ($notify) {
+                $this->notifier->send($notify, 'task_status_changed', 'Status Task Berubah',
+                    "Task \"{$task->title}\" berubah dari {$old} ke {$task->status}.", ['task_id' => $task->id]);
+            }
+        }
+
+        return response()->json(['ok' => true, 'status' => $task->status]);
     }
 
     public function storeTimeLog(Request $request, Task $task)

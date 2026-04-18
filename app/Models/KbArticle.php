@@ -10,7 +10,7 @@ class KbArticle extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'project_id', 'author_id', 'title', 'body', 'parent_id', 'tags', 'version',
+        'project_id', 'author_id', 'title', 'description', 'body', 'parent_id', 'tags', 'version',
     ];
 
     protected function casts(): array
@@ -36,5 +36,10 @@ class KbArticle extends Model
     public function children()
     {
         return $this->hasMany(KbArticle::class, 'parent_id');
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(KbArticleAttachment::class, 'article_id');
     }
 }

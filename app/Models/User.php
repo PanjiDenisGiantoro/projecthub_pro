@@ -21,6 +21,7 @@ class User extends Authenticatable
         'avatar',
         'is_active',
         'timezone',
+        'department_id',
     ];
 
     protected $hidden = [
@@ -65,5 +66,34 @@ class User extends Authenticatable
     public function phNotifications()
     {
         return $this->hasMany(PhNotification::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function division()
+    {
+        return $this->hasOneThrough(
+            Division::class,
+            Department::class,
+            'id',
+            'id',
+            'department_id',
+            'division_id'
+        );
+    }
+
+    public function company()
+    {
+        return $this->hasOneThrough(
+            Company::class,
+            Department::class,
+            'id',        // departments.id
+            'id',        // companies.id
+            'department_id',
+            'division_id'
+        );
     }
 }

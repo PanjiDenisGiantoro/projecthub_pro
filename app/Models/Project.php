@@ -13,7 +13,7 @@ class Project extends Model
 
     protected $fillable = [
         'name', 'description', 'client_id', 'manager_id',
-        'status', 'start_date', 'end_date', 'budget', 'progress',
+        'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress',
     ];
 
     protected function casts(): array
@@ -83,5 +83,51 @@ class Project extends Model
     public function slaPolicies()
     {
         return $this->hasMany(SlaPolicy::class);
+    }
+
+    public function sprints()
+    {
+        return $this->hasMany(Sprint::class);
+    }
+
+    public function files()
+    {
+        return $this->hasMany(ProjectFile::class);
+    }
+
+    public function risks()
+    {
+        return $this->hasMany(Risk::class);
+    }
+
+    public function budgetEntries()
+    {
+        return $this->hasMany(BudgetEntry::class);
+    }
+
+    public function portalTokens()
+    {
+        return $this->hasMany(ClientPortalToken::class);
+    }
+
+    public function recurringTasks()
+    {
+        return $this->hasMany(RecurringTaskDefinition::class);
+    }
+
+    public function totalExpenses(): float
+    {
+        return (float) $this->budgetEntries()->where('type', 'expense')->sum('amount');
+    }
+
+    public function totalIncome(): float
+    {
+        return (float) $this->budgetEntries()->where('type', 'income')->sum('amount');
+    }
+
+    public function budgetUsedPercent(): float
+    {
+        if (!$this->budget || $this->budget <= 0) return 0;
+        return min(100, round($this->totalExpenses() / $this->budget * 100, 1));
     }
 }

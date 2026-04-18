@@ -10,38 +10,60 @@ class Campaign extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'channel', 'budget', 'target', 'start_date', 'end_date',
-        'status', 'created_by', 'project_id', 'impressions', 'leads_count',
+        'name', 'description', 'channel', 'budget', 'actual_spend', 'target',
+        'start_date', 'end_date', 'status', 'created_by', 'owner_id', 'project_id',
+        'impressions', 'clicks', 'reach', 'leads_count', 'goal_leads',
     ];
 
     protected function casts(): array
     {
         return [
-            'start_date' => 'date',
-            'end_date' => 'date',
-            'budget' => 'decimal:2',
+            'start_date'   => 'date',
+            'end_date'     => 'date',
+            'budget'       => 'decimal:2',
+            'actual_spend' => 'decimal:2',
         ];
     }
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
+    public function creator()  { return $this->belongsTo(User::class, 'created_by'); }
+    public function owner()    { return $this->belongsTo(User::class, 'owner_id'); }
+    public function project()  { return $this->belongsTo(Project::class); }
+    public function leads()    { return $this->hasMany(Lead::class); }
 
-    public function project()
-    {
-        return $this->belongsTo(Project::class);
-    }
-
-    public function leads()
-    {
-        return $this->hasMany(Lead::class);
-    }
+    // ── Computed metrics ────────────────────────────────────────────────────────
 
     public function getConversionRateAttribute(): float
     {
         if ($this->leads_count === 0) return 0;
-        $converted = $this->leads()->where('status', 'client')->count();
-        return round(($converted / $this->leads_count) * 100, 2);
+        return round(($this->leads()->where('status', 'client')->count() / $this->leads_count) * 100, 1);
+    }
+
+    public function getCtrAttribute(): float
+    {
+        if ($this->impressions === 0) return 0;
+        return round(($this->clicks / $this->impressions) * 100, 2);
+    }
+
+    public function getCplAttribute(): float
+    {
+        if ($this->leads_count === 0) return 0;
+        return round($this->actual_spend / $this->leads_count, 0);
+    }
+
+    public function getProgressPercentAttribute(): int
+    {
+        if ($this->goal_leads === 0) return 0;
+        return min(100, (int) round($this->leads_count / $this->goal_leads * 100));
+    }
+
+    public function getDaysRemainingAttribute(): ?int
+    {
+        if (!$this->end_date) return null;
+        return (int) now()->startOfDay()->diffInDays($this->end_date->startOfDay(), false);
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->end_date && $this->end_date->isPast() && !in_array($this->status, ['completed', 'cancelled']);
     }
 }

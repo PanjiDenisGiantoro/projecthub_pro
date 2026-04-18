@@ -6,6 +6,7 @@ use App\Models\SlaPolicy;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+// ApprovalPolicySeeder called via $this->call()
 
 class DatabaseSeeder extends Seeder
 {
@@ -68,7 +69,13 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Seeded roles, users, and default SLA policies.');
+        // Seed permissions & role assignments
+        $this->call(PermissionSeeder::class);
+
+        // Seed default approval policies
+        $this->call(ApprovalPolicySeeder::class);
+
+        $this->command->info('✅ Seeded roles, users, default SLA policies, and approval policies.');
         $this->command->table(
             ['Role', 'Email', 'Password'],
             [

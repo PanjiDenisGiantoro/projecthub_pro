@@ -58,11 +58,36 @@ class ProjectWebController extends Controller
 
     public function show(Project $project)
     {
-        $project->load(['client', 'manager', 'members.user', 'milestones', 'tasks' => fn($q) => $q->with('assignee')->limit(10)]);
+        $project->load([
+            'client', 'manager',
+            'members.user',
+            'milestones.assignee', 'milestones.tasks',
+            'tasks' => fn($q) => $q->with('assignee')->limit(10),
+        ]);
         $slaPolicies = app(SlaService::class);
-        $developers  = User::role('developer')->where('is_active', true)->get();
+        $developers  = User::role(['developer', 'marketing'])->where('is_active', true)->get();
         $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
-        return view('projects.show', compact('project', 'developers', 'recentTickets'));
+
+        // Task & hour stats per member
+        $memberTaskCounts = $project->tasks()
+            ->selectRaw('assigned_to, count(*) as total, sum(case when status="done" then 1 else 0 end) as done')
+            ->whereNotNull('assigned_to')
+            ->groupBy('assigned_to')
+            ->pluck('total', 'assigned_to');
+
+        $memberHours = TimeLog::whereHas('task', fn($q) => $q->where('project_id', $project->id))
+            ->selectRaw('user_id, round(sum(minutes)/60, 1) as total_hours')
+            ->groupBy('user_id')
+            ->pluck('total_hours', 'user_id');
+
+        // KB articles for project tab (root only)
+        $kbArticles = $project->kbArticles()
+            ->with(['author', 'children'])
+            ->whereNull('parent_id')
+            ->latest()
+            ->get();
+
+        return view('projects.show', compact('project', 'developers', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles'));
     }
 
     public function edit(Project $project)
@@ -119,14 +144,32 @@ class ProjectWebController extends Controller
             ->whereHas('task', fn($q) => $q->where('project_id', $project->id))
             ->when($request->from, fn($q) => $q->whereDate('started_at', '>=', $request->from))
             ->when($request->to, fn($q) => $q->whereDate('started_at', '<=', $request->to))
+            ->orderBy('started_at')
             ->get();
 
         $summary = $logs->groupBy('user_id')->map(fn($ul) => [
-            'user'          => $ul->first()->user,
-            'total_hours'   => round($ul->sum('minutes') / 60, 2),
-            'logs_count'    => $ul->count(),
+            'user'        => $ul->first()->user,
+            'total_hours' => round($ul->sum('minutes') / 60, 2),
+            'logs_count'  => $ul->count(),
         ])->values();
 
-        return view('projects.timesheet', compact('project', 'logs', 'summary'));
+        // Gantt: tasks with start/due dates and their time logs
+        $ganttTasks = $project->tasks()
+            ->with(['milestone', 'assignee', 'timeLogs' => fn($q) => $q->where('is_running', false)->orderBy('started_at')])
+            ->where(fn($q) => $q->whereNotNull('start_date')->orWhereNotNull('due_date'))
+            ->orderBy('milestone_id')
+            ->orderBy('start_date')
+            ->get();
+
+        // Determine Gantt date range
+        $allStarts = $ganttTasks->filter(fn($t) => $t->start_date)->pluck('start_date');
+        $allEnds   = $ganttTasks->filter(fn($t) => $t->due_date)->pluck('due_date');
+        $ganttStart = $allStarts->min() ?? now()->startOfWeek();
+        $ganttEnd   = $allEnds->max()   ?? now()->addDays(30);
+        // Always show at least today + 7 days
+        if ($ganttEnd->lt(now()->addDays(7))) $ganttEnd = now()->addDays(7);
+        $ganttDays = max(1, (int) $ganttStart->diffInDays($ganttEnd) + 1);
+
+        return view('projects.timesheet', compact('project', 'logs', 'summary', 'ganttTasks', 'ganttStart', 'ganttEnd', 'ganttDays'));
     }
 }

@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
         $schedule->command('sla:check')->everyFiveMinutes();
         $schedule->command('invoices:check-overdue')->daily();
+        $schedule->command('tasks:generate-recurring')->dailyAt('00:05');
+        $schedule->command('notifications:deadline-reminders')->dailyAt('08:00');
+        $schedule->command('approvals:expire')->everyFifteenMinutes();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
