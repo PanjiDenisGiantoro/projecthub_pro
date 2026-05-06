@@ -28,6 +28,7 @@ use App\Http\Controllers\Web\SearchWebController;
 use App\Http\Controllers\Web\SprintWebController;
 use App\Http\Controllers\Web\TaskWebController;
 use App\Http\Controllers\Web\TicketWebController;
+use App\Http\Controllers\Web\AjaxController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
 use Illuminate\Support\Facades\Route;
@@ -118,6 +119,14 @@ Route::middleware('auth')->group(function () {
     Route::put('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'update'])->name('kb.update');
     Route::delete('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'destroy'])->name('kb.destroy');
     Route::delete('/kb-attachments/{attachment}', [KbArticleWebController::class, 'deleteAttachment'])->name('kb.attachment.destroy');
+
+    // AJAX cascade dropdowns
+    Route::prefix('ajax')->name('ajax.')->group(function () {
+        Route::get('/companies',  [AjaxController::class, 'companies'])->name('companies');
+        Route::get('/branches',   [AjaxController::class, 'branches'])->name('branches');
+        Route::get('/divisions',  [AjaxController::class, 'divisions'])->name('divisions');
+        Route::get('/departments',[AjaxController::class, 'departments'])->name('departments');
+    });
 
     // User Management (Admin only)
     Route::resource('users', UserWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
