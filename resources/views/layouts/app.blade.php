@@ -94,6 +94,66 @@
                     showConfirmButton: false,
                     timer: 3500,
                     timerProgressBar: true,
+                    background: '#16a34a',
+                    color: '#ffffff',
+                    iconColor: '#ffffff',
+                    customClass: { popup: 'swal-toast-popup' }
+                });
+            });
+        </script>
+        @endif
+        @if(session('danger'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: @json(session('danger')),
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    background: '#dc2626',
+                    color: '#ffffff',
+                    iconColor: '#ffffff',
+                    customClass: { popup: 'swal-toast-popup' }
+                });
+            });
+        </script>
+        @endif
+        @if(session('warning'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: @json(session('warning')),
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    background: '#d97706',
+                    color: '#ffffff',
+                    iconColor: '#ffffff',
+                    customClass: { popup: 'swal-toast-popup' }
+                });
+            });
+        </script>
+        @endif
+        @if(session('info'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: @json(session('info')),
+                    showConfirmButton: false,
+                    timer: 3500,
+                    timerProgressBar: true,
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    iconColor: '#ffffff',
                     customClass: { popup: 'swal-toast-popup' }
                 });
             });
@@ -196,7 +256,15 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style>
-.swal-toast-popup { font-size: 0.875rem !important; }
+.swal-toast-popup {
+    font-size: 1rem !important;
+    min-width: 340px !important;
+    padding: 0.85rem 1.25rem !important;
+}
+.swal-toast-popup .swal2-title {
+    font-size: 0.975rem !important;
+    font-weight: 600 !important;
+}
 </style>
 </body>
 </html>

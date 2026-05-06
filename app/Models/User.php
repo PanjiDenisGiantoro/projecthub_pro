@@ -22,6 +22,7 @@ class User extends Authenticatable
         'is_active',
         'timezone',
         'department_id',
+        'structural_level_id',
     ];
 
     protected $hidden = [
@@ -71,6 +72,11 @@ class User extends Authenticatable
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function structuralLevel()
+    {
+        return $this->belongsTo(StructuralLevel::class);
     }
 
     public function division()

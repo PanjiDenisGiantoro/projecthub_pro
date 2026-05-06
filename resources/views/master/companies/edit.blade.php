@@ -48,6 +48,14 @@
                 </div>
 
                 <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                    <input type="url" name="website" value="{{ old('website', $company->website) }}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('website') border-red-400 @enderror"
+                           placeholder="https://www.perusahaan.com">
+                    @error('website')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
                     <textarea name="address" rows="3"
                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('address', $company->address) }}</textarea>

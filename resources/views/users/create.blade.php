@@ -27,6 +27,16 @@
                 @endforeach
             </select></div>
 
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Level Struktural</label>
+            <select name="structural_level_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">— Tidak Ditentukan —</option>
+                @foreach($structuralLevels as $level)
+                    <option value="{{ $level->id }}" {{ old('structural_level_id') == $level->id ? 'selected' : '' }}>
+                        {{ $level->sort_order }}. {{ $level->name }}
+                    </option>
+                @endforeach
+            </select></div>
+
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active" checked class="w-4 h-4 text-blue-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>

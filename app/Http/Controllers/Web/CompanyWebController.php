@@ -33,6 +33,7 @@ class CompanyWebController extends Controller
             'address'   => 'nullable|string',
             'phone'     => 'nullable|string|max:20',
             'email'     => 'nullable|email',
+            'website'   => 'nullable|url|max:255',
             'is_active' => 'boolean',
         ]);
 
@@ -54,6 +55,7 @@ class CompanyWebController extends Controller
             'address'   => 'nullable|string',
             'phone'     => 'nullable|string|max:20',
             'email'     => 'nullable|email',
+            'website'   => 'nullable|url|max:255',
             'is_active' => 'boolean',
         ]);
 

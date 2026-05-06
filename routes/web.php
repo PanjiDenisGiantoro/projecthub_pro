@@ -28,6 +28,7 @@ use App\Http\Controllers\Web\SearchWebController;
 use App\Http\Controllers\Web\SprintWebController;
 use App\Http\Controllers\Web\TaskWebController;
 use App\Http\Controllers\Web\TicketWebController;
+use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -128,6 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('branches', BranchWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('divisions', DivisionWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('departments', DepartmentWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     });
 
     // Timesheet

@@ -101,6 +101,15 @@
                         </div>
                     </div>
 
+                    @if($company->website)
+                        <p class="text-xs mb-1 line-clamp-1">
+                            <svg class="w-3 h-3 inline mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                            <a href="{{ $company->website }}" target="_blank" rel="noopener noreferrer"
+                               class="text-blue-500 hover:text-blue-700 hover:underline transition-colors">
+                                {{ parse_url($company->website, PHP_URL_HOST) ?? $company->website }}
+                            </a>
+                        </p>
+                    @endif
                     @if($company->address)
                         <p class="text-xs text-gray-400 mb-4 line-clamp-1">
                             <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>

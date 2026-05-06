@@ -50,6 +50,17 @@
             </div>
             <p class="text-xs text-gray-500 font-medium">Departemen</p>
         </a>
+
+        <a href="{{ route('structural-levels.index') }}"
+           class="group bg-white rounded-xl border border-gray-200 p-4 hover:border-amber-300 hover:shadow-sm transition-all">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/></svg>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['structural_levels'] }}</p>
+            </div>
+            <p class="text-xs text-gray-500 font-medium">Level Struktural</p>
+        </a>
     </div>
 
     {{-- Org Tree --}}
