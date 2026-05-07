@@ -112,14 +112,7 @@
                 </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
-                <select name="timezone" id="select-timezone" class="w-full">
-                    @foreach(['Asia/Jakarta','Asia/Makassar','Asia/Jayapura','UTC'] as $tz)
-                        <option value="{{ $tz }}" {{ old('timezone', $user->timezone) === $tz ? 'selected' : '' }}>{{ $tz }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <input type="hidden" name="timezone" value="{{ $user->timezone ?? 'Asia/Jakarta' }}">
 
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active"
@@ -155,64 +148,71 @@ $(function () {
         department_id: {{ old('department_id', $user->department_id) ?? 'null' }},
     };
 
-    $('#select-role, #select-level, #select-timezone, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
+    $('#select-role, #select-level, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',
     });
 
-    function loadOptions(selectEl, url, params, placeholder, preselectVal) {
-        $(selectEl).empty().append(`<option value="">${placeholder}</option>`).prop('disabled', true).trigger('change');
+    let cascading = false;
+
+    function loadOptions(selectEl, url, params, placeholder, preselectVal, isLastLevel) {
+        // Use change.select2 to refresh Select2 display WITHOUT firing our cascade handlers
+        $(selectEl).empty().append(`<option value="">${placeholder}</option>`)
+            .prop('disabled', true).trigger('change.select2');
         $.getJSON(url, params, function (data) {
             data.forEach(item => $(selectEl).append(new Option(item.name, item.id)));
             $(selectEl).prop('disabled', data.length === 0);
-            if (preselectVal) {
-                $(selectEl).val(preselectVal).trigger('change');
+            if (preselectVal && data.length > 0) {
+                $(selectEl).val(preselectVal).trigger('change'); // cascade to next level
             } else {
-                $(selectEl).trigger('change');
+                $(selectEl).trigger('change.select2'); // just refresh display
+                if (cascading) cascading = false;
             }
+            if (isLastLevel) cascading = false;
         });
     }
 
     $('#sel-company').on('change', function () {
         const id = $(this).val();
-        const isCascade = $(this).data('cascade');
         $('#sel-branch, #sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
+            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change.select2');
         if (id) {
             loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —',
-                isCascade ? preselect.branch_id : null);
+                cascading ? preselect.branch_id : null, false);
+        } else {
+            cascading = false;
         }
-        $(this).removeData('cascade');
     });
 
     $('#sel-branch').on('change', function () {
         const id = $(this).val();
-        const isCascade = $(this).data('cascade');
         $('#sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
+            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change.select2');
         if (id) {
             loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —',
-                isCascade ? preselect.division_id : null);
+                cascading ? preselect.division_id : null, false);
+        } else {
+            cascading = false;
         }
-        $(this).removeData('cascade');
     });
 
     $('#sel-division').on('change', function () {
         const id = $(this).val();
-        const isCascade = $(this).data('cascade');
         $('#sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
+            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change.select2');
         if (id) {
             loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —',
-                isCascade ? preselect.department_id : null);
+                cascading ? preselect.department_id : null, true);
+        } else {
+            cascading = false;
         }
-        $(this).removeData('cascade');
     });
 
     // Trigger cascade pre-population on page load
     if (preselect.company_id) {
-        $('#sel-company').data('cascade', true).val(preselect.company_id).trigger('change');
+        cascading = true;
+        $('#sel-company').trigger('change'); // company already selected via server-side HTML
     }
 });
 </script>
