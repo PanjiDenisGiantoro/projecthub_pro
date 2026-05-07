@@ -29,6 +29,7 @@ use App\Http\Controllers\Web\SprintWebController;
 use App\Http\Controllers\Web\TaskWebController;
 use App\Http\Controllers\Web\TicketWebController;
 use App\Http\Controllers\Web\AjaxController;
+use App\Http\Controllers\Web\RoleWebController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/approvals/{approval}/approve', [ApprovalWebController::class, 'approve'])->name('approvals.approve');
     Route::put('/approvals/{approval}/reject', [ApprovalWebController::class, 'reject'])->name('approvals.reject');
     Route::delete('/approvals/{approval}', [ApprovalWebController::class, 'cancel'])->name('approvals.cancel');
+
+    // Role Management (admin only)
+    Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // Permission Management (admin only)
     Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
