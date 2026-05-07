@@ -77,6 +77,10 @@ jobs:
             echo ">>> Install Composer dependencies"
             composer install --optimize-autoloader --no-interaction
 
+            echo ">>> Install NPM dan build assets"
+            npm ci --no-audit --no-fund
+            npm run build
+
             echo ">>> Jalankan migrasi database dev"
             php artisan migrate --force
 
