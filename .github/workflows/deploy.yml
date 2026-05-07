@@ -68,7 +68,7 @@ jobs:
             set -e
 
             echo ">>> Masuk ke direktori project"
-            cd /var/www/projecthub_pro
+            cd /root/projecthub_pro
 
             echo ">>> Pull kode terbaru dari master"
             git pull origin master
