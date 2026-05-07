@@ -89,7 +89,7 @@ jobs:
             echo ">>> Restart queue worker"
             php artisan queue:restart
 
-            echo ">>> Deploy dev selesai!"
+            echo ">>> Deploy DEV selesai! → dev-projecthub.arunikasolusiinovasi.tech"
 
   # ─────────────────────────────────────────────────────────
   # JOB 3: Deploy — jalan saat push ke master (PR di-merge)
@@ -134,4 +134,4 @@ jobs:
             echo ">>> Restart PHP-FPM"
             systemctl restart php8.4-fpm || service php8.4-fpm restart || true
 
-            echo ">>> Deploy selesai!"
+            echo ">>> Deploy PRODUCTION selesai! → projecthub.arunikasolusiinovasi.tech"
