@@ -15,7 +15,7 @@
             <span class="text-blue-700 font-bold text-xl">PH</span>
         </div>
         <h1 class="text-2xl font-bold text-white">ProjectHub Pro</h1>
-        <p class="text-blue-200 text-sm mt-1">Integrated Project & Marketing Management</p>
+        <p class="text-blue-200 text-sm mt-1">Integrated Project & Marketing Managements</p>
     </div>
 
     {{-- Card --}}
