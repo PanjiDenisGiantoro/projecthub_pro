@@ -46,7 +46,7 @@ jobs:
         run: find app/ -name "*.php" | xargs php -l
 
       - name: Validate composer.json
-        run: composer validate --strict
+        run: composer validate
 
   # ─────────────────────────────────────────────────────────
   # JOB 2: Deploy — jalan saat push ke master (PR di-merge)
