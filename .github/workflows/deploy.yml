@@ -49,7 +49,50 @@ jobs:
         run: composer validate
 
   # ─────────────────────────────────────────────────────────
-  # JOB 2: Deploy — jalan saat push ke master (PR di-merge)
+  # JOB 2: Deploy Dev — jalan saat push ke dev
+  # ─────────────────────────────────────────────────────────
+  deploy-dev:
+    name: Deploy ke Dev
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    needs: ci
+
+    steps:
+      - name: Deploy Dev via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            set -e
+
+            echo ">>> Masuk ke direktori dev"
+            cd /root/projecthub_pro_dev
+
+            echo ">>> Pull kode terbaru dari dev"
+            git pull origin dev
+
+            echo ">>> Install Composer dependencies"
+            composer install --optimize-autoloader --no-interaction
+
+            echo ">>> Jalankan migrasi database dev"
+            php artisan migrate --force
+
+            echo ">>> Build cache"
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            echo ">>> Restart queue worker"
+            php artisan queue:restart
+
+            echo ">>> Deploy dev selesai!"
+
+  # ─────────────────────────────────────────────────────────
+  # JOB 3: Deploy — jalan saat push ke master (PR di-merge)
   # ─────────────────────────────────────────────────────────
   deploy:
     name: Deploy ke Production
