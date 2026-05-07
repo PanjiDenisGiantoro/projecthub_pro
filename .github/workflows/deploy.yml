@@ -1,0 +1,94 @@
+name: CI/CD ProjectHub Pro
+
+on:
+  push:
+    branches: [ dev, master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # ─────────────────────────────────────────────────────────
+  # JOB 1: CI Check — jalan saat push ke dev atau PR ke master
+  # ─────────────────────────────────────────────────────────
+  ci:
+    name: CI Check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, bcmath, pdo_mysql, tokenizer, xml, ctype, json
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Check PHP syntax
+        run: find app/ -name "*.php" | xargs php -l
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+  # ─────────────────────────────────────────────────────────
+  # JOB 2: Deploy — jalan saat push ke master (PR di-merge)
+  # ─────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy ke Production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            set -e
+
+            echo ">>> Masuk ke direktori project"
+            cd /var/www/projecthub_pro
+
+            echo ">>> Pull kode terbaru dari master"
+            git pull origin master
+
+            echo ">>> Install Composer dependencies (production)"
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo ">>> Jalankan migrasi database"
+            php artisan migrate --force
+
+            echo ">>> Build cache"
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            echo ">>> Restart queue worker"
+            php artisan queue:restart
+
+            echo ">>> Restart PHP-FPM"
+            systemctl restart php8.4-fpm || service php8.4-fpm restart || true
+
+            echo ">>> Deploy selesai!"
