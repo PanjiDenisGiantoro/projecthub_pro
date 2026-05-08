@@ -19,40 +19,35 @@ class DatabaseSeeder extends Seeder
         }
 
         // Create default users
-        $admin = User::factory()->create([
-            'name' => 'Admin ProjectHub',
-            'email' => 'admin@projecthub.pro',
-            'is_active' => true,
-        ]);
-        $admin->assignRole('admin');
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@projecthub.pro'],
+            ['name' => 'Admin ProjectHub', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+        );
+        $admin->syncRoles(['admin']);
 
-        $manager = User::factory()->create([
-            'name' => 'Manager One',
-            'email' => 'manager@projecthub.pro',
-            'is_active' => true,
-        ]);
-        $manager->assignRole('manager');
+        $manager = User::firstOrCreate(
+            ['email' => 'manager@projecthub.pro'],
+            ['name' => 'Manager One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+        );
+        $manager->syncRoles(['manager']);
 
-        $dev = User::factory()->create([
-            'name' => 'Developer One',
-            'email' => 'dev@projecthub.pro',
-            'is_active' => true,
-        ]);
-        $dev->assignRole('developer');
+        $dev = User::firstOrCreate(
+            ['email' => 'dev@projecthub.pro'],
+            ['name' => 'Developer One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+        );
+        $dev->syncRoles(['developer']);
 
-        $marketing = User::factory()->create([
-            'name' => 'Marketing One',
-            'email' => 'marketing@projecthub.pro',
-            'is_active' => true,
-        ]);
-        $marketing->assignRole('marketing');
+        $marketing = User::firstOrCreate(
+            ['email' => 'marketing@projecthub.pro'],
+            ['name' => 'Marketing One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+        );
+        $marketing->syncRoles(['marketing']);
 
-        $customer = User::factory()->create([
-            'name' => 'Client One',
-            'email' => 'client@projecthub.pro',
-            'is_active' => true,
-        ]);
-        $customer->assignRole('customer');
+        $customer = User::firstOrCreate(
+            ['email' => 'client@projecthub.pro'],
+            ['name' => 'Client One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+        );
+        $customer->syncRoles(['customer']);
 
         // Default SLA policies (global)
         $slaPolicies = [
