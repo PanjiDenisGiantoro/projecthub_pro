@@ -19,31 +19,31 @@ class DatabaseSeeder extends Seeder
         }
 
         // Create default users
-        $admin = User::firstOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@projecthub.pro'],
             ['name' => 'Admin ProjectHub', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
         $admin->syncRoles(['admin']);
 
-        $manager = User::firstOrCreate(
+        $manager = User::updateOrCreate(
             ['email' => 'manager@projecthub.pro'],
             ['name' => 'Manager One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
         $manager->syncRoles(['manager']);
 
-        $dev = User::firstOrCreate(
+        $dev = User::updateOrCreate(
             ['email' => 'dev@projecthub.pro'],
             ['name' => 'Developer One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
         $dev->syncRoles(['developer']);
 
-        $marketing = User::firstOrCreate(
+        $marketing = User::updateOrCreate(
             ['email' => 'marketing@projecthub.pro'],
             ['name' => 'Marketing One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
         $marketing->syncRoles(['marketing']);
 
-        $customer = User::firstOrCreate(
+        $customer = User::updateOrCreate(
             ['email' => 'client@projecthub.pro'],
             ['name' => 'Client One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
