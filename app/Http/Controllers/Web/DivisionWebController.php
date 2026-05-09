@@ -46,6 +46,8 @@ class DivisionWebController extends Controller
             'is_active'   => 'boolean',
         ]);
 
+        $data['is_active'] = $request->boolean('is_active');
+
         if (!empty($data['code'])) {
             $exists = Division::where('branch_id', $data['branch_id'])
                 ->where('code', $data['code'])->exists();
@@ -75,6 +77,8 @@ class DivisionWebController extends Controller
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
         ]);
+
+        $data['is_active'] = $request->boolean('is_active');
 
         if (!empty($data['code'])) {
             $exists = Division::where('branch_id', $data['branch_id'])

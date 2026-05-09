@@ -32,6 +32,8 @@ class StructuralLevelWebController extends Controller
             'is_active'  => 'boolean',
         ]);
 
+        $data['is_active'] = $request->boolean('is_active');
+
         StructuralLevel::create($data);
 
         return redirect()->route('structural-levels.index')->with('success', 'Level struktural berhasil ditambahkan.');
@@ -49,6 +51,8 @@ class StructuralLevelWebController extends Controller
             'sort_order' => 'required|integer|min:0',
             'is_active'  => 'boolean',
         ]);
+
+        $data['is_active'] = $request->boolean('is_active');
 
         $structuralLevel->update($data);
 

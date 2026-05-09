@@ -37,6 +37,8 @@ class CompanyWebController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $data['is_active'] = $request->boolean('is_active');
+
         Company::create($data);
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil ditambahkan.');
@@ -58,6 +60,8 @@ class CompanyWebController extends Controller
             'website'   => 'nullable|url|max:255',
             'is_active' => 'boolean',
         ]);
+
+        $data['is_active'] = $request->boolean('is_active');
 
         $company->update($data);
 

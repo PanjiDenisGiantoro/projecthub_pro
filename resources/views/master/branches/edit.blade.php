@@ -2,6 +2,22 @@
 @section('title', 'Edit Branch')
 @section('page-title', 'Edit Branch')
 
+@push('head')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<style>
+.select2-container--default .select2-selection--single {
+    height: 42px !important; border: 1px solid #d1d5db !important; border-radius: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important; font-size: 0.875rem !important; display: flex; align-items: center;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 1.5 !important; color: #111827 !important; padding-left: 0 !important; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; right: 8px !important; }
+.select2-container--default.select2-container--focus .select2-selection--single { border-color: #3b82f6 !important; box-shadow: 0 0 0 2px rgba(59,130,246,.25) !important; }
+.select2-dropdown { border: 1px solid #d1d5db !important; border-radius: 0.5rem !important; font-size: 0.875rem !important; }
+.select2-results__option--highlighted { background-color: #2563eb !important; }
+.select2-search--dropdown .select2-search__field { border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.375rem 0.625rem !important; font-size: 0.875rem !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="py-4 max-w-xl">
 
@@ -20,7 +36,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan <span class="text-red-500">*</span></label>
-                <select name="company_id" required
+                <select name="company_id" id="sel-company" required
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('company_id') border-red-400 @enderror">
                     <option value="">— Pilih Perusahaan —</option>
                     @foreach($companies as $company)
@@ -83,3 +99,13 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(function () {
+    $('#sel-company').select2({ placeholder: '— Pilih Perusahaan —', allowClear: true, width: '100%' });
+});
+</script>
+@endpush

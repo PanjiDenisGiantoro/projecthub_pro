@@ -43,6 +43,8 @@ class BranchWebController extends Controller
             'is_active'  => 'boolean',
         ]);
 
+        $data['is_active'] = $request->boolean('is_active');
+
         if (!empty($data['code'])) {
             $exists = Branch::where('company_id', $data['company_id'])
                 ->where('code', $data['code'])->exists();
@@ -73,6 +75,8 @@ class BranchWebController extends Controller
             'email'      => 'nullable|email',
             'is_active'  => 'boolean',
         ]);
+
+        $data['is_active'] = $request->boolean('is_active');
 
         if (!empty($data['code'])) {
             $exists = Branch::where('company_id', $data['company_id'])

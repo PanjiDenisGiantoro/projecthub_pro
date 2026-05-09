@@ -91,21 +91,21 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                        <select id="sel-branch" class="w-full" disabled>
+                        <select id="sel-branch" class="w-full">
                             <option value="">— Pilih Branch —</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                        <select id="sel-division" class="w-full" disabled>
+                        <select id="sel-division" class="w-full">
                             <option value="">— Pilih Divisi —</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Departemen</label>
-                        <select id="sel-department" name="department_id" class="w-full" disabled>
+                        <select id="sel-department" name="department_id" class="w-full">
                             <option value="">— Pilih Departemen —</option>
                         </select>
                     </div>
@@ -140,11 +140,10 @@ $(function () {
         departments: '{{ route('ajax.departments') }}',
     };
 
-    // Preselect values dari server
     const preselect = {
-        company_id:  {{ $preselect['company_id']  ?? 'null' }},
-        branch_id:   {{ $preselect['branch_id']   ?? 'null' }},
-        division_id: {{ $preselect['division_id'] ?? 'null' }},
+        company_id:    {{ $preselect['company_id']  ?? 'null' }},
+        branch_id:     {{ $preselect['branch_id']   ?? 'null' }},
+        division_id:   {{ $preselect['division_id'] ?? 'null' }},
         department_id: {{ old('department_id', $user->department_id) ?? 'null' }},
     };
 
@@ -154,65 +153,54 @@ $(function () {
         width: '100%',
     });
 
-    let cascading = false;
+    function clearSelect(sel, placeholder) {
+        $(sel).empty().append(`<option value="">${placeholder}</option>`).trigger('change.select2');
+    }
 
-    function loadOptions(selectEl, url, params, placeholder, preselectVal, isLastLevel) {
-        // Use change.select2 to refresh Select2 display WITHOUT firing our cascade handlers
-        $(selectEl).empty().append(`<option value="">${placeholder}</option>`)
-            .prop('disabled', true).trigger('change.select2');
-        $.getJSON(url, params, function (data) {
-            data.forEach(item => $(selectEl).append(new Option(item.name, item.id)));
-            $(selectEl).prop('disabled', data.length === 0);
-            if (preselectVal && data.length > 0) {
-                $(selectEl).val(preselectVal).trigger('change'); // cascade to next level
-            } else {
-                $(selectEl).trigger('change.select2'); // just refresh display
-                if (cascading) cascading = false;
-            }
-            if (isLastLevel) cascading = false;
+    function loadOptions(sel, url, params, placeholder, preselectVal, nextFn) {
+        clearSelect(sel, placeholder);
+        $.getJSON(url, params).done(function (data) {
+            $(sel).empty().append(`<option value="">${placeholder}</option>`);
+            data.forEach(item => $(sel).append(new Option(item.name, item.id)));
+            if (preselectVal) $(sel).val(preselectVal);
+            $(sel).trigger('change.select2');
+            if (nextFn) nextFn();
         });
     }
 
     $('#sel-company').on('change', function () {
         const id = $(this).val();
-        $('#sel-branch, #sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change.select2');
-        if (id) {
-            loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —',
-                cascading ? preselect.branch_id : null, false);
-        } else {
-            cascading = false;
-        }
+        clearSelect('#sel-branch', '— Pilih Branch —');
+        clearSelect('#sel-division', '— Pilih Divisi —');
+        clearSelect('#sel-department', '— Pilih Departemen —');
+        if (id) loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —');
     });
 
     $('#sel-branch').on('change', function () {
         const id = $(this).val();
-        $('#sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change.select2');
-        if (id) {
-            loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —',
-                cascading ? preselect.division_id : null, false);
-        } else {
-            cascading = false;
-        }
+        clearSelect('#sel-division', '— Pilih Divisi —');
+        clearSelect('#sel-department', '— Pilih Departemen —');
+        if (id) loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —');
     });
 
     $('#sel-division').on('change', function () {
         const id = $(this).val();
-        $('#sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change.select2');
-        if (id) {
-            loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —',
-                cascading ? preselect.department_id : null, true);
-        } else {
-            cascading = false;
-        }
+        clearSelect('#sel-department', '— Pilih Departemen —');
+        if (id) loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —');
     });
 
-    // Trigger cascade pre-population on page load
+    // Pre-populate cascade on page load using sequential callbacks
     if (preselect.company_id) {
-        cascading = true;
-        $('#sel-company').trigger('change'); // company already selected via server-side HTML
+        loadOptions('#sel-branch', URLS.branches, { company_id: preselect.company_id }, '— Pilih Branch —',
+            preselect.branch_id, function () {
+                if (!preselect.branch_id) return;
+                loadOptions('#sel-division', URLS.divisions, { branch_id: preselect.branch_id }, '— Pilih Divisi —',
+                    preselect.division_id, function () {
+                        if (!preselect.division_id) return;
+                        loadOptions('#sel-department', URLS.departments, { division_id: preselect.division_id }, '— Pilih Departemen —',
+                            preselect.department_id, null);
+                    });
+            });
     }
 });
 </script>

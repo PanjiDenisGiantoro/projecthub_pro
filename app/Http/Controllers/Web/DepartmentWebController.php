@@ -57,6 +57,8 @@ class DepartmentWebController extends Controller
             'is_active'   => 'boolean',
         ]);
 
+        $data['is_active'] = $request->boolean('is_active');
+
         if (!empty($data['code'])) {
             $exists = Department::where('division_id', $data['division_id'])
                 ->where('code', $data['code'])->exists();
@@ -90,6 +92,8 @@ class DepartmentWebController extends Controller
             'head_id'     => 'nullable|exists:users,id',
             'is_active'   => 'boolean',
         ]);
+
+        $data['is_active'] = $request->boolean('is_active');
 
         if (!empty($data['code'])) {
             $exists = Department::where('division_id', $data['division_id'])

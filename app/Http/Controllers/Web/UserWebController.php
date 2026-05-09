@@ -13,16 +13,34 @@ class UserWebController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::with(['roles', 'structuralLevel', 'department'])
+        $authUser  = auth()->user();
+        $isAdmin   = $authUser->hasRole('admin');
+
+        $query = User::with(['roles', 'structuralLevel', 'department'])
             ->when($request->role, fn($q) => $q->role($request->role))
-            ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")->orWhere('email', 'like', "%{$request->search}%"))
-            ->paginate(20);
-        $roles = Role::all();
-        return view('users.index', compact('users', 'roles'));
+            ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
+                ->orWhere('email', 'like', "%{$request->search}%"));
+
+        if (!$isAdmin) {
+            if ($authUser->department_id) {
+                $query->where('department_id', $authUser->department_id);
+            } else {
+                $query->where('id', $authUser->id);
+            }
+        }
+
+        $users = $query->paginate(20);
+        $roles = $isAdmin ? Role::all() : collect();
+
+        return view('users.index', compact('users', 'roles', 'isAdmin'));
     }
 
     public function create()
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
         $roles            = Role::all();
         $structuralLevels = StructuralLevel::active()->get();
         $companies        = Company::where('is_active', true)->orderBy('name')->get(['id', 'name']);
@@ -31,6 +49,10 @@ class UserWebController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
         $request->validate([
             'name'                => 'required|string|max:255',
             'email'               => 'required|email|unique:users',
@@ -55,6 +77,10 @@ class UserWebController extends Controller
 
     public function edit(User $user)
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
         $roles            = Role::all();
         $structuralLevels = StructuralLevel::active()->get();
         $companies        = Company::where('is_active', true)->orderBy('name')->get(['id', 'name']);
@@ -75,6 +101,10 @@ class UserWebController extends Controller
 
     public function update(Request $request, User $user)
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
         $request->validate([
             'name'                => 'required|string|max:255',
             'email'               => 'required|email|unique:users,email,' . $user->id,
@@ -91,6 +121,10 @@ class UserWebController extends Controller
 
     public function destroy(User $user)
     {
+        if (!auth()->user()->hasRole('admin')) {
+            abort(403);
+        }
+
         if ($user->id === auth()->id()) {
             return back()->withErrors(['Tidak bisa menghapus akun sendiri.']);
         }
