@@ -120,13 +120,13 @@ class ProjectWebController extends Controller
     {
         $request->validate([
             'user_id'           => 'required|exists:users,id',
-            'role'              => 'required|in:developer,marketing',
-            'max_hours_per_day' => 'integer|min:1|max:24',
+            'role'              => 'nullable|string|max:100',
+            'max_hours_per_day' => 'nullable|integer|min:1|max:24',
         ]);
 
         ProjectMember::updateOrCreate(
             ['project_id' => $project->id, 'user_id' => $request->user_id],
-            ['role' => $request->role, 'max_hours_per_day' => $request->get('max_hours_per_day', 8)]
+            ['role' => $request->role, 'max_hours_per_day' => $request->max_hours_per_day]
         );
 
         return back()->with('success', 'Anggota tim ditambahkan.');

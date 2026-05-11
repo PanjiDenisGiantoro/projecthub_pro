@@ -32,6 +32,7 @@ use App\Http\Controllers\Web\AjaxController;
 use App\Http\Controllers\Web\RoleWebController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
+use App\Http\Controllers\Web\ProfileWebController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -44,6 +45,11 @@ Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
+
+    // Profile
+    Route::get('/profile', [ProfileWebController::class, 'index'])->name('profile');
+    Route::put('/profile/avatar', [ProfileWebController::class, 'updateAvatar'])->name('profile.avatar');
+    Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
 
     // Projects
     Route::resource('projects', ProjectWebController::class);

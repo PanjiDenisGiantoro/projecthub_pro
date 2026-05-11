@@ -63,8 +63,12 @@ class TaskWebController extends Controller
 
     public function update(Request $request, Project $project, Task $task)
     {
+        $request->validate([
+            'completion_notes' => 'required_with:status|nullable|string|max:2000',
+        ]);
+
         $old = $task->status;
-        $task->update($request->only('title', 'description', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours'));
+        $task->update($request->only('title', 'description', 'completion_notes', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours'));
 
         if ($old !== $task->status) {
             $notify = $task->creator_id ?? $project->manager_id;
@@ -84,9 +88,15 @@ class TaskWebController extends Controller
 
     public function moveStatus(Request $request, Project $project, Task $task)
     {
-        $request->validate(['status' => 'required|in:todo,in_progress,review,done']);
+        $request->validate([
+            'status' => 'required|in:todo,in_progress,review,done',
+            'notes'  => 'nullable|string|max:2000',
+        ]);
         $old = $task->status;
-        $task->update(['status' => $request->status]);
+        $task->update([
+            'status'           => $request->status,
+            'completion_notes' => $request->notes ?: null,
+        ]);
 
         if ($old !== $task->status) {
             $notify = $task->created_by ?? $project->manager_id;

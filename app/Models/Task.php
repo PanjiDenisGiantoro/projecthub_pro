@@ -13,7 +13,7 @@ class Task extends Model
 
     protected $fillable = [
         'project_id', 'milestone_id', 'ticket_id', 'sprint_id', 'title', 'description',
-        'assigned_to', 'created_by', 'status', 'priority', 'start_date', 'due_date',
+        'completion_notes', 'assigned_to', 'created_by', 'status', 'priority', 'start_date', 'due_date',
         'estimated_hours', 'story_points', 'sort_order', 'recurring_definition_id',
     ];
 
