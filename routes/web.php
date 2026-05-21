@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
 use App\Http\Controllers\Web\CampaignWebController;
 use App\Http\Controllers\Web\ClientPortalWebController;
+use App\Http\Controllers\Web\ClientWebController;
 use App\Http\Controllers\Web\CompanyWebController;
 use App\Http\Controllers\Web\DashboardWebController;
 use App\Http\Controllers\Web\DepartmentWebController;
@@ -140,6 +141,9 @@ Route::middleware('auth')->group(function () {
 
     // User Management (Admin only)
     Route::resource('users', UserWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+
+    // Client Management
+    Route::resource('clients', ClientWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // Master Data (Admin only)
     Route::middleware('role:admin')->group(function () {
