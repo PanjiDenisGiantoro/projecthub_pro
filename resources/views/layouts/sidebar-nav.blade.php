@@ -1,7 +1,7 @@
 {{-- ── Helpers ──────────────────────────────────────────────────────────── --}}
 @php
     $active   = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold nav-link-active transition-all duration-200';
-    $inactive = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-indigo-50/70 hover:text-indigo-700 transition-all duration-150';
+    $inactive = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-white/8 hover:text-white transition-all duration-150';
 @endphp
 
 {{-- Dashboard --}}
@@ -47,7 +47,7 @@
     </svg>
     <span class="flex-1">Approvals</span>
     @if($pendingCount > 0)
-    <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center {{ request()->routeIs('approvals.*') ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700' }}">{{ $pendingCount }}</span>
+    <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center {{ request()->routeIs('approvals.*') ? 'bg-white/20 text-white' : 'bg-indigo-500/20 text-indigo-300' }}">{{ $pendingCount }}</span>
     @endif
 </a>
 @endcan
@@ -154,7 +154,7 @@
 {{-- Master Data section --}}
 @if(auth()->user()->can('access master data') || auth()->user()->can('manage master data') || auth()->user()->can('manage permissions') || auth()->user()->can('access approval policies'))
 <div class="pt-3">
-    <p class="px-3 pb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Master Data</p>
+    <p class="px-3 pb-1.5 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Master Data</p>
 
     @can('manage master data')
     <a href="{{ route('master.index') }}"
