@@ -247,7 +247,7 @@
         @endif
 
         {{-- Page content --}}
-        <main class="flex-1 px-6 pb-8 overflow-auto">
+        <main class="@yield('main-class', 'flex-1 px-6 pb-8 overflow-auto')">
             @yield('content')
         </main>
     </div>

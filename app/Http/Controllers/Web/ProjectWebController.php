@@ -87,7 +87,14 @@ class ProjectWebController extends Controller
             ->latest()
             ->get();
 
-        return view('projects.show', compact('project', 'developers', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles'));
+        $chatMembers = \App\Models\User::whereIn('id',
+            $project->members()->pluck('user_id')
+                ->push($project->manager_id)
+                ->filter()
+                ->unique()
+        )->select('id', 'name')->get();
+
+        return view('projects.show', compact('project', 'developers', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers'));
     }
 
     public function edit(Project $project)

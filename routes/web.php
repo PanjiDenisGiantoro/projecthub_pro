@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AnalyticsWebController;
+use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\ApprovalWebController;
 use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
@@ -219,6 +220,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/templates/{template}', [ProjectTemplateWebController::class, 'destroy'])->name('templates.destroy');
     Route::get('/templates/{template}/apply', [ProjectTemplateWebController::class, 'applyForm'])->name('templates.apply');
     Route::post('/templates/{template}/apply', [ProjectTemplateWebController::class, 'applyToProject'])->name('templates.apply.post');
+
+    // Chat
+    Route::get('/chat', [ChatWebController::class, 'index'])->name('chat.index');
+    Route::get('/chat/unread', [ChatWebController::class, 'unreadCount'])->name('chat.unread');
+    Route::get('/projects/{project}/chat/messages', [ChatWebController::class, 'messages'])->name('chat.messages');
+    Route::get('/projects/{project}/chat/members', [ChatWebController::class, 'members'])->name('chat.members');
+    Route::post('/projects/{project}/chat', [ChatWebController::class, 'store'])->name('chat.store');
+    Route::put('/projects/{project}/chat/{message}', [ChatWebController::class, 'update'])->name('chat.update');
+    Route::delete('/projects/{project}/chat/{message}', [ChatWebController::class, 'destroy'])->name('chat.destroy');
+    Route::post('/projects/{project}/chat/{message}/react', [ChatWebController::class, 'react'])->name('chat.react');
+    Route::post('/projects/{project}/chat/read', [ChatWebController::class, 'markRead'])->name('chat.markRead');
 
     // Exports
     Route::get('/projects/{project}/export/timesheet/excel', [ExportWebController::class, 'timesheetExcel'])->name('export.timesheet.excel');

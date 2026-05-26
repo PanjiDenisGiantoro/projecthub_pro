@@ -52,6 +52,28 @@
 </a>
 @endcan
 
+{{-- Chat --}}
+<a href="{{ route('chat.index') }}"
+   class="{{ request()->routeIs('chat.*') ? $active : $inactive }}">
+    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+    </svg>
+    <span class="flex-1">Chat</span>
+    @php
+        $chatUnread = \App\Models\ProjectMessage::whereHas('project', function($q) {
+            $user = auth()->user();
+            if ($user->hasRole(['admin','manager'])) return;
+            $q->where('manager_id', $user->id)
+              ->orWhereHas('members', fn($m) => $m->where('user_id', $user->id));
+        })->whereDoesntHave('reads', fn($r) => $r->where('user_id', auth()->id()))->count();
+    @endphp
+    @if($chatUnread > 0)
+    <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center {{ request()->routeIs('chat.*') ? 'bg-white/20 text-white' : 'bg-indigo-500/20 text-indigo-300' }}">
+        {{ $chatUnread > 99 ? '99+' : $chatUnread }}
+    </span>
+    @endif
+</a>
+
 {{-- Customer Requests --}}
 @can('access requests')
 <a href="{{ route('requests.index') }}"

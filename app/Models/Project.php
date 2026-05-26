@@ -115,6 +115,11 @@ class Project extends Model
         return $this->hasMany(RecurringTaskDefinition::class);
     }
 
+    public function messages()
+    {
+        return $this->hasMany(ProjectMessage::class);
+    }
+
     public function totalExpenses(): float
     {
         return (float) $this->budgetEntries()->where('type', 'expense')->sum('amount');
