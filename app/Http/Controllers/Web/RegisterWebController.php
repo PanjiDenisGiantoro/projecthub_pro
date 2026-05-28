@@ -71,6 +71,7 @@ class RegisterWebController extends Controller
                 'password'      => $request->password,
                 'department_id' => $department->id,
                 'is_active'     => true,
+                'is_registered' => true,
                 'timezone'      => 'Asia/Jakarta',
             ]);
 
