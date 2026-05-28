@@ -23,8 +23,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Admin bypasses ALL permission checks
-        Gate::before(fn($user) => $user->hasRole('admin') ? true : null);
+        // Superadmin & admin bypass ALL permission checks
+        Gate::before(fn($user) => ($user->is_super_admin || $user->hasRole('admin')) ? true : null);
 
         $this->registerApprovalHandlers();
     }
