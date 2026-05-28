@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\ApprovalWebController;
 use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
+use App\Http\Controllers\Web\RegisterWebController;
 use App\Http\Controllers\Web\BranchWebController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
@@ -35,10 +36,23 @@ use App\Http\Controllers\Web\RoleWebController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
 use App\Http\Controllers\Web\ProfileWebController;
+use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
+// ─── Public ───────────────────────────────────────────────────────────────────
+Route::get('/', fn() => view('landing'))->name('home');
+Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
+Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
+
+// ─── Super Admin ─────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
+    Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
+    Route::patch('/companies/{company}/toggle', [SuperAdminController::class, 'toggleCompany'])->name('companies.toggle');
+});
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
-Route::get('/', fn() => redirect()->route('login'));
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');

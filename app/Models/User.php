@@ -20,6 +20,8 @@ class User extends Authenticatable
         'password',
         'avatar',
         'is_active',
+        'is_super_admin',
+        'active_until',
         'timezone',
         'department_id',
         'structural_level_id',
@@ -34,9 +36,30 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean',
+            'password'          => 'hashed',
+            'is_active'         => 'boolean',
+            'is_super_admin'    => 'boolean',
+            'active_until'      => 'datetime',
         ];
+    }
+
+    public function isLifetime(): bool
+    {
+        return is_null($this->active_until);
+    }
+
+    public function isExpired(): bool
+    {
+        if ($this->isLifetime()) {
+            return false;
+        }
+
+        return $this->active_until->isPast();
+    }
+
+    public function hasActiveAccess(): bool
+    {
+        return $this->is_active && ! $this->isExpired();
     }
 
     public function managedProjects()
