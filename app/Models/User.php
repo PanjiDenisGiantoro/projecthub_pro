@@ -21,6 +21,7 @@ class User extends Authenticatable
         'avatar',
         'is_active',
         'is_super_admin',
+        'is_registered',
         'active_until',
         'timezone',
         'department_id',
@@ -39,6 +40,7 @@ class User extends Authenticatable
             'password'          => 'hashed',
             'is_active'         => 'boolean',
             'is_super_admin'    => 'boolean',
+            'is_registered'     => 'boolean',
             'active_until'      => 'datetime',
         ];
     }
@@ -60,6 +62,16 @@ class User extends Authenticatable
     public function hasActiveAccess(): bool
     {
         return $this->is_active && ! $this->isExpired();
+    }
+
+    public function scopeRegistered($query)
+    {
+        return $query->where('is_registered', true);
+    }
+
+    public function scopeRegisteredWithLifetime($query)
+    {
+        return $query->where('is_registered', true)->whereNull('active_until');
     }
 
     public function managedProjects()

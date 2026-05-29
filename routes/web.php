@@ -50,6 +50,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::patch('/companies/{company}/toggle', [SuperAdminController::class, 'toggleCompany'])->name('companies.toggle');
+    Route::get('/registered-users', [SuperAdminController::class, 'registeredUsers'])->name('registered-users');
+    Route::patch('/registered-users/{user}/lifetime', [SuperAdminController::class, 'updateLifetime'])->name('registered-users.lifetime');
 });
 
 // ─── Auth ────────────────────────────────────────────────────────────────────

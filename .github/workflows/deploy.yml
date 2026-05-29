@@ -75,7 +75,7 @@ jobs:
             git pull origin dev
 
             echo ">>> Install Composer dependencies"
-            composer install --optimize-autoloader --no-interaction
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader --no-interaction --ignore-platform-req=php
 
             echo ">>> Install NPM dan build assets"
             npm ci --no-audit --no-fund
@@ -121,7 +121,7 @@ jobs:
             git pull origin master
 
             echo ">>> Install Composer dependencies (production)"
-            composer install --no-dev --optimize-autoloader --no-interaction
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=php
 
             echo ">>> Jalankan migrasi database"
             php artisan migrate --force
@@ -136,6 +136,6 @@ jobs:
             php artisan queue:restart
 
             echo ">>> Restart PHP-FPM"
-            systemctl restart php8.4-fpm || service php8.4-fpm restart || true
+            systemctl restart php8.5-fpm || systemctl restart php8.4-fpm || service php8.5-fpm restart || service php8.4-fpm restart || true
 
             echo ">>> Deploy PRODUCTION selesai! → projecthub.arunikasolusiinovasi.tech"

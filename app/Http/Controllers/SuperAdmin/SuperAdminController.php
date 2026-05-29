@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class SuperAdminController extends Controller
 {
@@ -52,5 +53,51 @@ class SuperAdminController extends Controller
         $company->update(['is_active' => !$company->is_active]);
 
         return back()->with('success', 'Status perusahaan diperbarui.');
+    }
+
+    public function registeredUsers(Request $request)
+    {
+        $filter = $request->query('filter', 'all');
+
+        $query = User::with('department.division.branch.company')
+            ->where('is_registered', true)
+            ->latest();
+
+        if ($filter === 'lifetime') {
+            $query->whereNull('active_until');
+        } elseif ($filter === 'expiring') {
+            $query->whereNotNull('active_until')->where('active_until', '>', now());
+        } elseif ($filter === 'expired') {
+            $query->whereNotNull('active_until')->where('active_until', '<=', now());
+        }
+
+        $users = $query->paginate(20)->withQueryString();
+
+        $counts = [
+            'all'      => User::where('is_registered', true)->count(),
+            'lifetime' => User::where('is_registered', true)->whereNull('active_until')->count(),
+            'expiring' => User::where('is_registered', true)->whereNotNull('active_until')->where('active_until', '>', now())->count(),
+            'expired'  => User::where('is_registered', true)->whereNotNull('active_until')->where('active_until', '<=', now())->count(),
+        ];
+
+        return view('superadmin.registered-users', compact('users', 'filter', 'counts'));
+    }
+
+    public function updateLifetime(Request $request, User $user)
+    {
+        $request->validate([
+            'type'         => 'required|in:lifetime,expiry',
+            'active_until' => 'required_if:type,expiry|nullable|date|after:today',
+        ]);
+
+        $activeUntil = $request->type === 'lifetime' ? null : $request->active_until;
+
+        $user->update(['active_until' => $activeUntil]);
+
+        $msg = $request->type === 'lifetime'
+            ? "Masa aktif {$user->name} diset ke Lifetime."
+            : "Masa aktif {$user->name} diset hingga " . \Carbon\Carbon::parse($request->active_until)->format('d M Y') . '.';
+
+        return back()->with('success', $msg);
     }
 }
