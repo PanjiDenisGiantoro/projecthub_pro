@@ -104,7 +104,7 @@
                         Done
                     </button>
                 </div>
-                <a href="{{ route('tasks.index') }}"
+                <a href="{{ route('projects.index') }}"
                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
                     Lihat Semua
                 </a>
