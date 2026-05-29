@@ -113,7 +113,10 @@ class UserWebController extends Controller
             'department_id'       => 'nullable|exists:departments,id',
         ]);
 
-        $user->update($request->only('name', 'email', 'is_active', 'timezone', 'structural_level_id', 'department_id'));
+        $user->update([
+            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'department_id'),
+            'is_active' => $request->boolean('is_active'),
+        ]);
         $user->syncRoles([$request->role]);
 
         return redirect()->route('users.index')->with('success', 'User diperbarui.');

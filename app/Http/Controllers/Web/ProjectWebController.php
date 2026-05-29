@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\StructuralLevel;
 use App\Models\TimeLog;
 use App\Models\User;
 use App\Services\SlaService;
@@ -64,8 +65,9 @@ class ProjectWebController extends Controller
             'milestones.assignee', 'milestones.tasks',
             'tasks' => fn($q) => $q->with('assignee')->limit(10),
         ]);
-        $slaPolicies = app(SlaService::class);
-        $developers  = User::role(['developer', 'marketing'])->where('is_active', true)->get();
+        $slaPolicies      = app(SlaService::class);
+        $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->get();
+        $structuralLevels = StructuralLevel::active()->get();
         $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
 
         // Task & hour stats per member
@@ -94,7 +96,7 @@ class ProjectWebController extends Controller
                 ->unique()
         )->select('id', 'name')->get();
 
-        return view('projects.show', compact('project', 'developers', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers'));
+        return view('projects.show', compact('project', 'developers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers'));
     }
 
     public function edit(Project $project)
@@ -133,7 +135,7 @@ class ProjectWebController extends Controller
 
         ProjectMember::updateOrCreate(
             ['project_id' => $project->id, 'user_id' => $request->user_id],
-            ['role' => $request->role, 'max_hours_per_day' => $request->max_hours_per_day]
+            ['role' => $request->role ?? 'developer', 'max_hours_per_day' => $request->max_hours_per_day ?? 8]
         );
 
         return back()->with('success', 'Anggota tim ditambahkan.');
