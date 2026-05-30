@@ -16,6 +16,11 @@
 </head>
 <body class="h-full font-sans antialiased bg-slate-50" x-data="{ sidebarOpen: false }">
 
+{{-- Page Loading Overlay --}}
+<div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
+    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-64 h-64 object-contain">
+</div>
+
 <div class="flex h-full">
 
     {{-- ── Desktop Sidebar ────────────────────────────────────────────────── --}}
@@ -386,6 +391,22 @@ document.addEventListener('DOMContentLoaded', function () {
     font-size: 0.975rem !important;
     font-weight: 600 !important;
 }
+#page-loader {
+    transition: opacity 0.3s ease;
+}
+#page-loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 </style>
+<script>
+window.addEventListener('load', function () {
+    var loader = document.getElementById('page-loader');
+    if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(function () { loader.style.display = 'none'; }, 300);
+    }
+});
+</script>
 </body>
 </html>
