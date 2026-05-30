@@ -1,7 +1,13 @@
 {{-- ── Helpers ──────────────────────────────────────────────────────────── --}}
 @php
-    $active   = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold nav-link-active transition-all duration-200';
-    $inactive = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-white/8 hover:text-white transition-all duration-150';
+    $active       = 'ph-nav-link ph-active';
+    $inactive     = 'ph-nav-link';
+    $isSuperAdmin = auth()->user()->is_super_admin;
+    $userPkgs     = $isSuperAdmin ? ['task_management', 'hris'] : auth()->user()->activePackages();
+    $activePkg    = session('active_package', $userPkgs[0] ?? 'task_management');
+    $activePkg    = is_string($activePkg) ? $activePkg : 'task_management'; // guard: jangan sampai object masuk session
+    $showTm       = empty($userPkgs) || $activePkg === 'task_management';
+    $showHris     = $activePkg === 'hris';
 @endphp
 
 {{-- Dashboard --}}
@@ -14,6 +20,9 @@
     Dashboard
 </a>
 @endcan
+
+{{-- ══ TASK MANAGEMENT NAV ══════════════════════════════════════════════════ --}}
+@if($showTm)
 
 {{-- Projects --}}
 @can('access projects')
@@ -47,7 +56,7 @@
     </svg>
     <span class="flex-1">Approvals</span>
     @if($pendingCount > 0)
-    <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center {{ request()->routeIs('approvals.*') ? 'bg-white/20 text-white' : 'bg-indigo-500/20 text-indigo-300' }}">{{ $pendingCount }}</span>
+    <span class="ph-nav-badge">{{ $pendingCount }}</span>
     @endif
 </a>
 @endcan
@@ -68,9 +77,7 @@
         })->whereDoesntHave('reads', fn($r) => $r->where('user_id', auth()->id()))->count();
     @endphp
     @if($chatUnread > 0)
-    <span class="text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center {{ request()->routeIs('chat.*') ? 'bg-white/20 text-white' : 'bg-indigo-500/20 text-indigo-300' }}">
-        {{ $chatUnread > 99 ? '99+' : $chatUnread }}
-    </span>
+    <span class="ph-nav-badge">{{ $chatUnread > 99 ? '99+' : $chatUnread }}</span>
     @endif
 </a>
 
@@ -162,16 +169,90 @@
 </a>
 @endcan
 
-{{-- User Management --}}
+@endif {{-- /showTm --}}
+
+{{-- ══ HRIS NAV ════════════════════════════════════════════════════════════ --}}
+@if($showHris)
+
+{{-- Data Karyawan (shared users route, relabeled) --}}
 @can('access users')
 <a href="{{ route('users.index') }}"
    class="{{ request()->routeIs('users.*') ? $active : $inactive }}">
     <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
     </svg>
-    Users
+    Data Karyawan
 </a>
 @endcan
+
+<div class="pt-2 pb-1">
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Core HRIS</p>
+
+    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="flex-1">Absensi</span>
+        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+    </a>
+
+    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <span class="flex-1">Penggajian</span>
+        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+    </a>
+
+    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+        </svg>
+        <span class="flex-1">Pajak (PPh 21)</span>
+        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+    </a>
+
+    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span class="flex-1">Cuti & Izin</span>
+        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+    </a>
+
+    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="flex-1">Lembur</span>
+        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+    </a>
+
+    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        <span class="flex-1">Reimburse</span>
+        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+    </a>
+</div>
+
+@endif {{-- /showHris --}}
+
+{{-- ══ SHARED: Anggota Tim (Task Management) / tidak muncul di HRIS ═══════ --}}
+
+{{-- User Management — hanya tampil di TM, di HRIS sudah ada sebagai "Data Karyawan" --}}
+@if($showTm)
+@can('access users')
+<a href="{{ route('users.index') }}"
+   class="{{ request()->routeIs('users.*') ? $active : $inactive }}">
+    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    Anggota Tim
+</a>
+@endcan
+@endif
 
 {{-- Client Management --}}
 @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager'))
@@ -184,10 +265,10 @@
 </a>
 @endif
 
-{{-- Master Data section --}}
+{{-- ══ Master Data section ═════════════════════════════════════════════════ --}}
 @if(auth()->user()->can('access master data') || auth()->user()->can('manage master data') || auth()->user()->can('manage permissions') || auth()->user()->can('access approval policies'))
 <div class="pt-3">
-    <p class="px-3 pb-1.5 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Master Data</p>
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Master Data</p>
 
     @can('manage master data')
     <a href="{{ route('master.index') }}"

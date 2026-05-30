@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full" data-theme="lavender" data-density="comfortable" data-depth="soft">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Theme Studio · ProjectHub Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      colors: { indigo: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca' } },
+    } } };
+  </script>
+  <style>
+    html,body{height:100%;margin:0;}
+    body{font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;background:var(--page-bg);transition:background .3s;}
+    .scrollbar-hide::-webkit-scrollbar{display:none;}
+    .scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none;}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:var(--card-pad)!important;box-shadow:var(--card-sh);}
+    .grad-brand{background:var(--acc-grad);}
+
+    /* ── Accent (tweakable: brand hue) ── */
+    :root{
+      --acc1:#6366f1;--acc2:#4f46e5;--acc3:#8b5cf6;--acc-soft:#e0e7ff;--acc-ring:rgba(99,102,241,.35);
+      --acc-grad:linear-gradient(135deg,var(--acc1),var(--acc3));
+      --card-pad:24px;--grid-gap:1.25rem;--stat-size:1.875rem;--rhythm:1.5rem;
+      --card-sh:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);--btn-sh:0 4px 14px var(--acc-ring);
+    }
+    /* ── Density (tweakable: spatial rhythm) ── */
+    [data-density="compact"]    {--card-pad:15px;--grid-gap:.7rem; --stat-size:1.55rem; --rhythm:.85rem;}
+    [data-density="comfortable"]{--card-pad:24px;--grid-gap:1.25rem;--stat-size:1.875rem;--rhythm:1.5rem;}
+    [data-density="spacious"]   {--card-pad:34px;--grid-gap:2rem;  --stat-size:2.15rem; --rhythm:2.4rem;}
+    main .grid{gap:var(--grid-gap)!important;}
+    main .mb-6{margin-bottom:var(--rhythm)!important;}
+    #stats .text-3xl{font-size:var(--stat-size)!important;}
+    /* ── Depth (tweakable: elevation language) ── */
+    [data-depth="flat"]    {--card-sh:none;--btn-sh:none;}
+    [data-depth="soft"]    {--card-sh:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);--btn-sh:0 4px 14px var(--acc-ring);}
+    [data-depth="elevated"]{--card-sh:0 14px 34px rgba(15,23,42,.12);--btn-sh:0 9px 24px var(--acc-ring);}
+    [data-depth="flat"] .card{border-color:#e2e8f0;}
+
+    /* ── Theme tokens ─────────────────────────────────────── */
+    [data-theme="aurora"]{
+      --page-bg:#f8fafc; --side-bg:#ffffff; --side-border:#e2e8f0;
+      --side-logo:#0f172a; --side-logo-accent:#4f46e5;
+      --side-fg:#64748b; --side-fg-hover:#0f172a; --side-hover-bg:#f1f5f9;
+      --nav-active-bg:linear-gradient(135deg,#6366f1,#8b5cf6); --nav-active-fg:#fff; --nav-active-shadow:0 4px 14px rgba(99,102,241,.35);
+      --badge-bg:#eef2ff; --badge-fg:#4f46e5; --user-name:#0f172a; --user-role:#4f46e5; --side-shadow:none;
+    }
+    [data-theme="lavender"]{
+      --page-bg:#ffffff; --side-bg:#f6f5ff; --side-border:#e9e6fb;
+      --side-logo:#1e1b4b; --side-logo-accent:#7c3aed;
+      --side-fg:#6b6794; --side-fg-hover:#312e81; --side-hover-bg:#ece9fb;
+      --nav-active-bg:#e0e7ff; --nav-active-fg:#4338ca; --nav-active-shadow:none;
+      --badge-bg:#ffffff; --badge-fg:#4f46e5; --user-name:#1e1b4b; --user-role:#7c3aed; --side-shadow:none;
+    }
+    [data-theme="enterprise"]{
+      --page-bg:#ffffff; --side-bg:#f8fafc; --side-border:#e2e8f0;
+      --side-logo:#0f172a; --side-logo-accent:#4f46e5;
+      --side-fg:#475569; --side-fg-hover:#0f172a; --side-hover-bg:#eaeef4;
+      --nav-active-bg:#4f46e5; --nav-active-fg:#fff; --nav-active-shadow:0 4px 12px rgba(79,70,229,.3);
+      --badge-bg:#eef2ff; --badge-fg:#4f46e5; --user-name:#0f172a; --user-role:#4f46e5; --side-shadow:1px 0 0 #e2e8f0,4px 0 24px rgba(15,23,42,.03);
+    }
+    [data-theme="midnight"]{
+      --page-bg:#f8fafc; --side-bg:#0f172a; --side-border:rgba(255,255,255,.08);
+      --side-logo:#ffffff; --side-logo-accent:#818cf8;
+      --side-fg:#94a3b8; --side-fg-hover:#ffffff; --side-hover-bg:rgba(255,255,255,.08);
+      --nav-active-bg:linear-gradient(135deg,#6366f1,#8b5cf6); --nav-active-fg:#fff; --nav-active-shadow:0 4px 14px rgba(99,102,241,.35);
+      --badge-bg:rgba(99,102,241,.2); --badge-fg:#a5b4fc; --user-name:#ffffff; --user-role:#818cf8; --side-shadow:none;
+    }
+
+    .sidebar{background:var(--side-bg);border-right:1px solid var(--side-border);box-shadow:var(--side-shadow);transition:background .3s,border-color .3s;}
+    .side-divider{border-color:var(--side-border)!important;}
+    .nav-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:500;color:var(--side-fg);cursor:pointer;transition:background .15s,color .15s;}
+    .nav-link:hover{background:var(--side-hover-bg);color:var(--side-fg-hover);}
+    .nav-link.active{background:var(--nav-active-bg);color:var(--nav-active-fg);font-weight:600;box-shadow:var(--nav-active-shadow);}
+    .nav-badge{font-size:11px;font-weight:700;padding:1px 8px;border-radius:9999px;min-width:20px;text-align:center;background:var(--badge-bg);color:var(--badge-fg);}
+    .nav-link.active .nav-badge{background:rgba(255,255,255,.25);color:#fff;}
+
+    /* theme switcher */
+    .theme-btn{display:flex;align-items:center;gap:7px;padding:5px 10px 5px 6px;border-radius:9999px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:#64748b;transition:all .15s;}
+    .theme-btn:hover{border-color:#c7d2fe;color:#4f46e5;}
+    .theme-btn.sel{border-color:#6366f1;color:#4f46e5;box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+    .sw{width:18px;height:18px;border-radius:6px;border:1px solid rgba(15,23,42,.08);overflow:hidden;display:flex;}
+    .sw i{display:block;height:100%;}
+  </style>
+</head>
+<body class="h-full">
+<div class="flex h-full" data-screen-label="Dashboard">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar w-64 shrink-0 flex flex-col h-full">
+    <div class="flex items-center gap-3 px-5 h-16 shrink-0 border-b side-divider">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-white text-sm grad-brand" style="box-shadow:0 6px 16px rgba(99,102,241,.4)">PH</div>
+      <span class="font-bold text-[15px] tracking-tight" style="color:var(--side-logo)">ProjectHub <span class="font-medium" style="color:var(--side-logo-accent)">Pro</span></span>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 scrollbar-hide" id="nav"></nav>
+    <div class="px-3 py-3 shrink-0 border-t side-divider">
+      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs grad-brand">MP</div>
+        <div class="flex-1 min-w-0"><p class="text-[13px] font-semibold truncate" style="color:var(--user-name)">Maya Putri</p><p class="text-[11px] capitalize" style="color:var(--user-role)">manager</p></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────── -->
+  <div class="flex-1 flex flex-col min-w-0 h-full">
+    <header class="sticky top-0 z-30 flex items-center h-16 px-6 gap-3 shrink-0" style="background:var(--topbar-bg,rgba(255,255,255,.95));backdrop-filter:blur(12px);border-bottom:1px solid rgba(226,232,240,.8);box-shadow:0 1px 8px rgba(15,23,42,.06)">
+      <h1 class="text-[14px] font-semibold text-slate-700 tracking-tight shrink-0">Dashboard</h1>
+      <div class="flex items-center gap-1.5 ml-3" id="themeSwitch"></div>
+      <div class="flex-1"></div>
+      <button class="relative text-slate-400 hover:text-indigo-600 p-2 rounded-xl hover:bg-indigo-50 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="absolute top-1.5 right-2 w-2 h-2 rounded-full" style="background:#ef4444"></span>
+      </button>
+      <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs grad-brand" style="box-shadow:0 0 0 2px #e2e8f0">MP</div>
+    </header>
+
+    <main class="flex-1 overflow-auto px-6 pb-10">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 mb-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Selamat datang, Maya 👋</h2>
+          <p class="text-sm text-slate-500 mt-0.5">Kamis, 29 Mei 2026 — Pantau progress proyek Anda hari ini</p>
+        </div>
+        <button class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shrink-0 transition-all hover:-translate-y-0.5" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);box-shadow:0 4px 14px rgba(79,70,229,.35)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>Proyek Baru
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-6" id="stats"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+        <div class="lg:col-span-2 card p-6">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="text-lg font-bold text-slate-900">Revenue &amp; Tagihan</h3>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="flex items-center gap-1.5 text-slate-500"><span class="w-2.5 h-2.5 rounded-full" style="background:#6366f1"></span>Revenue</span>
+              <span class="flex items-center gap-1.5 text-slate-500 ml-2"><span class="w-2.5 h-2.5 rounded-full" style="background:#cbd5e1"></span>Target</span>
+            </div>
+          </div>
+          <p class="text-sm text-slate-400 mb-4">Per bulan · 6 bulan terakhir (juta Rupiah)</p>
+          <div class="h-[230px]"><canvas id="revChart"></canvas></div>
+        </div>
+        <div class="card p-6">
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Distribusi Task</h3>
+          <p class="text-sm text-slate-400 mb-4">412 task aktif</p>
+          <div class="h-[150px] relative"><canvas id="taskChart"></canvas></div>
+          <div class="space-y-2.5 mt-5" id="taskLegend"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+        <div class="lg:col-span-2 card p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-bold text-slate-900">Progress Proyek</h3>
+            <button class="text-[13px] font-semibold text-indigo-600 hover:text-indigo-700">Lihat semua</button>
+          </div>
+          <div class="space-y-5" id="progress"></div>
+        </div>
+        <div class="card p-6">
+          <h3 class="text-lg font-bold text-slate-900 mb-5">Aktivitas Terbaru</h3>
+          <div class="space-y-4" id="activity"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-slate-900">Tiket Terbaru</h3>
+            <button class="inline-flex items-center gap-2 px-3.5 py-2 text-[13px] font-semibold text-slate-600 bg-white rounded-xl hover:bg-slate-50 transition" style="border:1px solid #e2e8f0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>Filter
+            </button>
+          </div>
+          <div id="tickets" class="overflow-hidden rounded-xl" style="border:1px solid #e2e8f0"></div>
+        </div>
+        <div class="card p-6">
+          <h3 class="text-lg font-bold text-slate-900 mb-5">Deadline Mendatang</h3>
+          <div class="space-y-3" id="deadlines"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const ICON = {
+  dashboard:"M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  projects:"M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
+  bug:"M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z",
+  approvals:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+  chat:"M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+  invoice:"M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z",
+  calendar:"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+  analytics:"M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+  users:"M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+  folder:"M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z",
+  task:"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  ticket:"M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+  requests:"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z",
+  dollar:"M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1",
+};
+function svg(d,cls){return `<svg class="${cls}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="${d}"/></svg>`;}
+
+// theme switcher
+const THEMES=[
+  {id:'aurora',name:'Aurora',a:'#ffffff',b:'linear-gradient(135deg,#6366f1,#8b5cf6)'},
+  {id:'lavender',name:'Lavender',a:'#f6f5ff',b:'#c4b5fd'},
+  {id:'enterprise',name:'Enterprise',a:'#f8fafc',b:'#4f46e5'},
+  {id:'midnight',name:'Midnight',a:'#0f172a',b:'linear-gradient(135deg,#6366f1,#8b5cf6)'},
+];
+function setTheme(id){
+  document.documentElement.setAttribute('data-theme',id);
+  try{localStorage.setItem('phTheme',id);}catch(e){}
+  document.querySelectorAll('.theme-btn').forEach(el=>el.classList.toggle('sel',el.dataset.t===id));
+}
+document.getElementById('themeSwitch').innerHTML = THEMES.map(t=>`
+  <button class="theme-btn" data-t="${t.id}" onclick="setTheme('${t.id}')">
+    <span class="sw"><i style="width:40%;background:${t.a}"></i><i style="width:60%;background:${t.b}"></i></span>${t.name}
+  </button>`).join('');
+
+// nav
+const NAV=[["dashboard","Dashboard",1],["projects","Proyek"],["bug","Bug Tickets"],["approvals","Approvals","3"],["chat","Chat","12"],["invoice","Invoice"],["calendar","Kalender"],["analytics","Analytics"],["users","Users"]];
+document.getElementById('nav').innerHTML = NAV.map(([ic,label,badge])=>{
+  const active = badge===1;
+  return `<a class="nav-link ${active?'active':''}">
+    ${svg(ICON[ic],'w-[18px] h-[18px] shrink-0')}<span class="flex-1">${label}</span>
+    ${(badge&&badge!==1)?`<span class="nav-badge">${badge}</span>`:''}</a>`;
+}).join('');
+
+// stat cards
+const THEME={indigo:['#4f46e5','#7c3aed','rgba(79,70,229,.1)'],blue:['#2563eb','#0891b2','rgba(37,99,235,.08)'],red:['#dc2626','#ea580c','rgba(220,38,38,.08)'],amber:['#d97706','#ca8a04','rgba(217,119,6,.08)'],emerald:['#059669','#0d9488','rgba(5,150,105,.08)']};
+const STATS=[
+  {label:'Projects',icon:'folder',value:'37',theme:'indigo',sub:[['24 aktif','#059669','#10b981'],['13 selesai','#6366f1','#818cf8']]},
+  {label:'Tasks Aktif',icon:'task',value:'128',theme:'blue',sub:[['412 total','#64748b',null],['284 done','#059669','#10b981']]},
+  {label:'Tiket Open',icon:'ticket',value:'9',theme:'red',sub:[['2 SLA breached','#ef4444','#ef4444']]},
+  {label:'Requests',icon:'requests',value:'5',theme:'amber',sub:[['Menunggu tindak lanjut','#d97706',null]]},
+  {label:'Revenue',icon:'dollar',value:'Rp 84J',theme:'emerald',sub:[['+12% bln ini','#059669','#10b981']]},
+];
+document.getElementById('stats').innerHTML = STATS.map(s=>{
+  const [a,b,sh]=THEME[s.theme];
+  return `<div class="relative card p-5 overflow-hidden transition-all duration-300 hover:-translate-y-1" style="box-shadow:0 8px 32px ${sh}">
+    <div class="absolute inset-x-0 top-0" style="height:3px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,${a},${b})"></div>
+    <div class="absolute -top-6 -right-6 w-28 h-28 rounded-full" style="opacity:.1;background:radial-gradient(circle,${a},transparent)"></div>
+    <div class="relative">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">${s.label}</span>
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,${a},${b});box-shadow:0 4px 12px ${sh}">${svg(ICON[s.icon],'w-5 h-5 text-white')}</div>
+      </div>
+      <p class="text-3xl font-extrabold text-slate-900" style="font-variant-numeric:tabular-nums">${s.value}</p>
+      <div class="mt-2.5 flex flex-wrap gap-3 text-xs font-medium">
+        ${s.sub.map(([t,c,d])=>`<span class="flex items-center gap-1.5" style="color:${c}">${d?`<span class="w-1.5 h-1.5 rounded-full" style="background:${d}"></span>`:''}${t}</span>`).join('')}
+      </div>
+    </div></div>`;
+}).join('');
+
+// progress
+const PROJECTS=[['Website Redesign','Acme Corp',82,'#6366f1'],['Mobile App v2','Nusantara',64,'#2563eb'],['API Integration','Skyline',35,'#d97706'],['Brand Refresh','Lentera',91,'#059669'],['Data Migration','Bumi Tech',48,'#0891b2']];
+document.getElementById('progress').innerHTML = PROJECTS.map(([n,c,p,col])=>`
+  <div><div class="flex justify-between items-center mb-2">
+    <div class="flex items-center gap-2.5 min-w-0"><span class="w-2 h-2 rounded-full shrink-0" style="background:${col}"></span><span class="text-sm font-semibold text-slate-700 whitespace-nowrap">${n}</span><span class="text-xs text-slate-400 truncate">· ${c}</span></div>
+    <span class="text-sm font-bold text-slate-900" style="font-variant-numeric:tabular-nums">${p}%</span></div>
+  <div class="h-2 rounded-full overflow-hidden" style="background:#e2e8f0"><div class="h-full rounded-full" style="width:${p}%;background:linear-gradient(90deg,${col},${col}cc)"></div></div></div>`).join('');
+
+// activity
+const ACT=[['SW','Sari Wijaya','menyelesaikan task','Hero section','5 mnt lalu','#059669'],['BS','Budi Santoso','membuka tiket','#1042 Login bug','22 mnt lalu','#dc2626'],['MP','Maya Putri','approve invoice','INV-2025-088','1 jam lalu','#6366f1'],['RA','Rian Aditya','comment di','Sprint 14','2 jam lalu','#2563eb'],['DK','Dewi Kartika','upload file','mockup-v3.fig','3 jam lalu','#d97706']];
+document.getElementById('activity').innerHTML = ACT.map(([w,n,a,o,t,c])=>`
+  <div class="flex gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[11px] shrink-0 grad-brand">${w}</div>
+  <div class="min-w-0"><p class="text-[13px] text-slate-600 leading-snug"><span class="font-semibold text-slate-900">${n}</span> ${a} <span class="font-semibold" style="color:${c}">${o}</span></p>
+  <p class="text-[11px] text-slate-400 mt-0.5">${t}</p></div></div>`).join('');
+
+// tickets
+const TICK=[['#1042','Login gagal di Safari','Acme Corp','high','breach'],['#1041','Export PDF kosong','Nusantara','high','4j'],['#1038','Typo halaman harga','Lentera','low','aman'],['#1035','Webhook timeout','Skyline','med','aman']];
+const PRI={low:['Low','#f1f5f9','#64748b'],med:['Medium','#fef3c7','#92400e'],high:['High','#fee2e2','#991b1b']};
+const SLA={breach:['Lewat SLA','#fee2e2','#991b1b'],'4j':['4j tersisa','#fef3c7','#92400e'],aman:['SLA aman','#d1fae5','#065f46']};
+document.getElementById('tickets').innerHTML = `
+  <table class="w-full text-sm"><thead><tr class="text-left" style="background:#f8fafc">
+    <th class="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tiket</th>
+    <th class="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Klien</th>
+    <th class="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Prioritas</th>
+    <th class="px-4 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">SLA</th>
+  </tr></thead><tbody>${TICK.map(([id,title,client,pri,sla],i)=>{
+    const [pt,pb,pc]=PRI[pri],[st,sb,sc]=SLA[sla];
+    return `<tr style="${i?'border-top:1px solid #f1f5f9':''}">
+      <td class="px-4 py-3"><div class="font-semibold text-slate-800">${title}</div><div class="text-xs text-slate-400 font-mono">${id}</div></td>
+      <td class="px-4 py-3 text-slate-500">${client}</td>
+      <td class="px-4 py-3"><span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style="background:${pb};color:${pc}">${pt}</span></td>
+      <td class="px-4 py-3"><span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style="background:${sb};color:${sc}">${st}</span></td></tr>`;
+  }).join('')}</tbody></table>`;
+
+// deadlines
+const DL=[['14','Jun','Website Redesign — launch','#6366f1'],['18','Jun','Sprint 14 review','#2563eb'],['22','Jun','Invoice Q2 ke Acme','#059669'],['28','Jun','API Integration UAT','#d97706']];
+document.getElementById('deadlines').innerHTML = DL.map(([d,m,t,c])=>`
+  <div class="flex items-center gap-3 p-2.5 rounded-xl" style="background:#f8fafc">
+    <div class="w-11 h-11 rounded-xl flex flex-col items-center justify-center shrink-0 text-white" style="background:${c}">
+      <span class="text-sm font-extrabold leading-none">${d}</span><span class="text-[9px] font-semibold uppercase">${m}</span></div>
+    <span class="text-[13px] font-medium text-slate-700">${t}</span></div>`).join('');
+
+// charts
+new Chart(document.getElementById('revChart'),{type:'line',data:{labels:['Des','Jan','Feb','Mar','Apr','Mei'],
+  datasets:[
+    {label:'Revenue',data:[52,61,58,72,78,84],borderColor:'#6366f1',backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,230);g.addColorStop(0,'rgba(99,102,241,.25)');g.addColorStop(1,'rgba(99,102,241,0)');return g;},fill:true,tension:.4,borderWidth:3,pointRadius:0,pointHoverRadius:5,pointBackgroundColor:'#6366f1'},
+    {label:'Target',data:[55,60,65,70,75,80],borderColor:'#cbd5e1',borderDash:[5,5],fill:false,tension:.4,borderWidth:2,pointRadius:0}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{color:'#94a3b8',font:{size:11}}},x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:11}}}}}});
+
+const TASKS=[['Done',284,'#059669'],['In Progress',86,'#6366f1'],['To Do',32,'#2563eb'],['Review',10,'#d97706']];
+new Chart(document.getElementById('taskChart'),{type:'doughnut',data:{labels:TASKS.map(t=>t[0]),datasets:[{data:TASKS.map(t=>t[1]),backgroundColor:TASKS.map(t=>t[2]),borderWidth:0,cutout:'70%'}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+document.getElementById('taskLegend').innerHTML = TASKS.map(([n,v,c])=>`
+  <div class="flex items-center gap-2 text-[13px]"><span class="w-2.5 h-2.5 rounded-full" style="background:${c}"></span>
+  <span class="text-slate-600 flex-1">${n}</span><span class="font-bold text-slate-900" style="font-variant-numeric:tabular-nums">${v}</span></div>`).join('');
+
+// init theme from storage
+(function(){ let t='lavender'; try{t=localStorage.getItem('phTheme')||'lavender';}catch(e){} setTheme(t); })();
+</script>
+</body>
+</html>

@@ -17,16 +17,16 @@ class UserWebController extends Controller
         $isAdmin   = $authUser->hasRole('admin');
 
         $query = User::with(['roles', 'structuralLevel', 'department'])
+            ->where('is_super_admin', false)
             ->when($request->role, fn($q) => $q->role($request->role))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"));
 
-        if (!$isAdmin) {
-            if ($authUser->department_id) {
-                $query->where('department_id', $authUser->department_id);
-            } else {
-                $query->where('id', $authUser->id);
-            }
+        // Selalu scope ke company sendiri — super admin tidak masuk sini (middleware superadmin terpisah)
+        if ($authUser->company_id) {
+            $query->where('company_id', $authUser->company_id);
+        } elseif (! $isAdmin) {
+            $query->where('id', $authUser->id);
         }
 
         $users = $query->paginate(20);
@@ -43,7 +43,7 @@ class UserWebController extends Controller
 
         $roles            = Role::all();
         $structuralLevels = StructuralLevel::active()->get();
-        $companies        = Company::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
         return view('users.create', compact('roles', 'structuralLevels', 'companies'));
     }
 
@@ -66,6 +66,7 @@ class UserWebController extends Controller
             'name'                => $request->name,
             'email'               => $request->email,
             'password'            => $request->password,
+            'company_id'          => auth()->user()->company_id,
             'is_active'           => $request->boolean('is_active', true),
             'structural_level_id' => $request->structural_level_id,
             'department_id'       => $request->department_id,
@@ -83,7 +84,7 @@ class UserWebController extends Controller
 
         $roles            = Role::all();
         $structuralLevels = StructuralLevel::active()->get();
-        $companies        = Company::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
 
         // Pre-populate cascade dari department_id yang sudah ada
         $preselect = ['company_id' => null, 'branch_id' => null, 'division_id' => null];

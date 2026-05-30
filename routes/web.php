@@ -45,12 +45,13 @@ Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', 'check.active', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::patch('/companies/{company}/toggle', [SuperAdminController::class, 'toggleCompany'])->name('companies.toggle');
     Route::get('/registered-users', [SuperAdminController::class, 'registeredUsers'])->name('registered-users');
+    Route::post('/registered-users', [SuperAdminController::class, 'storeRegisteredUser'])->name('registered-users.store');
     Route::patch('/registered-users/{user}/lifetime', [SuperAdminController::class, 'updateLifetime'])->name('registered-users.lifetime');
 });
 
@@ -60,9 +61,20 @@ Route::post('/login', [AuthWebController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 
 // ─── Authenticated ────────────────────────────────────────────────────────────
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.active'])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
+
+    // Package switcher
+    Route::post('/switch-package', function (\Illuminate\Http\Request $request) {
+        $pkg = $request->input('package');
+        $valid = ['task_management', 'hris'];
+        $allowed = auth()->user()->is_super_admin ? $valid : auth()->user()->activePackages();
+        if (is_string($pkg) && in_array($pkg, $allowed)) {
+            $request->session()->put('active_package', $pkg);
+        }
+        return back();
+    })->name('switch.package');
 
     // Profile
     Route::get('/profile', [ProfileWebController::class, 'index'])->name('profile');
