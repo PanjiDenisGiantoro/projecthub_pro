@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full">
+<html lang="id" class="h-full" data-theme="lavender">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,15 +19,15 @@
 <div class="flex h-full">
 
     {{-- ── Desktop Sidebar ────────────────────────────────────────────────── --}}
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-[#0f172a] border-r border-white/5"
+    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 ph-sidebar"
            style="z-index:20">
 
         {{-- Logo --}}
-        <div class="flex items-center gap-3 px-5 h-16 border-b border-white/8 shrink-0">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-white text-sm shrink-0"
-                 style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.4)">PH</div>
-            <span class="font-bold text-[15px] text-white leading-none tracking-tight">
-                ProjectHub <span class="font-medium text-indigo-400">Pro</span>
+        <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0"
+                 style="background:var(--ph-logo-btn-bg);color:var(--ph-logo-btn-fg);box-shadow:0 4px 12px rgba(0,0,0,0.15)">PH</div>
+            <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
+                ProjectHub <span class="font-medium" style="color:var(--ph-logo-accent)">Pro</span>
             </span>
         </div>
 
@@ -37,25 +37,26 @@
         </nav>
 
         {{-- User section --}}
-        <div class="px-3 py-3 border-t border-white/8 shrink-0">
+        <div class="px-3 py-3 shrink-0 ph-side-divider-t">
             <div x-data="{ userMenuOpen: false }" class="relative">
                 <button @click="userMenuOpen = !userMenuOpen"
-                        class="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl hover:bg-white/8 transition-colors group text-left">
+                        class="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl ph-user-btn group text-left">
                     @if(auth()->user()->avatar)
                         <img src="{{ Storage::url(auth()->user()->avatar) }}"
                              alt="{{ auth()->user()->name }}"
                              class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-indigo-400 transition-all shrink-0">
                     @else
                         <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                             style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 2px 8px rgba(99,102,241,0.4)">
+                             style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 2px 8px rgba(99,102,241,0.4)">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                         </div>
                     @endif
                     <div class="flex-1 min-w-0">
-                        <p class="text-[13px] font-semibold text-white truncate leading-tight">{{ auth()->user()->name }}</p>
-                        <p class="text-[11px] text-indigo-400 truncate capitalize leading-tight mt-0.5">{{ auth()->user()->getRoleNames()->first() }}</p>
+                        <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
+                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ auth()->user()->getRoleNames()->first() }}</p>
                     </div>
-                    <svg class="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
+                    <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200"
+                         style="color:var(--ph-user-chev)"
                          :class="userMenuOpen ? 'rotate-180' : ''"
                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -70,23 +71,22 @@
                      x-transition:leave="transition ease-in duration-100"
                      x-transition:leave-start="opacity-100 translate-y-0"
                      x-transition:leave-end="opacity-0 -translate-y-1"
-                     class="absolute bottom-full left-0 right-0 mb-2 bg-[#1e293b] border border-white/10 rounded-2xl overflow-hidden z-50"
-                     style="box-shadow: 0 10px 40px rgba(0,0,0,0.4)">
+                     class="absolute bottom-full left-0 right-0 mb-2 rounded-2xl overflow-hidden z-50"
+                     style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
 
-                    <div class="px-4 py-3 border-b border-white/8">
-                        <p class="text-[13px] font-semibold text-white truncate">{{ auth()->user()->name }}</p>
-                        <p class="text-[11px] text-slate-400 truncate">{{ auth()->user()->email }}</p>
+                    <div class="px-4 py-3 ph-drop-divider-b">
+                        <p class="text-[13px] font-semibold truncate" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
+                        <p class="text-[11px] truncate" style="color:var(--ph-drop-email)">{{ auth()->user()->email }}</p>
                     </div>
                     <div class="p-1.5">
-                        <a href="{{ route('profile') }}"
-                           class="flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-300 hover:bg-white/8 hover:text-white rounded-lg transition-colors">
+                        <a href="{{ route('profile') }}" class="ph-drop-link">
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                             Profil Saya
                         </a>
                     </div>
-                    <div class="p-1.5 border-t border-white/8">
+                    <div class="p-1.5 ph-drop-divider-t">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"
@@ -108,15 +108,15 @@
          class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"></div>
 
     <aside x-show="sidebarOpen" x-cloak
-           class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0f172a] border-r border-white/5 flex flex-col lg:hidden"
-           style="box-shadow: 4px 0 30px rgba(0,0,0,0.4)">
-        <div class="flex items-center gap-3 px-5 h-16 border-b border-white/8 shrink-0">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-white text-sm shrink-0"
-                 style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,0.4)">PH</div>
-            <span class="font-bold text-[15px] text-white leading-none tracking-tight">
-                ProjectHub <span class="font-medium text-indigo-400">Pro</span>
+           class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:hidden ph-sidebar"
+           style="box-shadow:4px 0 30px rgba(0,0,0,0.3)">
+        <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0"
+                 style="background:var(--ph-logo-btn-bg);color:var(--ph-logo-btn-fg);box-shadow:0 4px 12px rgba(0,0,0,0.15)">PH</div>
+            <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
+                ProjectHub <span class="font-medium" style="color:var(--ph-logo-accent)">Pro</span>
             </span>
-            <button @click="sidebarOpen=false" class="ml-auto text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/8 transition-colors shrink-0">
+            <button @click="sidebarOpen=false" class="ml-auto ph-close-btn shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -125,7 +125,7 @@
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 scrollbar-hide">
             @include('layouts.sidebar-nav')
         </nav>
-        <div class="px-3 py-3 border-t border-white/8 shrink-0">
+        <div class="px-3 py-3 shrink-0 ph-side-divider-t">
             <div class="flex items-center gap-3 px-3 py-2">
                 @if(auth()->user()->avatar)
                     <img src="{{ Storage::url(auth()->user()->avatar) }}"
@@ -133,13 +133,13 @@
                          class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 shrink-0">
                 @else
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
+                         style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
                         {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                     </div>
                 @endif
                 <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-semibold text-white truncate leading-tight">{{ auth()->user()->name }}</p>
-                    <p class="text-[11px] text-indigo-400 truncate capitalize leading-tight mt-0.5">{{ auth()->user()->getRoleNames()->first() }}</p>
+                    <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
+                    <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ auth()->user()->getRoleNames()->first() }}</p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -165,9 +165,45 @@
                 </svg>
             </button>
 
-            <h1 class="text-[14px] font-semibold text-slate-700 flex-1 truncate tracking-tight">
+            <h1 class="text-[14px] font-semibold text-slate-700 tracking-tight shrink-0 truncate max-w-[8rem] sm:max-w-none">
                 @yield('page-title', 'Dashboard')
             </h1>
+
+            {{-- Package switcher — visible when user has both packages or is super admin --}}
+            @php
+                $userPackages = auth()->user()->is_super_admin
+                    ? ['task_management', 'hris']
+                    : auth()->user()->activePackages();
+            @endphp
+            @if(count($userPackages) > 1)
+            <div class="hidden sm:flex items-center bg-slate-100 rounded-full p-0.5 shrink-0 ml-2">
+                @php $activePkg = session('active_package', $userPackages[0] ?? 'task_management'); @endphp
+                <form method="POST" action="{{ route('switch.package') }}" class="contents">
+                    @csrf
+                    <input type="hidden" name="package" value="task_management">
+                    <button type="submit"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all {{ $activePkg === 'task_management' ? 'bg-white text-indigo-700 shadow-sm shadow-indigo-100 ring-1 ring-indigo-100' : 'text-slate-500 hover:text-slate-700' }}">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        <span class="hidden md:inline">Task</span>
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('switch.package') }}" class="contents">
+                    @csrf
+                    <input type="hidden" name="package" value="hris">
+                    <button type="submit"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all {{ $activePkg === 'hris' ? 'bg-white text-violet-700 shadow-sm shadow-violet-100 ring-1 ring-violet-100' : 'text-slate-500 hover:text-slate-700' }}">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="hidden md:inline">HRIS</span>
+                    </button>
+                </form>
+            </div>
+            @endif
+
+            <div class="flex-1"></div>
 
             {{-- Search --}}
             <form method="GET" action="{{ route('search.index') }}" class="hidden sm:flex items-center">
@@ -201,6 +237,40 @@
                 @endif
             </a>
         </header>
+
+        {{-- ── Active-until warning banner ────────────────────────────────── --}}
+        @if(auth()->check() && !auth()->user()->is_super_admin && !auth()->user()->isLifetime() && !auth()->user()->isExpired())
+            @php $daysLeft = (int) now()->diffInDays(auth()->user()->active_until, false); @endphp
+            @if($daysLeft <= 14)
+            <div x-data="{ show: !localStorage.getItem('ph_banner_dismissed_{{ now()->toDateString() }}') }"
+                 x-show="show"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 -translate-y-2"
+                 class="flex items-center gap-3 px-5 py-3 text-sm font-medium shrink-0 {{ $daysLeft <= 3 ? 'bg-red-50 border-b border-red-200 text-red-800' : 'bg-amber-50 border-b border-amber-200 text-amber-800' }}">
+                <svg class="w-4 h-4 shrink-0 {{ $daysLeft <= 3 ? 'text-red-500' : 'text-amber-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                @if($daysLeft <= 0)
+                    <span>Masa aktif akun Anda <strong>berakhir hari ini</strong>. Segera hubungi administrator untuk memperpanjang.</span>
+                @elseif($daysLeft === 1)
+                    <span>Masa aktif akun Anda <strong>berakhir besok</strong>. Segera hubungi administrator.</span>
+                @else
+                    <span>Masa aktif akun Anda akan berakhir dalam <strong>{{ $daysLeft }} hari</strong>
+                        ({{ auth()->user()->active_until->locale('id')->isoFormat('D MMMM Y') }}).
+                        Hubungi administrator untuk memperpanjang.
+                    </span>
+                @endif
+                <button @click="show = false; localStorage.setItem('ph_banner_dismissed_{{ now()->toDateString() }}', '1')"
+                        class="ml-auto shrink-0 p-1 rounded-lg hover:bg-black/10 transition-colors"
+                        title="Tutup peringatan">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            @endif
+        @endif
 
         {{-- Flash messages --}}
         @if(session('success'))
@@ -303,6 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
 
 <style>
 [x-cloak] { display: none !important; }

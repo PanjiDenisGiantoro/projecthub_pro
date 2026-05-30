@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Department;
 use App\Models\Division;
+use App\Models\Package;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,10 +32,14 @@ class RegisterWebController extends Controller
             'email'        => 'required|email|unique:users,email',
             'company_name' => 'required|string|max:255',
             'password'     => 'required|string|min:8|confirmed',
+            'packages'     => 'required|array|min:1',
+            'packages.*'   => 'in:task_management,hris',
         ], [
-            'email.unique'      => 'Email ini sudah terdaftar.',
-            'password.min'      => 'Password minimal 8 karakter.',
-            'password.confirmed'=> 'Konfirmasi password tidak cocok.',
+            'email.unique'       => 'Email ini sudah terdaftar.',
+            'password.min'       => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'packages.required'  => 'Pilih minimal satu paket aplikasi.',
+            'packages.min'       => 'Pilih minimal satu paket aplikasi.',
         ]);
 
         $user = DB::transaction(function () use ($request) {
@@ -69,11 +74,15 @@ class RegisterWebController extends Controller
                 'name'          => $request->name,
                 'email'         => $request->email,
                 'password'      => $request->password,
+                'company_id'    => $company->id,
                 'department_id' => $department->id,
                 'is_active'     => true,
                 'is_registered' => true,
                 'timezone'      => 'Asia/Jakarta',
             ]);
+
+            $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');
+            $user->packages()->sync($pkgIds);
 
             Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
             $user->assignRole('admin');
@@ -83,6 +92,8 @@ class RegisterWebController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $firstPkg = $user->packages()->active()->first();
+        $request->session()->put('active_package', $firstPkg?->slug ?? 'task_management');
 
         return redirect()->route('dashboard');
     }

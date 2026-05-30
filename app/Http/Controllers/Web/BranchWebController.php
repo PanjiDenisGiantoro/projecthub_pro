@@ -11,28 +11,39 @@ class BranchWebController extends Controller
 {
     public function index(Request $request)
     {
+        $cid = $this->tenantId();
+
         $branches = Branch::with('company')
             ->withCount(['divisions', 'departments'])
-            ->when($request->company_id, fn($q) => $q->where('company_id', $request->company_id))
+            ->when($cid, fn($q) => $q->where('company_id', $cid))
+            ->when(! $cid && $request->company_id, fn($q) => $q->where('company_id', $request->company_id))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('code', 'like', "%{$request->search}%"))
             ->when($request->has('is_active') && $request->is_active !== '', fn($q) =>
                 $q->where('is_active', $request->boolean('is_active')))
             ->paginate(20);
 
-        $companies = Company::orderBy('name')->get();
+        $companies = $cid
+            ? Company::where('id', $cid)->get()
+            : Company::orderBy('name')->get();
 
         return view('master.branches.index', compact('branches', 'companies'));
     }
 
     public function create()
     {
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $cid = $this->tenantId();
+        $companies = $cid
+            ? Company::where('id', $cid)->get()
+            : Company::where('is_active', true)->orderBy('name')->get();
+
         return view('master.branches.create', compact('companies'));
     }
 
     public function store(Request $request)
     {
+        $cid = $this->tenantId();
+
         $data = $request->validate([
             'company_id' => 'required|exists:companies,id',
             'name'       => 'required|string|max:255',
@@ -43,9 +54,14 @@ class BranchWebController extends Controller
             'is_active'  => 'boolean',
         ]);
 
+        // Pastikan tenant tidak bisa assign ke company lain
+        if ($cid && (int) $data['company_id'] !== $cid) {
+            abort(403);
+        }
+
         $data['is_active'] = $request->boolean('is_active');
 
-        if (!empty($data['code'])) {
+        if (! empty($data['code'])) {
             $exists = Branch::where('company_id', $data['company_id'])
                 ->where('code', $data['code'])->exists();
             if ($exists) {
@@ -54,18 +70,27 @@ class BranchWebController extends Controller
         }
 
         Branch::create($data);
-
         return redirect()->route('branches.index')->with('success', 'Branch berhasil ditambahkan.');
     }
 
     public function edit(Branch $branch)
     {
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $this->authorizeCompany($branch->company_id);
+
+        $cid = $this->tenantId();
+        $companies = $cid
+            ? Company::where('id', $cid)->get()
+            : Company::where('is_active', true)->orderBy('name')->get();
+
         return view('master.branches.edit', compact('branch', 'companies'));
     }
 
     public function update(Request $request, Branch $branch)
     {
+        $this->authorizeCompany($branch->company_id);
+
+        $cid = $this->tenantId();
+
         $data = $request->validate([
             'company_id' => 'required|exists:companies,id',
             'name'       => 'required|string|max:255',
@@ -76,9 +101,13 @@ class BranchWebController extends Controller
             'is_active'  => 'boolean',
         ]);
 
+        if ($cid && (int) $data['company_id'] !== $cid) {
+            abort(403);
+        }
+
         $data['is_active'] = $request->boolean('is_active');
 
-        if (!empty($data['code'])) {
+        if (! empty($data['code'])) {
             $exists = Branch::where('company_id', $data['company_id'])
                 ->where('code', $data['code'])
                 ->where('id', '!=', $branch->id)->exists();
@@ -88,12 +117,13 @@ class BranchWebController extends Controller
         }
 
         $branch->update($data);
-
         return redirect()->route('branches.index')->with('success', 'Branch berhasil diperbarui.');
     }
 
     public function destroy(Branch $branch)
     {
+        $this->authorizeCompany($branch->company_id);
+
         if ($branch->divisions()->exists()) {
             return back()->withErrors(['Tidak bisa menghapus branch yang masih memiliki divisi.']);
         }

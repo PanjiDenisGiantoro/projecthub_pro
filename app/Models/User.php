@@ -24,6 +24,7 @@ class User extends Authenticatable
         'is_registered',
         'active_until',
         'timezone',
+        'company_id',
         'department_id',
         'structural_level_id',
     ];
@@ -43,6 +44,21 @@ class User extends Authenticatable
             'is_registered'     => 'boolean',
             'active_until'      => 'datetime',
         ];
+    }
+
+    public function packages()
+    {
+        return $this->belongsToMany(Package::class)->withTimestamps();
+    }
+
+    public function hasPackage(string $slug): bool
+    {
+        return $this->packages->contains('slug', $slug);
+    }
+
+    public function activePackages(): array
+    {
+        return $this->packages->where('is_active', true)->pluck('slug')->toArray();
     }
 
     public function isLifetime(): bool
@@ -128,13 +144,6 @@ class User extends Authenticatable
 
     public function company()
     {
-        return $this->hasOneThrough(
-            Company::class,
-            Department::class,
-            'id',        // departments.id
-            'id',        // companies.id
-            'department_id',
-            'division_id'
-        );
+        return $this->belongsTo(Company::class);
     }
 }

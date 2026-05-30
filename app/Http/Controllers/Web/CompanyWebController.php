@@ -10,7 +10,10 @@ class CompanyWebController extends Controller
 {
     public function index(Request $request)
     {
+        $cid = $this->tenantId();
+
         $companies = Company::withCount(['divisions', 'departments'])
+            ->when($cid, fn($q) => $q->where('id', $cid))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('code', 'like', "%{$request->search}%"))
             ->when($request->has('is_active') && $request->is_active !== '', fn($q) =>
@@ -22,11 +25,15 @@ class CompanyWebController extends Controller
 
     public function create()
     {
+        // Tenant tidak boleh buat company baru (sudah punya 1)
+        abort_if($this->tenantId() !== null, 403, 'Anda tidak dapat menambah perusahaan baru.');
         return view('master.companies.create');
     }
 
     public function store(Request $request)
     {
+        abort_if($this->tenantId() !== null, 403);
+
         $data = $request->validate([
             'name'      => 'required|string|max:255',
             'code'      => 'nullable|string|max:50|unique:companies,code',
@@ -38,7 +45,6 @@ class CompanyWebController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
-
         Company::create($data);
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil ditambahkan.');
@@ -46,11 +52,14 @@ class CompanyWebController extends Controller
 
     public function edit(Company $company)
     {
+        $this->authorizeCompany($company->id);
         return view('master.companies.edit', compact('company'));
     }
 
     public function update(Request $request, Company $company)
     {
+        $this->authorizeCompany($company->id);
+
         $data = $request->validate([
             'name'      => 'required|string|max:255',
             'code'      => 'nullable|string|max:50|unique:companies,code,' . $company->id,
@@ -62,7 +71,6 @@ class CompanyWebController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
-
         $company->update($data);
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil diperbarui.');
@@ -70,6 +78,8 @@ class CompanyWebController extends Controller
 
     public function destroy(Company $company)
     {
+        abort_if($this->tenantId() !== null, 403, 'Tidak dapat menghapus perusahaan sendiri.');
+
         if ($company->divisions()->exists()) {
             return back()->withErrors(['Tidak bisa menghapus perusahaan yang masih memiliki divisi.']);
         }

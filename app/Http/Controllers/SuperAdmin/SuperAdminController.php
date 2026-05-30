@@ -3,10 +3,17 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Company;
+use App\Models\Department;
+use App\Models\Division;
+use App\Models\Package;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class SuperAdminController extends Controller
 {
@@ -55,11 +62,77 @@ class SuperAdminController extends Controller
         return back()->with('success', 'Status perusahaan diperbarui.');
     }
 
+    public function storeRegisteredUser(Request $request)
+    {
+        $request->validate([
+            'name'         => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|string|min:8',
+            'company_name' => 'required|string|max:255',
+            'packages'     => 'required|array|min:1',
+            'packages.*'   => 'exists:packages,slug',
+            'type'         => 'required|in:lifetime,expiry',
+            'active_until' => 'required_if:type,expiry|nullable|date|after:today',
+        ], [
+            'email.unique'      => 'Email ini sudah terdaftar.',
+            'packages.required' => 'Pilih minimal satu paket.',
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $company = Company::create([
+                'name'      => $request->company_name,
+                'code'      => Str::upper(Str::slug($request->company_name, '')),
+                'is_active' => true,
+            ]);
+
+            $branch = Branch::create([
+                'company_id' => $company->id,
+                'name'       => 'Kantor Pusat',
+                'code'       => 'PUSAT',
+                'is_active'  => true,
+            ]);
+
+            $division = Division::create([
+                'branch_id'  => $branch->id,
+                'name'       => 'Umum',
+                'code'       => 'UMUM',
+                'is_active'  => true,
+            ]);
+
+            $department = Department::create([
+                'division_id' => $division->id,
+                'name'        => 'Manajemen',
+                'code'        => 'MGT',
+                'is_active'   => true,
+            ]);
+
+            $user = User::create([
+                'name'          => $request->name,
+                'email'         => $request->email,
+                'password'      => $request->password,
+                'company_id'    => $company->id,
+                'department_id' => $department->id,
+                'is_active'     => true,
+                'is_registered' => true,
+                'timezone'      => 'Asia/Jakarta',
+                'active_until'  => $request->type === 'lifetime' ? null : $request->active_until,
+            ]);
+
+            $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');
+            $user->packages()->sync($pkgIds);
+
+            Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+            $user->assignRole('admin');
+        });
+
+        return back()->with('success', "Pelanggan {$request->name} berhasil ditambahkan.");
+    }
+
     public function registeredUsers(Request $request)
     {
         $filter = $request->query('filter', 'all');
 
-        $query = User::with('department.division.branch.company')
+        $query = User::with(['department.division.branch.company', 'packages'])
             ->where('is_registered', true)
             ->latest();
 
@@ -80,7 +153,9 @@ class SuperAdminController extends Controller
             'expired'  => User::where('is_registered', true)->whereNotNull('active_until')->where('active_until', '<=', now())->count(),
         ];
 
-        return view('superadmin.registered-users', compact('users', 'filter', 'counts'));
+        $packages = Package::active()->get();
+
+        return view('superadmin.registered-users', compact('users', 'filter', 'counts', 'packages'));
     }
 
     public function updateLifetime(Request $request, User $user)

@@ -33,8 +33,9 @@ class ProjectWebController extends Controller
 
     public function create()
     {
-        $clients   = User::role('customer')->where('is_active', true)->get();
-        $managers  = User::role('manager')->where('is_active', true)->get();
+        $companyId = auth()->user()->company_id;
+        $clients   = User::role('customer')->where('is_active', true)->where('company_id', $companyId)->get();
+        $managers  = User::role('manager')->where('is_active', true)->where('company_id', $companyId)->get();
         return view('projects.create', compact('clients', 'managers'));
     }
 
@@ -66,7 +67,7 @@ class ProjectWebController extends Controller
             'tasks' => fn($q) => $q->with('assignee')->limit(10),
         ]);
         $slaPolicies      = app(SlaService::class);
-        $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->get();
+        $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->where('company_id', $project->company_id)->get();
         $structuralLevels = StructuralLevel::active()->get();
         $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
 

@@ -26,9 +26,24 @@ class AuthWebController extends Controller
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            if (!Auth::user()->is_active) {
+            $user = Auth::user();
+
+            if (!$user->is_active) {
                 Auth::logout();
-                return back()->withErrors(['email' => 'Akun Anda tidak aktif.']);
+                return back()->withErrors(['email' => 'Akun Anda tidak aktif. Hubungi administrator.'])->onlyInput('email');
+            }
+
+            if (!$user->is_super_admin && $user->isExpired()) {
+                Auth::logout();
+                return back()->withErrors(['email' => 'Masa aktif akun Anda telah habis. Silakan hubungi administrator untuk memperpanjang akses.'])->onlyInput('email');
+            }
+
+            if (!$request->session()->has('active_package')) {
+                $pkgs       = $user->is_super_admin ? ['task_management'] : $user->activePackages();
+                $defaultPkg = $pkgs[0] ?? null;
+                if ($defaultPkg) {
+                    $request->session()->put('active_package', $defaultPkg);
+                }
             }
 
             return redirect()->intended(route('dashboard'));

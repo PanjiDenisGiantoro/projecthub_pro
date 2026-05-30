@@ -58,6 +58,13 @@
             Daftar Pelanggan
             <span class="ml-2 text-xs font-normal text-slate-400">{{ $users->total() }} data</span>
         </p>
+        <button onclick="openAddModal()"
+                class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah Pelanggan
+        </button>
     </div>
 
     <table class="w-full text-sm">
@@ -66,6 +73,7 @@
                 <th class="text-left px-6 py-3 font-medium">Pelanggan</th>
                 <th class="text-left px-6 py-3 font-medium">Perusahaan</th>
                 <th class="text-left px-6 py-3 font-medium">Daftar Sejak</th>
+                <th class="text-left px-6 py-3 font-medium">Package</th>
                 <th class="text-center px-6 py-3 font-medium">Status Akun</th>
                 <th class="text-center px-6 py-3 font-medium">Masa Aktif</th>
                 <th class="text-center px-6 py-3 font-medium">Aksi</th>
@@ -109,6 +117,28 @@
                 <td class="px-6 py-4">
                     <p class="text-slate-300 text-xs">{{ $user->created_at->format('d M Y') }}</p>
                     <p class="text-slate-600 text-xs">{{ $user->created_at->diffForHumans() }}</p>
+                </td>
+
+                {{-- Package --}}
+                <td class="px-6 py-4">
+                    @if($user->packages->isEmpty())
+                        <span class="text-slate-600 text-xs">—</span>
+                    @else
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($user->packages as $pkg)
+                            @php
+                                $pkgColors = [
+                                    'hris'            => 'bg-violet-500/15 text-violet-400 border-violet-500/20',
+                                    'task_management' => 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+                                ];
+                                $cls = $pkgColors[$pkg->slug] ?? 'bg-slate-500/15 text-slate-400 border-slate-500/20';
+                            @endphp
+                            <span class="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md border {{ $cls }}">
+                                {{ $pkg->name }}
+                            </span>
+                            @endforeach
+                        </div>
+                    @endif
                 </td>
 
                 {{-- Status Akun --}}
@@ -158,7 +188,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="px-6 py-16 text-center">
+                <td colspan="7" class="px-6 py-16 text-center">
                     <div class="flex flex-col items-center gap-3 text-slate-500">
                         <svg class="w-12 h-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -260,6 +290,148 @@
         </form>
     </div>
 </div>
+
+{{-- Modal Tambah Pelanggan --}}
+<div id="modal-add" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeAddModal()"></div>
+    <div class="relative bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 sticky top-0 bg-slate-900 z-10">
+            <div>
+                <h3 class="font-semibold text-white text-sm">Tambah Pelanggan</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Daftarkan pelanggan baru secara manual</p>
+            </div>
+            <button onclick="closeAddModal()" class="text-slate-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        @if($errors->any())
+        <div class="mx-6 mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400 space-y-1">
+            @foreach($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
+        @endif
+
+        <form method="POST" action="{{ route('superadmin.registered-users.store') }}" class="px-6 py-5 space-y-4">
+            @csrf
+
+            {{-- Nama & Email --}}
+            <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Nama</label>
+                    <input type="text" name="name" value="{{ old('name') }}" required
+                           placeholder="John Doe"
+                           class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-all">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Email</label>
+                    <input type="email" name="email" value="{{ old('email') }}" required
+                           placeholder="john@company.com"
+                           class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-all">
+                </div>
+            </div>
+
+            {{-- Password --}}
+            <div class="space-y-1.5">
+                <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Password</label>
+                <input type="password" name="password" required minlength="8"
+                       placeholder="Minimal 8 karakter"
+                       class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-all">
+            </div>
+
+            {{-- Nama Perusahaan --}}
+            <div class="space-y-1.5">
+                <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Nama Perusahaan</label>
+                <input type="text" name="company_name" value="{{ old('company_name') }}" required
+                       placeholder="PT. Contoh Sejahtera"
+                       class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-all">
+            </div>
+
+            {{-- Package --}}
+            <div class="space-y-2">
+                <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Package</label>
+                <div class="grid grid-cols-2 gap-2">
+                    @foreach($packages as $pkg)
+                    @php
+                        $pkgColors = [
+                            'hris'            => ['ring' => 'has-[:checked]:border-violet-500/60 has-[:checked]:bg-violet-500/10', 'icon' => 'text-violet-400 bg-violet-500/20'],
+                            'task_management' => ['ring' => 'has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10',   'icon' => 'text-blue-400 bg-blue-500/20'],
+                        ];
+                        $clr = $pkgColors[$pkg->slug] ?? ['ring' => 'has-[:checked]:border-indigo-500/60 has-[:checked]:bg-indigo-500/10', 'icon' => 'text-indigo-400 bg-indigo-500/20'];
+                    @endphp
+                    <label class="relative flex items-start gap-3 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-white/20 transition-all {{ $clr['ring'] }}">
+                        <input type="checkbox" name="packages[]" value="{{ $pkg->slug }}"
+                               {{ in_array($pkg->slug, old('packages', [])) ? 'checked' : '' }}
+                               class="mt-0.5 accent-indigo-500">
+                        <div>
+                            <p class="text-sm font-semibold text-white">{{ $pkg->name }}</p>
+                            <p class="text-xs text-slate-500 leading-relaxed mt-0.5">{{ $pkg->description }}</p>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Masa Aktif --}}
+            <div class="space-y-2">
+                <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Masa Aktif</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="relative flex flex-col gap-1 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-amber-500/40 transition-all has-[:checked]:border-amber-500/60 has-[:checked]:bg-amber-500/10">
+                        <input type="radio" name="type" value="lifetime" class="sr-only" checked onchange="toggleAddDateField(this)">
+                        <p class="text-sm font-semibold text-white">Lifetime</p>
+                        <p class="text-xs text-slate-500">Akses tanpa batas waktu</p>
+                    </label>
+                    <label class="relative flex flex-col gap-1 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-blue-500/40 transition-all has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10">
+                        <input type="radio" name="type" value="expiry" class="sr-only" onchange="toggleAddDateField(this)">
+                        <p class="text-sm font-semibold text-white">Batas Waktu</p>
+                        <p class="text-xs text-slate-500">Tentukan tanggal berakhir</p>
+                    </label>
+                </div>
+                <div id="add-date-field" class="hidden">
+                    <input type="date" name="active_until" id="add-input-date"
+                           class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-all"
+                           min="{{ now()->addDay()->format('Y-m-d') }}">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onclick="closeAddModal()"
+                        class="px-4 py-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-xl transition-all">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all">
+                    Tambah Pelanggan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openAddModal() {
+    document.getElementById('modal-add').classList.remove('hidden');
+}
+function closeAddModal() {
+    document.getElementById('modal-add').classList.add('hidden');
+}
+function toggleAddDateField(radio) {
+    const field = document.getElementById('add-date-field');
+    if (radio.value === 'expiry') {
+        field.classList.remove('hidden');
+    } else {
+        field.classList.add('hidden');
+        document.getElementById('add-input-date').value = '';
+    }
+}
+@if($errors->any())
+openAddModal();
+@endif
+</script>
 
 <script>
 function openModal(userId, userName, currentType, currentDate) {

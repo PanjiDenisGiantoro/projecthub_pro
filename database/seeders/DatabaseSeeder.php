@@ -70,6 +70,9 @@ class DatabaseSeeder extends Seeder
         // Seed default approval policies
         $this->call(ApprovalPolicySeeder::class);
 
+        // Seed available packages
+        $this->call(PackageSeeder::class);
+
         $this->command->info('✅ Seeded roles, users, default SLA policies, and approval policies.');
         $this->command->table(
             ['Role', 'Email', 'Password'],

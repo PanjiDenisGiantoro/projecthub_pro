@@ -14,6 +14,7 @@ class ClientWebController extends Controller
 
         $clients = User::role('customer')
             ->with('roles')
+            ->where('company_id', auth()->user()->company_id)
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"))
             ->when($request->status !== null && $request->status !== '', fn($q) => $q->where('is_active', $request->status))
@@ -41,11 +42,12 @@ class ClientWebController extends Controller
         ]);
 
         $client = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => $request->password,
-            'is_active' => $request->boolean('is_active', true),
-            'timezone'  => 'Asia/Jakarta',
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'password'   => $request->password,
+            'company_id' => auth()->user()->company_id,
+            'is_active'  => $request->boolean('is_active', true),
+            'timezone'   => 'Asia/Jakarta',
         ]);
         $client->assignRole('customer');
 
