@@ -19,11 +19,10 @@
     <aside class="w-60 flex flex-col fixed inset-y-0 bg-slate-900 border-r border-white/5">
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 border-b border-white/5 shrink-0">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0"
-                 style="background: linear-gradient(135deg, #f59e0b, #ef4444)">SA</div>
+            <img src="{{ asset('logo.png') }}" alt="Flovig" class="w-8 h-8 rounded-lg object-contain shrink-0">
             <div class="min-w-0">
                 <p class="text-sm font-bold text-white leading-none">Super Admin</p>
-                <p class="text-xs text-amber-400 mt-0.5">ProjectHub Pro</p>
+                <p class="text-xs text-amber-400 mt-0.5">Flovig</p>
             </div>
         </div>
 

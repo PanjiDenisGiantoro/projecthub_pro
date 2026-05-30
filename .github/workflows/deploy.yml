@@ -123,6 +123,10 @@ jobs:
             echo ">>> Install Composer dependencies (production)"
             COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=php
 
+            echo ">>> Install NPM dan build assets"
+            npm ci --no-audit --no-fund
+            npm run build
+
             echo ">>> Jalankan migrasi database"
             php artisan migrate --force
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar — ProjectHub Pro</title>
+    <title>Daftar — Flovig</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-gray-50 flex items-center justify-center p-4">
@@ -12,10 +12,8 @@
     {{-- Logo --}}
     <div class="text-center mb-8">
         <a href="/" class="inline-flex items-center gap-2 mb-4">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                <span class="text-white font-bold">PH</span>
-            </div>
-            <span class="font-semibold text-gray-900 text-lg">ProjectHub Pro</span>
+            <img src="{{ asset('logo.png') }}" alt="Flovig" class="w-10 h-10 rounded-xl object-contain">
+            <span class="font-semibold text-gray-900 text-lg">Flovig</span>
         </a>
         <h1 class="text-2xl font-bold text-gray-900">Buat akun baru</h1>
         <p class="text-gray-500 text-sm mt-1">Gratis selamanya, tanpa kartu kredit</p>
