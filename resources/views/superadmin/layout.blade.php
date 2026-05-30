@@ -8,17 +8,21 @@
 </head>
 <body class="h-full bg-slate-950 text-white antialiased">
 
+{{-- Page Loading Overlay --}}
+<div id="page-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#020617;transition:opacity 0.3s ease">
+    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." style="width:16rem;height:16rem;object-fit:contain">
+</div>
+
 <div class="flex h-full">
 
     {{-- Sidebar --}}
     <aside class="w-60 flex flex-col fixed inset-y-0 bg-slate-900 border-r border-white/5">
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 border-b border-white/5 shrink-0">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0"
-                 style="background: linear-gradient(135deg, #f59e0b, #ef4444)">SA</div>
+            <img src="{{ asset('logo.png') }}" alt="Flovig" class="w-8 h-8 rounded-lg object-contain shrink-0">
             <div class="min-w-0">
                 <p class="text-sm font-bold text-white leading-none">Super Admin</p>
-                <p class="text-xs text-amber-400 mt-0.5">ProjectHub Pro</p>
+                <p class="text-xs text-amber-400 mt-0.5">Flovig</p>
             </div>
         </div>
 
@@ -111,5 +115,15 @@
     </div>
 
 </div>
+<script>
+window.addEventListener('load', function () {
+    var loader = document.getElementById('page-loader');
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.pointerEvents = 'none';
+        setTimeout(function () { loader.style.display = 'none'; }, 300);
+    }
+});
+</script>
 </body>
 </html>

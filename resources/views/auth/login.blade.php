@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — ProjectHub Pro</title>
+    <title>Login — Flovig</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center p-4">
@@ -12,9 +12,9 @@
     {{-- Logo --}}
     <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-14 h-14 bg-white rounded-2xl shadow-lg mb-4">
-            <span class="text-blue-700 font-bold text-xl">PH</span>
+            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-10 h-10 object-contain">
         </div>
-        <h1 class="text-2xl font-bold text-white">ProjectHub Pro</h1>
+        <h1 class="text-2xl font-bold text-white">Flovig</h1>
         <p class="text-blue-200 text-sm mt-1">Integrated Project & Marketing Managements</p>
     </div>
 

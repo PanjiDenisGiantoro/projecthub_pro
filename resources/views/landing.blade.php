@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProjectHub Pro — Manajemen Project & Tim dalam Satu Platform</title>
+    <title>Flovig — Manajemen Project & Tim dalam Satu Platform</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -197,8 +197,8 @@
 <header>
     <div class="container navbar">
         <a href="/" class="logo">
-            <div class="logo-icon">PH</div>
-            ProjectHub Pro
+            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" style="width:36px;height:36px;object-fit:contain;">
+            Flovig
         </a>
 
         <nav class="nav-links">
@@ -225,7 +225,7 @@
             <h1>Satu platform untuk <span>project</span> & tim Anda.</h1>
 
             <p>
-                ProjectHub Pro menyatukan manajemen project, CRM, invoicing, bug tracker,
+                Flovig menyatukan manajemen project, CRM, invoicing, bug tracker,
                 dan komunikasi tim dalam satu workspace.
                 Lebih sederhana, lebih cepat, lebih hemat.
             </p>
@@ -304,7 +304,7 @@
     <div class="container">
         <div class="section-title">
             <h2>Semua yang tim Anda butuhkan</h2>
-            <p>Berhenti bayar banyak software berbeda. ProjectHub Pro menggantikan seluruh stack manajemen proyek Anda.</p>
+            <p>Berhenti bayar banyak software berbeda. Flovig menggantikan seluruh stack manajemen proyek Anda.</p>
         </div>
 
         <div class="features-grid">
@@ -480,7 +480,7 @@
     <div class="container">
         <div class="cta-box">
             <h2>Siap menyederhanakan operasi tim Anda?</h2>
-            <p>Coba ProjectHub Pro gratis 14 hari. Tanpa kartu kredit, tanpa komitmen.</p>
+            <p>Coba Flovig gratis 14 hari. Tanpa kartu kredit, tanpa komitmen.</p>
             <a href="{{ route('register') }}" class="btn btn-white">Mulai Sekarang</a>
         </div>
     </div>
@@ -492,8 +492,8 @@
         <div class="footer-grid">
             <div class="footer-brand">
                 <div class="logo" style="color:white; font-size:20px;">
-                    <div class="logo-icon">PH</div>
-                    ProjectHub Pro
+                    <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" style="width:36px;height:36px;object-fit:contain;">
+                    Flovig
                 </div>
                 <p>Satu platform untuk manajemen project dan tim. Sederhanakan cara kerja bisnis Anda hari ini.</p>
             </div>
@@ -514,7 +514,7 @@
         </div>
 
         <div class="footer-bottom">
-            © {{ date('Y') }} ProjectHub Pro. All rights reserved. &bull; Made with ❤️ in Indonesia
+            © {{ date('Y') }} Flovig. All rights reserved. &bull; Made with ❤️ in Indonesia
         </div>
     </div>
 </footer>

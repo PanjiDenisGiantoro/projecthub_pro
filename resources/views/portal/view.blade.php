@@ -110,7 +110,7 @@
     </div>
     @endif
 
-    <p class="text-xs text-gray-400 text-center mt-8">Powered by ProjectHub Pro · Link ini dibuat khusus untuk Anda</p>
+    <p class="text-xs text-gray-400 text-center mt-8">Powered by Flovig · Link ini dibuat khusus untuk Anda</p>
 </div>
 </body>
 </html>

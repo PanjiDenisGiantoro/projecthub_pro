@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') — ProjectHub Pro</title>
+    <title>@yield('title', 'Dashboard') — Flovig</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,6 +16,11 @@
 </head>
 <body class="h-full font-sans antialiased bg-slate-50" x-data="{ sidebarOpen: false }">
 
+{{-- Page Loading Overlay --}}
+<div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
+    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-64 h-64 object-contain">
+</div>
+
 <div class="flex h-full">
 
     {{-- ── Desktop Sidebar ────────────────────────────────────────────────── --}}
@@ -24,10 +29,9 @@
 
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0"
-                 style="background:var(--ph-logo-btn-bg);color:var(--ph-logo-btn-fg);box-shadow:0 4px 12px rgba(0,0,0,0.15)">PH</div>
+            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-9 h-9 rounded-xl object-contain shrink-0">
             <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
-                ProjectHub <span class="font-medium" style="color:var(--ph-logo-accent)">Pro</span>
+                Flovig
             </span>
         </div>
 
@@ -111,10 +115,9 @@
            class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:hidden ph-sidebar"
            style="box-shadow:4px 0 30px rgba(0,0,0,0.3)">
         <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0"
-                 style="background:var(--ph-logo-btn-bg);color:var(--ph-logo-btn-fg);box-shadow:0 4px 12px rgba(0,0,0,0.15)">PH</div>
+            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-9 h-9 rounded-xl object-contain shrink-0">
             <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
-                ProjectHub <span class="font-medium" style="color:var(--ph-logo-accent)">Pro</span>
+                Flovig
             </span>
             <button @click="sidebarOpen=false" class="ml-auto ph-close-btn shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -386,6 +389,22 @@ document.addEventListener('DOMContentLoaded', function () {
     font-size: 0.975rem !important;
     font-weight: 600 !important;
 }
+#page-loader {
+    transition: opacity 0.3s ease;
+}
+#page-loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 </style>
+<script>
+window.addEventListener('load', function () {
+    var loader = document.getElementById('page-loader');
+    if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(function () { loader.style.display = 'none'; }, 300);
+    }
+});
+</script>
 </body>
 </html>
