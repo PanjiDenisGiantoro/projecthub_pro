@@ -53,7 +53,7 @@
                         <p class="text-xs text-gray-400 mt-1.5">Format: JPG, PNG, GIF, WEBP &bull; Maks. 2 MB</p>
                     </div>
                     <button type="submit"
-                            class="shrink-0 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
+                            class="shrink-0 px-5 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 active:bg-blue-800 transition-colors shadow-sm">
                         Simpan Foto
                     </button>
                 </div>

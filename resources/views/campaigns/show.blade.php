@@ -102,7 +102,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
         <div class="flex gap-1 mb-4 border-b border-gray-200">
             @foreach(['leads'=>'Leads ('.$campaign->leads->count().')','funnel'=>'Funnel','metrics'=>'Metrik & Performa'] as $t=>$label)
             <button @click="tab = '{{ $t }}'"
-                    :class="tab === '{{ $t }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    :class="tab === '{{ $t }}' ? 'border-violet-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px">
                 {{ $label }}
             </button>
@@ -116,9 +116,9 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div class="flex items-center gap-2">
                     <input type="text" x-model="search" placeholder="Cari lead…"
-                           class="text-sm border border-gray-300 rounded-lg px-3 py-2 w-44 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="text-sm border border-gray-300 rounded-lg px-3 py-2 w-44 focus:outline-none focus:ring-2 focus:ring-violet-500">
                     <select x-model="filterStatus"
-                            class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">Semua Status</option>
                         <option value="lead">Lead</option>
                         <option value="prospect">Prospect</option>
@@ -147,7 +147,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                     </template>
                     @can('manage campaigns')
                     <button @click="openLeadModal(null)"
-                            class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+                            class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Tambah Lead
                     </button>
@@ -184,7 +184,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                             <div class="flex items-start justify-between mb-1">
                                 <div class="flex items-center gap-1.5">
                                     <input type="checkbox" :value="{{ $lead->id }}" x-model="selected"
-                                           @click.stop class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                           @click.stop class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-violet-500">
                                     <p class="text-xs font-semibold text-gray-800 leading-snug">{{ $lead->name }}</p>
                                 </div>
                                 @if($lead->score > 0)
@@ -350,10 +350,10 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ $label }}</label>
                             <input type="number" name="{{ $field }}" value="{{ $campaign->$field ?? '' }}" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         </div>
                         @endforeach
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg transition-colors mt-1">
+                        <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium py-2 rounded-lg transition-colors mt-1">
                             Simpan Metrik
                         </button>
                     </form>
@@ -407,31 +407,31 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nama *</label>
                     <input type="text" name="name" :value="lead.name" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Kontak *</label>
                     <input type="text" name="contact" :value="lead.contact" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
                     <input type="email" name="email" :value="lead.email"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
                     <input type="text" name="phone" :value="lead.phone"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
                     <input type="text" name="company" :value="lead.company"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Sumber</label>
-                    <select name="source" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="source" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">—</option>
                         @foreach(['website','referral','ads','event','cold_call','other'] as $src)
                         <option value="{{ $src }}" :selected="lead.source === '{{ $src }}'">{{ ucfirst(str_replace('_',' ',$src)) }}</option>
@@ -441,17 +441,17 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Score (1–10)</label>
                     <input type="number" name="score" :value="lead.score" min="0" max="10"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nilai Potensial (Rp)</label>
                     <input type="number" name="value" :value="lead.value" min="0"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <template x-if="lead.id">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                    <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         @foreach(['lead','prospect','client','lost'] as $s)
                         <option value="{{ $s }}" :selected="lead.status === '{{ $s }}'">{{ ucfirst($s) }}</option>
                         @endforeach
@@ -460,7 +460,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 </template>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Assignee</label>
-                    <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">—</option>
                         @foreach($users as $u)
                         <option value="{{ $u->id }}" :selected="lead.assigned_to == {{ $u->id }}">{{ $u->name }}</option>
@@ -470,24 +470,24 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Follow-up Date</label>
                     <input type="date" name="follow_up_at" :value="lead.follow_up_at"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                     <textarea name="notes" rows="2" x-text="lead.notes"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"></textarea>
                 </div>
                 <template x-if="lead.id && lead.status === 'lost'">
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Alasan Lost</label>
                     <input type="text" name="lost_reason" :value="lead.lost_reason"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 </template>
             </div>
 
             <div class="flex gap-2 pt-1">
-                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg">
+                <button type="submit" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium py-2.5 rounded-lg">
                     Simpan
                 </button>
                 <template x-if="lead.id">

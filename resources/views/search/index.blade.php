@@ -7,9 +7,9 @@
     <form method="GET" action="{{ route('search.index') }}" class="mb-6">
         <div class="flex gap-3">
             <input type="text" name="q" value="{{ $query }}" autofocus placeholder="Cari task, proyek, ticket, artikel..."
-                   class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors">
+                    class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors">
                 Cari
             </button>
         </div>

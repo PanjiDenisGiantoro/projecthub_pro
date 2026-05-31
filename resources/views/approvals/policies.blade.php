@@ -48,7 +48,7 @@
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-sm font-semibold text-gray-700">Daftar Approval Policy</h2>
         <button @click="addModal = true"
-                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Policy
         </button>
@@ -120,7 +120,7 @@
                             <div class="flex items-center gap-2 justify-end">
                                 {{-- Edit --}}
                                 <button @click="editModal = {{ $policy->id }}; editData = {{ json_encode(['id'=>$policy->id,'flow_type'=>$policy->flow_type,'approver_roles'=>$policy->approver_roles,'timeout_hours'=>$policy->timeout_hours,'description'=>$policy->description]) }}"
-                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                                        class="text-xs text-violet-600 hover:text-violet-800 font-medium">Edit</button>
                                 {{-- Delete --}}
                                 <form method="POST" action="{{ route('approval-policies.destroy', $policy) }}"
                                       onsubmit="return confirm('Hapus policy {{ addslashes($policy->module.'.'. $policy->action) }}? Aksi ini tidak dapat dibatalkan.')">
@@ -140,7 +140,7 @@
                                         <div class="space-y-4">
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-700 mb-1">Flow Type</label>
-                                                <select name="flow_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <select name="flow_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                                                     @foreach(['sequential','parallel_all','any_of','single'] as $ft)
                                                     <option value="{{ $ft }}" {{ $policy->flow_type === $ft ? 'selected' : '' }}>{{ str_replace('_',' ',ucfirst($ft)) }}</option>
                                                     @endforeach
@@ -153,7 +153,7 @@
                                                     <label class="flex items-center gap-2 cursor-pointer">
                                                         <input type="checkbox" name="approver_roles[]" value="{{ $role }}"
                                                                {{ in_array($role, $policy->approver_roles) ? 'checked' : '' }}
-                                                               class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                               class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500">
                                                         <span class="text-sm text-gray-700 {{ $roleColors[$role] ?? '' }} px-2 py-0.5 rounded-full text-xs font-medium">{{ ucfirst($role) }}</span>
                                                     </label>
                                                     @endforeach
@@ -162,17 +162,17 @@
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-700 mb-1">Timeout (jam)</label>
                                                 <input type="number" name="timeout_hours" value="{{ $policy->timeout_hours }}" min="1" max="720"
-                                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                                             </div>
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-700 mb-1">Keterangan</label>
                                                 <input type="text" name="description" value="{{ $policy->description }}"
-                                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                                             </div>
                                         </div>
                                         <div class="flex gap-2 justify-end mt-5">
                                             <button type="button" @click="editModal = null" class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
-                                            <button type="submit" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Simpan</button>
+                                            <button type="submit" class="px-4 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium">Simpan</button>
                                         </div>
                                     </form>
                                 </div>
@@ -197,17 +197,17 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">Modul <span class="text-red-500">*</span></label>
                             <input type="text" name="module" placeholder="ticket, invoice, request..." required
-                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('module') }}">
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" value="{{ old('module') }}">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">Action <span class="text-red-500">*</span></label>
                             <input type="text" name="action" placeholder="resolve, close, approve..." required
-                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('action') }}">
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" value="{{ old('action') }}">
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Flow Type <span class="text-red-500">*</span></label>
-                        <select name="flow_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="flow_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                             <option value="">Pilih flow type...</option>
                             <option value="single">Single — satu approver</option>
                             <option value="any_of">Any Of — salah satu dari daftar</option>
@@ -222,7 +222,7 @@
                             @foreach(['admin','manager','developer','marketing','customer'] as $role)
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" name="approver_roles[]" value="{{ $role }}"
-                                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                       class="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500">
                                 <span class="text-xs font-medium px-2 py-0.5 rounded-full {{ $roleColors[$role] }}">{{ ucfirst($role) }}</span>
                             </label>
                             @endforeach
@@ -231,18 +231,18 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Timeout (jam) <span class="text-red-500">*</span></label>
                         <input type="number" name="timeout_hours" value="{{ old('timeout_hours', 24) }}" min="1" max="720" required
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <p class="text-xs text-gray-400 mt-1">Berapa jam sebelum approval otomatis expired.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Keterangan</label>
                         <input type="text" name="description" placeholder="Penjelasan singkat tujuan policy ini..."
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('description') }}">
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" value="{{ old('description') }}">
                     </div>
                 </div>
                 <div class="flex gap-2 justify-end mt-5">
                     <button type="button" @click="addModal = false" class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
-                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Simpan Policy</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium">Simpan Policy</button>
                 </div>
             </form>
         </div>

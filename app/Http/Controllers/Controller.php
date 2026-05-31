@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 abstract class Controller
 {
+    use AuthorizesRequests;
+
     /** Kembalikan company_id tenant saat ini. Null = superadmin (lihat semua). */
     protected function tenantId(): ?int
     {

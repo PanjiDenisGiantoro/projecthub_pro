@@ -39,35 +39,35 @@
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
                 <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus
                        placeholder="Budi Santoso"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-400 @enderror">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('name') border-red-400 @enderror">
             </div>
 
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Kerja</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}" required
                        placeholder="budi@perusahaan.com"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('email') border-red-400 @enderror">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('email') border-red-400 @enderror">
             </div>
 
             <div>
                 <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1">Nama Perusahaan</label>
                 <input type="text" id="company_name" name="company_name" value="{{ old('company_name') }}" required
                        placeholder="PT Maju Bersama"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('company_name') border-red-400 @enderror">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('company_name') border-red-400 @enderror">
             </div>
 
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input type="password" id="password" name="password" required
                        placeholder="Minimal 8 karakter"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('password') border-red-400 @enderror">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('password') border-red-400 @enderror">
             </div>
 
             <div>
                 <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
                 <input type="password" id="password_confirmation" name="password_confirmation" required
                        placeholder="Ulangi password"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
             </div>
 
             {{-- Package Selection --}}
@@ -88,7 +88,7 @@
                     <label
                         class="relative flex flex-col cursor-pointer rounded-xl border-2 p-4 transition-all"
                         :class="packages.includes('task_management')
-                            ? 'border-blue-500 bg-blue-50'
+                            ? 'border-violet-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300 bg-white'">
                         <input type="checkbox" name="packages[]" value="task_management"
                                class="sr-only"
@@ -112,7 +112,7 @@
                                 </p>
                             </div>
                             <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5"
-                                 :class="packages.includes('task_management') ? 'border-blue-500 bg-blue-500' : 'border-gray-300'">
+                                 :class="packages.includes('task_management') ? 'border-violet-500 bg-blue-500' : 'border-gray-300'">
                                 <svg x-show="packages.includes('task_management')" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                 </svg>
@@ -200,7 +200,7 @@
                     :disabled="packages.length === 0"
                     :class="packages.length === 0
                         ? 'bg-gray-300 cursor-not-allowed text-gray-400'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'"
+                        : 'bg-violet-600 hover:bg-violet-700 text-white cursor-pointer'"
                     class="w-full font-medium py-2.5 rounded-lg transition-colors text-sm mt-2">
                 Buat Akun
             </button>
@@ -208,7 +208,7 @@
 
         <p class="text-center text-sm text-gray-500 mt-6">
             Sudah punya akun?
-            <a href="{{ route('login') }}" class="text-blue-600 hover:underline font-medium">Masuk</a>
+            <a href="{{ route('login') }}" class="text-violet-600 hover:underline font-medium">Masuk</a>
         </p>
     </div>
 

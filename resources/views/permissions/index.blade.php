@@ -5,7 +5,7 @@
 @section('content')
 @php
     $roleColors = [
-        'manager'   => ['bg'=>'bg-blue-600',  'light'=>'bg-blue-50',  'text'=>'text-blue-700',  'border'=>'border-blue-300'],
+        'manager'   => ['bg'=>'bg-violet-600',  'light'=>'bg-blue-50',  'text'=>'text-blue-700',  'border'=>'border-blue-300'],
         'developer' => ['bg'=>'bg-violet-600','light'=>'bg-violet-50','text'=>'text-violet-700','border'=>'border-violet-300'],
         'marketing' => ['bg'=>'bg-pink-600',  'light'=>'bg-pink-50',  'text'=>'text-pink-700',  'border'=>'border-pink-300'],
         'customer'  => ['bg'=>'bg-teal-600',  'light'=>'bg-teal-50',  'text'=>'text-teal-700',  'border'=>'border-teal-300'],

@@ -73,6 +73,11 @@ class DatabaseSeeder extends Seeder
         // Seed available packages
         $this->call(PackageSeeder::class);
 
+        // Seed HRIS master data
+        $this->call(LeaveTypeSeeder::class);
+        $this->call(OvertimeRuleSeeder::class);
+        $this->call(TaxConfigSeeder::class);
+
         $this->command->info('✅ Seeded roles, users, default SLA policies, and approval policies.');
         $this->command->table(
             ['Role', 'Email', 'Password'],

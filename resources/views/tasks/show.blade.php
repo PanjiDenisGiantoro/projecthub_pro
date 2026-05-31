@@ -162,7 +162,7 @@
                         @csrf
                         <input type="hidden" name="action" value="manual">
                         <input type="number" name="minutes" min="1" placeholder="Menit..."
-                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Log Manual</button>
                     </form>
                 </div>
@@ -259,7 +259,7 @@
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3">
                     @csrf @method('PUT')
-                    <select name="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
                             <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
                         @endforeach
@@ -270,9 +270,9 @@
                         </label>
                         <textarea name="completion_notes" rows="4" required
                                   placeholder="Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting..."
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                    <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
                         Simpan Status
                     </button>
                 </form>
@@ -285,13 +285,13 @@
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Re-assign</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Tidak ada —</option>
                         @foreach(\App\Models\User::role('developer')->get() as $dev)
                             <option value="{{ $dev->id }}" {{ $task->assigned_to === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
+                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
                 </form>
             </div>
             @endif

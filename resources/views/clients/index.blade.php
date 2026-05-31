@@ -10,9 +10,9 @@
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Cari nama / email..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-56">
             <select name="status" onchange="this.form.submit()"
-                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">Semua Status</option>
                 <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Aktif</option>
                 <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Nonaktif</option>
@@ -27,7 +27,7 @@
 
         @can('manage users')
         <a href="{{ route('clients.create') }}"
-           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
+           class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
             </svg>
@@ -40,7 +40,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
         <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
@@ -120,7 +120,7 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3 justify-end">
                             <a href="{{ route('clients.edit', $client) }}"
-                               class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</a>
+                               class="text-violet-600 hover:text-violet-800 text-sm font-medium">Edit</a>
                             <form method="POST" action="{{ route('clients.destroy', $client) }}"
                                   onsubmit="return confirm('Hapus client {{ $client->name }}?')">
                                 @csrf @method('DELETE')

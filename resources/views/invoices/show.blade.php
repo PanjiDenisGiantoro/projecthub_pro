@@ -89,7 +89,7 @@
             @if($invoice->status === 'draft')
             <form method="POST" action="{{ route('invoices.send', $invoice) }}">
                 @csrf @method('PUT')
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim ke Client</button>
+                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim ke Client</button>
             </form>
             @endif
             @if(in_array($invoice->status, ['sent','overdue']))

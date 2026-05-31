@@ -188,54 +188,68 @@
 <div class="pt-2 pb-1">
     <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Core HRIS</p>
 
-    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+    {{-- Absensi --}}
+    <a href="{{ route('hris.absensi.index') }}"
+       class="{{ request()->routeIs('hris.absensi.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <span class="flex-1">Absensi</span>
-        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+        Absensi
     </a>
 
-    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
-        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-        </svg>
-        <span class="flex-1">Penggajian</span>
-        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
-    </a>
-
-    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
-        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-        </svg>
-        <span class="flex-1">Pajak (PPh 21)</span>
-        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
-    </a>
-
-    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+    {{-- Cuti & Izin --}}
+    <a href="{{ route('hris.leave.index') }}"
+       class="{{ request()->routeIs('hris.leave.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
-        <span class="flex-1">Cuti & Izin</span>
-        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+        Cuti & Izin
     </a>
 
-    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+    {{-- Lembur --}}
+    <a href="{{ route('hris.overtime.index') }}"
+       class="{{ request()->routeIs('hris.overtime.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <span class="flex-1">Lembur</span>
-        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+        Lembur
     </a>
 
-    <a href="#" class="{{ $inactive }} opacity-50 cursor-not-allowed">
+    {{-- Reimburse --}}
+    <a href="{{ route('hris.reimburse.index') }}"
+       class="{{ request()->routeIs('hris.reimburse.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
         </svg>
-        <span class="flex-1">Reimburse</span>
-        <span class="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+        Reimburse
+    </a>
+
+    {{-- Penggajian --}}
+    @can('manage payroll')
+    <a href="{{ route('hris.payroll.index') }}"
+       class="{{ request()->routeIs('hris.payroll.*') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Penggajian
+    </a>
+    @endcan
+</div>
+
+{{-- Master Data HRIS --}}
+@can('manage hris master')
+<div class="pt-3">
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Konfigurasi</p>
+    <a href="{{ route('hris.master.index') }}"
+       class="{{ request()->routeIs('hris.master.*') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Konfigurasi HRIS
     </a>
 </div>
+@endcan
 
 @endif {{-- /showHris --}}
 
@@ -254,8 +268,8 @@
 @endcan
 @endif
 
-{{-- Client Management --}}
-@if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager'))
+{{-- Client Management — hanya di Task Management --}}
+@if($showTm && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager')))
 <a href="{{ route('clients.index') }}"
    class="{{ request()->routeIs('clients.*') ? $active : $inactive }}">
     <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
