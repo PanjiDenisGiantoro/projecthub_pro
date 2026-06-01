@@ -36,6 +36,17 @@ use App\Http\Controllers\Web\RoleWebController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
 use App\Http\Controllers\Web\ProfileWebController;
+use App\Http\Controllers\Web\Hris\AbsensiController;
+use App\Http\Controllers\Web\Hris\LeaveController;
+use App\Http\Controllers\Web\Hris\OvertimeController;
+use App\Http\Controllers\Web\Hris\ReimbursementController;
+use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
+use App\Http\Controllers\Web\Hris\PayrollController;
+use App\Http\Controllers\Web\Hris\Master\HrisMasterController;
+use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
+use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
+use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
+use App\Http\Controllers\Web\Hris\Master\TaxBracketController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -265,7 +276,83 @@ Route::middleware(['auth', 'check.active'])->group(function () {
     Route::get('/projects/{project}/export/timesheet/pdf', [ExportWebController::class, 'timesheetPdf'])->name('export.timesheet.pdf');
     Route::get('/projects/{project}/export/report/pdf', [ExportWebController::class, 'projectReportPdf'])->name('export.report.pdf');
     Route::get('/projects/{project}/export/report/excel', [ExportWebController::class, 'projectReportExcel'])->name('export.report.excel');
-});
+
+    // ─── HRIS ─────────────────────────────────────────────────────────────────
+    Route::prefix('hris')->name('hris.')->middleware('package:hris')->group(function () {
+
+        // Absensi
+        Route::get('absensi',           [AbsensiController::class, 'index'])->name('absensi.index');
+        Route::post('absensi/checkin',  [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
+        Route::post('absensi/checkout', [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
+        Route::get('absensi/rekap',     [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+
+        // Cuti & Izin
+        Route::get('leave',                        [LeaveController::class, 'index'])->name('leave.index');
+        Route::get('leave/create',                 [LeaveController::class, 'create'])->name('leave.create');
+        Route::post('leave',                       [LeaveController::class, 'store'])->name('leave.store');
+        Route::delete('leave/{leave}',             [LeaveController::class, 'destroy'])->name('leave.destroy');
+        Route::patch('leave/{leave}/approve',      [LeaveController::class, 'approve'])->name('leave.approve');
+        Route::patch('leave/{leave}/reject',       [LeaveController::class, 'reject'])->name('leave.reject');
+
+        // Lembur
+        Route::get('overtime',                     [OvertimeController::class, 'index'])->name('overtime.index');
+        Route::get('overtime/create',              [OvertimeController::class, 'create'])->name('overtime.create');
+        Route::post('overtime',                    [OvertimeController::class, 'store'])->name('overtime.store');
+        Route::delete('overtime/{overtime}',       [OvertimeController::class, 'destroy'])->name('overtime.destroy');
+        Route::patch('overtime/{overtime}/approve',[OvertimeController::class, 'approve'])->name('overtime.approve');
+
+        // Reimburse
+        Route::get('reimburse',                        [ReimbursementController::class, 'index'])->name('reimburse.index');
+        Route::get('reimburse/create',                 [ReimbursementController::class, 'create'])->name('reimburse.create');
+        Route::post('reimburse',                       [ReimbursementController::class, 'store'])->name('reimburse.store');
+        Route::delete('reimburse/{reimburse}',         [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
+        Route::patch('reimburse/{reimburse}/approve',  [ReimbursementController::class, 'approve'])->name('reimburse.approve');
+
+        // Gaji Karyawan (EmployeeSalary)
+        Route::get('salary/{user}',              [EmployeeSalaryController::class, 'index'])->name('salary.index');
+        Route::get('salary/{user}/create',       [EmployeeSalaryController::class, 'create'])->name('salary.create');
+        Route::post('salary/{user}',             [EmployeeSalaryController::class, 'store'])->name('salary.store');
+        Route::get('salary/{user}/{salary}/edit',[EmployeeSalaryController::class, 'edit'])->name('salary.edit');
+        Route::put('salary/{user}/{salary}',     [EmployeeSalaryController::class, 'update'])->name('salary.update');
+        Route::delete('salary/{user}/{salary}',  [EmployeeSalaryController::class, 'destroy'])->name('salary.destroy');
+
+        // Payroll
+        Route::get('payroll',                        [PayrollController::class, 'index'])->name('payroll.index');
+        Route::post('payroll/generate',              [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::get('payroll/{payroll}',              [PayrollController::class, 'show'])->name('payroll.show');
+        Route::get('payroll/{payroll}/slip',         [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
+        Route::patch('payroll/{payroll}/finalize',   [PayrollController::class, 'finalize'])->name('payroll.finalize');
+
+        // Master Data HRIS
+        Route::prefix('master')->name('master.')->middleware('can:manage hris master')->group(function () {
+            Route::get('/',                                    [HrisMasterController::class, 'index'])->name('index');
+
+            Route::post('leave-types',                         [LeaveTypeController::class, 'store'])->name('leave-types.store');
+            Route::put('leave-types/{leaveType}',              [LeaveTypeController::class, 'update'])->name('leave-types.update');
+            Route::delete('leave-types/{leaveType}',           [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
+            Route::patch('leave-types/{leaveType}/toggle',     [LeaveTypeController::class, 'toggle'])->name('leave-types.toggle');
+            Route::post('leave-types/reset',                   [LeaveTypeController::class, 'resetDefault'])->name('leave-types.reset');
+
+            Route::post('overtime-rules',                      [OvertimeRuleController::class, 'store'])->name('overtime-rules.store');
+            Route::put('overtime-rules/{overtimeRule}',        [OvertimeRuleController::class, 'update'])->name('overtime-rules.update');
+            Route::delete('overtime-rules/{overtimeRule}',     [OvertimeRuleController::class, 'destroy'])->name('overtime-rules.destroy');
+            Route::patch('overtime-rules/{overtimeRule}/toggle',[OvertimeRuleController::class, 'toggle'])->name('overtime-rules.toggle');
+            Route::post('overtime-rules/reset',                [OvertimeRuleController::class, 'resetDefault'])->name('overtime-rules.reset');
+
+            Route::patch('tax-ptkp/{taxPtkp}',                 [TaxPtkpController::class, 'update'])->name('tax-ptkp.update');
+            Route::patch('tax-ptkp/{taxPtkp}/toggle',          [TaxPtkpController::class, 'toggle'])->name('tax-ptkp.toggle');
+            Route::post('tax-ptkp/reset',                      [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
+
+            Route::post('tax-brackets',                        [TaxBracketController::class, 'store'])->name('tax-brackets.store');
+            Route::get('tax-brackets/{taxBracket}/edit',       [TaxBracketController::class, 'edit'])->name('tax-brackets.edit');
+            Route::put('tax-brackets/{taxBracket}',            [TaxBracketController::class, 'update'])->name('tax-brackets.update');
+            Route::delete('tax-brackets/{taxBracket}',         [TaxBracketController::class, 'destroy'])->name('tax-brackets.destroy');
+            Route::patch('tax-brackets/{taxBracket}/toggle',   [TaxBracketController::class, 'toggle'])->name('tax-brackets.toggle');
+            Route::post('tax-brackets/reset',                  [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
+        });
+    });
+
+}); // end Route::middleware(['auth', 'check.active'])
 
 // Client Portal (no auth — token based)
 Route::get('/portal/{token}', [ClientPortalWebController::class, 'view'])->name('portal.view');

@@ -32,7 +32,7 @@
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">In Progress</span>
                 <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
@@ -105,7 +105,7 @@
                     </button>
                 </div>
                 <a href="{{ route('projects.index') }}"
-                   class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                   class="inline-flex items-center px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-md transition-colors">
                     Lihat Semua
                 </a>
             </div>
@@ -189,7 +189,7 @@
                             </td>
                             <td class="px-3 py-3 text-right">
                                 <a href="{{ route('tasks.show', [$task->project_id, $task->id]) }}"
-                                   class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                   class="text-violet-600 hover:text-violet-800 text-xs font-medium">
                                     Detail
                                 </a>
                             </td>

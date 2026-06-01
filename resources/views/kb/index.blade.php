@@ -13,12 +13,12 @@
     <div class="flex justify-between items-center mb-4">
         <form method="GET" class="flex gap-2">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari artikel..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-64">
             <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg transition-colors">Cari</button>
         </form>
         @if(!auth()->user()->hasRole('customer'))
         <button @click="showForm=!showForm"
-                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span x-text="showForm ? 'Batal' : 'Artikel Baru'"></span>
         </button>
@@ -35,21 +35,21 @@
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Judul *</label>
                     <input type="text" name="title" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi Singkat</label>
                     <input type="text" name="description" maxlength="500" placeholder="Ringkasan artikel (maks 500 karakter)..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Konten *</label>
                     <textarea name="body" rows="8" required
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 font-mono"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Parent Artikel</label>
-                    <select name="parent_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="parent_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Root (tidak ada parent) —</option>
                         @foreach($articles as $a)
                             <option value="{{ $a->id }}">{{ $a->title }}</option>
@@ -78,7 +78,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan Artikel</button>
+            <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan Artikel</button>
         </form>
     </div>
     @endif
@@ -124,7 +124,7 @@
                     @endif
                 </div>
                 <a href="{{ route('kb.show', [$project, $article]) }}"
-                   class="text-sm text-blue-600 hover:text-blue-800 font-medium flex-shrink-0">Baca →</a>
+                   class="text-sm text-violet-600 hover:text-violet-800 font-medium flex-shrink-0">Baca →</a>
             </div>
 
             {{-- Sub-articles --}}

@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'superadmin'         => \App\Http\Middleware\SuperAdminMiddleware::class,
             'check.active'       => \App\Http\Middleware\CheckActiveAccess::class,
+            'package'            => \App\Http\Middleware\CheckPackageMiddleware::class,
         ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {

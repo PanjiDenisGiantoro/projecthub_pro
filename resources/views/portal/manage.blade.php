@@ -12,7 +12,7 @@
     <div class="flex justify-between items-center mb-5">
         <p class="text-sm text-gray-500">{{ $tokens->count() }} link portal dibuat</p>
         <button @click="showForm=!showForm"
-                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <span x-text="showForm ? 'Batal' : 'Buat Link Baru'"></span>
         </button>
     </div>
@@ -37,7 +37,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Label</label>
                 <input type="text" name="label" placeholder="e.g. PT Maju Jaya — Review Sprint 3"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
             <div class="grid grid-cols-3 gap-3">
                 <label class="flex items-center gap-2 text-sm text-gray-700">
@@ -56,10 +56,10 @@
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Kadaluarsa</label>
                 <input type="datetime-local" name="expires_at"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <p class="text-xs text-gray-400 mt-1">Kosongkan untuk tidak ada kadaluarsa.</p>
             </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Buat Link</button>
+            <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Buat Link</button>
         </form>
     </div>
 
@@ -100,7 +100,7 @@
                     <td class="px-4 py-3 text-right flex gap-2 justify-end">
                         @if(!$token->isExpired())
                         <a href="{{ route('portal.view', $token->token) }}" target="_blank"
-                           class="text-xs text-blue-600 hover:text-blue-800">Buka</a>
+                           class="text-xs text-violet-600 hover:text-violet-800">Buka</a>
                         @endif
                         <form method="POST" action="{{ route('portal.destroy', [$project, $token]) }}"
                               data-confirm-delete="{{ $token->label ?? 'token ini' }}">

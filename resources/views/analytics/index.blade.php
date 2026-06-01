@@ -16,7 +16,7 @@
         <form method="GET" class="flex gap-2 items-center">
             <label class="text-xs text-gray-500">Periode:</label>
             <select name="period" onchange="this.form.submit()"
-                    class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
                 @foreach([7=>'7 Hari',14=>'14 Hari',30=>'30 Hari',90=>'3 Bulan'] as $val=>$label)
                 <option value="{{ $val }}" {{ $period == $val ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach

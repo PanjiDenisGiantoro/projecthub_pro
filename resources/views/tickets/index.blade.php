@@ -34,13 +34,13 @@
     {{-- Header + Filter --}}
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
-            <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">Semua Status</option>
                 @foreach(['open','assigned','in_progress','pending_review','resolved','closed','reopened'] as $s)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
                 @endforeach
             </select>
-            <select name="priority" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="priority" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">Semua Prioritas</option>
                 @foreach(['critical','high','medium','low'] as $p)
                     <option value="{{ $p }}" {{ request('priority') === $p ? 'selected' : '' }}>{{ ucfirst($p) }}</option>
@@ -49,7 +49,7 @@
         </form>
         @if($project)
         <a href="{{ route('tickets.create', $project) }}"
-           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+           class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Buat Tiket
         </a>
@@ -107,7 +107,7 @@
                     </td>
                     <td class="px-4 py-3 text-gray-500">{{ $ticket->created_at->format('d M Y') }}</td>
                     <td class="px-4 py-3">
-                        <a href="{{ route('tickets.show', $ticket) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Detail</a>
+                        <a href="{{ route('tickets.show', $ticket) }}" class="text-violet-600 hover:text-violet-800 text-sm font-medium">Detail</a>
                     </td>
                 </tr>
                 @empty

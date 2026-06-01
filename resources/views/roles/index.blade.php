@@ -8,7 +8,7 @@
     {{-- Toolbar --}}
     <div class="flex items-center justify-between mb-6">
         <p class="text-sm text-gray-500">Total <span class="font-semibold text-gray-800">{{ $roles->count() }}</span> role terdaftar</p>
-        <a href="{{ route('roles.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+        <a href="{{ route('roles.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Role
         </a>

@@ -146,4 +146,34 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function salaries()
+    {
+        return $this->hasMany(EmployeeSalary::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function overtimes()
+    {
+        return $this->hasMany(Overtime::class);
+    }
+
+    public function reimbursements()
+    {
+        return $this->hasMany(Reimbursement::class);
+    }
+
+    public function payrolls()
+    {
+        return $this->hasMany(Payroll::class);
+    }
 }

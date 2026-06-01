@@ -7,6 +7,8 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Department;
 use App\Models\Division;
+use App\Models\LeaveType;
+use App\Models\OvertimeRule;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -83,6 +85,19 @@ class RegisterWebController extends Controller
 
             $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');
             $user->packages()->sync($pkgIds);
+
+            // Clone HRIS master templates for this company
+            LeaveType::whereNull('company_id')->get()->each(function ($t) use ($company) {
+                $data = collect($t->toArray())->except(['id', 'company_id', 'created_at', 'updated_at'])->toArray();
+                LeaveType::updateOrCreate(['company_id' => $company->id, 'code' => $t->code], $data);
+            });
+            OvertimeRule::whereNull('company_id')->get()->each(function ($r) use ($company) {
+                $data = collect($r->toArray())->except(['id', 'company_id', 'created_at', 'updated_at'])->toArray();
+                OvertimeRule::updateOrCreate(
+                    ['company_id' => $company->id, 'day_type' => $r->day_type, 'hour_from' => $r->hour_from, 'hour_to' => $r->hour_to],
+                    $data
+                );
+            });
 
             Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
             $user->assignRole('admin');

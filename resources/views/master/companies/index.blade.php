@@ -16,8 +16,8 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / kode..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-52">
-            <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-52">
+            <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">Semua Status</option>
                 <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
                 <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
@@ -26,7 +26,7 @@
                 <a href="{{ route('companies.index') }}" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2">Reset</a>
             @endif
         </form>
-        <a href="{{ route('companies.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
+        <a href="{{ route('companies.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Perusahaan
         </a>
@@ -120,7 +120,7 @@
                     {{-- Actions --}}
                     <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
                         <a href="{{ route('divisions.index', ['company_id' => $company->id]) }}"
-                           class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                           class="text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors">
                             Lihat Divisi →
                         </a>
                         <div class="flex-1"></div>

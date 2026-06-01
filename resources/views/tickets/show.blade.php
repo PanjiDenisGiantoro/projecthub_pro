@@ -79,8 +79,8 @@
                 <form method="POST" action="{{ route('tickets.comment', $ticket) }}" class="flex gap-3">
                     @csrf
                     <textarea name="body" rows="2" placeholder="Tulis komentar..." required
-                              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
-                    <button type="submit" class="self-end bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">Kirim</button>
+                              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"></textarea>
+                    <button type="submit" class="self-end bg-violet-600 hover:bg-violet-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">Kirim</button>
                 </form>
             </div>
 
@@ -122,12 +122,12 @@
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
                 <form method="POST" action="{{ route('tickets.status', $ticket) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="status" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="status" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         @foreach(['open','assigned','in_progress','pending_review','resolved','closed'] as $s)
                             <option value="{{ $s }}" {{ $ticket->status === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Simpan</button>
+                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Simpan</button>
                 </form>
             </div>
             @endif
@@ -138,13 +138,13 @@
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Assign Developer</h4>
                 <form method="POST" action="{{ route('tickets.assign', $ticket) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="assignee_id" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="assignee_id" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Pilih Developer —</option>
                         @foreach($developers as $dev)
                             <option value="{{ $dev->id }}" {{ $ticket->assignee_id === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Assign</button>
+                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Assign</button>
                 </form>
             </div>
             @endif
@@ -157,7 +157,7 @@
                     <form method="POST" action="{{ route('tickets.reopen', $ticket) }}">
                         @csrf @method('PUT')
                         <textarea name="reason" rows="2" placeholder="Alasan reopen..." required
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"></textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 mb-2"></textarea>
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 rounded-lg transition-colors">Reopen</button>
                     </form>
                 </div>

@@ -8,7 +8,7 @@
         <p class="text-sm text-gray-500">{{ $templates->count() }} template tersedia</p>
         @if(!auth()->user()->hasRole('customer'))
         <a href="{{ route('templates.create') }}"
-           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+           class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Template Baru
         </a>
@@ -39,9 +39,9 @@
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('templates.show', $template) }}"
-                   class="flex-1 text-center text-sm text-blue-600 hover:text-blue-800 border border-blue-300 px-3 py-1.5 rounded-lg transition-colors">Detail</a>
+                   class="flex-1 text-center text-sm text-violet-600 hover:text-violet-800 border border-blue-300 px-3 py-1.5 rounded-lg transition-colors">Detail</a>
                 <a href="{{ route('templates.apply', $template) }}"
-                   class="flex-1 text-center text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors">Terapkan</a>
+                   class="flex-1 text-center text-sm bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg transition-colors">Terapkan</a>
             </div>
         </div>
         @endforeach

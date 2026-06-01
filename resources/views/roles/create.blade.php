@@ -19,7 +19,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Role <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-400 @enderror"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 @error('name') border-red-400 @enderror"
                        placeholder="Contoh: supervisor">
                 <p class="text-xs text-gray-400 mt-1">Hanya huruf, angka, tanda hubung, dan underscore. Akan disimpan dalam huruf kecil.</p>
                 @error('name')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
@@ -31,7 +31,7 @@
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
+                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
                     Simpan Role
                 </button>
                 <a href="{{ route('roles.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">

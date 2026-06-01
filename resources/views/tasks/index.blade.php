@@ -22,7 +22,7 @@
     {{-- Toolbar --}}
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
-            <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
                 <option value="">Semua Status</option>
                 @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $sl }}</option>
@@ -49,7 +49,7 @@
 
         @if(!auth()->user()->hasRole('customer'))
         <button @click="showForm=!showForm"
-                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span x-text="showForm ? 'Batal' : 'Tambah Task'"></span>
         </button>
@@ -66,11 +66,11 @@
                 <div class="sm:col-span-2 lg:col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Judul *</label>
                     <input type="text" name="title" required placeholder="Judul task..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Prioritas</label>
-                    <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         @foreach(['low'=>'Low','medium'=>'Medium','high'=>'High','urgent'=>'Urgent'] as $p => $pl)
                             <option value="{{ $p }}" {{ $p === 'medium' ? 'selected' : '' }}>{{ $pl }}</option>
                         @endforeach
@@ -78,7 +78,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Assignee</label>
-                    <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Tidak ditugaskan —</option>
                         @foreach($developers as $dev)
                             <option value="{{ $dev->id }}">{{ $dev->name }}</option>
@@ -87,7 +87,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Milestone</label>
-                    <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Tanpa milestone —</option>
                         @foreach($milestones as $m)
                             <option value="{{ $m->id }}">{{ $m->title }}</option>
@@ -97,25 +97,25 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Estimasi Jam</label>
                     <input type="number" name="estimated_hours" min="1" placeholder="Jam..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
                     <input type="date" name="start_date"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
                     <input type="date" name="due_date"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                 <textarea name="description" rows="2" placeholder="Deskripsi task..."
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"></textarea>
             </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan Task</button>
+            <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan Task</button>
         </form>
     </div>
     @endif

@@ -14,7 +14,7 @@
         <div class="text-xs text-slate-400 font-medium mb-3">Lifetime</div>
         <div class="text-3xl font-bold text-amber-400">{{ number_format($counts['lifetime']) }}</div>
     </div>
-    <div class="bg-slate-800/60 border border-blue-500/10 rounded-2xl p-5">
+    <div class="bg-slate-800/60 border border-violet-500/10 rounded-2xl p-5">
         <div class="text-xs text-slate-400 font-medium mb-3">Masa Aktif</div>
         <div class="text-3xl font-bold text-blue-400">{{ number_format($counts['expiring']) }}</div>
     </div>
@@ -36,7 +36,7 @@
         $colorMap = [
             'slate' => ['on' => 'bg-slate-600/50 text-white border-slate-500/50',     'off' => 'bg-slate-800/60 text-slate-400 border-white/5 hover:text-white hover:border-white/15'],
             'amber' => ['on' => 'bg-amber-500/20 text-amber-400 border-amber-500/30', 'off' => 'bg-slate-800/60 text-slate-400 border-white/5 hover:text-white hover:border-white/15'],
-            'blue'  => ['on' => 'bg-blue-500/20 text-blue-400 border-blue-500/30',    'off' => 'bg-slate-800/60 text-slate-400 border-white/5 hover:text-white hover:border-white/15'],
+            'blue'  => ['on' => 'bg-blue-500/20 text-blue-400 border-violet-500/30',    'off' => 'bg-slate-800/60 text-slate-400 border-white/5 hover:text-white hover:border-white/15'],
             'red'   => ['on' => 'bg-red-500/20 text-red-400 border-red-500/30',       'off' => 'bg-slate-800/60 text-slate-400 border-white/5 hover:text-white hover:border-white/15'],
         ];
     @endphp
@@ -129,7 +129,7 @@
                             @php
                                 $pkgColors = [
                                     'hris'            => 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-                                    'task_management' => 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+                                    'task_management' => 'bg-blue-500/15 text-blue-400 border-violet-500/20',
                                 ];
                                 $cls = $pkgColors[$pkg->slug] ?? 'bg-slate-500/15 text-slate-400 border-slate-500/20';
                             @endphp
@@ -256,7 +256,7 @@
                         <p class="text-sm font-semibold text-white">Lifetime</p>
                         <p class="text-xs text-slate-500 leading-relaxed">Akses selamanya tanpa batas waktu</p>
                     </label>
-                    <label class="relative flex flex-col gap-1.5 p-4 rounded-xl border border-white/10 cursor-pointer hover:border-blue-500/40 transition-all has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10">
+                    <label class="relative flex flex-col gap-1.5 p-4 rounded-xl border border-white/10 cursor-pointer hover:border-violet-500/40 transition-all has-[:checked]:border-violet-500/60 has-[:checked]:bg-blue-500/10">
                         <input type="radio" name="type" value="expiry" class="sr-only" onchange="toggleDateField(this)">
                         <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mb-1">
                             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@
             <div id="date-field" class="hidden space-y-1.5">
                 <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Aktif Hingga</label>
                 <input type="date" name="active_until" id="input-date"
-                       class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-all"
+                       class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/60 transition-all"
                        min="{{ now()->addDay()->format('Y-m-d') }}">
             </div>
 
@@ -359,7 +359,7 @@
                     @php
                         $pkgColors = [
                             'hris'            => ['ring' => 'has-[:checked]:border-violet-500/60 has-[:checked]:bg-violet-500/10', 'icon' => 'text-violet-400 bg-violet-500/20'],
-                            'task_management' => ['ring' => 'has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10',   'icon' => 'text-blue-400 bg-blue-500/20'],
+                            'task_management' => ['ring' => 'has-[:checked]:border-violet-500/60 has-[:checked]:bg-blue-500/10',   'icon' => 'text-blue-400 bg-blue-500/20'],
                         ];
                         $clr = $pkgColors[$pkg->slug] ?? ['ring' => 'has-[:checked]:border-indigo-500/60 has-[:checked]:bg-indigo-500/10', 'icon' => 'text-indigo-400 bg-indigo-500/20'];
                     @endphp
@@ -385,7 +385,7 @@
                         <p class="text-sm font-semibold text-white">Lifetime</p>
                         <p class="text-xs text-slate-500">Akses tanpa batas waktu</p>
                     </label>
-                    <label class="relative flex flex-col gap-1 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-blue-500/40 transition-all has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10">
+                    <label class="relative flex flex-col gap-1 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-violet-500/40 transition-all has-[:checked]:border-violet-500/60 has-[:checked]:bg-blue-500/10">
                         <input type="radio" name="type" value="expiry" class="sr-only" onchange="toggleAddDateField(this)">
                         <p class="text-sm font-semibold text-white">Batas Waktu</p>
                         <p class="text-xs text-slate-500">Tentukan tanggal berakhir</p>
@@ -393,7 +393,7 @@
                 </div>
                 <div id="add-date-field" class="hidden">
                     <input type="date" name="active_until" id="add-input-date"
-                           class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-all"
+                           class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/60 transition-all"
                            min="{{ now()->addDay()->format('Y-m-d') }}">
                 </div>
             </div>
