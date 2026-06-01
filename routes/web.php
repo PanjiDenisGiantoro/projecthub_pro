@@ -84,7 +84,7 @@ Route::middleware(['auth', 'check.active'])->group(function () {
         if (is_string($pkg) && in_array($pkg, $allowed)) {
             $request->session()->put('active_package', $pkg);
         }
-        return back();
+        return redirect()->route('dashboard');
     })->name('switch.package');
 
     // Profile
