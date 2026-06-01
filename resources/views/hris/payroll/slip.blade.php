@@ -37,6 +37,19 @@
         <div class="info-item"><label>Status</label><p>{{ ucfirst($payroll->status) }}</p></div>
     </div>
 
+    <p style="font-size:10px;font-weight:bold;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Kehadiran</p>
+    <table style="margin-bottom:14px;">
+        <thead><tr>
+            <th>Hari Kerja</th><th>Hadir</th><th>Cuti (Dibayar)</th><th>Alpha</th>
+        </tr></thead>
+        <tbody><tr>
+            <td>{{ $payroll->hari_kerja }} hari</td>
+            <td>{{ $payroll->hari_hadir }} hari</td>
+            <td>{{ $payroll->hari_cuti }} hari</td>
+            <td style="color:#dc2626;font-weight:bold;">{{ $payroll->hari_alpha }} hari</td>
+        </tr></tbody>
+    </table>
+
     <p style="font-size:10px;font-weight:bold;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Pendapatan</p>
     <table>
         <tbody>
@@ -64,6 +77,7 @@
                 ['BPJS Kesehatan (1%)', $payroll->potongan_bpjs_kes],
                 ['BPJS Ketenagakerjaan', $payroll->potongan_bpjs_tk],
                 ['PPh 21', $payroll->potongan_pph21],
+                ['Alpha (' . $payroll->hari_alpha . ' hari)', $payroll->potongan_alpha],
                 ['Potongan Lainnya', $payroll->potongan_lainnya],
             ] as [$label, $val])
             @if($val > 0)

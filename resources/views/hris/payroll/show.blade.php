@@ -28,6 +28,24 @@
 
         <hr class="border-gray-100">
 
+        {{-- Kehadiran --}}
+        <div class="space-y-2">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Kehadiran</p>
+            <div class="grid grid-cols-4 gap-2 text-center">
+                @foreach([
+                    ['Hari Kerja', $payroll->hari_kerja, 'text-gray-700'],
+                    ['Hadir', $payroll->hari_hadir, 'text-green-700'],
+                    ['Cuti', $payroll->hari_cuti, 'text-blue-700'],
+                    ['Alpha', $payroll->hari_alpha, 'text-red-700'],
+                ] as [$label, $val, $color])
+                <div class="bg-gray-50 rounded-xl py-2">
+                    <p class="text-lg font-bold {{ $color }}">{{ $val }}</p>
+                    <p class="text-[10px] text-gray-400">{{ $label }}</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="space-y-2">
             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pendapatan</p>
             @foreach([
@@ -58,6 +76,7 @@
                 ['BPJS Kesehatan (1%)', $payroll->potongan_bpjs_kes],
                 ['BPJS Ketenagakerjaan', $payroll->potongan_bpjs_tk],
                 ['PPh 21', $payroll->potongan_pph21],
+                ['Potongan Alpha (' . $payroll->hari_alpha . ' hari)', $payroll->potongan_alpha],
                 ['Potongan Lainnya', $payroll->potongan_lainnya],
             ] as [$label, $val])
             @if($val > 0)

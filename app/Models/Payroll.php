@@ -11,7 +11,9 @@ class Payroll extends Model
     protected $fillable = [
         'user_id', 'company_id', 'year', 'month',
         'gaji_pokok', 'tunjangan_transport', 'tunjangan_makan', 'tunjangan_jabatan',
-        'tunjangan_lainnya', 'lembur', 'reimburse', 'penghasilan_bruto',
+        'tunjangan_lainnya', 'lembur', 'reimburse',
+        'hari_kerja', 'hari_hadir', 'hari_cuti', 'hari_alpha', 'potongan_alpha',
+        'penghasilan_bruto',
         'potongan_bpjs_kes', 'potongan_bpjs_tk', 'potongan_pph21', 'potongan_lainnya',
         'total_potongan', 'gaji_bersih', 'status', 'paid_at',
     ];

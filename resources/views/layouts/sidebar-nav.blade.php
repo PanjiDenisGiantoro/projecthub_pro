@@ -174,28 +174,33 @@
 {{-- ══ HRIS NAV ════════════════════════════════════════════════════════════ --}}
 @if($showHris)
 
-{{-- Data Karyawan (shared users route, relabeled) --}}
-@can('access users')
-<a href="{{ route('users.index') }}"
-   class="{{ request()->routeIs('users.*') ? $active : $inactive }}">
-    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-    </svg>
-    Data Karyawan
-</a>
-@endcan
-
+{{-- Karyawan --}}
 <div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Core HRIS</p>
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Karyawan</p>
+
+    @can('access users')
+    <a href="{{ route('users.index') }}"
+       class="{{ request()->routeIs('users.*') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        Data Karyawan
+    </a>
+    @endcan
 
     {{-- Absensi --}}
     <a href="{{ route('hris.absensi.index') }}"
        class="{{ request()->routeIs('hris.absensi.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
         </svg>
         Absensi
     </a>
+</div>
+
+{{-- Pengajuan --}}
+<div class="pt-2 pb-1">
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Pengajuan</p>
 
     {{-- Cuti & Izin --}}
     <a href="{{ route('hris.leave.index') }}"
@@ -219,27 +224,28 @@
     <a href="{{ route('hris.reimburse.index') }}"
        class="{{ request()->routeIs('hris.reimburse.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
         </svg>
         Reimburse
     </a>
+</div>
 
-    {{-- Penggajian --}}
+{{-- Penggajian & Konfigurasi — admin only --}}
+@canany(['manage payroll', 'manage hris master'])
+<div class="pt-2 pb-1">
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Administrasi</p>
+
     @can('manage payroll')
     <a href="{{ route('hris.payroll.index') }}"
        class="{{ request()->routeIs('hris.payroll.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
         </svg>
         Penggajian
     </a>
     @endcan
-</div>
 
-{{-- Master Data HRIS --}}
-@can('manage hris master')
-<div class="pt-3">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Konfigurasi</p>
+    @can('manage hris master')
     <a href="{{ route('hris.master.index') }}"
        class="{{ request()->routeIs('hris.master.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,8 +254,9 @@
         </svg>
         Konfigurasi HRIS
     </a>
+    @endcan
 </div>
-@endcan
+@endcanany
 
 @endif {{-- /showHris --}}
 
