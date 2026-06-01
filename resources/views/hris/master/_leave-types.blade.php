@@ -16,6 +16,9 @@
     <table class="w-full text-sm">
         <thead class="bg-gray-50">
             <tr>
+                @if($isSuperAdmin ?? false)
+                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">Perusahaan</th>
+                @endif
                 <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">Kode</th>
                 <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">Nama</th>
                 <th class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase">Kuota</th>
@@ -28,6 +31,9 @@
         <tbody class="divide-y divide-gray-100">
             @forelse($leaveTypes as $lt)
             <tr>
+                @if($isSuperAdmin ?? false)
+                <td class="px-4 py-3 text-xs text-gray-500">{{ $lt->company->name ?? '—' }}</td>
+                @endif
                 <td class="px-4 py-3 font-mono font-semibold text-violet-700">{{ $lt->code }}</td>
                 <td class="px-4 py-3 text-gray-700">{{ $lt->name }}</td>
                 <td class="px-4 py-3 text-center text-gray-600">{{ $lt->default_quota ?: '∞' }}</td>
@@ -53,7 +59,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="7" class="px-4 py-6 text-center text-gray-400 text-sm">Belum ada jenis cuti.</td></tr>
+            <tr><td colspan="{{ ($isSuperAdmin ?? false) ? 8 : 7 }}" class="px-4 py-6 text-center text-gray-400 text-sm">Belum ada jenis cuti.</td></tr>
             @endforelse
         </tbody>
     </table>
