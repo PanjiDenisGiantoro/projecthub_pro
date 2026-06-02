@@ -281,10 +281,14 @@ Route::middleware(['auth', 'check.active'])->group(function () {
     Route::prefix('hris')->name('hris.')->middleware('package:hris')->group(function () {
 
         // Absensi
-        Route::get('absensi',           [AbsensiController::class, 'index'])->name('absensi.index');
-        Route::post('absensi/checkin',  [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
-        Route::post('absensi/checkout', [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
-        Route::get('absensi/rekap',     [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi',                            [AbsensiController::class, 'index'])->name('absensi.index');
+        Route::post('absensi/checkin',                   [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
+        Route::post('absensi/checkout',                  [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
+        Route::get('absensi/rekap',                      [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi/setting',                    [AbsensiController::class, 'setting'])->name('absensi.setting');
+        Route::post('absensi/setting',                   [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
+        Route::post('absensi/enroll-face/{employee}',    [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
+        Route::delete('absensi/delete-face/{employee}',  [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
 
         // Cuti & Izin
         Route::get('leave',                        [LeaveController::class, 'index'])->name('leave.index');
