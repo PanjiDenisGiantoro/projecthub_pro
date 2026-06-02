@@ -47,8 +47,16 @@ use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
 use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
 use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
 use App\Http\Controllers\Web\Hris\Master\TaxBracketController;
+use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
+
+// ─── Deploy Webhook (tanpa auth & CSRF, dilindungi token) ────────────────────
+Route::prefix('deploy')->name('deploy.')->group(function () {
+    Route::post('/webhook', [DeployWebhookController::class, 'trigger'])->name('webhook');
+    Route::get('/log',      [DeployWebhookController::class, 'log'])->name('log');
+    Route::get('/status',   [DeployWebhookController::class, 'status'])->name('status');
+});
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 Route::get('/', fn() => view('landing'))->name('home');

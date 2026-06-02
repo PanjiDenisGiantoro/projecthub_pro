@@ -64,7 +64,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
+          port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
           script: |
             set -e
 
@@ -93,7 +95,7 @@ jobs:
             echo ">>> Restart queue worker"
             php artisan queue:restart
 
-            echo ">>> Deploy DEV selesai! → dev-projecthub.arunikasolusiinovasi.tech"
+            echo ">>> Deploy DEV selesai! → projecthub.arunikasolusiinovasi.tech"
 
   # ─────────────────────────────────────────────────────────
   # JOB 3: Deploy — jalan saat push ke master (PR di-merge)
@@ -110,7 +112,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
+          port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
           script: |
             set -e
 
@@ -140,6 +144,6 @@ jobs:
             php artisan queue:restart
 
             echo ">>> Restart PHP-FPM"
-            systemctl restart php8.5-fpm || systemctl restart php8.4-fpm || service php8.5-fpm restart || service php8.4-fpm restart || true
+            systemctl restart php8.4-fpm || service php8.4-fpm restart || true
 
             echo ">>> Deploy PRODUCTION selesai! → projecthub.arunikasolusiinovasi.tech"

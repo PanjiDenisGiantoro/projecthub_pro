@@ -123,4 +123,13 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Deploy Webhook Secret
+    |--------------------------------------------------------------------------
+    | Token rahasia untuk mengamankan endpoint deploy webhook. Set di .env
+    | masing-masing server (dev & prod bisa berbeda nilainya).
+    */
+    'deploy_secret' => env('DEPLOY_SECRET'),
+
 ];
