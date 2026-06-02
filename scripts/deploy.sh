@@ -55,22 +55,26 @@ log ">>> [4/8] npm run build..."
 npm run build                            >> "$LOG_FILE" 2>&1
 
 # ── 4. Migrasi ───────────────────────────────────────────────
-log ">>> [5/8] php artisan migrate --force..."
+log ">>> [5/9] php artisan migrate --force..."
 php artisan migrate --force              >> "$LOG_FILE" 2>&1
 
-# ── 5. Cache ─────────────────────────────────────────────────
-log ">>> [6/8] Rebuild artisan cache..."
+# ── 5. Seeder ────────────────────────────────────────────────
+log ">>> [6/9] db:seed PackageSeeder..."
+php artisan db:seed --class=PackageSeeder --force >> "$LOG_FILE" 2>&1
+
+# ── 6. Cache ─────────────────────────────────────────────────
+log ">>> [7/9] Rebuild artisan cache..."
 php artisan config:cache                 >> "$LOG_FILE" 2>&1
 php artisan route:cache                  >> "$LOG_FILE" 2>&1
 php artisan view:cache                   >> "$LOG_FILE" 2>&1
 php artisan event:cache                  >> "$LOG_FILE" 2>&1
 
 # ── 6. Queue ─────────────────────────────────────────────────
-log ">>> [7/8] Restart queue worker..."
+log ">>> [8/9] Restart queue worker..."
 php artisan queue:restart                >> "$LOG_FILE" 2>&1
 
-# ── 7. PHP-FPM reload ────────────────────────────────────────
-log ">>> [8/8] Reload PHP-FPM..."
+# ── 8. PHP-FPM reload ────────────────────────────────────────
+log ">>> [9/9] Reload PHP-FPM..."
 (systemctl reload php8.4-fpm  >> "$LOG_FILE" 2>&1) || \
 (systemctl reload php8.3-fpm  >> "$LOG_FILE" 2>&1) || \
 (service php8.4-fpm reload    >> "$LOG_FILE" 2>&1) || \
