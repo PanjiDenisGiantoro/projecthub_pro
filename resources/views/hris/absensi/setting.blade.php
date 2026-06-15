@@ -297,9 +297,8 @@
             </button>
         </div>
     </form>
-</div>
 
-{{-- ── Face Enrollment Modal ──────────────────────────────────────────── --}}
+    {{-- ── Face Enrollment Modal ──────────────────────────────────────────── --}}
 <div x-show="enrollOpen" x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center p-4"
      style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
@@ -379,6 +378,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 @endsection
 
