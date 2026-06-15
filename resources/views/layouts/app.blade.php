@@ -19,7 +19,7 @@
 
 {{-- Page Loading Overlay --}}
 <div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center" style="background-color:var(--fl-page,#09061a)">
-    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-64 h-64 object-contain">
+    <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." class="w-64 h-64 object-contain">
 </div>
 
 <div class="flex h-full">
