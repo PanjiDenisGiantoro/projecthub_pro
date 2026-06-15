@@ -143,6 +143,7 @@ jobs:
             php artisan db:seed --class=LeaveTypeSeeder --force
             php artisan db:seed --class=OvertimeRuleSeeder --force
 
+
             echo ">>> Build cache"
             php artisan config:cache
             php artisan route:cache
