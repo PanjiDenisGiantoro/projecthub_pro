@@ -32,6 +32,79 @@
             </div>
         @endif
 
+        {{-- Pricing Plan Selection --}}
+        <div class="mb-6" x-data="{ plan: 'starter' }">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Paket Harga</label>
+            <p class="text-xs text-gray-500 mb-3">Sederhana, transparan, terjangkau. Ganti kapan saja.</p>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+
+                {{-- Starter --}}
+                <button type="button" @click="plan = 'starter'"
+                        class="relative flex flex-col text-left rounded-xl border-2 p-4 transition-all"
+                        :class="plan === 'starter' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300 bg-white'">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-semibold text-gray-900">Starter</p>
+                        <svg x-show="plan === 'starter'" class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">Tim kecil yang baru mulai.</p>
+                    <p class="text-lg font-bold text-gray-900 mt-2">Rp 0</p>
+                    <p class="text-xs text-gray-500 -mt-0.5">Selamanya gratis</p>
+                    <ul class="mt-3 space-y-1 text-gray-500">
+                        <li class="text-xs">✓ 5 project aktif</li>
+                        <li class="text-xs">✓ 3 anggota tim</li>
+                        <li class="text-xs">✓ Task & milestone</li>
+                        <li class="text-xs">✓ 1 GB storage</li>
+                    </ul>
+                </button>
+
+                {{-- Pro --}}
+                <button type="button" @click="plan = 'pro'"
+                        class="relative flex flex-col text-left rounded-xl border-2 p-4 transition-all"
+                        :class="plan === 'pro' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300 bg-white'">
+                    <span class="absolute -top-2 left-4 bg-violet-600 text-white text-[10px] font-medium px-2 py-0.5 rounded-full">Paling Populer</span>
+                    <div class="flex items-center justify-between mt-1">
+                        <p class="text-sm font-semibold text-gray-900">Pro</p>
+                        <svg x-show="plan === 'pro'" class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">Untuk tim yang sedang berkembang.</p>
+                    <p class="text-lg font-bold text-gray-900 mt-2">Rp 299K</p>
+                    <p class="text-xs text-gray-500 -mt-0.5">per bulan / tim</p>
+                    <ul class="mt-3 space-y-1 text-gray-500">
+                        <li class="text-xs">✓ Semua di Starter</li>
+                        <li class="text-xs">✓ Project unlimited</li>
+                        <li class="text-xs">✓ CRM & Invoice</li>
+                        <li class="text-xs">✓ Bug tracker + SLA</li>
+                        <li class="text-xs">✓ Chat real-time</li>
+                        <li class="text-xs">✓ Priority support</li>
+                    </ul>
+                </button>
+
+                {{-- Enterprise --}}
+                <div class="relative flex flex-col rounded-xl border-2 border-gray-200 bg-white p-4">
+                    <p class="text-sm font-semibold text-gray-900">Enterprise</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Untuk organisasi besar.</p>
+                    <p class="text-lg font-bold text-gray-900 mt-2">Custom</p>
+                    <p class="text-xs text-gray-500 -mt-0.5">Hubungi kami</p>
+                    <ul class="mt-3 space-y-1 text-gray-500 flex-1">
+                        <li class="text-xs">✓ Semua di Pro</li>
+                        <li class="text-xs">✓ SSO & SAML</li>
+                        <li class="text-xs">✓ Custom integrasi</li>
+                        <li class="text-xs">✓ SLA 99.99%</li>
+                        <li class="text-xs">✓ Dedicated manager</li>
+                    </ul>
+                    <a href="mailto:sales@projecthubpro.id" class="mt-3 text-xs text-center text-violet-600 hover:underline font-medium">Hubungi Sales</a>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-3" x-show="plan === 'starter'">Mulai gratis selamanya, tanpa kartu kredit.</p>
+            <p class="text-xs text-gray-500 mt-3" x-show="plan === 'pro'">Akun Anda dibuat dengan uji coba Pro 14 hari gratis, tanpa kartu kredit.</p>
+        </div>
+
         <form method="POST" action="{{ route('register.post') }}" class="space-y-4">
             @csrf
 

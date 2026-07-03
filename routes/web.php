@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\ApprovalWebController;
 use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
 use App\Http\Controllers\Web\RegisterWebController;
+use App\Http\Controllers\Web\VerificationController;
 use App\Http\Controllers\Web\BranchWebController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
@@ -64,7 +65,7 @@ Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
@@ -79,8 +80,17 @@ Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 
+// ─── Verifikasi Email ──────────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')->name('verification.send');
+});
+
 // ─── Authenticated ────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active'])->group(function () {
+Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
 
@@ -201,6 +211,7 @@ Route::middleware(['auth', 'check.active'])->group(function () {
         Route::resource('divisions', DivisionWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('departments', DepartmentWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::post('structural-levels/reset', [StructuralLevelWebController::class, 'resetDefault'])->name('structural-levels.reset');
     });
 
     // Timesheet

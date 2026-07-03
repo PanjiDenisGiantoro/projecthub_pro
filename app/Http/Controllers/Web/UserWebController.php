@@ -42,7 +42,7 @@ class UserWebController extends Controller
         }
 
         $roles            = Role::all();
-        $structuralLevels = StructuralLevel::active()->get();
+        $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
         return view('users.create', compact('roles', 'structuralLevels', 'companies'));
     }
@@ -83,7 +83,7 @@ class UserWebController extends Controller
         }
 
         $roles            = Role::all();
-        $structuralLevels = StructuralLevel::active()->get();
+        $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
 
         // Pre-populate cascade dari department_id yang sudah ada

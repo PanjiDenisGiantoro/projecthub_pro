@@ -68,7 +68,7 @@ class ProjectWebController extends Controller
         ]);
         $slaPolicies      = app(SlaService::class);
         $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->where('company_id', $project->company_id)->get();
-        $structuralLevels = StructuralLevel::active()->get();
+        $structuralLevels = StructuralLevel::active()->where('company_id', $project->company_id)->get();
         $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
 
         // Task & hour stats per member

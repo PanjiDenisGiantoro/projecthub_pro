@@ -20,7 +20,7 @@ class MasterDataWebController extends Controller
             'branches'          => Branch::when($cid, fn($q) => $q->where('company_id', $cid))->count(),
             'divisions'         => Division::when($cid, fn($q) => $q->whereHas('branch', fn($b) => $b->where('company_id', $cid)))->count(),
             'departments'       => Department::when($cid, fn($q) => $q->whereHas('division.branch', fn($b) => $b->where('company_id', $cid)))->count(),
-            'structural_levels' => StructuralLevel::count(),
+            'structural_levels' => StructuralLevel::when($cid, fn($q) => $q->where('company_id', $cid))->count(),
         ];
 
         $companies = Company::with([

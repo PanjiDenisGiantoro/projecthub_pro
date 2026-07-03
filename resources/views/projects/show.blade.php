@@ -22,18 +22,83 @@
         $totalTasks = $project->tasks->count();
         $doneTasks  = $project->tasks->where('status','done')->count();
         $daysLeft   = $project->end_date ? (int) now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($project->end_date)->startOfDay(), false) : null;
+
+        $tabs = [
+            ['key' => 'overview',   'label' => 'Overview',   'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
+            ['key' => 'tasks',      'label' => 'Tasks',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'],
+            ['key' => 'milestones', 'label' => 'Milestone',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
+            ['key' => 'sprints',    'label' => 'Sprints',    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>'],
+            ['key' => 'team',       'label' => 'Tim',        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>'],
+            ['key' => 'tickets',    'label' => 'Tickets',    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'],
+            ['key' => 'timesheet',  'label' => 'Timesheet',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
+            ['key' => 'kb',         'label' => 'KB',         'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>'],
+            ['key' => 'files',      'label' => 'Files',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
+            ['key' => 'budget',     'label' => 'Budget',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
+            ['key' => 'risks',      'label' => 'Risiko',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"/>'],
+            ['key' => 'recurring',  'label' => 'Recurring',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
+            ['key' => 'portal',     'label' => 'Portal',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
+            ['key' => 'chat',       'label' => 'Chat',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
+        ];
+        $coreTabs     = array_slice($tabs, 0, 5);
+        $optionalTabs = array_slice($tabs, 5);
     @endphp
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-5 overflow-hidden">
+    {{-- Breadcrumb --}}
+    <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
+        <a href="{{ route('projects.index') }}" class="hover:text-indigo-600 transition">Proyek</a>
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-gray-600 truncate max-w-[200px]">{{ $project->name }}</span>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6 items-start" x-data="{ showOptional: true }">
+        {{-- ============================================================
+             SIDEBAR NAVIGATION
+        ============================================================ --}}
+        <aside class="w-full lg:w-52 shrink-0 lg:sticky lg:top-4">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2.5 mb-2">Inti</p>
+            <nav class="space-y-1">
+                @foreach($coreTabs as $t)
+                <button
+                    @click="tab = '{{ $t['key'] }}'"
+                    :class="tab === '{{ $t['key'] }}'
+                        ? 'bg-white border-indigo-400 text-indigo-700 shadow-sm'
+                        : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
+                    class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-sm font-medium transition-all">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
+                    {{ $t['label'] }}
+                </button>
+                @endforeach
+            </nav>
+
+            <button @click="showOptional = !showOptional"
+                    class="w-full flex items-center gap-1.5 px-2.5 py-2 mt-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition">
+                <svg class="w-3.5 h-3.5 transition-transform shrink-0" :class="showOptional ? '' : '-rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <span x-text="showOptional ? 'Sembunyikan' : 'Tampilkan'"></span>
+            </button>
+
+            <nav x-show="showOptional" x-cloak class="space-y-1">
+                @foreach($optionalTabs as $t)
+                <button
+                    @click="tab = '{{ $t['key'] }}'"
+                    :class="tab === '{{ $t['key'] }}'
+                        ? 'bg-white border-indigo-400 text-indigo-700 shadow-sm'
+                        : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
+                    class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-sm font-medium transition-all">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
+                    {{ $t['label'] }}
+                </button>
+                @endforeach
+            </nav>
+        </aside>
+
+        {{-- ============================================================
+             MAIN CONTENT
+        ============================================================ --}}
+        <div class="flex-1 min-w-0 w-full">
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-5 overflow-hidden">
         {{-- Top bar --}}
         <div class="px-4 sm:px-6 pt-5 pb-4">
-            {{-- Breadcrumb --}}
-            <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-                <a href="{{ route('projects.index') }}" class="hover:text-indigo-600 transition">Proyek</a>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                <span class="text-gray-600 truncate max-w-[200px]">{{ $project->name }}</span>
-            </div>
-
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div class="flex-1 min-w-0">
                     {{-- Title + Status --}}
@@ -75,95 +140,55 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
                     </svg>
-                    Edit
+                    Edit proyek
                 </a>
                 @endif
             </div>
         </div>
 
-        {{-- Progress + Stats --}}
-        <div class="px-4 sm:px-6 pb-4">
+        {{-- Progress --}}
+        <div class="px-4 sm:px-6 pb-5">
             <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
                 <span class="font-medium text-gray-700">Progress Keseluruhan</span>
                 <span class="font-semibold {{ $progress >= 100 ? 'text-green-600' : ($progress >= 70 ? 'text-indigo-600' : 'text-gray-600') }}">{{ $progress }}%</span>
             </div>
-            <div class="w-full bg-gray-100 rounded-full h-2 mb-4">
+            <div class="w-full bg-gray-100 rounded-full h-2">
                 <div class="h-2 rounded-full transition-all {{ $progress >= 100 ? 'bg-green-500' : 'bg-indigo-500' }}"
                      style="width: {{ min($progress, 100) }}%"></div>
             </div>
+        </div>
+        </div>
 
-            {{-- Quick stats --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div class="bg-gray-50 rounded-lg px-3 py-2.5 text-center">
-                    <p class="text-lg font-bold text-gray-800">{{ $totalTasks }}</p>
-                    <p class="text-xs text-gray-400">Total Task</p>
-                </div>
-                <div class="bg-green-50 rounded-lg px-3 py-2.5 text-center">
-                    <p class="text-lg font-bold text-green-700">{{ $doneTasks }}</p>
-                    <p class="text-xs text-gray-400">Selesai</p>
-                </div>
-                <div class="bg-indigo-50 rounded-lg px-3 py-2.5 text-center">
-                    <p class="text-lg font-bold text-indigo-700">{{ $project->members->count() }}</p>
-                    <p class="text-xs text-gray-400">Anggota</p>
-                </div>
-                <div class="{{ $daysLeft === null ? 'bg-gray-50' : ($daysLeft < 0 ? 'bg-red-50' : ($daysLeft <= 7 ? 'bg-orange-50' : 'bg-blue-50')) }} rounded-lg px-3 py-2.5 text-center">
-                    @if($daysLeft === null)
-                        <p class="text-lg font-bold text-gray-400">—</p>
-                        <p class="text-xs text-gray-400">Deadline</p>
-                    @elseif($daysLeft < 0)
-                        <p class="text-lg font-bold text-red-600">{{ abs($daysLeft) }}h</p>
-                        <p class="text-xs text-red-400">Terlambat</p>
-                    @elseif($daysLeft === 0)
-                        <p class="text-lg font-bold text-orange-600">Hari ini</p>
-                        <p class="text-xs text-orange-400">Deadline</p>
-                    @else
-                        <p class="text-lg font-bold text-blue-700">{{ $daysLeft }}h</p>
-                        <p class="text-xs text-gray-400">Sisa hari</p>
-                    @endif
-                </div>
+        {{-- Quick stats --}}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-gray-400 mb-1">Total Task</p>
+                <p class="text-xl font-bold text-gray-800">{{ $totalTasks }}</p>
+            </div>
+            <div class="bg-green-50 rounded-xl border border-green-100 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-green-600/70 mb-1">Selesai</p>
+                <p class="text-xl font-bold text-green-700">{{ $doneTasks }}</p>
+            </div>
+            <div class="bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-indigo-600/70 mb-1">Anggota</p>
+                <p class="text-xl font-bold text-indigo-700">{{ $project->members->count() }}</p>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
+                @if($daysLeft === null)
+                    <p class="text-xs text-gray-400 mb-1">Deadline</p>
+                    <p class="text-xl font-bold text-gray-400">—</p>
+                @elseif($daysLeft < 0)
+                    <p class="text-xs text-red-400 mb-1">Terlambat</p>
+                    <p class="text-xl font-bold text-red-600">{{ abs($daysLeft) }}h</p>
+                @elseif($daysLeft === 0)
+                    <p class="text-xs text-orange-400 mb-1">Deadline</p>
+                    <p class="text-xl font-bold text-orange-600">Hari ini</p>
+                @else
+                    <p class="text-xs text-gray-400 mb-1">Sisa hari</p>
+                    <p class="text-xl font-bold text-blue-700">{{ $daysLeft }}h</p>
+                @endif
             </div>
         </div>
-    </div>
-
-    {{-- ============================================================
-         TAB NAVIGATION
-    ============================================================ --}}
-    @php
-        $tabs = [
-            ['key' => 'overview',   'label' => 'Overview',   'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
-            ['key' => 'tasks',      'label' => 'Tasks',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'],
-            ['key' => 'milestones', 'label' => 'Milestone',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
-            ['key' => 'sprints',    'label' => 'Sprints',    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>'],
-            ['key' => 'tickets',    'label' => 'Tickets',    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'],
-            ['key' => 'team',       'label' => 'Tim',        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>'],
-            ['key' => 'timesheet',  'label' => 'Timesheet',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
-            ['key' => 'kb',         'label' => 'KB',         'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>'],
-            ['key' => 'files',      'label' => 'Files',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
-            ['key' => 'budget',     'label' => 'Budget',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
-            ['key' => 'risks',      'label' => 'Risiko',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"/>'],
-            ['key' => 'recurring',  'label' => 'Recurring',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
-            ['key' => 'portal',     'label' => 'Portal',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
-            ['key' => 'chat',       'label' => 'Chat',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
-        ];
-    @endphp
-
-    <div class="relative mb-5">
-        <div class="overflow-x-auto scrollbar-hide pb-px">
-            <nav class="flex gap-1 min-w-max bg-gray-100 rounded-xl p-1">
-                @foreach($tabs as $t)
-                <button
-                    @click="tab = '{{ $t['key'] }}'"
-                    :class="tab === '{{ $t['key'] }}'
-                        ? 'bg-white text-indigo-700 shadow-sm font-semibold'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap">
-                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
-                    {{ $t['label'] }}
-                </button>
-                @endforeach
-            </nav>
-        </div>
-    </div>
 
     {{-- ============================================================
          TAB: OVERVIEW
@@ -1236,6 +1261,10 @@
         @include('projects.partials._chat')
     </div>
 
+        </div>
+        {{-- /MAIN CONTENT --}}
+    </div>
+    {{-- /sidebar + main flex wrapper --}}
 </div>
 @endsection
 

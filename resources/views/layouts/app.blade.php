@@ -237,6 +237,9 @@
             </button>
 
 
+
+
+
             {{-- Avatar --}}
             <a href="{{ route('profile') }}" class="group flex items-center shrink-0">
                 @if(auth()->user()->avatar)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AccountCredentialsMail;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Department;
@@ -14,6 +15,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
@@ -104,6 +106,9 @@ class RegisterWebController extends Controller
 
             return $user;
         });
+
+        Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password));
+        $user->sendEmailVerificationNotification();
 
         Auth::login($user);
         $request->session()->regenerate();
