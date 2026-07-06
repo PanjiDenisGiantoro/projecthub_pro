@@ -59,9 +59,10 @@ class AuthWebController extends Controller
             }
 
             if (!$user) {
-                return redirect()->route('login')->withErrors([
-                    'email' => 'Email Google ini belum terdaftar. Silakan daftar akun baru terlebih dahulu.',
-                ]);
+                return redirect()->route('register', [
+                    'name'  => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                ])->with('status', 'Email Google ini belum terdaftar. Lengkapi form berikut untuk membuat akun.');
             }
 
             $user->forceFill(['google_id' => $googleUser->getId()])->save();

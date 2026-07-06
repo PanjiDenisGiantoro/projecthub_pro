@@ -71,6 +71,46 @@
             @endif
         </div>
 
+        {{-- Change Password --}}
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Ubah Password</h3>
+
+            <form method="POST" action="{{ route('profile.password') }}" class="space-y-3">
+                @csrf
+                @method('PUT')
+
+                @error('current_password')
+                    <p class="text-xs text-red-500">{{ $message }}</p>
+                @enderror
+
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Password saat ini</label>
+                    <input type="password" name="current_password" required
+                           class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Password baru</label>
+                        <input type="password" name="password" required
+                               class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('password') border-red-400 @enderror">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Konfirmasi password baru</label>
+                        <input type="password" name="password_confirmation" required
+                               class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit"
+                            class="px-5 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 active:bg-blue-800 transition-colors shadow-sm">
+                        Simpan Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
         {{-- User Info --}}
         <div class="px-6 py-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Informasi Akun</h3>

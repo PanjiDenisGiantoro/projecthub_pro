@@ -16,17 +16,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class RegisterWebController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
-        return view('auth.register');
+        return view('auth.register', [
+            'prefillName'  => $request->query('name'),
+            'prefillEmail' => $request->query('email'),
+        ]);
     }
 
     public function store(Request $request)
@@ -49,7 +51,7 @@ class RegisterWebController extends Controller
         $user = DB::transaction(function () use ($request) {
             $company = Company::create([
                 'name'      => $request->company_name,
-                'code'      => Str::upper(Str::slug($request->company_name, '')),
+                'code'      => Company::uniqueCodeFor($request->company_name),
                 'is_active' => true,
             ]);
 

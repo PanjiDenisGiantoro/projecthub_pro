@@ -12,7 +12,6 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class SuperAdminController extends Controller
@@ -81,7 +80,7 @@ class SuperAdminController extends Controller
         DB::transaction(function () use ($request) {
             $company = Company::create([
                 'name'      => $request->company_name,
-                'code'      => Str::upper(Str::slug($request->company_name, '')),
+                'code'      => Company::uniqueCodeFor($request->company_name),
                 'is_active' => true,
             ]);
 

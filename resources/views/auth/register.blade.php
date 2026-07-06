@@ -22,6 +22,12 @@
     {{-- Card --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
 
+        @if(session('status'))
+            <div class="mb-5 bg-violet-50 border border-violet-200 text-violet-700 rounded-lg px-4 py-3 text-sm">
+                {{ session('status') }}
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="mb-5 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
                 <ul class="space-y-1">
@@ -110,14 +116,14 @@
 
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus
+                <input type="text" id="name" name="name" value="{{ old('name', $prefillName) }}" required autofocus
                        placeholder="Budi Santoso"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('name') border-red-400 @enderror">
             </div>
 
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Kerja</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" required
+                <input type="email" id="email" name="email" value="{{ old('email', $prefillEmail) }}" required
                        placeholder="budi@perusahaan.com"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('email') border-red-400 @enderror">
             </div>

@@ -112,6 +112,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/profile', [ProfileWebController::class, 'index'])->name('profile');
     Route::put('/profile/avatar', [ProfileWebController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
+    Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
 
     // Projects
     Route::resource('projects', ProjectWebController::class);
