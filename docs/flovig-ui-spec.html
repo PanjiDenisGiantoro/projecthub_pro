@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flovig Design System v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* ── Flovig Lavender Palette ── */
+  --lav-50:#faf5ff;
+  --lav-100:#f3e8ff;
+  --lav-200:#e9d5ff;
+  --lav-300:#d8b4fe;
+  --lav-400:#c4b5fd;
+  --lav-500:#a78bfa;
+  --lav-600:#8b5cf6;
+  --lav-700:#7c3aed;
+  --lav-800:#6d28d9;
+  --lav-900:#5b21b6;
+  --lav-950:#2e1065;
+  /* ── Neutral ── */
+  --n-50:#fafafa;--n-100:#f4f4f5;--n-200:#e4e4e7;--n-300:#d4d4d8;
+  --n-400:#a1a1aa;--n-500:#71717a;--n-600:#52525b;--n-700:#3f3f46;
+  --n-800:#27272a;--n-900:#18181b;
+  /* ── Semantic ── */
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  /* ── Typography ── */
+  --font-display:'Plus Jakarta Sans',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  /* ── Spacing ── */
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;--r-2xl:28px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:#09061a;color:#e2d9f3;line-height:1.6;font-size:14px;overflow-x:hidden}
+
+/* ── Layout ── */
+.wrap{display:flex;min-height:100vh}
+.doc-nav{width:220px;min-width:220px;position:fixed;top:0;bottom:0;left:0;background:#0d0a1f;border-right:1px solid rgba(167,139,250,0.1);overflow-y:auto;z-index:100;padding:20px 0}
+.doc-content{margin-left:220px;flex:1;max-width:1100px;padding:40px 48px 80px}
+
+/* nav */
+.nav-logo{display:flex;align-items:center;gap:10px;padding:4px 18px 20px;border-bottom:1px solid rgba(167,139,250,0.08);margin-bottom:12px}
+.nav-logo svg{width:26px;height:26px;flex-shrink:0}
+.nav-logo-text{font-family:var(--font-display);font-size:14px;font-weight:800;background:linear-gradient(135deg,#ddd6fe,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-section{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(167,139,250,0.3);padding:12px 18px 5px;display:block}
+.nav-item{display:block;padding:7px 18px;font-size:12.5px;font-weight:500;color:rgba(196,181,253,0.45);text-decoration:none;transition:.15s;cursor:pointer;border-left:2px solid transparent}
+.nav-item:hover{color:rgba(221,214,254,0.8);background:rgba(167,139,250,0.05)}
+.nav-item.active{color:#c4b5fd;border-left-color:#7c3aed;background:rgba(124,58,237,0.08)}
+.version-badge{display:inline-block;font-size:9px;font-weight:700;background:rgba(124,58,237,0.2);color:#a78bfa;padding:2px 7px;border-radius:99px;border:1px solid rgba(124,58,237,0.3);margin-left:6px}
+
+/* ── Sections ── */
+.section{padding:48px 0;border-bottom:1px solid rgba(167,139,250,0.07)}
+.section:last-child{border-bottom:none}
+.sec-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8b5cf6;margin-bottom:8px}
+.sec-title{font-family:var(--font-display);font-size:28px;font-weight:800;color:#f0ebff;letter-spacing:-.03em;margin-bottom:6px;line-height:1.1}
+.sec-desc{font-size:14px;color:rgba(196,181,253,0.5);max-width:600px;line-height:1.7;margin-bottom:32px}
+.subsec{font-size:13px;font-weight:700;color:#c4b5fd;margin:28px 0 12px;letter-spacing:-.01em}
+
+/* ── Cards ── */
+.spec-card{background:rgba(255,255,255,0.03);border:1px solid rgba(167,139,250,0.09);border-radius:14px;padding:20px;margin-bottom:14px}
+.spec-card-title{font-size:12px;font-weight:700;color:rgba(196,181,253,0.5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+.preview-area{background:rgba(255,255,255,0.02);border:1px solid rgba(167,139,250,0.07);border-radius:10px;padding:24px;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.preview-area.dark-bg{background:#0d0a1f}
+.preview-area.light-bg{background:#f5f3ff}
+.preview-area.center{justify-content:center}
+
+/* ── Code ── */
+.code-block{background:#0a0616;border:1px solid rgba(167,139,250,0.1);border-radius:8px;padding:14px 16px;font-family:var(--font-mono);font-size:12px;color:#c4b5fd;overflow-x:auto;margin-top:10px;line-height:1.6}
+.code-block .kw{color:#a78bfa}.code-block .val{color:#ddd6fe}.code-block .cm{color:rgba(167,139,250,0.35);font-style:italic}
+
+/* ── Grid helpers ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.grid-auto{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ════════════════════════════
+   1. COLOUR PALETTE
+════════════════════════════ */
+.swatch-row{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-bottom:6px}
+.swatch{border-radius:6px;aspect-ratio:1;cursor:pointer;position:relative;transition:.15s}
+.swatch:hover{transform:scale(1.08);z-index:2}
+.swatch-label{font-family:var(--font-mono);font-size:9px;color:rgba(196,181,253,0.4);text-align:center;margin-top:3px}
+.swatch-group{margin-bottom:20px}
+.swatch-group-name{font-size:11px;font-weight:700;color:rgba(167,139,250,0.5);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.usage-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.12);padding:6px 12px;border-radius:8px;font-size:12px;color:rgba(196,181,253,0.7);margin:3px}
+.usage-chip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.contrast-table{width:100%;border-collapse:collapse;font-size:12px}
+.contrast-table th{text-align:left;padding:8px 12px;border-bottom:1px solid rgba(167,139,250,0.08);color:rgba(167,139,250,0.4);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.contrast-table td{padding:8px 12px;border-bottom:1px solid rgba(167,139,250,0.05);font-family:var(--font-mono)}
+.contrast-table tr:hover td{background:rgba(167,139,250,0.03)}
+.pass{color:#4ade80;font-weight:700}.fail{color:#fb7185;font-weight:700}.warn{color:#fbbf24;font-weight:700}
+.color-token{font-family:var(--font-mono);font-size:11px;color:#a78bfa}
+
+/* ════════════════════════════
+   2. TYPOGRAPHY
+════════════════════════════ */
+.type-specimen{margin-bottom:16px;padding:16px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid rgba(167,139,250,0.06)}
+.type-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.type-meta span{font-size:11px;color:rgba(167,139,250,0.4);font-family:var(--font-mono)}
+.type-meta strong{color:rgba(196,181,253,0.7)}
+
+/* Display sizes */
+.t-display{font-family:var(--font-display);font-size:48px;font-weight:800;color:#f0ebff;line-height:1.0;letter-spacing:-.04em}
+.t-h1{font-family:var(--font-display);font-size:32px;font-weight:700;color:#f0ebff;line-height:1.1;letter-spacing:-.03em}
+.t-h2{font-family:var(--font-display);font-size:24px;font-weight:700;color:#f0ebff;line-height:1.15;letter-spacing:-.02em}
+.t-h3{font-family:var(--font-display);font-size:18px;font-weight:600;color:#f0ebff;letter-spacing:-.01em}
+.t-h4{font-family:var(--font-body);font-size:15px;font-weight:600;color:#e2d9f3;letter-spacing:-.01em}
+.t-body-lg{font-size:16px;color:rgba(196,181,253,0.7);line-height:1.7}
+.t-body{font-size:14px;color:rgba(196,181,253,0.6);line-height:1.65}
+.t-body-sm{font-size:13px;color:rgba(167,139,250,0.55);line-height:1.6}
+.t-caption{font-size:11px;color:rgba(167,139,250,0.4);line-height:1.5}
+.t-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(167,139,250,0.4)}
+.t-mono{font-family:var(--font-mono);font-size:13px;color:#a78bfa}
+
+/* ════════════════════════════
+   3. BUTTON COMPONENTS
+════════════════════════════ */
+/* Primary */
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;border:none;cursor:pointer;transition:.2s;box-shadow:0 4px 16px rgba(109,40,217,0.4);letter-spacing:-.01em}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(109,40,217,0.45)}
+.btn-primary:active{transform:translateY(0);box-shadow:0 2px 8px rgba(109,40,217,0.3)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+/* Primary SM */
+.btn-primary.sm{font-size:12px;padding:7px 14px;border-radius:8px}
+/* Primary LG */
+.btn-primary.lg{font-size:16px;padding:14px 28px;border-radius:12px}
+/* Secondary */
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,0.12);color:#c4b5fd;font-family:var(--font-body);font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;border:1px solid rgba(124,58,237,0.25);cursor:pointer;transition:.2s}
+.btn-secondary:hover{background:rgba(124,58,237,0.2);border-color:rgba(167,139,250,0.4)}
+/* Ghost */
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;background:transparent;color:rgba(196,181,253,0.6);font-family:var(--font-body);font-size:14px;font-weight:500;padding:10px 20px;border-radius:10px;border:1px solid rgba(167,139,250,0.15);cursor:pointer;transition:.2s}
+.btn-ghost:hover{background:rgba(167,139,250,0.07);color:#c4b5fd;border-color:rgba(167,139,250,0.3)}
+/* Danger */
+.btn-danger{display:inline-flex;align-items:center;gap:8px;background:rgba(239,68,68,0.12);color:#fca5a5;font-family:var(--font-body);font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;border:1px solid rgba(239,68,68,0.25);cursor:pointer;transition:.2s}
+.btn-danger:hover{background:rgba(239,68,68,0.2);border-color:rgba(252,165,165,0.4)}
+/* Icon-only */
+.btn-icon{width:36px;height:36px;border-radius:9px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:#a78bfa}
+.btn-icon:hover{background:rgba(124,58,237,0.2);border-color:rgba(167,139,250,0.35)}
+/* Light variant (for light bg) */
+.btn-primary-light{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(109,40,217,0.35)}
+.btn-secondary-light{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#6d28d9;font-size:14px;font-weight:600;padding:10px 20px;border-radius:10px;border:1px solid #ddd6fe;cursor:pointer}
+.btn-ghost-light{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#6b7280;font-size:14px;font-weight:500;padding:10px 20px;border-radius:10px;border:1px solid #e4e4e7;cursor:pointer}
+
+/* ════════════════════════════
+   4. BADGES / CHIPS
+════════════════════════════ */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-purple{background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.2)}
+.badge-green{background:rgba(16,185,129,0.12);color:#6ee7b7;border:1px solid rgba(16,185,129,0.2)}
+.badge-yellow{background:rgba(245,158,11,0.12);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)}
+.badge-red{background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.badge-blue{background:rgba(59,130,246,0.12);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)}
+.badge-gray{background:rgba(255,255,255,0.06);color:rgba(196,181,253,0.5);border:1px solid rgba(255,255,255,0.08)}
+/* Light variants */
+.badge-purple-lt{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}
+.badge-green-lt{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.badge-yellow-lt{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.badge-red-lt{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+
+/* ════════════════════════════
+   5. FORM ELEMENTS
+════════════════════════════ */
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(196,181,253,0.7);margin-bottom:6px;letter-spacing:.01em}
+.form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(167,139,250,0.15);border-radius:9px;padding:10px 13px;font-size:13.5px;color:#e2d9f3;font-family:var(--font-body);transition:.15s;outline:none}
+.form-input::placeholder{color:rgba(167,139,250,0.3)}
+.form-input:focus{border-color:rgba(124,58,237,0.5);background:rgba(124,58,237,0.06);box-shadow:0 0 0 3px rgba(124,58,237,0.12)}
+.form-input.error{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.04)}
+.form-input.success{border-color:rgba(16,185,129,0.4)}
+.form-hint{font-size:11px;color:rgba(167,139,250,0.4);margin-top:5px}
+.form-error{font-size:11px;color:#fca5a5;margin-top:5px}
+.form-row{margin-bottom:16px}
+select.form-input{cursor:pointer}
+.form-select{position:relative}
+.form-select::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:rgba(167,139,250,0.5);pointer-events:none;font-size:11px}
+.form-input-light{width:100%;background:#fff;border:1px solid #ddd6fe;border-radius:9px;padding:10px 13px;font-size:13.5px;color:#1a0a3d;font-family:var(--font-body);transition:.15s;outline:none}
+.form-input-light:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(124,58,237,0.1)}
+
+/* ════════════════════════════
+   6. STAT CARDS
+════════════════════════════ */
+.stat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(167,139,250,0.1);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;cursor:pointer;transition:.2s}
+.stat-card:hover{background:rgba(167,139,250,0.06);transform:translateY(-2px)}
+.stat-card-stripe{position:absolute;bottom:0;left:0;right:0;height:3px}
+.stat-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.stat-val{font-family:var(--font-display);font-size:30px;font-weight:800;color:#f0ebff;letter-spacing:-.04em;line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:12.5px;color:rgba(196,181,253,0.5)}
+.stat-sub{font-size:11px;margin-top:6px;font-weight:500}
+/* Light */
+.stat-card-lt{background:#fff;border:1px solid #ede9fe;border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;cursor:pointer;transition:.2s}
+.stat-card-lt:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(109,40,217,0.1);border-color:#c4b5fd}
+.stat-card-lt .stat-val{color:#1a0a3d}
+.stat-card-lt .stat-lbl{color:#6b7280}
+.stat-card-lt .stat-sub{color:#8b5cf6}
+
+/* ════════════════════════════
+   7. TABLE
+════════════════════════════ */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(167,139,250,0.4);border-bottom:1px solid rgba(167,139,250,0.1)}
+.data-table td{padding:11px 14px;border-bottom:1px solid rgba(167,139,250,0.05);color:rgba(196,181,253,0.7);vertical-align:middle}
+.data-table tr:hover td{background:rgba(167,139,250,0.03)}
+.data-table .emp-av-sm{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;margin-right:8px;vertical-align:middle}
+
+/* ════════════════════════════
+   8. SECTION ANATOMY
+════════════════════════════ */
+.anatomy-box{border:1.5px dashed rgba(124,58,237,0.25);border-radius:12px;padding:16px;position:relative;margin-bottom:10px}
+.anatomy-label{position:absolute;top:-10px;left:12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(124,58,237,0.15);color:#a78bfa;padding:2px 8px;border-radius:99px;border:1px solid rgba(124,58,237,0.25)}
+.anatomy-desc{font-size:11px;color:rgba(167,139,250,0.4);margin-top:8px}
+
+/* ════════════════════════════
+   9. ANTI-PATTERNS
+════════════════════════════ */
+.ap-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.ap-bad{border:1.5px solid rgba(239,68,68,0.25);border-radius:12px;padding:16px;background:rgba(239,68,68,0.04)}
+.ap-good{border:1.5px solid rgba(16,185,129,0.25);border-radius:12px;padding:16px;background:rgba(16,185,129,0.04)}
+.ap-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:99px;display:inline-block;margin-bottom:10px}
+.ap-tag-bad{background:rgba(239,68,68,0.15);color:#fca5a5}
+.ap-tag-good{background:rgba(16,185,129,0.15);color:#6ee7b7}
+.ap-rule{font-size:12.5px;color:rgba(196,181,253,0.6);line-height:1.6}
+.ap-example{margin-top:10px;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;font-size:12px}
+.strike{text-decoration:line-through;color:rgba(252,165,165,0.6)}
+.checkmark{color:#6ee7b7}
+
+/* ════════════════════════════
+   10. CTA SECTION
+════════════════════════════ */
+.cta-full{background:linear-gradient(135deg,#1e0b4a,#2d1261,#1a0a3d);border-radius:20px;padding:56px 48px;text-align:center;position:relative;overflow:hidden;margin-bottom:14px}
+.cta-full::before{content:'';position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(124,58,237,0.2),transparent);border-radius:50%;top:-150px;right:-100px;pointer-events:none}
+.cta-full::after{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(109,40,217,0.15),transparent);border-radius:50%;bottom:-100px;left:-80px;pointer-events:none}
+.cta-full h2{font-family:var(--font-display);font-size:36px;font-weight:800;color:#f0ebff;letter-spacing:-.04em;margin-bottom:12px;position:relative}
+.cta-full p{font-size:16px;color:rgba(196,181,253,0.55);margin-bottom:28px;position:relative}
+.cta-full .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative}
+.cta-minimal{background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cta-minimal h3{font-size:16px;font-weight:700;color:#e2d9f3;margin-bottom:4px}
+.cta-minimal p{font-size:13px;color:rgba(167,139,250,0.5)}
+.cta-banner{background:linear-gradient(135deg,#7c3aed,#5b21b6);border-radius:12px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cta-banner h3{font-size:15px;font-weight:700;color:#fff;margin-bottom:2px}
+.cta-banner p{font-size:12px;color:rgba(255,255,255,0.6)}
+.cta-trust{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:16px}
+.cta-trust span{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(167,139,250,0.45)}
+.cta-trust .ck{color:#6ee7b7}
+
+/* ════════════════════════════
+   MISC UTILITIES
+════════════════════════════ */
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,0.15),transparent);margin:24px 0}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:11px;background:rgba(124,58,237,0.1);color:#a78bfa;padding:2px 7px;border-radius:5px;border:1px solid rgba(124,58,237,0.2)}
+.tag-css{color:#c4b5fd}.tag-tw{color:#a78bfa}.tag-val{color:#ddd6fe}
+.token{font-family:var(--font-mono);font-size:12px;color:#c4b5fd;background:rgba(124,58,237,0.1);padding:2px 7px;border-radius:4px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:8px}
+.mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}
+.label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.spec-note{font-size:11.5px;color:rgba(167,139,250,0.4);background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.12);border-radius:7px;padding:8px 12px;margin-top:10px;line-height:1.6}
+.spec-note strong{color:#a78bfa}
+/* scroll indicator */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:99px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══ DOC NAV ══ -->
+<nav class="doc-nav">
+  <div class="nav-logo">
+    <svg viewBox="0 0 100 100" fill="none"><defs><linearGradient id="lng" x1="15" y1="15" x2="85" y2="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ddd6fe"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs><path d="M26 24L74 24L74 36L38 36L38 46L66 46L66 58L38 58L38 76L26 76Z" fill="url(#lng)"/><circle cx="50" cy="50" r="42" stroke="url(#lng)" stroke-width="1.5" stroke-dasharray="200 64" fill="none" opacity="0.45"/><circle cx="50" cy="8" r="3.5" fill="#c4b5fd" opacity="0.7"/><circle cx="8" cy="50" r="3.5" fill="#c4b5fd" opacity="0.7"/><circle cx="90" cy="70" r="3.5" fill="#c4b5fd" opacity="0.7"/></svg>
+    <span class="nav-logo-text">Flovig DS <span class="version-badge">v1.0</span></span>
+  </div>
+  <span class="nav-section">Foundation</span>
+  <a class="nav-item active" onclick="scroll2('palette')">🎨 Colour Palette</a>
+  <a class="nav-item" onclick="scroll2('type')">✏️ Typography</a>
+  <a class="nav-item" onclick="scroll2('spacing')">📐 Spacing & Radius</a>
+  <span class="nav-section">Components</span>
+  <a class="nav-item" onclick="scroll2('buttons')">🔘 Buttons</a>
+  <a class="nav-item" onclick="scroll2('badges')">🏷 Badges</a>
+  <a class="nav-item" onclick="scroll2('forms')">📝 Form Inputs</a>
+  <a class="nav-item" onclick="scroll2('cards')">📊 Stat Cards</a>
+  <a class="nav-item" onclick="scroll2('tables')">📋 Tables</a>
+  <span class="nav-section">Patterns</span>
+  <a class="nav-item" onclick="scroll2('cta')">📣 CTA Sections</a>
+  <a class="nav-item" onclick="scroll2('sections')">🧩 Section Anatomy</a>
+  <a class="nav-item" onclick="scroll2('antipatterns')">🚫 Anti-Patterns</a>
+  <span class="nav-section">Export</span>
+  <a class="nav-item" onclick="scroll2('tokens')">🔧 CSS Tokens</a>
+</nav>
+
+<!-- ══ DOC CONTENT ══ -->
+<main class="doc-content">
+
+<!-- ─── HEADER ─── -->
+<div style="margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(167,139,250,0.08)">
+  <div class="sec-eyebrow">Design System</div>
+  <h1 class="t-display" style="margin-bottom:12px">Flovig UI Spec</h1>
+  <p class="t-body-lg">Panduan visual lengkap untuk membangun antarmuka Flovig yang konsisten — dari warna, tipografi, komponen, hingga pola yang harus dihindari.</p>
+  <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+    <span class="badge badge-purple">v1.0</span>
+    <span class="badge badge-gray">Juni 2026</span>
+    <span class="badge badge-blue">Lavender Theme</span>
+    <span class="badge badge-green">Inter + Plus Jakarta Sans</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     1. COLOUR PALETTE
+═══════════════════════════════════════ -->
+<section class="section" id="palette">
+  <div class="sec-eyebrow">Foundation 01</div>
+  <h2 class="sec-title">Colour Palette</h2>
+  <p class="sec-desc">Palette Flovig dibangun di atas keluarga Lavender/Violet yang diambil langsung dari logo. Setiap warna memiliki 11 stop dari 50 (terpucat) hingga 950 (tergelap).</p>
+
+  <!-- Lavender -->
+  <div class="swatch-group">
+    <div class="swatch-group-name">Lavender — Primary Brand</div>
+    <div class="swatch-row">
+      <div><div class="swatch" style="background:#faf5ff" title="#faf5ff"></div><div class="swatch-label">50</div></div>
+      <div><div class="swatch" style="background:#f3e8ff"></div><div class="swatch-label">100</div></div>
+      <div><div class="swatch" style="background:#e9d5ff"></div><div class="swatch-label">200</div></div>
+      <div><div class="swatch" style="background:#d8b4fe"></div><div class="swatch-label">300</div></div>
+      <div><div class="swatch" style="background:#c4b5fd"></div><div class="swatch-label">400</div></div>
+      <div><div class="swatch" style="background:#a78bfa"></div><div class="swatch-label">500</div></div>
+      <div><div class="swatch" style="background:#8b5cf6"></div><div class="swatch-label">600</div></div>
+      <div><div class="swatch" style="background:#7c3aed;border:2px solid rgba(255,255,255,0.3)"></div><div class="swatch-label" style="color:#c4b5fd;font-weight:700">700 ★</div></div>
+      <div><div class="swatch" style="background:#6d28d9"></div><div class="swatch-label">800</div></div>
+      <div><div class="swatch" style="background:#5b21b6"></div><div class="swatch-label">900</div></div>
+      <div><div class="swatch" style="background:#2e1065"></div><div class="swatch-label">950</div></div>
+    </div>
+  </div>
+
+  <!-- Neutral -->
+  <div class="swatch-group">
+    <div class="swatch-group-name">Neutral — Zinc</div>
+    <div class="swatch-row">
+      <div><div class="swatch" style="background:#fafafa"></div><div class="swatch-label">50</div></div>
+      <div><div class="swatch" style="background:#f4f4f5"></div><div class="swatch-label">100</div></div>
+      <div><div class="swatch" style="background:#e4e4e7"></div><div class="swatch-label">200</div></div>
+      <div><div class="swatch" style="background:#d4d4d8"></div><div class="swatch-label">300</div></div>
+      <div><div class="swatch" style="background:#a1a1aa"></div><div class="swatch-label">400</div></div>
+      <div><div class="swatch" style="background:#71717a"></div><div class="swatch-label">500</div></div>
+      <div><div class="swatch" style="background:#52525b"></div><div class="swatch-label">600</div></div>
+      <div><div class="swatch" style="background:#3f3f46"></div><div class="swatch-label">700</div></div>
+      <div><div class="swatch" style="background:#27272a"></div><div class="swatch-label">800</div></div>
+      <div><div class="swatch" style="background:#18181b"></div><div class="swatch-label">900</div></div>
+      <div><div class="swatch" style="background:#09090b"></div><div class="swatch-label">950</div></div>
+    </div>
+  </div>
+
+  <!-- Semantic -->
+  <div class="swatch-group">
+    <div class="swatch-group-name">Semantic — Status Colors</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="text-align:center"><div class="swatch" style="background:#10b981;width:44px;height:44px;border-radius:8px"></div><div class="swatch-label" style="font-size:10px">Success<br>#10b981</div></div>
+      <div style="text-align:center"><div class="swatch" style="background:#f59e0b;width:44px;height:44px;border-radius:8px"></div><div class="swatch-label" style="font-size:10px">Warning<br>#f59e0b</div></div>
+      <div style="text-align:center"><div class="swatch" style="background:#ef4444;width:44px;height:44px;border-radius:8px"></div><div class="swatch-label" style="font-size:10px">Danger<br>#ef4444</div></div>
+      <div style="text-align:center"><div class="swatch" style="background:#3b82f6;width:44px;height:44px;border-radius:8px"></div><div class="swatch-label" style="font-size:10px">Info<br>#3b82f6</div></div>
+    </div>
+  </div>
+
+  <!-- Usage -->
+  <div class="subsec">Token Usage Map</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px">
+    <div class="usage-chip"><div class="dot" style="background:#7c3aed"></div>lav-700 — Primary CTA, Active nav, Focus ring</div>
+    <div class="usage-chip"><div class="dot" style="background:#a78bfa"></div>lav-500 — Icon accent, Link hover, Subtle highlight</div>
+    <div class="usage-chip"><div class="dot" style="background:#c4b5fd"></div>lav-400 — Sidebar text active, Badge text</div>
+    <div class="usage-chip"><div class="dot" style="background:#ddd6fe"></div>lav-200 — Border on dark, Divider</div>
+    <div class="usage-chip"><div class="dot" style="background:#f3e8ff"></div>lav-100 — Light bg hover, Tag bg light mode</div>
+    <div class="usage-chip"><div class="dot" style="background:#1a0a3d"></div>Dark sidebar bg</div>
+  </div>
+
+  <!-- Contrast -->
+  <div class="subsec">Contrast Ratios (WCAG 2.1)</div>
+  <div class="spec-card">
+    <table class="contrast-table">
+      <thead><tr><th>Foreground</th><th>Background</th><th>Ratio</th><th>AA Normal</th><th>AA Large</th><th>AAA</th></tr></thead>
+      <tbody>
+        <tr><td><span style="color:#fff">White</span></td><td><span style="background:#7c3aed;padding:2px 6px;border-radius:3px">#7c3aed</span></td><td class="color-token">6.2:1</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td></tr>
+        <tr><td><span style="color:#ddd6fe">#ddd6fe</span></td><td><span style="background:#09061a;padding:2px 6px;border-radius:3px">Dark bg</span></td><td class="color-token">10.1:1</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td></tr>
+        <tr><td><span style="color:#a78bfa">#a78bfa</span></td><td><span style="background:#09061a;padding:2px 6px;border-radius:3px">Dark bg</span></td><td class="color-token">5.8:1</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td><td class="warn">⚠ Near</td></tr>
+        <tr><td><span style="color:#6d28d9">#6d28d9</span></td><td><span style="background:#fff;padding:2px 6px;border-radius:3px;color:#1a0a3d">White</span></td><td class="color-token">7.5:1</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td></tr>
+        <tr><td><span style="color:#c4b5fd">#c4b5fd</span></td><td><span style="background:#130a27;padding:2px 6px;border-radius:3px">Sidebar</span></td><td class="color-token">8.4:1</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td><td class="pass">✓ Pass</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     2. TYPOGRAPHY
+═══════════════════════════════════════ -->
+<section class="section" id="type">
+  <div class="sec-eyebrow">Foundation 02</div>
+  <h2 class="sec-title">Typography Pairing</h2>
+  <p class="sec-desc">Dua font digunakan: <strong style="color:#c4b5fd">Plus Jakarta Sans</strong> untuk heading/display (karakter tebal, ekspresif), dan <strong style="color:#c4b5fd">Inter</strong> untuk body/UI (bersih, readable di semua ukuran).</p>
+
+  <!-- Pairing showcase -->
+  <div class="spec-card" style="padding:28px">
+    <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(167,139,250,0.07)">
+      <div class="t-label" style="margin-bottom:10px">Plus Jakarta Sans · Display</div>
+      <div class="t-display">Kelola Tim,<br>Tanpa Drama.</div>
+      <div class="type-meta"><span><strong>Font:</strong> Plus Jakarta Sans 800</span><span><strong>Size:</strong> 48px</span><span><strong>Line-height:</strong> 1.0</span><span><strong>Letter-spacing:</strong> -0.04em</span></span></div>
+    </div>
+    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(167,139,250,0.07)">
+      <div class="t-label" style="margin-bottom:8px">Plus Jakarta Sans · H1</div>
+      <div class="t-h1">Manajemen HRIS & Project dalam Satu Platform</div>
+      <div class="type-meta"><span><strong>Font:</strong> PJS 700</span><span><strong>Size:</strong> 32px</span><span><strong>Track:</strong> -0.03em</span></span></div>
+    </div>
+    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(167,139,250,0.07)">
+      <div class="t-label" style="margin-bottom:8px">Plus Jakarta Sans · H2</div>
+      <div class="t-h2">Semua Modul yang Tim Anda Butuhkan</div>
+      <div class="type-meta"><span><strong>Font:</strong> PJS 700</span><span><strong>Size:</strong> 24px</span></div>
+    </div>
+    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(167,139,250,0.07)">
+      <div class="t-label" style="margin-bottom:8px">Inter · Body Large</div>
+      <div class="t-body-lg">Flovig menyatukan project management, CRM, invoicing, dan HRIS dalam satu workspace. Lebih sederhana, lebih cepat.</div>
+      <div class="type-meta"><span><strong>Font:</strong> Inter 400</span><span><strong>Size:</strong> 16px</span><span><strong>Line-height:</strong> 1.7</span></div>
+    </div>
+    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(167,139,250,0.07)">
+      <div class="t-label" style="margin-bottom:8px">Inter · Body (Default UI)</div>
+      <div class="t-body">Total karyawan aktif bulan ini mengalami peningkatan sebesar 12% dibandingkan bulan lalu.</div>
+      <div class="type-meta"><span><strong>Font:</strong> Inter 400</span><span><strong>Size:</strong> 14px</span><span><strong>Line-height:</strong> 1.65</span></div>
+    </div>
+    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(167,139,250,0.07)">
+      <div class="t-label" style="margin-bottom:8px">Inter · Caption / Hint</div>
+      <div class="t-caption">Terakhir diperbarui 5 menit lalu · Senin, 2 Juni 2025</div>
+      <div class="type-meta"><span><strong>Font:</strong> Inter 400</span><span><strong>Size:</strong> 11px</span></div>
+    </div>
+    <div>
+      <div class="t-label" style="margin-bottom:8px">Inter · Eyebrow Label</div>
+      <div class="t-label">Modul Core HRIS</div>
+      <div class="type-meta"><span><strong>Font:</strong> Inter 700</span><span><strong>Size:</strong> 10px</span><span><strong>Track:</strong> 0.12em</span><span><strong>Case:</strong> uppercase</span></div>
+    </div>
+  </div>
+
+  <div class="spec-note"><strong>Rule:</strong> Gunakan Plus Jakarta Sans <em>hanya</em> untuk heading ≥ 18px. Semua UI element, label, body text gunakan Inter. Hindari mencampur keduanya dalam satu baris yang sama.</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     3. SPACING & RADIUS
+═══════════════════════════════════════ -->
+<section class="section" id="spacing">
+  <div class="sec-eyebrow">Foundation 03</div>
+  <h2 class="sec-title">Spacing & Radius</h2>
+  <p class="sec-desc">Sistem spacing berbasis 4px. Border radius mengikuti hierarki komponen — lebih kecil = lebih dalam di layout, lebih besar = lebih "terapung".</p>
+
+  <div class="grid-2">
+    <div class="spec-card">
+      <div class="spec-card-title">Spacing Scale (4px base)</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.4);width:4px;border-radius:2px"></div><span class="token">space-1 · 4px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">icon gap, tight label</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.4);width:8px;border-radius:2px"></div><span class="token">space-2 · 8px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">inline gap, badge padding</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.5);width:12px;border-radius:2px"></div><span class="token">space-3 · 12px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">nav item padding, card gap</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.55);width:16px;border-radius:2px"></div><span class="token">space-4 · 16px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">card inner gap, row gap</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.6);width:20px;border-radius:2px"></div><span class="token">space-5 · 20px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">card padding X, section gap</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.65);width:24px;border-radius:2px"></div><span class="token">space-6 · 24px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">page padding, content gap</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.75);width:32px;border-radius:2px"></div><span class="token">space-8 · 32px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">section padding, large gap</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="height:12px;background:rgba(124,58,237,0.85);width:48px;border-radius:2px"></div><span class="token">space-12 · 48px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">page section margin</span></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-card-title">Border Radius Scale</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:28px;background:rgba(124,58,237,0.25);border-radius:4px;border:1px solid rgba(124,58,237,0.3)"></div><span class="token">r-sm · 4–6px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">Badge, tag, table row</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:28px;background:rgba(124,58,237,0.25);border-radius:8px;border:1px solid rgba(124,58,237,0.3)"></div><span class="token">r-md · 8px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">Button SM, input, tab</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:28px;background:rgba(124,58,237,0.25);border-radius:10px;border:1px solid rgba(124,58,237,0.3)"></div><span class="token">r-lg · 10px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">Button default, nav item</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:28px;background:rgba(124,58,237,0.25);border-radius:14px;border:1px solid rgba(124,58,237,0.3)"></div><span class="token">r-xl · 14–16px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">Card, modal, stat card</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:28px;background:rgba(124,58,237,0.25);border-radius:20px;border:1px solid rgba(124,58,237,0.3)"></div><span class="token">r-2xl · 20–24px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">Section card, CTA box</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:28px;background:rgba(124,58,237,0.25);border-radius:99px;border:1px solid rgba(124,58,237,0.3)"></div><span class="token">r-full · 9999px</span><span style="font-size:11px;color:rgba(167,139,250,0.4)">Pill badge, toggle</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     4. BUTTONS
+═══════════════════════════════════════ -->
+<section class="section" id="buttons">
+  <div class="sec-eyebrow">Component 01</div>
+  <h2 class="sec-title">Buttons</h2>
+  <p class="sec-desc">Terdapat 5 varian tombol dengan 3 ukuran. Setiap varian memiliki state: default, hover, active, disabled. Jangan membuat varian baru — gunakan yang sudah ada.</p>
+
+  <div class="subsec">Variants · Dark Background</div>
+  <div class="preview-area dark-bg">
+    <button class="btn-primary">Primary</button>
+    <button class="btn-secondary">Secondary</button>
+    <button class="btn-ghost">Ghost</button>
+    <button class="btn-danger">Danger</button>
+    <button class="btn-icon"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg></button>
+    <button class="btn-primary" disabled>Disabled</button>
+  </div>
+
+  <div class="subsec">Variants · Light Background</div>
+  <div class="preview-area light-bg">
+    <button class="btn-primary-light">Primary</button>
+    <button class="btn-secondary-light">Secondary</button>
+    <button class="btn-ghost-light">Ghost</button>
+  </div>
+
+  <div class="subsec">Sizes</div>
+  <div class="preview-area dark-bg" style="align-items:center">
+    <button class="btn-primary sm">Small · 12px · 7/14px pad</button>
+    <button class="btn-primary">Default · 14px · 10/20px pad</button>
+    <button class="btn-primary lg">Large · 16px · 14/28px pad</button>
+  </div>
+
+  <div class="subsec">With Icons</div>
+  <div class="preview-area dark-bg">
+    <button class="btn-primary"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Data Karyawan</button>
+    <button class="btn-secondary"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>Tambah Baru</button>
+    <button class="btn-ghost"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Export PDF</button>
+  </div>
+
+  <div class="code-block">
+<span class="cm">/* Primary Button */</span>
+.<span class="kw">btn-primary</span> {
+  background: <span class="val">linear-gradient(135deg, #7c3aed, #6d28d9)</span>;
+  color: <span class="val">#ffffff</span>;
+  padding: <span class="val">10px 20px</span>;
+  border-radius: <span class="val">10px</span>;
+  font-weight: <span class="val">600</span>;
+  box-shadow: <span class="val">0 4px 16px rgba(109,40,217,0.4)</span>;
+  transition: <span class="val">transform 0.2s, box-shadow 0.2s</span>;
+}
+.<span class="kw">btn-primary:hover</span> { transform: <span class="val">translateY(-2px)</span>; box-shadow: <span class="val">0 8px 24px rgba(109,40,217,0.45)</span>; }
+.<span class="kw">btn-primary:disabled</span> { opacity: <span class="val">0.4</span>; cursor: <span class="val">not-allowed</span>; transform: <span class="val">none</span>; }</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. BADGES
+═══════════════════════════════════════ -->
+<section class="section" id="badges">
+  <div class="sec-eyebrow">Component 02</div>
+  <h2 class="sec-title">Badges & Status Chips</h2>
+  <p class="sec-desc">Badge digunakan untuk status, label kategori, dan hitungan notifikasi. Selalu gunakan warna semantik yang tepat — jangan menggunakan warna acak.</p>
+
+  <div class="subsec">Dark Mode Badges</div>
+  <div class="preview-area dark-bg">
+    <span class="badge badge-purple">● Active</span>
+    <span class="badge badge-green">● Selesai</span>
+    <span class="badge badge-yellow">⚠ Pending</span>
+    <span class="badge badge-red">✕ SLA Breach</span>
+    <span class="badge badge-blue">ℹ Info</span>
+    <span class="badge badge-gray">Coming Soon</span>
+  </div>
+
+  <div class="subsec">Light Mode Badges</div>
+  <div class="preview-area light-bg">
+    <span class="badge badge-purple-lt">Active</span>
+    <span class="badge badge-green-lt">Hadir</span>
+    <span class="badge badge-yellow-lt">Cuti</span>
+    <span class="badge badge-red-lt">Absen</span>
+  </div>
+
+  <div class="subsec">HRIS Status Chips</div>
+  <div class="preview-area dark-bg">
+    <span class="badge badge-purple">Hadir</span>
+    <span class="badge badge-yellow">Cuti</span>
+    <span class="badge badge-red">Absen</span>
+    <span class="badge badge-blue">WFH</span>
+    <span class="badge badge-gray">Izin</span>
+    <span class="badge badge-green">Lembur Approved</span>
+  </div>
+
+  <div class="spec-note"><strong>Rule:</strong> Badge hanya boleh memiliki background warna di <token>opacity 0.12–0.15</token>. Jangan gunakan background solid penuh kecuali pada "popular badge" di pricing card. Selalu ada dot atau icon prefix untuk badge status.</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     6. FORM INPUTS
+═══════════════════════════════════════ -->
+<section class="section" id="forms">
+  <div class="sec-eyebrow">Component 03</div>
+  <h2 class="sec-title">Form Inputs</h2>
+  <p class="sec-desc">Semua input menggunakan radius 9px dengan border tipis. Focus state menggunakan ring shadow ungu, bukan outline default browser.</p>
+
+  <div class="grid-2">
+    <div>
+      <div class="subsec">Dark Background</div>
+      <div class="preview-area dark-bg" style="flex-direction:column;align-items:stretch">
+        <div class="form-row">
+          <label class="form-label">Nama Karyawan</label>
+          <input class="form-input" placeholder="Masukkan nama lengkap">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Departemen</label>
+          <div class="form-select">
+            <select class="form-input"><option>Pilih departemen</option><option>Engineering</option><option>Marketing</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Email <span style="color:#fb7185">*</span></label>
+          <input class="form-input error" value="email_tidak_valid">
+          <div class="form-error">Format email tidak valid</div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Tanggal Bergabung</label>
+          <input class="form-input success" type="date" value="2025-06-01">
+          <div class="form-hint">Format: DD/MM/YYYY</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="subsec">Light Background</div>
+      <div class="preview-area light-bg" style="flex-direction:column;align-items:stretch">
+        <div class="form-row">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px">Nama Karyawan</label>
+          <input class="form-input-light" placeholder="Masukkan nama lengkap">
+        </div>
+        <div class="form-row">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px">Jabatan</label>
+          <input class="form-input-light" placeholder="e.g. Senior Developer">
+        </div>
+        <div class="form-row">
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px">Catatan</label>
+          <textarea class="form-input-light" rows="3" placeholder="Opsional..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+<span class="cm">/* Focus ring — JANGAN pakai outline default */</span>
+.<span class="kw">form-input:focus</span> {
+  border-color: <span class="val">rgba(124,58,237,0.5)</span>;
+  box-shadow: <span class="val">0 0 0 3px rgba(124,58,237,0.12)</span>;
+  outline: <span class="val">none</span>; <span class="cm">/* Remove browser default */</span>
+}</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     7. STAT CARDS
+═══════════════════════════════════════ -->
+<section class="section" id="cards">
+  <div class="sec-eyebrow">Component 04</div>
+  <h2 class="sec-title">Stat Cards</h2>
+  <p class="sec-desc">Stat card selalu terdiri dari: icon container, nilai besar, label, dan sub-info (delta/status). Bottom stripe warna menunjukkan kategori data.</p>
+
+  <div class="subsec">Dark Mode</div>
+  <div class="grid-4">
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(124,58,237,0.15)"><svg width="18" height="18" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <div class="stat-val">6</div>
+      <div class="stat-lbl">Total Karyawan</div>
+      <div class="stat-sub" style="color:#a78bfa">↑ Aktif semua</div>
+      <div class="stat-card-stripe" style="background:linear-gradient(90deg,#7c3aed,#c4b5fd)"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(245,158,11,0.12)"><svg width="18" height="18" fill="none" stroke="#fbbf24" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
+      <div class="stat-val">0</div>
+      <div class="stat-lbl">Departemen</div>
+      <div class="stat-sub" style="color:#fbbf24">⚠ Perlu konfigurasi</div>
+      <div class="stat-card-stripe" style="background:linear-gradient(90deg,#f59e0b,#fde68a)"></div>
+    </div>
+    <div class="stat-card" style="opacity:.6">
+      <div style="position:absolute;top:12px;right:12px"><span class="badge badge-gray">Soon</span></div>
+      <div class="stat-ico" style="background:rgba(167,139,250,0.08)"><svg width="18" height="18" fill="none" stroke="rgba(167,139,250,0.4)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="stat-val" style="color:rgba(221,214,254,0.2)">—</div>
+      <div class="stat-lbl">Hadir Hari Ini</div>
+      <div class="stat-sub" style="color:rgba(167,139,250,0.3)">Modul belum aktif</div>
+      <div class="stat-card-stripe" style="background:rgba(167,139,250,0.1)"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico" style="background:rgba(16,185,129,0.12)"><svg width="18" height="18" fill="none" stroke="#6ee7b7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="stat-val">142</div>
+      <div class="stat-lbl">Task Selesai</div>
+      <div class="stat-sub" style="color:#6ee7b7">89% completion</div>
+      <div class="stat-card-stripe" style="background:linear-gradient(90deg,#10b981,#6ee7b7)"></div>
+    </div>
+  </div>
+
+  <div class="subsec">Light Mode</div>
+  <div class="grid-4">
+    <div class="stat-card-lt"><div class="stat-ico" style="background:#f3e8ff"><svg width="18" height="18" fill="none" stroke="#7c3aed" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><div class="stat-val">6</div><div class="stat-lbl">Total Karyawan</div><div class="stat-sub">↑ Aktif semua</div><div class="stat-card-stripe" style="background:linear-gradient(90deg,#7c3aed,#c4b5fd)"></div></div>
+    <div class="stat-card-lt"><div class="stat-ico" style="background:#fffbeb"><svg width="18" height="18" fill="none" stroke="#f59e0b" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg></div><div class="stat-val">0</div><div class="stat-lbl">Departemen</div><div class="stat-sub" style="color:#f59e0b">⚠ Perlu konfigurasi</div><div class="stat-card-stripe" style="background:linear-gradient(90deg,#f59e0b,#fde68a)"></div></div>
+    <div class="stat-card-lt"><div class="stat-ico" style="background:#f0fdf4"><svg width="18" height="18" fill="none" stroke="#10b981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="stat-val">142</div><div class="stat-lbl">Task Selesai</div><div class="stat-sub" style="color:#10b981">89% completion</div><div class="stat-card-stripe" style="background:linear-gradient(90deg,#10b981,#6ee7b7)"></div></div>
+    <div class="stat-card-lt"><div class="stat-ico" style="background:#eff6ff"><svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1"/></svg></div><div class="stat-val">1.2M</div><div class="stat-lbl">Revenue</div><div class="stat-sub" style="color:#3b82f6">↑ 12% vs lalu</div><div class="stat-card-stripe" style="background:linear-gradient(90deg,#3b82f6,#93c5fd)"></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     8. TABLES
+═══════════════════════════════════════ -->
+<section class="section" id="tables">
+  <div class="sec-eyebrow">Component 05</div>
+  <h2 class="sec-title">Data Tables</h2>
+  <p class="sec-desc">Tabel data menggunakan zebra-hover (bukan zebra-stripe), header uppercase kecil, dan badge status inline. Minimal kolom — maksimal 6 kolom per tabel tanpa horizontal scroll.</p>
+
+  <div class="spec-card" style="padding:0;overflow:hidden">
+    <table class="data-table">
+      <thead><tr><th>Karyawan</th><th>Departemen</th><th>Jabatan</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+      <tbody>
+        <tr><td><span class="emp-av-sm" style="background:#7c3aed">AP</span><span style="color:#e2d9f3;font-weight:500">Andi Pratama</span></td><td>Engineering</td><td>Senior Dev</td><td><span class="badge badge-purple">Hadir</span></td><td>Jan 2023</td><td><button class="btn-icon" style="width:28px;height:28px;border-radius:7px"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button></td></tr>
+        <tr><td><span class="emp-av-sm" style="background:#6d28d9">SR</span><span style="color:#e2d9f3;font-weight:500">Sari Rahayu</span></td><td>Marketing</td><td>Content Lead</td><td><span class="badge badge-yellow">Cuti</span></td><td>Mar 2023</td><td><button class="btn-icon" style="width:28px;height:28px;border-radius:7px"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button></td></tr>
+        <tr><td><span class="emp-av-sm" style="background:#8b5cf6">DL</span><span style="color:#e2d9f3;font-weight:500">Dewi Lestari</span></td><td>Finance</td><td>CFO</td><td><span class="badge badge-red">Absen</span></td><td>Jun 2022</td><td><button class="btn-icon" style="width:28px;height:28px;border-radius:7px"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     9. CTA SECTIONS
+═══════════════════════════════════════ -->
+<section class="section" id="cta">
+  <div class="sec-eyebrow">Pattern 01</div>
+  <h2 class="sec-title">CTA Sections</h2>
+  <p class="sec-desc">Tiga varian CTA: Full (halaman landing, akhir section), Minimal (in-app prompt), Banner (top-of-page notification). Setiap CTA HARUS punya trust signal di bawah tombol.</p>
+
+  <div class="subsec">Full CTA — Landing Page</div>
+  <div class="cta-full">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a78bfa;margin-bottom:12px">🚀 Mulai sekarang</div>
+    <h2>Siap menyederhanakan operasi tim Anda?</h2>
+    <p>Coba Flovig gratis 14 hari. Tanpa kartu kredit, tanpa komitmen.</p>
+    <div class="actions">
+      <button class="btn-primary lg">Mulai Gratis 14 Hari</button>
+      <button class="btn-ghost" style="border-color:rgba(196,181,253,0.2);color:rgba(221,214,254,0.6)">Lihat Demo →</button>
+    </div>
+    <div class="cta-trust">
+      <span><span class="ck">✓</span> Tanpa kartu kredit</span>
+      <span><span class="ck">✓</span> Setup &lt; 5 menit</span>
+      <span><span class="ck">✓</span> Cancel kapan saja</span>
+      <span><span class="ck">✓</span> Data aman</span>
+    </div>
+  </div>
+
+  <div class="subsec">Minimal CTA — In-App</div>
+  <div class="cta-minimal">
+    <div>
+      <h3>Lengkapi konfigurasi HRIS Anda</h3>
+      <p>Tambahkan departemen untuk mulai mengelola struktur organisasi</p>
+    </div>
+    <button class="btn-primary">Konfigurasi Sekarang</button>
+  </div>
+
+  <div class="subsec">Banner CTA — Top Notification</div>
+  <div class="cta-banner">
+    <div>
+      <h3>3 pengajuan cuti menunggu persetujuan</h3>
+      <p>Ditambahkan dalam 24 jam terakhir</p>
+    </div>
+    <button class="btn-primary" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);box-shadow:none">Review Sekarang →</button>
+  </div>
+
+  <div class="spec-note"><strong>CTA Rules:</strong> (1) Satu primary action per CTA — jangan dua tombol primary bersebelahan. (2) Selalu tambahkan trust signal (tanpa CC, cancel kapan saja, dll) di bawah CTA utama. (3) Copy CTA harus action-verb: "Mulai", "Lihat", "Review" — hindari "Klik di sini" atau "Submit".</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     10. SECTION ANATOMY
+═══════════════════════════════════════ -->
+<section class="section" id="sections">
+  <div class="sec-eyebrow">Pattern 02</div>
+  <h2 class="sec-title">Section Anatomy</h2>
+  <p class="sec-desc">Setiap section memiliki anatomi yang konsisten: eyebrow label → heading → deskripsi → konten → (opsional) CTA link. Urutan ini tidak boleh diubah.</p>
+
+  <div class="grid-2">
+    <div>
+      <div class="anatomy-box" style="background:rgba(124,58,237,0.04)">
+        <span class="anatomy-label">Full Section</span>
+        <div class="anatomy-box" style="margin-top:8px">
+          <span class="anatomy-label">Eyebrow</span>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8b5cf6">Foundation 01</div>
+          <div class="anatomy-desc">10px, uppercase, lav-600, letter-spacing .12em</div>
+        </div>
+        <div class="anatomy-box" style="margin-top:8px">
+          <span class="anatomy-label">Heading</span>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:#f0ebff;letter-spacing:-.03em">Colour Palette</div>
+          <div class="anatomy-desc">PJS 700–800, 24–32px, lah-50</div>
+        </div>
+        <div class="anatomy-box" style="margin-top:8px">
+          <span class="anatomy-label">Description</span>
+          <div style="font-size:13px;color:rgba(196,181,253,0.5);line-height:1.6">Teks pendukung yang menjelaskan konten section. Maksimal 2 kalimat.</div>
+          <div class="anatomy-desc">Inter 400, 13–14px, max-width 600px</div>
+        </div>
+        <div class="anatomy-box" style="margin-top:8px;border-style:dotted">
+          <span class="anatomy-label">Content</span>
+          <div style="height:32px;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(167,139,250,0.3)">[ komponen / grid / tabel ]</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="anatomy-box" style="background:rgba(124,58,237,0.04)">
+        <span class="anatomy-label">Card / Widget</span>
+        <div class="anatomy-box" style="margin-top:8px">
+          <span class="anatomy-label">Card Header</span>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;font-weight:700;color:#e2d9f3">Judul Card</span>
+            <span style="font-size:11px;font-weight:600;color:#a78bfa">Lihat Semua →</span>
+          </div>
+          <div class="anatomy-desc">13px bold + optional link right-aligned</div>
+        </div>
+        <div class="anatomy-box" style="margin-top:8px;border-style:dotted">
+          <span class="anatomy-label">Card Body</span>
+          <div style="height:48px;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(167,139,250,0.3)">[ list / tabel / chart ]</div>
+        </div>
+        <div class="anatomy-desc" style="margin-top:8px">Header selalu punya border-bottom. Body padding 0 (list) atau 16–18px (konten lepas). Max 5 row per card sebelum lazy load.</div>
+      </div>
+      <div class="anatomy-box" style="margin-top:12px;background:rgba(124,58,237,0.04)">
+        <span class="anatomy-label">Page Layout</span>
+        <div style="display:grid;grid-template-columns:216px 1fr;gap:6px;height:80px">
+          <div style="background:rgba(124,58,237,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#a78bfa">Sidebar 216px</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:rgba(124,58,237,0.08);border-radius:8px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#a78bfa">Topbar 56px</div>
+            <div style="background:rgba(124,58,237,0.05);border-radius:8px;flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;color:#a78bfa">Content pad 24–28px</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     11. ANTI-PATTERNS
+═══════════════════════════════════════ -->
+<section class="section" id="antipatterns">
+  <div class="sec-eyebrow">Pattern 03</div>
+  <h2 class="sec-title">Anti-Patterns</h2>
+  <p class="sec-desc">Daftar kesalahan desain yang harus dihindari di Flovig. Setiap anti-pattern dilengkapi dengan contoh yang benar.</p>
+
+  <div class="ap-grid">
+    <div class="ap-bad">
+      <span class="ap-tag ap-tag-bad">✕ Hindari</span>
+      <div class="ap-rule">Dua tombol primary bersebelahan membuat user bingung mana aksi utama</div>
+      <div class="ap-example">
+        <div class="row">
+          <button class="btn-primary sm">Simpan</button>
+          <button class="btn-primary sm">Batal</button>
+        </div>
+      </div>
+    </div>
+    <div class="ap-good">
+      <span class="ap-tag ap-tag-good">✓ Gunakan</span>
+      <div class="ap-rule">Satu primary + satu ghost/secondary. Hierarki jelas.</div>
+      <div class="ap-example">
+        <div class="row">
+          <button class="btn-primary sm">Simpan</button>
+          <button class="btn-ghost sm">Batal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ap-grid">
+    <div class="ap-bad">
+      <span class="ap-tag ap-tag-bad">✕ Hindari</span>
+      <div class="ap-rule">Warna teks yang terlalu pucat di atas background gelap — kontras tidak cukup (di bawah 3:1)</div>
+      <div class="ap-example" style="background:#09061a">
+        <span style="color:rgba(167,139,250,0.2);font-size:13px">Teks ini hampir tidak terbaca</span>
+      </div>
+    </div>
+    <div class="ap-good">
+      <span class="ap-tag ap-tag-good">✓ Gunakan</span>
+      <div class="ap-rule">Teks body minimal opacity 0.55, teks penting 0.75+, heading 0.95+</div>
+      <div class="ap-example" style="background:#09061a">
+        <span style="color:rgba(221,214,254,0.8);font-size:13px">Teks dengan kontras yang cukup</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ap-grid">
+    <div class="ap-bad">
+      <span class="ap-tag ap-tag-bad">✕ Hindari</span>
+      <div class="ap-rule">Menggunakan emoji sebagai icon UI — tidak konsisten, tidak skalabel</div>
+      <div class="ap-example">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(196,181,253,0.6)">
+          <span>👥</span> Manajemen Karyawan
+        </div>
+      </div>
+    </div>
+    <div class="ap-good">
+      <span class="ap-tag ap-tag-good">✓ Gunakan</span>
+      <div class="ap-rule">SVG icon set konsisten (Heroicons Outline) dengan warna yang diambil dari token</div>
+      <div class="ap-example">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(196,181,253,0.7)">
+          <svg width="16" height="16" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Manajemen Karyawan
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ap-grid">
+    <div class="ap-bad">
+      <span class="ap-tag ap-tag-bad">✕ Hindari</span>
+      <div class="ap-rule">Font Inter untuk heading besar — terlihat biasa, tidak ada karakter display</div>
+      <div class="ap-example">
+        <span style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:#f0ebff;letter-spacing:-.02em">Kelola Tim Flovig</span>
+      </div>
+    </div>
+    <div class="ap-good">
+      <span class="ap-tag ap-tag-good">✓ Gunakan</span>
+      <div class="ap-rule">Plus Jakarta Sans untuk heading ≥ 18px — karakter display yang kuat</div>
+      <div class="ap-example">
+        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#f0ebff;letter-spacing:-.04em">Kelola Tim Flovig</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ap-grid">
+    <div class="ap-bad">
+      <span class="ap-tag ap-tag-bad">✕ Hindari</span>
+      <div class="ap-rule">Padding/margin hard-coded angka random yang tidak ada di spacing scale</div>
+      <div class="ap-example">
+        <div class="t-mono" style="font-size:11px">padding: 13px 17px; margin-top: 22px;</div>
+      </div>
+    </div>
+    <div class="ap-good">
+      <span class="ap-tag ap-tag-good">✓ Gunakan</span>
+      <div class="ap-rule">Selalu gunakan spacing dari scale: 4, 8, 12, 16, 20, 24, 32, 48px</div>
+      <div class="ap-example">
+        <div class="t-mono" style="font-size:11px">padding: 12px 20px; margin-top: 24px;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ap-grid">
+    <div class="ap-bad">
+      <span class="ap-tag ap-tag-bad">✕ Hindari</span>
+      <div class="ap-rule">Warna biru (#2563eb) lama yang tidak sesuai brand Flovig lavender</div>
+      <div class="ap-example">
+        <button style="background:#2563eb;color:#fff;padding:8px 16px;border-radius:8px;border:none;font-size:12px">Tombol Biru Lama</button>
+      </div>
+    </div>
+    <div class="ap-good">
+      <span class="ap-tag ap-tag-good">✓ Gunakan</span>
+      <div class="ap-rule">Lavender-700 (#7c3aed) sebagai warna primary yang sesuai logo</div>
+      <div class="ap-example">
+        <button class="btn-primary sm">Tombol Lavender</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     12. CSS TOKENS
+═══════════════════════════════════════ -->
+<section class="section" id="tokens">
+  <div class="sec-eyebrow">Export</div>
+  <h2 class="sec-title">CSS Design Tokens</h2>
+  <p class="sec-desc">Semua token wajib diimplementasi sebagai CSS Custom Properties di <code style="font-family:var(--font-mono);color:#a78bfa">resources/css/app.css</code>. Tailwind config harus extend dari token ini.</p>
+
+  <div class="code-block">
+<span class="cm">/* ═══════════════════════════════════
+   FLOVIG DESIGN TOKENS v1.0
+   resources/css/app.css
+═══════════════════════════════════ */</span>
+:<span class="kw">root</span> {
+
+  <span class="cm">/* ── Lavender Brand ── */</span>
+  <span class="kw">--lav-50</span>:  <span class="val">#faf5ff</span>;
+  <span class="kw">--lav-100</span>: <span class="val">#f3e8ff</span>;
+  <span class="kw">--lav-200</span>: <span class="val">#e9d5ff</span>;
+  <span class="kw">--lav-300</span>: <span class="val">#d8b4fe</span>;
+  <span class="kw">--lav-400</span>: <span class="val">#c4b5fd</span>; <span class="cm">/* Active nav text */</span>
+  <span class="kw">--lav-500</span>: <span class="val">#a78bfa</span>; <span class="cm">/* Icon accent, links */</span>
+  <span class="kw">--lav-600</span>: <span class="val">#8b5cf6</span>; <span class="cm">/* Hover state */</span>
+  <span class="kw">--lav-700</span>: <span class="val">#7c3aed</span>; <span class="cm">/* ★ PRIMARY — CTA, active */</span>
+  <span class="kw">--lav-800</span>: <span class="val">#6d28d9</span>; <span class="cm">/* CTA gradient end */</span>
+  <span class="kw">--lav-900</span>: <span class="val">#5b21b6</span>;
+  <span class="kw">--lav-950</span>: <span class="val">#2e1065</span>; <span class="cm">/* Dark sidebar bg */</span>
+
+  <span class="cm">/* ── Surfaces (Dark Mode) ── */</span>
+  <span class="kw">--surface-page</span>:    <span class="val">#09061a</span>; <span class="cm">/* Page background */</span>
+  <span class="kw">--surface-sidebar</span>: <span class="val">#120a28</span>; <span class="cm">/* Sidebar */</span>
+  <span class="kw">--surface-card</span>:    <span class="val">rgba(255,255,255,0.03)</span>;
+  <span class="kw">--surface-hover</span>:   <span class="val">rgba(167,139,250,0.07)</span>;
+  <span class="kw">--border-default</span>:  <span class="val">rgba(167,139,250,0.10)</span>;
+  <span class="kw">--border-subtle</span>:   <span class="val">rgba(167,139,250,0.06)</span>;
+
+  <span class="cm">/* ── Surfaces (Light Mode) ── */</span>
+  <span class="kw">--surface-page-lt</span>:    <span class="val">#f4f2fb</span>;
+  <span class="kw">--surface-sidebar-lt</span>: <span class="val">#ffffff</span>;
+  <span class="kw">--surface-card-lt</span>:    <span class="val">#ffffff</span>;
+  <span class="kw">--border-default-lt</span>:  <span class="val">#ede9fe</span>;
+
+  <span class="cm">/* ── Typography ── */</span>
+  <span class="kw">--font-display</span>: <span class="val">'Plus Jakarta Sans', sans-serif</span>;
+  <span class="kw">--font-body</span>:    <span class="val">'Inter', sans-serif</span>;
+  <span class="kw">--font-mono</span>:    <span class="val">'JetBrains Mono', monospace</span>;
+
+  <span class="cm">/* ── Semantic ── */</span>
+  <span class="kw">--color-success</span>: <span class="val">#10b981</span>;
+  <span class="kw">--color-warning</span>: <span class="val">#f59e0b</span>;
+  <span class="kw">--color-danger</span>:  <span class="val">#ef4444</span>;
+  <span class="kw">--color-info</span>:    <span class="val">#3b82f6</span>;
+
+  <span class="cm">/* ── Radius ── */</span>
+  <span class="kw">--r-sm</span>:  <span class="val">6px</span>;   <span class="cm">/* badge, tag */</span>
+  <span class="kw">--r-md</span>:  <span class="val">9px</span>;   <span class="cm">/* input, button-sm */</span>
+  <span class="kw">--r-lg</span>:  <span class="val">10px</span>;  <span class="cm">/* button default, nav item */</span>
+  <span class="kw">--r-xl</span>:  <span class="val">14px</span>;  <span class="cm">/* card, stat card */</span>
+  <span class="kw">--r-2xl</span>: <span class="val">20px</span>;  <span class="cm">/* section CTA, modal */</span>
+
+  <span class="cm">/* ── Shadows ── */</span>
+  <span class="kw">--shadow-btn</span>:  <span class="val">0 4px 16px rgba(109,40,217,0.4)</span>;
+  <span class="kw">--shadow-card</span>: <span class="val">0 8px 32px rgba(109,40,217,0.12)</span>;
+  <span class="kw">--shadow-hover</span>:<span class="val">0 12px 32px rgba(109,40,217,0.18)</span>;
+}</div>
+
+  <div class="spec-note" style="margin-top:16px"><strong>Tailwind extend:</strong> Tambahkan <code style="font-family:var(--font-mono);color:#c4b5fd">colors.lav</code> dan <code style="font-family:var(--font-mono);color:#c4b5fd">fontFamily.display</code> ke <code style="font-family:var(--font-mono);color:#c4b5fd">tailwind.config.js</code> agar class seperti <code style="font-family:var(--font-mono);color:#c4b5fd">text-lav-700</code>, <code style="font-family:var(--font-mono);color:#c4b5fd">bg-lav-100</code>, dan <code style="font-family:var(--font-mono);color:#c4b5fd">font-display</code> tersedia di Blade templates.</div>
+</section>
+
+</main>
+</div>
+
+<script>
+function scroll2(id){
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  event.target.classList.add('active');
+}
+// Highlight active nav on scroll
+const sections=['palette','type','spacing','buttons','badges','forms','cards','tables','cta','sections','antipatterns','tokens'];
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      const idx=sections.indexOf(e.target.id);
+      if(idx>=0) document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+    }
+  });
+},{threshold:0.3,rootMargin:'-60px 0px -60% 0px'});
+sections.forEach(s=>{const el=document.getElementById(s);if(el)obs.observe(el)});
+</script>
+</body>
+</html>

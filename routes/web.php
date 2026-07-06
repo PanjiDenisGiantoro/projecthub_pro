@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\ApprovalWebController;
 use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
 use App\Http\Controllers\Web\RegisterWebController;
+use App\Http\Controllers\Web\VerificationController;
 use App\Http\Controllers\Web\BranchWebController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
@@ -47,8 +48,16 @@ use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
 use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
 use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
 use App\Http\Controllers\Web\Hris\Master\TaxBracketController;
+use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
+
+// ─── Deploy Webhook (tanpa auth & CSRF, dilindungi token) ────────────────────
+Route::prefix('deploy')->name('deploy.')->group(function () {
+    Route::post('/webhook', [DeployWebhookController::class, 'trigger'])->name('webhook');
+    Route::get('/log',      [DeployWebhookController::class, 'log'])->name('log');
+    Route::get('/status',   [DeployWebhookController::class, 'status'])->name('status');
+});
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 Route::get('/', fn() => view('landing'))->name('home');
@@ -56,7 +65,7 @@ Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
@@ -70,9 +79,21 @@ Route::middleware(['auth', 'check.active', 'superadmin'])->prefix('superadmin')-
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
+Route::get('/akun-kadaluarsa', [AuthWebController::class, 'expired'])->name('account.expired');
+Route::get('/login/google', [AuthWebController::class, 'redirectToGoogle'])->name('login.google');
+Route::get('/login/google/callback', [AuthWebController::class, 'handleGoogleCallback'])->name('login.google.callback');
+
+// ─── Verifikasi Email ──────────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{token}', [VerificationController::class, 'verify'])
+        ->middleware(['throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')->name('verification.send');
+});
 
 // ─── Authenticated ────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active'])->group(function () {
+Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
 
@@ -91,6 +112,7 @@ Route::middleware(['auth', 'check.active'])->group(function () {
     Route::get('/profile', [ProfileWebController::class, 'index'])->name('profile');
     Route::put('/profile/avatar', [ProfileWebController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
+    Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
 
     // Projects
     Route::resource('projects', ProjectWebController::class);
@@ -132,9 +154,11 @@ Route::middleware(['auth', 'check.active'])->group(function () {
     Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // Permission Management (admin only)
-    Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
-    Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
-    Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
+        Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
+        Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+    });
 
     // Approval Policies (admin/manager)
     Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');
@@ -193,6 +217,7 @@ Route::middleware(['auth', 'check.active'])->group(function () {
         Route::resource('divisions', DivisionWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('departments', DepartmentWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::post('structural-levels/reset', [StructuralLevelWebController::class, 'resetDefault'])->name('structural-levels.reset');
     });
 
     // Timesheet
@@ -281,10 +306,14 @@ Route::middleware(['auth', 'check.active'])->group(function () {
     Route::prefix('hris')->name('hris.')->middleware('package:hris')->group(function () {
 
         // Absensi
-        Route::get('absensi',           [AbsensiController::class, 'index'])->name('absensi.index');
-        Route::post('absensi/checkin',  [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
-        Route::post('absensi/checkout', [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
-        Route::get('absensi/rekap',     [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi',                            [AbsensiController::class, 'index'])->name('absensi.index');
+        Route::post('absensi/checkin',                   [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
+        Route::post('absensi/checkout',                  [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
+        Route::get('absensi/rekap',                      [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi/setting',                    [AbsensiController::class, 'setting'])->name('absensi.setting');
+        Route::post('absensi/setting',                   [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
+        Route::post('absensi/enroll-face/{employee}',    [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
+        Route::delete('absensi/delete-face/{employee}',  [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
 
         // Cuti & Izin
         Route::get('leave',                        [LeaveController::class, 'index'])->name('leave.index');

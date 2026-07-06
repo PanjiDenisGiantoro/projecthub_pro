@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full" data-theme="lavender">
+<html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,18 +7,19 @@
     <title>@yield('title', 'Dashboard') — Flovig</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>(function(){var m=localStorage.getItem('flovig_mode')||'light';document.documentElement.setAttribute('data-mode',m);})();</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     @stack('head')
 </head>
-<body class="h-full font-sans antialiased bg-slate-50" x-data="{ sidebarOpen: false }">
+<body class="h-full font-sans antialiased" style="background-color:var(--fl-page)" x-data="{ sidebarOpen: false }">
 
 {{-- Page Loading Overlay --}}
-<div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
-    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-64 h-64 object-contain">
+<div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center" style="background-color:var(--fl-page,#09061a)">
+    <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." class="w-64 h-64 object-contain">
 </div>
 
 <div class="flex h-full">
@@ -50,8 +51,7 @@
                              alt="{{ auth()->user()->name }}"
                              class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-indigo-400 transition-all shrink-0">
                     @else
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                             style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 2px 8px rgba(99,102,241,0.4)">
+                        <div class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                         </div>
                     @endif
@@ -135,8 +135,7 @@
                          alt="{{ auth()->user()->name }}"
                          class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 shrink-0">
                 @else
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-                         style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                    <div class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
                         {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                     </div>
                 @endif
@@ -160,15 +159,14 @@
     <div class="flex-1 flex flex-col lg:pl-64 min-h-0">
 
         {{-- Top bar --}}
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center h-16 px-5 gap-3 shrink-0"
-                style="box-shadow: 0 1px 8px rgba(15,23,42,0.06)">
-            <button @click="sidebarOpen=true" class="lg:hidden text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-50 transition-colors">
+        <header class="fl-topbar sticky top-0 z-30 flex items-center h-16 px-5 gap-3 shrink-0">
+            <button @click="sidebarOpen=true" class="fl-hamburger lg:hidden p-1.5 rounded-lg transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
 
-            <h1 class="text-[14px] font-semibold text-slate-700 tracking-tight shrink-0 truncate max-w-[8rem] sm:max-w-none">
+            <h1 class="fl-topbar-title text-[14px] tracking-tight shrink-0 truncate max-w-[8rem] sm:max-w-none">
                 @yield('page-title', 'Dashboard')
             </h1>
 
@@ -179,13 +177,13 @@
                     : auth()->user()->activePackages();
             @endphp
             @if(count($userPackages) > 1)
-            <div class="hidden sm:flex items-center bg-slate-100 rounded-full p-0.5 shrink-0 ml-2">
+            <div class="fl-pkg-switcher hidden sm:flex items-center rounded-full p-0.5 shrink-0 ml-2">
                 @php $activePkg = session('active_package', $userPackages[0] ?? 'task_management'); @endphp
                 <form method="POST" action="{{ route('switch.package') }}" class="contents">
                     @csrf
                     <input type="hidden" name="package" value="task_management">
                     <button type="submit"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all {{ $activePkg === 'task_management' ? 'bg-white text-indigo-700 shadow-sm shadow-indigo-100 ring-1 ring-indigo-100' : 'text-slate-500 hover:text-slate-700' }}">
+                            class="fl-pkg-btn {{ $activePkg === 'task_management' ? 'fl-pkg-active' : '' }} flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
@@ -196,7 +194,7 @@
                     @csrf
                     <input type="hidden" name="package" value="hris">
                     <button type="submit"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all {{ $activePkg === 'hris' ? 'bg-white text-violet-700 shadow-sm shadow-violet-100 ring-1 ring-violet-100' : 'text-slate-500 hover:text-slate-700' }}">
+                            class="fl-pkg-btn {{ $activePkg === 'hris' ? 'fl-pkg-active' : '' }} flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
@@ -212,29 +210,44 @@
             <form method="GET" action="{{ route('search.index') }}" class="hidden sm:flex items-center">
                 <div class="relative">
                     <input type="text" name="q" placeholder="Cari sesuatu..." value="{{ request('q') }}"
-                           class="w-52 pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 bg-slate-50 hover:border-slate-300 transition-all placeholder:text-slate-400 text-slate-700">
-                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           class="fl-search-input w-52 pl-9 pr-3 py-2 border rounded-xl text-sm transition-all">
+                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:var(--fl-search-ph)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
             </form>
 
+            {{-- Dark / Light mode toggle --}}
+            <button id="fl-mode-toggle" class="fl-mode-toggle" title="Ganti mode tampilan">
+                {{-- Sun icon: shown in dark mode → click to go light --}}
+                <svg id="fl-icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                {{-- Moon icon: shown in light mode → click to go dark --}}
+                <svg id="fl-icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </button>
+
             {{-- Notification bell --}}
-            <button class="relative text-slate-400 hover:text-indigo-600 p-2 rounded-xl hover:bg-indigo-50 transition-colors">
+            <button class="fl-bell-btn relative p-2 rounded-xl transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
             </button>
+
+
+
+
 
             {{-- Avatar --}}
             <a href="{{ route('profile') }}" class="group flex items-center shrink-0">
                 @if(auth()->user()->avatar)
                     <img src="{{ Storage::url(auth()->user()->avatar) }}"
                          alt="{{ auth()->user()->name }}"
-                         class="w-9 h-9 rounded-full object-cover ring-2 ring-slate-200 group-hover:ring-indigo-400 transition-all">
+                         class="w-9 h-9 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
                 @else
-                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-200 group-hover:ring-indigo-400 transition-all"
-                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
+                    <div class="fl-avatar w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
                         {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                     </div>
                 @endif
@@ -250,7 +263,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0"
                  x-transition:leave-end="opacity-0 -translate-y-2"
-                 class="flex items-center gap-3 px-5 py-3 text-sm font-medium shrink-0 {{ $daysLeft <= 3 ? 'bg-red-50 border-b border-red-200 text-red-800' : 'bg-amber-50 border-b border-amber-200 text-amber-800' }}">
+                 class="fl-warn-banner flex items-center gap-3 px-5 py-3 text-sm font-medium shrink-0 border-b {{ $daysLeft <= 3 ? 'fl-err-banner bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
                 <svg class="w-4 h-4 shrink-0 {{ $daysLeft <= 3 ? 'text-red-500' : 'text-amber-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                 </svg>
@@ -405,6 +418,38 @@ window.addEventListener('load', function () {
         setTimeout(function () { loader.style.display = 'none'; }, 300);
     }
 });
+</script>
+
+{{-- ── Flovig Dark / Light Mode Toggle ────────────────────────────── --}}
+<script>
+(function () {
+    var toggle  = document.getElementById('fl-mode-toggle');
+    var iconSun = document.getElementById('fl-icon-sun');
+    var iconMoon= document.getElementById('fl-icon-moon');
+
+    function applyIcons(mode) {
+        if (mode === 'dark') {
+            iconSun.classList.remove('hidden');   // sun = "switch to light"
+            iconMoon.classList.add('hidden');
+        } else {
+            iconMoon.classList.remove('hidden');  // moon = "switch to dark"
+            iconSun.classList.add('hidden');
+        }
+    }
+
+    var currentMode = document.documentElement.getAttribute('data-mode') || 'light';
+    applyIcons(currentMode);
+
+    if (toggle) {
+        toggle.addEventListener('click', function () {
+            var cur  = document.documentElement.getAttribute('data-mode') || 'light';
+            var next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-mode', next);
+            localStorage.setItem('flovig_mode', next);
+            applyIcons(next);
+        });
+    }
+})();
 </script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AccountCredentialsMail;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Department;
@@ -14,17 +15,20 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Role;
 
 class RegisterWebController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
-        return view('auth.register');
+        return view('auth.register', [
+            'prefillName'  => $request->query('name'),
+            'prefillEmail' => $request->query('email'),
+        ]);
     }
 
     public function store(Request $request)
@@ -47,7 +51,7 @@ class RegisterWebController extends Controller
         $user = DB::transaction(function () use ($request) {
             $company = Company::create([
                 'name'      => $request->company_name,
-                'code'      => Str::upper(Str::slug($request->company_name, '')),
+                'code'      => Company::uniqueCodeFor($request->company_name),
                 'is_active' => true,
             ]);
 
@@ -104,6 +108,9 @@ class RegisterWebController extends Controller
 
             return $user;
         });
+
+        Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password));
+        $user->sendEmailVerificationNotification();
 
         Auth::login($user);
         $request->session()->regenerate();

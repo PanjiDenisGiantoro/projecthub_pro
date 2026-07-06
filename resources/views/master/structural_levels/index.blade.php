@@ -21,6 +21,15 @@
                 <a href="{{ route('structural-levels.index') }}" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2">Reset</a>
             @endif
         </form>
+        @if($hasDefaults ?? false)
+        <form method="POST" action="{{ route('structural-levels.reset') }}" onsubmit="return confirm('Isi level struktural dengan set default (Staff s/d BOD)?')">
+            @csrf
+            <button class="inline-flex items-center gap-2 bg-white border border-amber-300 text-amber-600 hover:bg-amber-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Set Default
+            </button>
+        </form>
+        @endif
         <a href="{{ route('structural-levels.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Level
@@ -33,7 +42,15 @@
                 <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/></svg>
                 </div>
-                <p class="text-gray-500 text-sm">Belum ada level struktural.</p>
+                <p class="text-gray-500 text-sm mb-4">Belum ada level struktural.</p>
+                @if($hasDefaults ?? false)
+                <form method="POST" action="{{ route('structural-levels.reset') }}" class="inline" onsubmit="return confirm('Isi level struktural dengan set default (Staff s/d BOD)?')">
+                    @csrf
+                    <button class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                        Gunakan Set Default
+                    </button>
+                </form>
+                @endif
             </div>
         @else
             <table class="w-full text-sm">

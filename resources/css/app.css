@@ -339,3 +339,285 @@
     flex-shrink: 0;
 }
 .theme-swatch i { display: block; height: 100%; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FLOVIG DESIGN SYSTEM v1.0  —  Dark / Light Mode Token System
+   Primary brand: Lavender/Violet  |  Font: Plus Jakarta Sans + Inter
+═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Flovig Brand Tokens (always available) ───────────────────────────── */
+:root {
+    --lav-50:  #faf5ff; --lav-100: #f3e8ff; --lav-200: #e9d5ff;
+    --lav-300: #d8b4fe; --lav-400: #c4b5fd; --lav-500: #a78bfa;
+    --lav-600: #8b5cf6; --lav-700: #7c3aed; --lav-800: #6d28d9;
+    --lav-900: #5b21b6; --lav-950: #2e1065;
+    --fl-success: #10b981; --fl-warning: #f59e0b;
+    --fl-danger: #ef4444;  --fl-info: #3b82f6;
+
+    /* ── Surface & UI tokens — DARK (default) ── */
+    --fl-page:              #09061a;
+    --fl-topbar-bg:         rgba(13,10,31,0.97);
+    --fl-topbar-border:     rgba(167,139,250,0.10);
+    --fl-topbar-title:      #f0ebff;
+    --fl-search-bg:         rgba(255,255,255,0.05);
+    --fl-search-border:     rgba(167,139,250,0.15);
+    --fl-search-text:       #e2d9f3;
+    --fl-search-ph:         rgba(167,139,250,0.35);
+    --fl-toggle-bg:         rgba(167,139,250,0.08);
+    --fl-toggle-border:     rgba(167,139,250,0.15);
+    --fl-toggle-icon:       rgba(196,181,253,0.65);
+    --fl-toggle-hov:        rgba(124,58,237,0.15);
+    --fl-bell-icon:         rgba(167,139,250,0.6);
+    --fl-bell-hov:          rgba(124,58,237,0.12);
+    --fl-bell-icon-hov:     #a78bfa;
+    --fl-pkg-bg:            rgba(255,255,255,0.06);
+    --fl-pkg-text:          rgba(196,181,253,0.5);
+    --fl-pkg-active-bg:     rgba(124,58,237,0.2);
+    --fl-pkg-active-text:   #c4b5fd;
+    --fl-pkg-active-shadow: 0 2px 8px rgba(109,40,217,0.25);
+    --fl-hamburger:         rgba(196,181,253,0.55);
+    --fl-banner-warn-bg:    rgba(245,158,11,0.1);
+    --fl-banner-warn-border:rgba(245,158,11,0.2);
+    --fl-banner-warn-text:  #fcd34d;
+    --fl-banner-err-bg:     rgba(239,68,68,0.1);
+    --fl-banner-err-border: rgba(239,68,68,0.2);
+    --fl-banner-err-text:   #fca5a5;
+
+    /* Sidebar — Flovig Dark Lavender */
+    --ph-side-bg:       #0d0a1f;
+    --ph-side-border:   rgba(167,139,250,0.10);
+    --ph-side-shadow:   none;
+    --ph-logo-color:    #f0ebff;
+    --ph-logo-accent:   #a78bfa;
+    --ph-logo-btn-bg:   rgba(255,255,255,.9);
+    --ph-logo-btn-fg:   #7c3aed;
+    --ph-nav-fg:        rgba(196,181,253,0.55);
+    --ph-nav-hover-bg:  rgba(167,139,250,0.07);
+    --ph-nav-hover-fg:  rgba(221,214,254,0.9);
+    --ph-nav-act-bg:    rgba(124,58,237,0.12);
+    --ph-nav-act-fg:    #c4b5fd;
+    --ph-nav-act-sh:    none;
+    --ph-badge-bg:      rgba(124,58,237,0.2);
+    --ph-badge-fg:      #a78bfa;
+    --ph-abadge-bg:     rgba(221,214,254,0.2);
+    --ph-abadge-fg:     #c4b5fd;
+    --ph-user-name:     #f0ebff;
+    --ph-user-role:     #a78bfa;
+    --ph-user-hover:    rgba(167,139,250,0.08);
+    --ph-user-chev:     rgba(196,181,253,0.4);
+    --ph-drop-bg:       #120a28;
+    --ph-drop-border:   rgba(167,139,250,0.12);
+    --ph-drop-divider:  rgba(167,139,250,0.08);
+    --ph-drop-email:    rgba(167,139,250,0.5);
+    --ph-drop-link-fg:  #c4b5fd;
+    --ph-drop-link-hov: rgba(124,58,237,0.1);
+    --ph-section-label: rgba(167,139,250,0.35);
+    --ph-close-fg:      rgba(196,181,253,0.5);
+    --ph-close-hover:   rgba(167,139,250,0.08);
+}
+
+/* ── Light Mode overrides ─────────────────────────────────────────────── */
+[data-mode="light"] {
+    --fl-page:              #f4f2fb;
+    --fl-topbar-bg:         rgba(255,255,255,0.97);
+    --fl-topbar-border:     #ede9fe;
+    --fl-topbar-title:      #1a0a3d;
+    --fl-search-bg:         #f5f3ff;
+    --fl-search-border:     #ddd6fe;
+    --fl-search-text:       #1a0a3d;
+    --fl-search-ph:         #9ca3af;
+    --fl-toggle-bg:         #f5f3ff;
+    --fl-toggle-border:     #ddd6fe;
+    --fl-toggle-icon:       #7c3aed;
+    --fl-toggle-hov:        #ede9fe;
+    --fl-bell-icon:         #9ca3af;
+    --fl-bell-hov:          #f5f3ff;
+    --fl-bell-icon-hov:     #7c3aed;
+    --fl-pkg-bg:            #f0ebff;
+    --fl-pkg-text:          #6b7280;
+    --fl-pkg-active-bg:     #ffffff;
+    --fl-pkg-active-text:   #6d28d9;
+    --fl-pkg-active-shadow: 0 2px 8px rgba(109,40,217,0.12);
+    --fl-hamburger:         #7c3aed;
+    --fl-banner-warn-bg:    #fffbeb;
+    --fl-banner-warn-border:#fde68a;
+    --fl-banner-warn-text:  #92400e;
+    --fl-banner-err-bg:     #fef2f2;
+    --fl-banner-err-border: #fecaca;
+    --fl-banner-err-text:   #991b1b;
+
+    /* Sidebar — Flovig Light */
+    --ph-side-bg:       #ffffff;
+    --ph-side-border:   #ede9fe;
+    --ph-side-shadow:   4px 0 20px rgba(109,40,217,0.06);
+    --ph-logo-color:    #1a0a3d;
+    --ph-logo-accent:   #7c3aed;
+    --ph-logo-btn-bg:   linear-gradient(135deg,#7c3aed,#6d28d9);
+    --ph-logo-btn-fg:   #ffffff;
+    --ph-nav-fg:        #6b7280;
+    --ph-nav-hover-bg:  #f5f3ff;
+    --ph-nav-hover-fg:  #1a0a3d;
+    --ph-nav-act-bg:    #f3e8ff;
+    --ph-nav-act-fg:    #6d28d9;
+    --ph-nav-act-sh:    none;
+    --ph-badge-bg:      #f3e8ff;
+    --ph-badge-fg:      #6d28d9;
+    --ph-abadge-bg:     rgba(109,40,217,0.15);
+    --ph-abadge-fg:     #6d28d9;
+    --ph-user-name:     #1a0a3d;
+    --ph-user-role:     #7c3aed;
+    --ph-user-hover:    #f5f3ff;
+    --ph-user-chev:     #9ca3af;
+    --ph-drop-bg:       #ffffff;
+    --ph-drop-border:   #ede9fe;
+    --ph-drop-divider:  #f5f3ff;
+    --ph-drop-email:    #6b7280;
+    --ph-drop-link-fg:  #374151;
+    --ph-drop-link-hov: #f5f3ff;
+    --ph-section-label: #9ca3af;
+    --ph-close-fg:      #9ca3af;
+    --ph-close-hover:   #f5f3ff;
+}
+
+/* ── Layout shell utilities ───────────────────────────────────────────── */
+.fl-topbar {
+    background: var(--fl-topbar-bg);
+    border-bottom: 1px solid var(--fl-topbar-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: background .25s, border-color .25s;
+}
+.fl-topbar-title {
+    color: var(--fl-topbar-title);
+    font-family: 'Plus Jakarta Sans', var(--font-sans);
+    font-weight: 700;
+    transition: color .25s;
+}
+.fl-search-input {
+    background: var(--fl-search-bg) !important;
+    border-color: var(--fl-search-border) !important;
+    color: var(--fl-search-text) !important;
+    transition: background .2s, border-color .2s, color .2s;
+}
+.fl-search-input::placeholder { color: var(--fl-search-ph) !important; }
+.fl-search-input:focus {
+    border-color: rgba(124,58,237,0.5) !important;
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    outline: none !important;
+}
+.fl-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--fl-toggle-bg);
+    border: 1px solid var(--fl-toggle-border);
+    color: var(--fl-toggle-icon);
+    cursor: pointer;
+    transition: background .2s, border-color .2s, color .2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+.fl-mode-toggle:hover {
+    background: var(--fl-toggle-hov);
+}
+.fl-bell-btn {
+    color: var(--fl-bell-icon);
+    transition: background .2s, color .2s;
+}
+.fl-bell-btn:hover {
+    background: var(--fl-bell-hov) !important;
+    color: var(--fl-bell-icon-hov) !important;
+}
+.fl-hamburger { color: var(--fl-hamburger); }
+.fl-hamburger:hover { color: var(--fl-bell-icon-hov); }
+.fl-pkg-switcher {
+    background: var(--fl-pkg-bg);
+    transition: background .2s;
+}
+.fl-pkg-btn { color: var(--fl-pkg-text); }
+.fl-pkg-btn.fl-pkg-active {
+    background: var(--fl-pkg-active-bg);
+    color: var(--fl-pkg-active-text);
+    box-shadow: var(--fl-pkg-active-shadow);
+}
+
+/* ── Dark mode: content area overrides ────────────────────────────────── */
+html:not([data-mode="light"]) main .bg-white {
+    background-color: #130a27 !important;
+    box-shadow: 0 4px 24px rgba(109,40,217,0.10) !important;
+}
+html:not([data-mode="light"]) main .glass-card {
+    background: rgba(255,255,255,0.03) !important;
+    border-color: rgba(167,139,250,0.09) !important;
+}
+html:not([data-mode="light"]) main .border-slate-100,
+html:not([data-mode="light"]) main .border-slate-200,
+html:not([data-mode="light"]) main .border-gray-100,
+html:not([data-mode="light"]) main .border-gray-200 {
+    border-color: rgba(167,139,250,0.08) !important;
+}
+html:not([data-mode="light"]) main .bg-slate-50,
+html:not([data-mode="light"]) main .bg-gray-50 {
+    background-color: rgba(255,255,255,0.02) !important;
+}
+html:not([data-mode="light"]) main .bg-slate-100,
+html:not([data-mode="light"]) main .bg-gray-100 {
+    background-color: rgba(255,255,255,0.04) !important;
+}
+html:not([data-mode="light"]) main .text-slate-900,
+html:not([data-mode="light"]) main .text-gray-900 { color: #f0ebff !important; }
+html:not([data-mode="light"]) main .text-slate-800,
+html:not([data-mode="light"]) main .text-gray-800 { color: #e2d9f3 !important; }
+html:not([data-mode="light"]) main .text-slate-700,
+html:not([data-mode="light"]) main .text-gray-700 { color: rgba(221,214,254,0.85) !important; }
+html:not([data-mode="light"]) main .text-slate-600,
+html:not([data-mode="light"]) main .text-gray-600 { color: rgba(196,181,253,0.7) !important; }
+html:not([data-mode="light"]) main .text-slate-500,
+html:not([data-mode="light"]) main .text-gray-500 { color: rgba(167,139,250,0.6) !important; }
+html:not([data-mode="light"]) main .text-slate-400,
+html:not([data-mode="light"]) main .text-gray-400 { color: rgba(167,139,250,0.45) !important; }
+html:not([data-mode="light"]) main .divide-slate-100 > * + *,
+html:not([data-mode="light"]) main .divide-gray-100 > * + * {
+    border-color: rgba(167,139,250,0.06) !important;
+}
+html:not([data-mode="light"]) main thead th,
+html:not([data-mode="light"]) main thead tr {
+    border-bottom-color: rgba(167,139,250,0.08) !important;
+    color: rgba(167,139,250,0.45) !important;
+}
+html:not([data-mode="light"]) main tbody tr {
+    border-bottom-color: rgba(167,139,250,0.05) !important;
+}
+html:not([data-mode="light"]) main tbody tr:hover td {
+    background-color: rgba(167,139,250,0.04) !important;
+}
+
+/* Expiry banner in dark mode */
+html:not([data-mode="light"]) .fl-warn-banner {
+    background: var(--fl-banner-warn-bg) !important;
+    border-color: var(--fl-banner-warn-border) !important;
+    color: var(--fl-banner-warn-text) !important;
+}
+html:not([data-mode="light"]) .fl-err-banner {
+    background: var(--fl-banner-err-bg) !important;
+    border-color: var(--fl-banner-err-border) !important;
+    color: var(--fl-banner-err-text) !important;
+}
+
+/* ── Avatar gradient — Flovig Lavender ─────────────────────────────────── */
+.fl-avatar {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    box-shadow: 0 2px 8px rgba(109,40,217,0.35);
+}
+
+/* ── Flovig heading font (Plus Jakarta Sans) ────────────────────────────── */
+.font-display {
+    font-family: 'Plus Jakarta Sans', var(--font-sans);
+}
+
+/* ── Transition on mode switch ──────────────────────────────────────────── */
+body {
+    transition: background-color .3s ease;
+}

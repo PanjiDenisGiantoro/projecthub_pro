@@ -14,6 +14,9 @@
     <table class="w-full text-sm">
         <thead class="bg-gray-50">
             <tr>
+                @if($isSuperAdmin ?? false)
+                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">Perusahaan</th>
+                @endif
                 <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">Tipe Hari</th>
                 <th class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase">Jam Ke</th>
                 <th class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase">Multiplier</th>
@@ -25,6 +28,9 @@
             @php $dayColors = ['weekday'=>'blue','weekend'=>'purple','holiday'=>'red']; @endphp
             @forelse($overtimeRules as $rule)
             <tr>
+                @if($isSuperAdmin ?? false)
+                <td class="px-4 py-3 text-xs text-gray-500">{{ $rule->company->name ?? '—' }}</td>
+                @endif
                 <td class="px-4 py-3">
                     <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-{{ $dayColors[$rule->day_type] ?? 'gray' }}-100 text-{{ $dayColors[$rule->day_type] ?? 'gray' }}-700 capitalize">
                         {{ $rule->day_type }}
@@ -45,7 +51,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">Belum ada aturan lembur.</td></tr>
+            <tr><td colspan="{{ ($isSuperAdmin ?? false) ? 6 : 5 }}" class="px-4 py-6 text-center text-gray-400 text-sm">Belum ada aturan lembur.</td></tr>
             @endforelse
         </tbody>
     </table>

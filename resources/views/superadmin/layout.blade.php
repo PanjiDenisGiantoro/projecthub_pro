@@ -10,7 +10,7 @@
 
 {{-- Page Loading Overlay --}}
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#020617;transition:opacity 0.3s ease">
-    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." style="width:16rem;height:16rem;object-fit:contain">
+    <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." style="width:16rem;height:16rem;object-fit:contain">
 </div>
 
 <div class="flex h-full">

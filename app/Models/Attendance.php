@@ -11,6 +11,9 @@ class Attendance extends Model
     protected $fillable = [
         'user_id', 'company_id', 'date', 'check_in', 'check_out',
         'status', 'location_in', 'location_out', 'photo_in', 'notes',
+        'lat_in', 'lng_in', 'distance_in',
+        'lat_out', 'lng_out',
+        'face_verified_in', 'face_verified_out',
     ];
 
     protected $casts = ['date' => 'date'];

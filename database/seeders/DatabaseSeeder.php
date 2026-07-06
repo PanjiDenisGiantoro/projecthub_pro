@@ -78,6 +78,9 @@ class DatabaseSeeder extends Seeder
         $this->call(OvertimeRuleSeeder::class);
         $this->call(TaxConfigSeeder::class);
 
+        // Seed default structural level templates (company_id null)
+        $this->call(StructuralLevelSeeder::class);
+
         $this->command->info('✅ Seeded roles, users, default SLA policies, and approval policies.');
         $this->command->table(
             ['Role', 'Email', 'Password'],
