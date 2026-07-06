@@ -110,6 +110,15 @@
                     {{ session('success') }}
                 </div>
             @endif
+            @if($errors->any())
+                <div class="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-4 py-3 text-sm">
+                    <ul class="space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             @yield('content')
         </main>
     </div>

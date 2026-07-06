@@ -70,6 +70,7 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::patch('/companies/{company}/toggle', [SuperAdminController::class, 'toggleCompany'])->name('companies.toggle');
+    Route::delete('/companies/{company}', [SuperAdminController::class, 'destroyCompany'])->name('companies.destroy');
     Route::get('/registered-users', [SuperAdminController::class, 'registeredUsers'])->name('registered-users');
     Route::post('/registered-users', [SuperAdminController::class, 'storeRegisteredUser'])->name('registered-users.store');
     Route::patch('/registered-users/{user}/lifetime', [SuperAdminController::class, 'updateLifetime'])->name('registered-users.lifetime');

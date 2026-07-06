@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar — Flovig</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full bg-gray-50 flex items-center justify-center p-4">
+<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4 py-10">
 
 <div class="w-full max-w-xl" x-data="registerForm()">
     {{-- Logo --}}

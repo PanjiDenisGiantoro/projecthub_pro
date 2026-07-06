@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\Division;
 use App\Models\Package;
 use App\Models\Project;
+use App\Models\StructuralLevel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,6 +60,31 @@ class SuperAdminController extends Controller
         $company->update(['is_active' => !$company->is_active]);
 
         return back()->with('success', 'Status perusahaan diperbarui.');
+    }
+
+    /**
+     * Hapus permanen perusahaan beserta seluruh user & data terkait (project, absensi,
+     * payroll, dst). Dipakai superadmin untuk bersih-bersih data hasil tes register.
+     * Urutan hapus penting: projects dulu (invoices.client_id tidak cascade dari user,
+     * tapi cascade dari project), baru users, baru company (cascade ke branch/division/department).
+     */
+    public function destroyCompany(Request $request, Company $company)
+    {
+        $request->validate(['confirm_name' => 'required|string']);
+
+        if (trim($request->confirm_name) !== $company->name) {
+            return back()->withErrors(['confirm_name' => 'Nama perusahaan tidak cocok.']);
+        }
+
+        DB::transaction(function () use ($company) {
+            Project::where('company_id', $company->id)->delete();
+            User::where('company_id', $company->id)->delete();
+            StructuralLevel::where('company_id', $company->id)->delete();
+            $company->delete();
+        });
+
+        return redirect()->route('superadmin.companies')
+            ->with('success', "Perusahaan {$company->name} beserta seluruh datanya berhasil dihapus.");
     }
 
     public function storeRegisteredUser(Request $request)
