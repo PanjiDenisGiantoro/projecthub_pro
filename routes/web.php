@@ -79,12 +79,15 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
+Route::get('/akun-kadaluarsa', [AuthWebController::class, 'expired'])->name('account.expired');
+Route::get('/login/google', [AuthWebController::class, 'redirectToGoogle'])->name('login.google');
+Route::get('/login/google/callback', [AuthWebController::class, 'handleGoogleCallback'])->name('login.google.callback');
 
 // ─── Verifikasi Email ──────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
-        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::get('/email/verify/{token}', [VerificationController::class, 'verify'])
+        ->middleware(['throttle:6,1'])->name('verification.verify');
     Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
         ->middleware('throttle:6,1')->name('verification.send');
 });
@@ -150,9 +153,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // Permission Management (admin only)
-    Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
-    Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
-    Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
+        Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
+        Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+    });
 
     // Approval Policies (admin/manager)
     Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');

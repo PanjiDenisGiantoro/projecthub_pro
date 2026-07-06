@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'email',
         'password',
         'avatar',
+        'google_id',
         'is_active',
         'is_super_admin',
         'is_registered',
@@ -86,6 +87,28 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function hasActiveAccess(): bool
     {
         return $this->is_active && ! $this->isExpired();
+    }
+
+    /**
+     * Trial/masa aktif perusahaan mengikuti active_until milik user pendaftar
+     * (is_registered), karena staff yang ditambahkan belakangan tidak punya
+     * active_until sendiri.
+     */
+    public function companyRegistrant(): ?self
+    {
+        if (! $this->company_id) {
+            return null;
+        }
+
+        return static::where('company_id', $this->company_id)
+            ->where('is_registered', true)
+            ->whereNotNull('active_until')
+            ->first();
+    }
+
+    public function isCompanyExpired(): bool
+    {
+        return $this->companyRegistrant()?->isExpired() ?? false;
     }
 
     public function scopeRegistered($query)
@@ -153,6 +176,50 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Override Spatie: jika company sudah kustomisasi permission salah satu role user
+     * (lihat company_role_permissions / halaman /permissions), role itu dinilai penuh
+     * dari kustomisasi tsb, bukan digabung dengan role_has_permissions global.
+     * Role yang belum dikustomisasi company tetap memakai default global seperti biasa.
+     */
+    public function hasPermissionTo($permission, ?string $guardName = null): bool
+    {
+        if ($this->getWildcardClass()) {
+            return $this->hasWildcardPermission($permission, $guardName);
+        }
+
+        $permission = $this->filterPermission($permission, $guardName);
+
+        if ($this->company_id) {
+            $roles = $this->roles;
+            $customizedRoleIds = $roles->isEmpty() ? collect() : CompanyRolePermission::where('company_id', $this->company_id)
+                ->whereIn('role_id', $roles->pluck('id'))
+                ->pluck('role_id')
+                ->unique();
+
+            if ($customizedRoleIds->isNotEmpty()) {
+                foreach ($roles as $role) {
+                    if ($customizedRoleIds->contains($role->id)) {
+                        $allowed = CompanyRolePermission::where('company_id', $this->company_id)
+                            ->where('role_id', $role->id)
+                            ->where('permission_id', $permission->id)
+                            ->exists();
+                    } else {
+                        $allowed = $role->permissions->contains('id', $permission->id);
+                    }
+
+                    if ($allowed) {
+                        return true;
+                    }
+                }
+
+                return $this->hasDirectPermission($permission);
+            }
+        }
+
+        return $this->hasDirectPermission($permission) || $this->hasPermissionViaRole($permission);
     }
 
     public function salaries()
