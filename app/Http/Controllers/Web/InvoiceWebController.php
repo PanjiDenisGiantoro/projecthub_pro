@@ -30,8 +30,11 @@ class InvoiceWebController extends Controller
 
     public function create()
     {
+        $cid      = $this->tenantId();
         $projects = Project::where('status', 'active')->with('client')->get();
-        $clients  = User::role('customer')->where('is_active', true)->get();
+        $clients  = User::role('customer')->where('is_active', true)
+            ->when($cid, fn($q) => $q->where('company_id', $cid))
+            ->get();
         return view('invoices.create', compact('projects', 'clients'));
     }
 
