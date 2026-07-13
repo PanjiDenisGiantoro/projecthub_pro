@@ -99,6 +99,22 @@
                             </a>
                         @endif
                     </div>
+                    <div class="p-1.5 ph-drop-divider-t" x-data="notificationToggle()" x-init="init()">
+                        <div class="flex items-center justify-between gap-2 px-3 py-2">
+                            <span class="flex items-center gap-2.5 text-[13px]" style="color:var(--ph-user-name)">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                Notifikasi
+                            </span>
+                            <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
+                                    class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
+                                    :class="enabled ? 'bg-violet-600' : 'bg-gray-400/50'">
+                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+                                      :class="enabled ? 'translate-x-4' : 'translate-x-0.5'"></span>
+                            </button>
+                        </div>
+                    </div>
                     <div class="p-1.5 ph-drop-divider-t">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -473,6 +489,75 @@ function notificationBell() {
             });
             this.items.forEach(n => n.read_at = n.read_at ?? new Date().toISOString());
             this.unreadCount = 0;
+        },
+    }
+}
+
+function notificationToggle() {
+    return {
+        enabled: false,
+        loading: false,
+        csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+        vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
+        pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
+        async init() {
+            if (!this.pushAvailable) return;
+            try {
+                const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+                const subscription = await registration?.pushManager.getSubscription();
+                this.enabled = !!subscription && Notification.permission === 'granted';
+            } catch (e) {
+                console.error('notificationToggle init failed:', e);
+            }
+        },
+        async toggle() {
+            if (!this.pushAvailable) { alert('Browser ini tidak mendukung push notification.'); return; }
+            this.loading = true;
+            try {
+                if (!this.enabled) {
+                    await this.subscribe();
+                } else {
+                    await this.unsubscribe();
+                }
+            } catch (e) {
+                console.error('notificationToggle failed:', e);
+                alert('Gagal mengubah pengaturan notifikasi: ' + e.message);
+            } finally {
+                this.loading = false;
+            }
+        },
+        async subscribe() {
+            if (!this.vapidKey) { alert('VAPID key belum dikonfigurasi di server.'); return; }
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') { alert('Izin notifikasi ditolak/belum diberikan. Cek pengaturan situs di browser.'); return; }
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
+            });
+            const res = await fetch('{{ route('push.subscribe') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                body: JSON.stringify(subscription.toJSON()),
+            });
+            if (!res.ok) throw new Error('Server menolak subscription (HTTP ' + res.status + ')');
+            this.enabled = true;
+        },
+        async unsubscribe() {
+            const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+            const subscription = await registration?.pushManager.getSubscription();
+            if (subscription) {
+                const endpoint = subscription.endpoint;
+                await subscription.unsubscribe();
+                const res = await fetch('{{ route('push.unsubscribe') }}', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify({ endpoint }),
+                });
+                if (!res.ok) throw new Error('Server menolak unsubscribe (HTTP ' + res.status + ')');
+            }
+            this.enabled = false;
         },
     }
 }
