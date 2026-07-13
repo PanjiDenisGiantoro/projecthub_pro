@@ -71,6 +71,24 @@
             @endif
         </div>
 
+        {{-- Push Notification --}}
+        <div class="px-6 py-5 border-b border-gray-100" x-data="notificationToggle()" x-init="init()">
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Notifikasi Push</h3>
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-700">Aktifkan Notifikasi Push</p>
+                    <p class="text-xs text-gray-400 mt-0.5" x-show="pushAvailable">Dapatkan notifikasi browser untuk tiket, tugas, dan aktivitas lain.</p>
+                    <p class="text-xs text-red-400 mt-0.5" x-show="!pushAvailable">Browser ini tidak mendukung push notification.</p>
+                </div>
+                <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
+                        class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
+                        :class="enabled ? 'bg-violet-600' : 'bg-gray-300'">
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                          :class="enabled ? 'translate-x-6' : 'translate-x-1'"></span>
+                </button>
+            </div>
+        </div>
+
         {{-- Change Password --}}
         <div class="px-6 py-5 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Ubah Password</h3>
