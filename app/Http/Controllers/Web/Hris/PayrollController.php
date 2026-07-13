@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Web\Hris;
 use App\Http\Controllers\Controller;
 use App\Models\Payroll;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\PayrollService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class PayrollController extends Controller
 {
-    public function __construct(private PayrollService $payrollService) {}
+    public function __construct(private PayrollService $payrollService, private NotificationService $notifier) {}
 
     public function index(Request $request)
     {
@@ -47,7 +48,16 @@ class PayrollController extends Controller
         abort_if($employee->company_id !== auth()->user()->company_id, 403);
 
         try {
-            $this->payrollService->generate($employee, $request->year, $request->month);
+            $payroll = $this->payrollService->generate($employee, $request->year, $request->month);
+
+            $this->notifier->send(
+                $employee->id,
+                'payroll_generated',
+                'Payroll Baru Dibuat',
+                "Payroll Anda untuk periode {$request->month}/{$request->year} telah dibuat.",
+                ['payroll_id' => $payroll->id]
+            );
+
             return back()->with('success', "Payroll berhasil digenerate untuk {$employee->name}.");
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -74,6 +84,15 @@ class PayrollController extends Controller
         $this->authorize('manage payroll');
         abort_if($payroll->status !== 'draft', 422, 'Hanya draft yang bisa difinalize.');
         $payroll->update(['status' => 'finalized']);
+
+        $this->notifier->send(
+            $payroll->user_id,
+            'payroll_finalized',
+            'Slip Gaji Siap',
+            "Payroll Anda untuk periode {$payroll->month}/{$payroll->year} sudah final dan slip gaji siap diunduh.",
+            ['payroll_id' => $payroll->id]
+        );
+
         return back()->with('success', 'Payroll difinalize.');
     }
 }

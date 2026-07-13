@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Web\Hris;
 
 use App\Http\Controllers\Controller;
 use App\Models\Overtime;
+use App\Services\NotificationService;
 use App\Services\OvertimeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class OvertimeController extends Controller
 {
-    public function __construct(private OvertimeService $overtimeService) {}
+    public function __construct(private OvertimeService $overtimeService, private NotificationService $notifier) {}
 
     public function index(Request $request)
     {
@@ -45,7 +46,7 @@ class OvertimeController extends Controller
         $end   = Carbon::parse($request->end_time);
         $hours = round($start->diffInMinutes($end) / 60, 2);
 
-        Overtime::create([
+        $overtime = Overtime::create([
             'user_id'     => $user->id,
             'company_id'  => $user->company_id,
             'date'        => $request->date,
@@ -55,6 +56,16 @@ class OvertimeController extends Controller
             'total_hours' => $hours,
             'description' => $request->description,
         ]);
+
+        $this->notifier->notifyByPermission(
+            'manage overtime',
+            'overtime_submitted',
+            'Pengajuan Lembur Baru',
+            "{$user->name} mengajukan lembur {$hours} jam pada {$date->format('d M Y')}.",
+            ['overtime_id' => $overtime->id],
+            companyId: $user->company_id,
+            excludeUserId: $user->id
+        );
 
         return redirect()->route('hris.overtime.index')->with('success', 'Pengajuan lembur berhasil dikirim.');
     }
@@ -73,6 +84,15 @@ class OvertimeController extends Controller
 
         try {
             $this->overtimeService->approve($overtime, auth()->user());
+
+            $this->notifier->send(
+                $overtime->user_id,
+                'overtime_approved',
+                'Lembur Disetujui',
+                "Pengajuan lembur Anda ({$overtime->total_hours} jam, {$overtime->date->format('d M Y')}) disetujui oleh " . auth()->user()->name . ".",
+                ['overtime_id' => $overtime->id]
+            );
+
             return back()->with('success', 'Lembur disetujui.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());

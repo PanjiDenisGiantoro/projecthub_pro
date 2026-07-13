@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Web\Hris;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reimbursement;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class ReimbursementController extends Controller
 {
+    public function __construct(private NotificationService $notifier) {}
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -46,7 +49,17 @@ class ReimbursementController extends Controller
             $data['receipt'] = $request->file('receipt')->store('reimburse-receipts', 'public');
         }
 
-        Reimbursement::create($data);
+        $reimburse = Reimbursement::create($data);
+
+        $this->notifier->notifyByPermission(
+            'manage reimbursement',
+            'reimbursement_submitted',
+            'Pengajuan Reimburse Baru',
+            "{$user->name} mengajukan reimburse \"{$reimburse->title}\" sebesar Rp" . number_format($reimburse->amount, 0, ',', '.') . ".",
+            ['reimbursement_id' => $reimburse->id],
+            companyId: $user->company_id,
+            excludeUserId: $user->id
+        );
 
         return redirect()->route('hris.reimburse.index')->with('success', 'Pengajuan reimburse berhasil dikirim.');
     }
@@ -63,6 +76,15 @@ class ReimbursementController extends Controller
         $this->authorize('manage reimbursement');
         abort_if($reimburse->status !== 'pending', 422, 'Status tidak valid.');
         $reimburse->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
+
+        $this->notifier->send(
+            $reimburse->user_id,
+            'reimbursement_approved',
+            'Reimburse Disetujui',
+            "Pengajuan reimburse \"{$reimburse->title}\" Anda disetujui oleh " . auth()->user()->name . ".",
+            ['reimbursement_id' => $reimburse->id]
+        );
+
         return back()->with('success', 'Reimburse disetujui.');
     }
 }
