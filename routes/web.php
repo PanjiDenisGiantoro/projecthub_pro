@@ -167,6 +167,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
     });
 
+    // Activity Log (admin only)
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/activity-log', [\App\Http\Controllers\Web\ActivityLogWebController::class, 'index'])->name('activity-log.index');
+    });
+
     // Approval Policies (admin/manager)
     Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');
     Route::post('/approval-policies', [ApprovalWebController::class, 'storePolicy'])->name('approval-policies.store');
