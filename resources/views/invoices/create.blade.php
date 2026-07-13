@@ -67,7 +67,7 @@
                                 <tr class="border-t border-gray-100">
                                     <td class="px-3 py-2">
                                         <textarea :name="'items['+index+'][description]'" x-model="item.description" required
-                                               placeholder="Deskripsi item..." rows="1"
+                                               placeholder="Deskripsi item..." rows="3"
                                                class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm resize-y focus:outline-none focus:ring-1 focus:ring-violet-500"></textarea>
                                     </td>
                                     <td class="px-3 py-2">
