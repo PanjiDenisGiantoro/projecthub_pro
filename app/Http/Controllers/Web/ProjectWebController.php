@@ -63,7 +63,8 @@ class ProjectWebController extends Controller
             'Proyek Baru Dibuat',
             "Proyek \"{$project->name}\" baru saja dibuat oleh " . auth()->user()->name . ".",
             ['project_id' => $project->id],
-            push: true
+            push: true,
+            companyId: $project->company_id
         );
 
         return redirect()->route('projects.show', $project)->with('success', 'Proyek berhasil dibuat.');

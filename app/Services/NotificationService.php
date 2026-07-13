@@ -25,16 +25,16 @@ class NotificationService
         return $notification;
     }
 
-    public function notifyManagers(string $type, string $title, string $message, array $data = [], bool $push = true): void
+    public function notifyManagers(string $type, string $title, string $message, array $data = [], bool $push = true, ?int $companyId = null): void
     {
-        $this->notifyByRole('manager', $type, $title, $message, $data, $push);
-        $this->notifyByRole('admin', $type, $title, $message, $data, $push);
+        $this->notifyByRole('manager', $type, $title, $message, $data, $push, $companyId);
+        $this->notifyByRole('admin', $type, $title, $message, $data, $push, $companyId);
     }
 
-    public function notifyByRole(string $role, string $type, string $title, string $message, array $data = [], bool $push = true): void
+    public function notifyByRole(string $role, string $type, string $title, string $message, array $data = [], bool $push = true, ?int $companyId = null): void
     {
-        User::role($role)->where('is_active', true)->each(
-            fn($user) => $this->send($user->id, $type, $title, $message, $data, $push)
-        );
+        User::role($role)->where('is_active', true)
+            ->when($companyId, fn($q) => $q->where('company_id', $companyId))
+            ->each(fn($user) => $this->send($user->id, $type, $title, $message, $data, $push));
     }
 }
