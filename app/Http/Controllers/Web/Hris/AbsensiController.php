@@ -194,7 +194,9 @@ class AbsensiController extends Controller
 
     public function enrollFace(Request $request, User $employee)
     {
-        $this->authorize('manage absensi');
+        if ($employee->id !== auth()->id()) {
+            $this->authorize('manage absensi');
+        }
 
         $request->validate([
             'descriptor' => 'required|string',

@@ -32,16 +32,6 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            @can('manage absensi')
-            <a href="{{ route('hris.absensi.setting') }}"
-               class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all"
-               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-muted,#6b7280)">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                Pengaturan
-            </a>
             <a href="{{ route('hris.absensi.rekap') }}"
                class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all"
                style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-muted,#6b7280)">
@@ -50,7 +40,6 @@
                 </svg>
                 Rekap
             </a>
-            @endcan
         </div>
     </div>
 
@@ -209,7 +198,7 @@
                         @if($desc)
                         <p class="text-xs mt-1" style="color:var(--fl-text-muted,#6b7280)">Wajah Anda sudah terdaftar. Klik tombol untuk memulai verifikasi.</p>
                         @else
-                        <p class="text-xs mt-1" style="color:#f59e0b">Wajah Anda belum terdaftar. Hubungi admin untuk pendaftaran wajah.</p>
+                        <p class="text-xs mt-1" style="color:#f59e0b">Wajah Anda belum terdaftar. Daftarkan wajah Anda terlebih dahulu.</p>
                         @endif
                     </div>
                     @if($desc)
@@ -217,6 +206,12 @@
                             class="px-5 py-2 rounded-xl font-semibold text-sm transition-all"
                             style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                         Mulai Kamera
+                    </button>
+                    @else
+                    <button type="button" @click="openEnroll()"
+                            class="px-5 py-2 rounded-xl font-semibold text-sm transition-all"
+                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                        Daftarkan Wajah Saya
                     </button>
                     @endif
                 </div>
@@ -460,6 +455,84 @@
         </div>
     </div>
 
+    {{-- ── Self Face Enrollment Modal ──────────────────────────────────────── --}}
+    @if($setting->is_face_recognition_enabled && !auth()->user()->face_descriptor)
+    <div x-show="enrollOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
+        <div class="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
+             style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe)"
+             @click.stop>
+
+            <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color:var(--fl-card-border,#ede9fe)">
+                <div>
+                    <p class="font-semibold" style="color:var(--fl-text-h,#1a0a3d)">Daftarkan Wajah Saya</p>
+                    <p class="text-xs mt-0.5" style="color:var(--fl-text-muted,#6b7280)">Data wajah tersimpan aman dan hanya digunakan untuk verifikasi absensi.</p>
+                </div>
+                <button @click="closeEnroll()" class="p-1.5 rounded-lg transition-all" style="color:var(--fl-text-muted,#6b7280)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="relative rounded-xl overflow-hidden bg-black" style="aspect-ratio:4/3">
+                    <video id="enroll-video" autoplay muted playsinline
+                           class="w-full h-full object-cover" style="transform:scaleX(-1)"></video>
+                    <canvas id="enroll-overlay" class="absolute inset-0 w-full h-full" style="transform:scaleX(-1)"></canvas>
+
+                    <div x-show="enrollStatus === 'loading'"
+                         class="absolute inset-0 flex flex-col items-center justify-center"
+                         style="background:rgba(0,0,0,0.6)">
+                        <svg class="w-8 h-8 animate-spin text-white mb-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <p class="text-white text-sm">Memuat model AI...</p>
+                    </div>
+
+                    <div x-show="enrollStatus === 'done'"
+                         class="absolute inset-0 flex flex-col items-center justify-center"
+                         style="background:rgba(16,185,129,0.2);backdrop-filter:blur(2px)">
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center mb-3"
+                             style="background:rgba(16,185,129,0.9)">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <p class="text-white font-bold text-lg">Wajah Terdaftar!</p>
+                    </div>
+
+                    <div x-show="enrollStatus === 'ready'"
+                         class="absolute bottom-3 left-0 right-0 text-center">
+                        <span class="text-xs px-3 py-1 rounded-full text-white" style="background:rgba(0,0,0,0.5)"
+                              x-text="captureCount > 0 ? captureCount + '/3 frame diambil...' : 'Hadapkan wajah ke kamera'"></span>
+                    </div>
+                </div>
+
+                <div class="text-xs p-3 rounded-xl" style="background:rgba(124,58,237,0.06);color:var(--fl-text-muted,#6b7280)">
+                    <strong style="color:#7c3aed">Cara pendaftaran:</strong> Hadapkan wajah ke kamera dengan pencahayaan yang baik. Sistem akan mengambil 3 frame dan menghitung descriptor wajah rata-rata.
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" @click="captureEnroll()"
+                            :disabled="enrollStatus !== 'ready' || captureCount >= 3"
+                            class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
+                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                        <span x-text="captureCount < 3 ? 'Ambil Frame (' + captureCount + '/3)' : 'Menyimpan...'"></span>
+                    </button>
+                    <button type="button" @click="closeEnroll()"
+                            class="px-5 py-2.5 rounded-xl font-medium text-sm transition-all"
+                            style="background:var(--fl-search-bg,#f5f3ff);color:var(--fl-text-muted,#6b7280);border:1px solid var(--fl-card-border,#ede9fe)">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
 </div>
 @endsection
 
@@ -486,6 +559,14 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
         referenceDescriptor: storedDescriptor ? new Float32Array(JSON.parse(storedDescriptor)) : null,
 
         checkingIn: false,
+
+        // Self face enrollment state
+        enrollOpen:    false,
+        enrollStatus:  'idle', // idle | loading | ready | done | error
+        captureCount:  0,
+        capturedDescs: [],
+        enrollStream:  null,
+        enrollLoop:    null,
 
         get canCheckIn() {
             const locOk  = !this.locEnabled  || this.locStatus === 'valid';
@@ -645,6 +726,121 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
             this.faceDetected = false;
             this.faceMatch = false;
             this.faceConf = 0;
+        },
+
+        // ── Self face enrollment ─────────────────────────────────────────
+        async openEnroll() {
+            this.enrollOpen   = true;
+            this.enrollStatus = 'loading';
+            this.captureCount = 0;
+            this.capturedDescs= [];
+
+            await this.$nextTick();
+            await this.loadFaceModels();
+            await this.startEnrollCamera();
+            this.enrollStatus = 'ready';
+            this.runEnrollDetectionLoop();
+        },
+
+        closeEnroll() {
+            clearInterval(this.enrollLoop);
+            if (this.enrollStream) {
+                this.enrollStream.getTracks().forEach(t => t.stop());
+                this.enrollStream = null;
+            }
+            this.enrollOpen   = false;
+            this.enrollStatus = 'idle';
+        },
+
+        async startEnrollCamera() {
+            try {
+                this.enrollStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480, facingMode: 'user' }
+                });
+                const video = document.getElementById('enroll-video');
+                video.srcObject = this.enrollStream;
+                await new Promise(r => video.onloadedmetadata = r);
+            } catch(e) {
+                this.enrollStatus = 'error';
+            }
+        },
+
+        runEnrollDetectionLoop() {
+            const video  = document.getElementById('enroll-video');
+            const canvas = document.getElementById('enroll-overlay');
+            clearInterval(this.enrollLoop);
+            this.enrollLoop = setInterval(async () => {
+                if (!video || video.readyState < 2) return;
+                const det = await faceapi
+                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 }))
+                    .withFaceLandmarks(true);
+                const ctx = canvas.getContext('2d');
+                canvas.width  = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (det) {
+                    const box = det.detection.box;
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                    ctx.fillStyle = 'rgba(16,185,129,0.2)';
+                    ctx.fillRect(box.x, box.y, box.width, box.height);
+                }
+            }, 150);
+        },
+
+        async captureEnroll() {
+            if (this.enrollStatus !== 'ready' || this.captureCount >= 3) return;
+            const video = document.getElementById('enroll-video');
+            const det   = await faceapi
+                .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
+                .withFaceLandmarks(true)
+                .withFaceDescriptor();
+
+            if (!det) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning',
+                    title: 'Wajah tidak terdeteksi. Pastikan wajah terlihat jelas.',
+                    showConfirmButton: false, timer: 2500,
+                    background: '#d97706', color: '#fff', iconColor: '#fff' });
+                return;
+            }
+
+            this.capturedDescs.push(Array.from(det.descriptor));
+            this.captureCount++;
+
+            if (this.captureCount === 3) {
+                await this.saveEnrollment();
+            }
+        },
+
+        async saveEnrollment() {
+            const avg = this.capturedDescs[0].map((_, i) =>
+                (this.capturedDescs[0][i] + this.capturedDescs[1][i] + this.capturedDescs[2][i]) / 3
+            );
+
+            clearInterval(this.enrollLoop);
+            this.enrollStatus = 'loading';
+
+            try {
+                const resp = await fetch('{{ route('hris.absensi.enroll-face', auth()->id()) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ descriptor: JSON.stringify(avg) }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.enrollStatus = 'done';
+                    setTimeout(() => { this.closeEnroll(); location.reload(); }, 1800);
+                } else {
+                    throw new Error(data.message || 'Gagal menyimpan.');
+                }
+            } catch(e) {
+                this.enrollStatus = 'error';
+                Swal.fire({ icon: 'error', title: 'Gagal', text: e.message, confirmButtonColor: '#7c3aed' });
+            }
         },
     };
 }

@@ -231,7 +231,7 @@
 </div>
 
 {{-- Penggajian & Konfigurasi — admin only --}}
-@canany(['manage payroll', 'manage hris master'])
+@canany(['manage payroll', 'manage hris master', 'manage absensi'])
 <div class="pt-2 pb-1">
     <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Administrasi</p>
 
@@ -242,6 +242,16 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
         </svg>
         Penggajian
+    </a>
+    @endcan
+
+    @can('manage absensi')
+    <a href="{{ route('hris.absensi.setting') }}"
+       class="{{ request()->routeIs('hris.absensi.setting') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        Konfigurasi Absensi
     </a>
     @endcan
 
