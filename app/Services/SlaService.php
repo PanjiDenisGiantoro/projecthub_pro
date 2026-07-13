@@ -86,7 +86,8 @@ class SlaService
                     'sla_breached',
                     'SLA Breach Alert',
                     "Ticket \"{$ticket->title}\" has breached its SLA!",
-                    ['ticket_id' => $ticket->id, 'project_id' => $ticket->project_id]
+                    ['ticket_id' => $ticket->id, 'project_id' => $ticket->project_id],
+                    companyId: $ticket->project?->company_id
                 );
 
                 if ($ticket->assignee_id) {
@@ -125,7 +126,8 @@ class SlaService
                         'sla_warning',
                         'SLA Warning',
                         "Ticket \"{$ticket->title}\" is at {$percent}% of SLA time.",
-                        ['ticket_id' => $ticket->id]
+                        ['ticket_id' => $ticket->id],
+                        companyId: $ticket->project?->company_id
                     );
                 }
             });

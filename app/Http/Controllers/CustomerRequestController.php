@@ -48,7 +48,8 @@ class CustomerRequestController extends Controller
             'new_customer_request',
             'New Customer Request',
             "Customer submitted: {$customerRequest->title}",
-            ['request_id' => $customerRequest->id]
+            ['request_id' => $customerRequest->id],
+            companyId: $customerRequest->project->company_id
         );
 
         return response()->json($customerRequest->load(['project', 'customer']), 201);
@@ -75,7 +76,8 @@ class CustomerRequestController extends Controller
             'request_needs_approval',
             'Request Needs Approval',
             "Customer request ready for your approval: {$customerRequest->title}",
-            ['request_id' => $customerRequest->id]
+            ['request_id' => $customerRequest->id],
+            companyId: $customerRequest->project->company_id
         );
 
         return response()->json($customerRequest->fresh()->load(['reviewer']));

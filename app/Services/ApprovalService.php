@@ -261,7 +261,8 @@ class ApprovalService
                     'approval_expired',
                     'Approval Expired Without Decision',
                     "Approval \"{$approval->action}\" (ID #{$approval->id}) expired.",
-                    ['approval_id' => $approval->id]
+                    ['approval_id' => $approval->id],
+                    companyId: $approval->requester?->company_id
                 );
 
                 $count++;

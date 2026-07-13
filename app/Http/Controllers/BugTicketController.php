@@ -65,7 +65,8 @@ class BugTicketController extends Controller
             'new_ticket',
             'New Bug Ticket',
             "New {$ticket->priority} ticket: {$ticket->title}",
-            ['ticket_id' => $ticket->id, 'project_id' => $project->id]
+            ['ticket_id' => $ticket->id, 'project_id' => $project->id],
+            companyId: $project->company_id
         );
 
         return response()->json($ticket->load(['reporter', 'slaPolicy']), 201);

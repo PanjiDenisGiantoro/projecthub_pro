@@ -53,7 +53,7 @@ class RequestWebController extends Controller
             'status'      => 'submitted',
         ]);
 
-        $this->notifier->notifyByRole('marketing', 'new_customer_request', 'Request Customer Baru', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id]);
+        $this->notifier->notifyByRole('marketing', 'new_customer_request', 'Request Customer Baru', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
 
         return redirect()->route('requests.show', $cr)->with('success', 'Request berhasil dikirim.');
     }
@@ -67,7 +67,7 @@ class RequestWebController extends Controller
     public function review(Request $request, CustomerRequest $customerRequest)
     {
         $customerRequest->update(['status' => 'under_review', 'marketing_notes' => $request->marketing_notes, 'reviewed_by' => auth()->id()]);
-        $this->notifier->notifyByRole('manager', 'request_needs_approval', 'Request Perlu Approval', "Request siap di-approve: {$customerRequest->title}", ['request_id' => $customerRequest->id]);
+        $this->notifier->notifyByRole('manager', 'request_needs_approval', 'Request Perlu Approval', "Request siap di-approve: {$customerRequest->title}", ['request_id' => $customerRequest->id], companyId: $customerRequest->project->company_id);
         return back()->with('success', 'Request diteruskan ke Manager.');
     }
 

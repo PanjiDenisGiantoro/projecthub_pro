@@ -82,7 +82,7 @@ class TicketWebController extends Controller
         $this->storeAttachments($ticket, $request);
 
         $this->sla->applyPolicy($ticket);
-        $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id]);
+        $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id], companyId: $project->company_id);
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Tiket berhasil dibuat.');
     }
