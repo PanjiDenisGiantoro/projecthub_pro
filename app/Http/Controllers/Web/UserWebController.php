@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\Package;
 use App\Models\StructuralLevel;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -72,6 +73,13 @@ class UserWebController extends Controller
             'department_id'       => $request->department_id,
         ]);
         $user->assignRole($request->role);
+
+        // User baru mengikuti package yang sudah dipakai company-nya,
+        // supaya tidak perlu di-assign manual satu-satu oleh super admin.
+        $companyPackageIds = Package::whereHas('users', function ($q) {
+            $q->where('company_id', auth()->user()->company_id);
+        })->pluck('id');
+        $user->packages()->sync($companyPackageIds);
 
         return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
     }
