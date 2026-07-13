@@ -4,30 +4,37 @@ namespace App\Services;
 
 use App\Models\PhNotification;
 use App\Models\User;
+use App\Notifications\PushNotification;
 
 class NotificationService
 {
-    public function send(int $userId, string $type, string $title, string $message, array $data = []): PhNotification
+    public function send(int $userId, string $type, string $title, string $message, array $data = [], bool $push = false): PhNotification
     {
-        return PhNotification::create([
+        $notification = PhNotification::create([
             'user_id' => $userId,
             'type' => $type,
             'title' => $title,
             'message' => $message,
             'data' => $data,
         ]);
+
+        if ($push && ($user = User::find($userId))) {
+            $user->notify(new PushNotification($title, $message, $data));
+        }
+
+        return $notification;
     }
 
-    public function notifyManagers(string $type, string $title, string $message, array $data = []): void
+    public function notifyManagers(string $type, string $title, string $message, array $data = [], bool $push = false): void
     {
-        $this->notifyByRole('manager', $type, $title, $message, $data);
-        $this->notifyByRole('admin', $type, $title, $message, $data);
+        $this->notifyByRole('manager', $type, $title, $message, $data, $push);
+        $this->notifyByRole('admin', $type, $title, $message, $data, $push);
     }
 
-    public function notifyByRole(string $role, string $type, string $title, string $message, array $data = []): void
+    public function notifyByRole(string $role, string $type, string $title, string $message, array $data = [], bool $push = false): void
     {
         User::role($role)->where('is_active', true)->each(
-            fn($user) => $this->send($user->id, $type, $title, $message, $data)
+            fn($user) => $this->send($user->id, $type, $title, $message, $data, $push)
         );
     }
 }

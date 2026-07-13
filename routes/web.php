@@ -235,6 +235,16 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Global Search
     Route::get('/search', [SearchWebController::class, 'index'])->name('search.index');
 
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::put('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::put('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
+
+    // Push Subscriptions
+    Route::post('/push/subscribe', [\App\Http\Controllers\Web\PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/push/unsubscribe', [\App\Http\Controllers\Web\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+
     // Analytics
     Route::get('/analytics', [AnalyticsWebController::class, 'index'])->name('analytics.index');
 
