@@ -69,15 +69,15 @@
             Masuk dengan Google
         </a>
 
-        <div class="mt-6 pt-6 border-t border-gray-100">
-            <p class="text-xs text-gray-400 text-center mb-3">Demo accounts (password: <code class="font-mono bg-gray-100 px-1 rounded">password</code>)</p>
-            <div class="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-blue-600">Admin:</span><br>admin@projecthub.pro</div>
-                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-green-600">Manager:</span><br>manager@projecthub.pro</div>
-                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-purple-600">Dev:</span><br>dev@projecthub.pro</div>
-                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-orange-600">Client:</span><br>client@projecthub.pro</div>
-            </div>
-        </div>
+{{--        <div class="mt-6 pt-6 border-t border-gray-100">--}}
+{{--            <p class="text-xs text-gray-400 text-center mb-3">Demo accounts (password: <code class="font-mono bg-gray-100 px-1 rounded">password</code>)</p>--}}
+{{--            <div class="grid grid-cols-2 gap-2 text-xs text-gray-500">--}}
+{{--                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-blue-600">Admin:</span><br>admin@projecthub.pro</div>--}}
+{{--                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-green-600">Manager:</span><br>manager@projecthub.pro</div>--}}
+{{--                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-purple-600">Dev:</span><br>dev@projecthub.pro</div>--}}
+{{--                <div class="bg-gray-50 rounded px-2 py-1.5"><span class="font-medium text-orange-600">Client:</span><br>client@projecthub.pro</div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
     </div>
 </div>
 
