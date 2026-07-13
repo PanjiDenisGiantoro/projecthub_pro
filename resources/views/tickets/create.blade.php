@@ -13,7 +13,7 @@
     </nav>
 
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('tickets.store', $project) }}" class="space-y-5">
+        <form method="POST" action="{{ route('tickets.store', $project) }}" class="space-y-5" enctype="multipart/form-data">
             @csrf
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Judul <span class="text-red-500">*</span></label>
@@ -42,6 +42,21 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Error</label>
+                <select name="error_category" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="">— Pilih Kategori —</option>
+                    @foreach(['frontend'=>'Frontend','backend'=>'Backend','database'=>'Database','api'=>'API','infrastructure'=>'Infrastructure','integration'=>'Integrasi Pihak Ketiga','configuration'=>'Konfigurasi','other'=>'Lainnya'] as $val => $label)
+                        <option value="{{ $val }}" {{ old('error_category') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lampiran</label>
+                <input type="file" name="attachments[]" multiple
+                       class="w-full text-sm border border-gray-300 rounded-lg px-4 py-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-violet-50 file:text-violet-700 file:text-sm">
+                <p class="text-xs text-gray-400 mt-1">Maks. 5 file, masing-masing maks. 10MB.</p>
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">

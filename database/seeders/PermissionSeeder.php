@@ -24,13 +24,13 @@ class PermissionSeeder extends Seeder
             'manage users',
         ],
         'developer' => [
-            'access dashboard', 'access projects', 'access tickets', 'access requests',
+            'access dashboard', 'access tickets', 'access requests',
             'access calendar', 'access search', 'access approvals', 'access kb', 'access sprints',
             'create ticket', 'view all tickets', 'manage tickets',
             'decide approvals',
         ],
         'marketing' => [
-            'access dashboard', 'access projects', 'access campaigns', 'access requests',
+            'access dashboard', 'access campaigns', 'access requests',
             'access calendar', 'access search', 'access approvals',
             'manage campaigns',
             'decide approvals',

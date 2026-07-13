@@ -116,9 +116,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
 
     // Projects
-    Route::resource('projects', ProjectWebController::class);
-    Route::post('/projects/{project}/members', [ProjectWebController::class, 'addMember'])->name('projects.members.add');
-    Route::delete('/projects/{project}/members/{user}', [ProjectWebController::class, 'removeMember'])->name('projects.members.remove');
+    Route::middleware('can:access projects')->group(function () {
+        Route::resource('projects', ProjectWebController::class);
+        Route::post('/projects/{project}/members', [ProjectWebController::class, 'addMember'])->name('projects.members.add');
+        Route::delete('/projects/{project}/members/{user}', [ProjectWebController::class, 'removeMember'])->name('projects.members.remove');
+    });
 
     // Milestones (within project)
     Route::post('/projects/{project}/milestones', [MilestoneWebController::class, 'store'])->name('milestones.store');
@@ -144,6 +146,10 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/tickets/{ticket}/status', [TicketWebController::class, 'updateStatus'])->name('tickets.status');
     Route::post('/tickets/{ticket}/comments', [TicketWebController::class, 'addComment'])->name('tickets.comment');
     Route::put('/tickets/{ticket}/reopen', [TicketWebController::class, 'reopen'])->name('tickets.reopen');
+    Route::post('/tickets/{ticket}/details', [TicketWebController::class, 'updateDetails'])->name('tickets.details');
+    Route::delete('/tickets/{ticket}/attachments/{attachment}', [TicketWebController::class, 'deleteAttachment'])->name('tickets.attachments.delete');
+    Route::post('/tickets/{ticket}/links', [TicketWebController::class, 'linkTicket'])->name('tickets.links.store');
+    Route::delete('/tickets/{ticket}/links/{link}', [TicketWebController::class, 'unlinkTicket'])->name('tickets.links.delete');
 
     // Approvals
     Route::get('/approvals', [ApprovalWebController::class, 'index'])->name('approvals.index');

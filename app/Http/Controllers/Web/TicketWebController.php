@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\BugTicket;
 use App\Models\Project;
+use App\Models\TicketAttachment;
 use App\Models\TicketHistory;
+use App\Models\TicketLink;
 use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\SlaService;
@@ -62,17 +64,22 @@ class TicketWebController extends Controller
     public function store(Request $request, Project $project)
     {
         $request->validate([
-            'title'       => 'required|string|max:255',
-            'description' => 'required|string',
-            'type'        => 'in:bug,issue,enhancement,security,performance',
-            'priority'    => 'in:critical,high,medium,low',
+            'title'          => 'required|string|max:255',
+            'description'    => 'required|string',
+            'type'           => 'in:bug,issue,enhancement,security,performance',
+            'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
+            'priority'       => 'in:critical,high,medium,low',
+            'attachments'    => 'nullable|array|max:5',
+            'attachments.*'  => 'file|max:10240',
         ]);
 
         $ticket = $project->tickets()->create([
-            ...$request->only('title', 'description', 'type', 'priority'),
+            ...$request->only('title', 'description', 'type', 'error_category', 'priority'),
             'reporter_id' => auth()->id(),
             'status'      => 'open',
         ]);
+
+        $this->storeAttachments($ticket, $request);
 
         $this->sla->applyPolicy($ticket);
         $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id]);
@@ -82,9 +89,141 @@ class TicketWebController extends Controller
 
     public function show(BugTicket $ticket)
     {
-        $ticket->load(['project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks']);
+        $ticket->load([
+            'project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
+            'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
+        ]);
         $developers = User::role('developer')->where('is_active', true)->get();
-        return view('tickets.show', compact('ticket', 'developers'));
+        $relatableTickets = $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']);
+        return view('tickets.show', compact('ticket', 'developers', 'relatableTickets'));
+    }
+
+    public function updateDetails(Request $request, BugTicket $ticket)
+    {
+        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+
+        $request->validate([
+            'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
+            'solution'       => 'nullable|string|max:5000',
+            'attachments'    => 'nullable|array|max:5',
+            'attachments.*'  => 'file|max:10240',
+        ]);
+
+        foreach (['error_category', 'solution'] as $field) {
+            if ($request->has($field) && $ticket->$field !== $request->$field) {
+                TicketHistory::create([
+                    'ticket_id'     => $ticket->id,
+                    'actor_id'      => auth()->id(),
+                    'field_changed' => $field,
+                    'old_value'     => $ticket->$field,
+                    'new_value'     => $request->$field,
+                ]);
+            }
+        }
+
+        $ticket->update($request->only('error_category', 'solution'));
+        $this->storeAttachments($ticket, $request);
+
+        return back()->with('success', 'Detail tiket diperbarui.');
+    }
+
+    public function linkTicket(Request $request, BugTicket $ticket)
+    {
+        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+
+        $request->validate([
+            'target_ticket_id' => 'required|exists:bug_tickets,id',
+            'link_type'        => 'required|in:blocks,blocked_by,duplicates,duplicated_by,relates_to,caused_by,causes',
+        ]);
+
+        if ((int) $request->target_ticket_id === $ticket->id) {
+            return back()->withErrors(['Tidak bisa mereferensikan tiket ke dirinya sendiri.']);
+        }
+
+        $inverseMap = [
+            'blocks'        => 'blocked_by',
+            'blocked_by'    => 'blocks',
+            'duplicates'    => 'duplicated_by',
+            'duplicated_by' => 'duplicates',
+            'caused_by'     => 'causes',
+            'causes'        => 'caused_by',
+            'relates_to'    => 'relates_to',
+        ];
+
+        TicketLink::firstOrCreate(
+            ['source_ticket_id' => $ticket->id, 'target_ticket_id' => $request->target_ticket_id, 'link_type' => $request->link_type],
+            ['created_by' => auth()->id()]
+        );
+
+        TicketLink::firstOrCreate(
+            ['source_ticket_id' => $request->target_ticket_id, 'target_ticket_id' => $ticket->id, 'link_type' => $inverseMap[$request->link_type]],
+            ['created_by' => auth()->id()]
+        );
+
+        TicketHistory::create([
+            'ticket_id'     => $ticket->id,
+            'actor_id'      => auth()->id(),
+            'field_changed' => 'linked_ticket',
+            'old_value'     => null,
+            'new_value'     => $request->target_ticket_id,
+            'description'   => "Direferensikan sebagai '{$request->link_type}' ke tiket #{$request->target_ticket_id}",
+        ]);
+
+        return back()->with('success', 'Tiket referensi ditambahkan.');
+    }
+
+    public function unlinkTicket(BugTicket $ticket, TicketLink $link)
+    {
+        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless($link->source_ticket_id === $ticket->id, 404);
+
+        $inverseMap = [
+            'blocks'        => 'blocked_by',
+            'blocked_by'    => 'blocks',
+            'duplicates'    => 'duplicated_by',
+            'duplicated_by' => 'duplicates',
+            'caused_by'     => 'causes',
+            'causes'        => 'caused_by',
+            'relates_to'    => 'relates_to',
+        ];
+
+        TicketLink::where('source_ticket_id', $link->target_ticket_id)
+            ->where('target_ticket_id', $link->source_ticket_id)
+            ->where('link_type', $inverseMap[$link->link_type])
+            ->delete();
+
+        $link->delete();
+
+        return back()->with('success', 'Referensi tiket dihapus.');
+    }
+
+    public function deleteAttachment(BugTicket $ticket, TicketAttachment $attachment)
+    {
+        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless($attachment->ticket_id === $ticket->id, 404);
+
+        \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment->file_path);
+        $attachment->delete();
+
+        return back()->with('success', 'Lampiran dihapus.');
+    }
+
+    private function storeAttachments(BugTicket $ticket, Request $request): void
+    {
+        if (!$request->hasFile('attachments')) {
+            return;
+        }
+
+        foreach ($request->file('attachments') as $file) {
+            $path = $file->store("ticket-attachments/{$ticket->id}", 'public');
+            $ticket->attachments()->create([
+                'uploaded_by' => auth()->id(),
+                'file_name'   => $file->getClientOriginalName(),
+                'file_path'   => $path,
+                'mime_type'   => $file->getMimeType(),
+                'file_size'   => $file->getSize(),
+            ]);
+        }
     }
 
     public function assign(Request $request, BugTicket $ticket)
