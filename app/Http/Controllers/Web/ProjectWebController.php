@@ -8,11 +8,14 @@ use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
 use App\Models\TimeLog;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
 
 class ProjectWebController extends Controller
 {
+    public function __construct(private NotificationService $notifier) {}
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -54,6 +57,14 @@ class ProjectWebController extends Controller
             ...$request->only('name', 'description', 'client_id', 'manager_id', 'start_date', 'end_date', 'budget'),
             'status' => 'draft',
         ]);
+
+        $this->notifier->notifyManagers(
+            'new_project',
+            'Proyek Baru Dibuat',
+            "Proyek \"{$project->name}\" baru saja dibuat oleh " . auth()->user()->name . ".",
+            ['project_id' => $project->id],
+            push: true
+        );
 
         return redirect()->route('projects.show', $project)->with('success', 'Proyek berhasil dibuat.');
     }

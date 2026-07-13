@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
     <title>@yield('title', 'Dashboard') — Flovig</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -245,11 +246,47 @@
             </button>
 
             {{-- Notification bell --}}
-            <button class="fl-bell-btn relative p-2 rounded-xl transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-            </button>
+            <div x-data="notificationBell()" x-init="init()" class="relative">
+                <button @click="open = !open" class="fl-bell-btn relative p-2 rounded-xl transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span x-show="unreadCount > 0" x-cloak
+                          class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
+                          x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
+                </button>
+
+                <div x-show="open" x-cloak @click.away="open = false"
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl overflow-hidden z-50"
+                     style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+                    <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
+                        <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifikasi</p>
+                        <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[11px] text-indigo-400 hover:text-indigo-300">Tandai semua dibaca</button>
+                    </div>
+                    <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak class="px-4 py-2.5 ph-drop-divider-b">
+                        <button @click="subscribePush()" class="w-full text-[11.5px] font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            Aktifkan notifikasi push
+                        </button>
+                    </div>
+                    <div class="max-h-80 overflow-y-auto">
+                        <template x-if="items.length === 0">
+                            <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">Belum ada notifikasi.</p>
+                        </template>
+                        <template x-for="n in items" :key="n.id">
+                            <button @click="markRead(n)" class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors" :class="!n.read_at ? 'bg-indigo-500/5' : ''">
+                                <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)" x-text="n.title"></p>
+                                <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message"></p>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
 
 
 
@@ -358,6 +395,79 @@
 @stack('scripts')
 
 <script>
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+function notificationBell() {
+    return {
+        open: false,
+        items: [],
+        unreadCount: 0,
+        csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+        vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
+        pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
+        pushPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'denied',
+        init() {
+            this.refreshCount();
+            this.$watch('open', (v) => { if (v) this.loadNotifications(); });
+            setInterval(() => this.refreshCount(), 30000);
+        },
+        async subscribePush() {
+            if (!this.pushAvailable || !this.vapidKey) return;
+            const permission = await Notification.requestPermission();
+            this.pushPermission = permission;
+            if (permission !== 'granted') return;
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
+            });
+            await fetch('{{ route('push.subscribe') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                body: JSON.stringify(subscription.toJSON()),
+            });
+        },
+        async refreshCount() {
+            const res = await fetch('{{ route('notifications.unreadCount') }}');
+            if (!res.ok) return;
+            const data = await res.json();
+            this.unreadCount = data.count;
+        },
+        async loadNotifications() {
+            const res = await fetch('{{ route('notifications.index') }}');
+            if (!res.ok) return;
+            const data = await res.json();
+            this.items = data.data ?? [];
+        },
+        async markRead(n) {
+            if (!n.read_at) {
+                await fetch(`/notifications/${n.id}/read`, {
+                    method: 'PUT',
+                    headers: { 'X-CSRF-TOKEN': this.csrf },
+                });
+                n.read_at = new Date().toISOString();
+                this.unreadCount = Math.max(0, this.unreadCount - 1);
+            }
+            if (n.data?.project_id) {
+                window.location.href = `/projects/${n.data.project_id}`;
+            }
+        },
+        async markAllRead() {
+            await fetch('{{ route('notifications.markAllRead') }}', {
+                method: 'PUT',
+                headers: { 'X-CSRF-TOKEN': this.csrf },
+            });
+            this.items.forEach(n => n.read_at = n.read_at ?? new Date().toISOString());
+            this.unreadCount = 0;
+        },
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('form[data-confirm-delete]').forEach(function (form) {
         form.addEventListener('submit', function (e) {
