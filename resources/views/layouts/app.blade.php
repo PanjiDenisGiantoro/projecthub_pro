@@ -417,20 +417,29 @@ function notificationBell() {
             setInterval(() => this.refreshCount(), 30000);
         },
         async subscribePush() {
-            if (!this.pushAvailable || !this.vapidKey) return;
-            const permission = await Notification.requestPermission();
-            this.pushPermission = permission;
-            if (permission !== 'granted') return;
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
-            });
-            await fetch('{{ route('push.subscribe') }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
-                body: JSON.stringify(subscription.toJSON()),
-            });
+            if (!this.pushAvailable) { alert('Browser ini tidak mendukung push notification.'); return; }
+            if (!this.vapidKey) { alert('VAPID key belum dikonfigurasi di server.'); return; }
+            try {
+                const permission = await Notification.requestPermission();
+                this.pushPermission = permission;
+                if (permission !== 'granted') { alert('Izin notifikasi ditolak/belum diberikan. Cek pengaturan situs di browser.'); return; }
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
+                });
+                const res = await fetch('{{ route('push.subscribe') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify(subscription.toJSON()),
+                });
+                if (!res.ok) throw new Error('Server menolak subscription (HTTP ' + res.status + ')');
+                alert('Notifikasi push berhasil diaktifkan.');
+            } catch (e) {
+                console.error('subscribePush failed:', e);
+                alert('Gagal mengaktifkan notifikasi push: ' + e.message);
+            }
         },
         async refreshCount() {
             const res = await fetch('{{ route('notifications.unreadCount') }}');
