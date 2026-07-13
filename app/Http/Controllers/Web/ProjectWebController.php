@@ -151,6 +151,16 @@ class ProjectWebController extends Controller
             ['role' => $request->role ?? 'developer', 'max_hours_per_day' => $request->max_hours_per_day ?? 8]
         );
 
+        if ((int) $request->user_id !== auth()->id()) {
+            $this->notifier->send(
+                $request->user_id,
+                'project_member_added',
+                'Ditambahkan ke Tim Proyek',
+                auth()->user()->name . " menambahkan Anda ke tim proyek \"{$project->name}\".",
+                ['project_id' => $project->id]
+            );
+        }
+
         return back()->with('success', 'Anggota tim ditambahkan.');
     }
 

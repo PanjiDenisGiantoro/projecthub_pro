@@ -51,6 +51,16 @@ class TaskWebController extends Controller
             $this->notifier->send($task->assigned_to, 'task_assigned', 'Task Baru', "Task \"{$task->title}\" ditugaskan ke Anda.", ['task_id' => $task->id]);
         }
 
+        if ($project->manager_id && $project->manager_id !== auth()->id() && $project->manager_id !== $task->assigned_to) {
+            $this->notifier->send(
+                $project->manager_id,
+                'new_task',
+                'Task Baru di Proyek',
+                auth()->user()->name . " menambahkan task \"{$task->title}\" di proyek \"{$project->name}\".",
+                ['task_id' => $task->id, 'project_id' => $project->id]
+            );
+        }
+
         return back()->with('success', 'Task berhasil dibuat.');
     }
 
