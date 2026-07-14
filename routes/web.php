@@ -139,19 +139,22 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/members/{user}', [ProjectWebController::class, 'removeMember'])->name('projects.members.remove');
     });
 
-    // Milestones (within project)
-    Route::post('/projects/{project}/milestones', [MilestoneWebController::class, 'store'])->name('milestones.store');
-    Route::put('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'update'])->name('milestones.update');
-    Route::delete('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'destroy'])->name('milestones.destroy');
+    // Milestones (within project) — hanya anggota/manager/client proyek atau admin/manager
+    Route::middleware('can:view,project')->group(function () {
+        Route::post('/projects/{project}/milestones', [MilestoneWebController::class, 'store'])->name('milestones.store');
+        Route::put('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'update'])->name('milestones.update');
+        Route::delete('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'destroy'])->name('milestones.destroy');
 
-    // Tasks
-    Route::get('/projects/{project}/tasks', [TaskWebController::class, 'index'])->name('tasks.index');
-    Route::post('/projects/{project}/tasks', [TaskWebController::class, 'store'])->name('tasks.store');
-    Route::get('/projects/{project}/tasks/{task}', [TaskWebController::class, 'show'])->name('tasks.show');
-    Route::put('/projects/{project}/tasks/{task}', [TaskWebController::class, 'update'])->name('tasks.update');
-    Route::delete('/projects/{project}/tasks/{task}', [TaskWebController::class, 'destroy'])->name('tasks.destroy');
+        // Tasks
+        Route::get('/projects/{project}/tasks', [TaskWebController::class, 'index'])->name('tasks.index');
+        Route::post('/projects/{project}/tasks', [TaskWebController::class, 'store'])->name('tasks.store');
+        Route::get('/projects/{project}/tasks/{task}', [TaskWebController::class, 'show'])->name('tasks.show');
+        Route::put('/projects/{project}/tasks/{task}', [TaskWebController::class, 'update'])->name('tasks.update');
+        Route::delete('/projects/{project}/tasks/{task}', [TaskWebController::class, 'destroy'])->name('tasks.destroy');
+        Route::patch('/projects/{project}/tasks/{task}/move', [TaskWebController::class, 'moveStatus'])->name('tasks.move');
+    });
+    // {task} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::post('/tasks/{task}/time-logs', [TaskWebController::class, 'storeTimeLog'])->name('tasks.timelog.store');
-    Route::patch('/projects/{project}/tasks/{task}/move', [TaskWebController::class, 'moveStatus'])->name('tasks.move');
 
     // Bug Tickets
     Route::get('/tickets', [TicketWebController::class, 'allTickets'])->name('tickets.all');
@@ -216,12 +219,15 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/invoices/{invoice}/mark-paid', [InvoiceWebController::class, 'markPaid'])->name('invoices.markPaid');
     Route::get('/invoices/{invoice}/pdf', [InvoiceWebController::class, 'downloadPdf'])->name('invoices.pdf');
 
-    // Knowledge Base
-    Route::get('/projects/{project}/kb', [KbArticleWebController::class, 'index'])->name('kb.index');
-    Route::post('/projects/{project}/kb', [KbArticleWebController::class, 'store'])->name('kb.store');
-    Route::get('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'show'])->name('kb.show');
-    Route::put('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'update'])->name('kb.update');
-    Route::delete('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'destroy'])->name('kb.destroy');
+    // Knowledge Base — hanya anggota/manager/client proyek atau admin/manager
+    Route::middleware('can:view,project')->group(function () {
+        Route::get('/projects/{project}/kb', [KbArticleWebController::class, 'index'])->name('kb.index');
+        Route::post('/projects/{project}/kb', [KbArticleWebController::class, 'store'])->name('kb.store');
+        Route::get('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'show'])->name('kb.show');
+        Route::put('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'update'])->name('kb.update');
+        Route::delete('/projects/{project}/kb/{article}', [KbArticleWebController::class, 'destroy'])->name('kb.destroy');
+    });
+    // {attachment} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::delete('/kb-attachments/{attachment}', [KbArticleWebController::class, 'deleteAttachment'])->name('kb.attachment.destroy');
 
     // AJAX cascade dropdowns
@@ -250,7 +256,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     });
 
     // Timesheet
-    Route::get('/projects/{project}/timesheet', [ProjectWebController::class, 'timesheet'])->name('projects.timesheet');
+    Route::get('/projects/{project}/timesheet', [ProjectWebController::class, 'timesheet'])->name('projects.timesheet')->middleware('can:view,project');
 
     // Workload
     Route::get('/workload', [DashboardWebController::class, 'workload'])->name('workload');
@@ -276,44 +282,42 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Analytics
     Route::get('/analytics', [AnalyticsWebController::class, 'index'])->name('analytics.index');
 
-    // Sprints
-    Route::get('/projects/{project}/sprints', [SprintWebController::class, 'index'])->name('sprints.index');
-    Route::post('/projects/{project}/sprints', [SprintWebController::class, 'store'])->name('sprints.store');
-    Route::get('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'show'])->name('sprints.show');
-    Route::put('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'update'])->name('sprints.update');
-    Route::delete('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'destroy'])->name('sprints.destroy');
-    Route::post('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'addTask'])->name('sprints.tasks.add');
-    Route::delete('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'removeTask'])->name('sprints.tasks.remove');
+    // Sprints, File Manager, Budget, Risk Register, Recurring Tasks, Client Portal
+    // — hanya anggota/manager/client proyek atau admin/manager
+    Route::middleware('can:view,project')->group(function () {
+        Route::get('/projects/{project}/sprints', [SprintWebController::class, 'index'])->name('sprints.index');
+        Route::post('/projects/{project}/sprints', [SprintWebController::class, 'store'])->name('sprints.store');
+        Route::get('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'show'])->name('sprints.show');
+        Route::put('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'update'])->name('sprints.update');
+        Route::delete('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'destroy'])->name('sprints.destroy');
+        Route::post('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'addTask'])->name('sprints.tasks.add');
+        Route::delete('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'removeTask'])->name('sprints.tasks.remove');
 
-    // File Manager
-    Route::get('/projects/{project}/files', [ProjectFileWebController::class, 'index'])->name('project.files.index');
-    Route::post('/projects/{project}/files', [ProjectFileWebController::class, 'store'])->name('project.files.store');
-    Route::delete('/projects/{project}/files/{projectFile}', [ProjectFileWebController::class, 'destroy'])->name('project.files.destroy');
-    Route::patch('/projects/{project}/files/{projectFile}/folder', [ProjectFileWebController::class, 'moveFolder'])->name('project.files.move');
+        Route::get('/projects/{project}/files', [ProjectFileWebController::class, 'index'])->name('project.files.index');
+        Route::post('/projects/{project}/files', [ProjectFileWebController::class, 'store'])->name('project.files.store');
+        Route::delete('/projects/{project}/files/{projectFile}', [ProjectFileWebController::class, 'destroy'])->name('project.files.destroy');
+        Route::patch('/projects/{project}/files/{projectFile}/folder', [ProjectFileWebController::class, 'moveFolder'])->name('project.files.move');
 
-    // Budget
-    Route::get('/projects/{project}/budget', [BudgetWebController::class, 'index'])->name('budget.index');
-    Route::post('/projects/{project}/budget', [BudgetWebController::class, 'store'])->name('budget.store');
-    Route::delete('/projects/{project}/budget/{budgetEntry}', [BudgetWebController::class, 'destroy'])->name('budget.destroy');
-    Route::patch('/projects/{project}/budget/threshold', [BudgetWebController::class, 'updateThreshold'])->name('budget.threshold');
+        Route::get('/projects/{project}/budget', [BudgetWebController::class, 'index'])->name('budget.index');
+        Route::post('/projects/{project}/budget', [BudgetWebController::class, 'store'])->name('budget.store');
+        Route::delete('/projects/{project}/budget/{budgetEntry}', [BudgetWebController::class, 'destroy'])->name('budget.destroy');
+        Route::patch('/projects/{project}/budget/threshold', [BudgetWebController::class, 'updateThreshold'])->name('budget.threshold');
 
-    // Risk Register
-    Route::get('/projects/{project}/risks', [RiskWebController::class, 'index'])->name('risks.index');
-    Route::post('/projects/{project}/risks', [RiskWebController::class, 'store'])->name('risks.store');
-    Route::put('/projects/{project}/risks/{risk}', [RiskWebController::class, 'update'])->name('risks.update');
-    Route::delete('/projects/{project}/risks/{risk}', [RiskWebController::class, 'destroy'])->name('risks.destroy');
-    Route::get('/projects/{project}/risks/matrix', [RiskWebController::class, 'matrix'])->name('risks.matrix');
+        Route::get('/projects/{project}/risks', [RiskWebController::class, 'index'])->name('risks.index');
+        Route::post('/projects/{project}/risks', [RiskWebController::class, 'store'])->name('risks.store');
+        Route::put('/projects/{project}/risks/{risk}', [RiskWebController::class, 'update'])->name('risks.update');
+        Route::delete('/projects/{project}/risks/{risk}', [RiskWebController::class, 'destroy'])->name('risks.destroy');
+        Route::get('/projects/{project}/risks/matrix', [RiskWebController::class, 'matrix'])->name('risks.matrix');
 
-    // Recurring Tasks
-    Route::get('/projects/{project}/recurring', [RecurringTaskWebController::class, 'index'])->name('recurring.index');
-    Route::post('/projects/{project}/recurring', [RecurringTaskWebController::class, 'store'])->name('recurring.store');
-    Route::put('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'update'])->name('recurring.update');
-    Route::delete('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'destroy'])->name('recurring.destroy');
+        Route::get('/projects/{project}/recurring', [RecurringTaskWebController::class, 'index'])->name('recurring.index');
+        Route::post('/projects/{project}/recurring', [RecurringTaskWebController::class, 'store'])->name('recurring.store');
+        Route::put('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'update'])->name('recurring.update');
+        Route::delete('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'destroy'])->name('recurring.destroy');
 
-    // Client Portal Management
-    Route::get('/projects/{project}/portal', [ClientPortalWebController::class, 'index'])->name('portal.index');
-    Route::post('/projects/{project}/portal', [ClientPortalWebController::class, 'store'])->name('portal.store');
-    Route::delete('/projects/{project}/portal/{portalToken}', [ClientPortalWebController::class, 'destroy'])->name('portal.destroy');
+        Route::get('/projects/{project}/portal', [ClientPortalWebController::class, 'index'])->name('portal.index');
+        Route::post('/projects/{project}/portal', [ClientPortalWebController::class, 'store'])->name('portal.store');
+        Route::delete('/projects/{project}/portal/{portalToken}', [ClientPortalWebController::class, 'destroy'])->name('portal.destroy');
+    });
 
     // Project Templates
     Route::get('/templates', [ProjectTemplateWebController::class, 'index'])->name('templates.index');

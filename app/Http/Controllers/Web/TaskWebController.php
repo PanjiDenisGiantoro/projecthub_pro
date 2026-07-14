@@ -121,6 +121,8 @@ class TaskWebController extends Controller
 
     public function storeTimeLog(Request $request, Task $task)
     {
+        $this->authorize('view', $task->project);
+
         $request->validate(['action' => 'required|in:start,stop,manual', 'minutes' => 'required_if:action,manual|nullable|integer|min:1']);
 
         $user = auth()->user();
