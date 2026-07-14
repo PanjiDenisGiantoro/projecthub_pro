@@ -32,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'company_id',
         'department_id',
         'structural_level_id',
+        'face_descriptor',
     ];
 
     protected $hidden = [
