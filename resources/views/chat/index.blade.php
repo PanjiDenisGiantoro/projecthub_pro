@@ -5,26 +5,16 @@
 @section('main-class', 'flex-1 overflow-hidden p-0')
 
 @section('content')
-@php
-$projectsData = $projects->map(fn($p) => [
-    'id'           => $p->id,
-    'name'         => $p->name,
-    'initials'     => strtoupper(mb_substr($p->name, 0, 2)),
-    'unread_count' => $p->unread_count,
-    'last_message' => $p->messages->first() ? [
-        'body'      => $p->messages->first()->body ?: '[file]',
-        'user_name' => $p->messages->first()->user?->name ?? 'User',
-        'time'      => $p->messages->first()->created_at->diffForHumans(),
-        'timestamp' => $p->messages->first()->created_at->toIso8601String(),
-    ] : null,
-])->values();
-@endphp
-
 <div class="flex h-full overflow-hidden"
-     x-data="chatHubApp({{ json_encode($projectsData) }})">
+     x-data="chatHubApp(
+        {{ json_encode($projects) }},
+        {{ json_encode($dms) }},
+        {{ json_encode($forums) }},
+        {{ json_encode($allPeers) }}
+     )">
 
     {{-- ═══════════════════════════════════════
-         LEFT PANEL — Project List
+         LEFT PANEL — Tabs + List
     ═══════════════════════════════════════ --}}
     <div class="w-72 shrink-0 flex flex-col border-r border-gray-200 bg-white"
          :class="mobileChat ? 'hidden lg:flex' : 'flex'">
@@ -33,13 +23,40 @@ $projectsData = $projects->map(fn($p) => [
         <div class="px-4 pt-5 pb-3 border-b border-gray-100 shrink-0">
             <div class="flex items-center justify-between mb-3">
                 <h1 class="text-base font-bold text-gray-900">Chat</h1>
-                <span class="text-xs text-gray-400" x-text="projects.length + ' proyek'"></span>
+                <button x-show="tab === 'forum'" @click="openCreateForum()"
+                        class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Forum
+                </button>
             </div>
+
+            {{-- Tabs --}}
+            <div class="flex gap-1 mb-3 bg-gray-100 rounded-xl p-1">
+                <button @click="tab = 'project'"
+                        :class="tab === 'project' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'"
+                        class="flex-1 text-xs font-semibold py-1.5 rounded-lg transition relative">
+                    Proyek
+                    <span x-show="unreadByTab.project > 0" class="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5" x-text="unreadByTab.project"></span>
+                </button>
+                <button @click="tab = 'dm'"
+                        :class="tab === 'dm' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'"
+                        class="flex-1 text-xs font-semibold py-1.5 rounded-lg transition relative">
+                    Pesan
+                    <span x-show="unreadByTab.dm > 0" class="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5" x-text="unreadByTab.dm"></span>
+                </button>
+                <button @click="tab = 'forum'"
+                        :class="tab === 'forum' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'"
+                        class="flex-1 text-xs font-semibold py-1.5 rounded-lg transition relative">
+                    Forum
+                    <span x-show="unreadByTab.forum > 0" class="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5" x-text="unreadByTab.forum"></span>
+                </button>
+            </div>
+
             {{-- Search --}}
             <div class="relative">
                 <input type="text"
                        x-model="search"
-                       placeholder="Cari proyek…"
+                       :placeholder="tab === 'project' ? 'Cari proyek…' : (tab === 'dm' ? 'Cari orang…' : 'Cari forum…')"
                        class="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-300 focus:border-transparent outline-none transition">
                 <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -47,46 +64,51 @@ $projectsData = $projects->map(fn($p) => [
             </div>
         </div>
 
-        {{-- Project list --}}
+        {{-- List --}}
         <div class="flex-1 overflow-y-auto py-1">
 
-            {{-- Empty --}}
-            <div x-show="filteredProjects.length === 0" class="px-4 py-8 text-center">
-                <p class="text-sm text-gray-400">Tidak ada proyek.</p>
+            <div x-show="filteredList.length === 0" class="px-4 py-8 text-center">
+                <p class="text-sm text-gray-400" x-show="tab !== 'forum'">Tidak ada yang ditemukan.</p>
+                <template x-if="tab === 'forum'">
+                    <div>
+                        <p class="text-sm text-gray-400 mb-2">Belum ada forum.</p>
+                        <button @click="openCreateForum()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Buat forum baru</button>
+                    </div>
+                </template>
             </div>
 
-            <template x-for="p in filteredProjects" :key="p.id">
-                <button @click="selectProject(p)"
-                        :class="activeId === p.id
+            <template x-for="item in filteredList" :key="item.type + '-' + item.id">
+                <button @click="selectItem(item)"
+                        :class="isActive(item)
                             ? 'bg-indigo-50 border-r-[3px] border-indigo-500'
                             : 'hover:bg-gray-50 border-r-[3px] border-transparent'"
                         class="w-full text-left px-4 py-3.5 flex items-center gap-3 transition-colors group">
 
-                    {{-- Avatar --}}
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm shrink-0"
-                         :style="activeId === p.id
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm shrink-0 overflow-hidden"
+                         :style="isActive(item)
                              ? 'background: linear-gradient(135deg,#6366f1,#8b5cf6)'
-                             : 'background: linear-gradient(135deg,#64748b,#475569)'">
-                        <span x-text="p.initials"></span>
+                             : (item.type === 'forum' ? 'background: linear-gradient(135deg,#f59e0b,#d97706)' : 'background: linear-gradient(135deg,#64748b,#475569)')">
+                        <img x-show="item.avatar" :src="item.avatar" class="w-full h-full object-cover">
+                        <span x-show="!item.avatar" x-text="item.initials"></span>
                     </div>
 
-                    {{-- Info --}}
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-1 mb-0.5">
-                            <span class="text-sm font-semibold text-gray-800 truncate" x-text="p.name"></span>
-                            <template x-if="p.unread_count > 0">
+                            <span class="text-sm font-semibold text-gray-800 truncate" x-text="item.name"></span>
+                            <template x-if="item.unread_count > 0">
                                 <span class="shrink-0 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
-                                      x-text="p.unread_count > 99 ? '99+' : p.unread_count"></span>
+                                      x-text="item.unread_count > 99 ? '99+' : item.unread_count"></span>
                             </template>
                         </div>
-                        <template x-if="p.last_message">
+                        <template x-if="item.last_message">
                             <p class="text-xs text-gray-400 truncate">
-                                <span class="text-gray-500 font-medium" x-text="p.last_message.user_name + ': '"></span>
-                                <span x-text="p.last_message.body"></span>
+                                <span x-show="item.last_message.is_mine" class="text-gray-400">Anda: </span>
+                                <span x-show="!item.last_message.is_mine && item.type !== 'dm'" class="text-gray-500 font-medium" x-text="(item.last_message.user_name || '') + ': '"></span>
+                                <span x-text="item.last_message.body"></span>
                             </p>
                         </template>
-                        <template x-if="!p.last_message">
-                            <p class="text-xs text-gray-300 italic">Belum ada pesan</p>
+                        <template x-if="!item.last_message">
+                            <p class="text-xs text-gray-300 italic" x-text="item.type === 'forum' ? (item.member_count + ' anggota') : 'Belum ada pesan'"></p>
                         </template>
                     </div>
                 </button>
@@ -95,49 +117,52 @@ $projectsData = $projects->map(fn($p) => [
     </div>
 
     {{-- ═══════════════════════════════════════
-         RIGHT PANEL — Chat Window
+         RIGHT PANEL — Thread Window
     ═══════════════════════════════════════ --}}
     <div class="flex-1 flex flex-col overflow-hidden bg-gray-50"
-         :class="!mobileChat && activeId ? 'hidden lg:flex' : 'flex'">
+         :class="!mobileChat && activeItem ? 'hidden lg:flex' : 'flex'">
 
         {{-- Empty state --}}
-        <div x-show="!activeId" class="flex-1 flex items-center justify-center">
+        <div x-show="!activeItem" class="flex-1 flex items-center justify-center">
             <div class="text-center px-6">
                 <div class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-gray-200 flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                 </div>
-                <p class="text-sm font-semibold text-gray-500">Pilih proyek untuk mulai chat</p>
-                <p class="text-xs text-gray-400 mt-1">Pilih dari daftar proyek di sebelah kiri</p>
+                <p class="text-sm font-semibold text-gray-500">Pilih proyek, orang, atau forum untuk mulai chat</p>
+                <p class="text-xs text-gray-400 mt-1">Pilih dari daftar di sebelah kiri</p>
             </div>
         </div>
 
-        {{-- Chat UI --}}
-        <div x-show="activeId" class="flex-1 flex flex-col overflow-hidden">
+        {{-- Thread UI --}}
+        <div x-show="activeItem" class="flex-1 flex flex-col overflow-hidden">
 
-            {{-- Chat header --}}
+            {{-- Thread header --}}
             <div class="px-5 py-3.5 bg-white border-b border-gray-200 flex items-center gap-3 shrink-0">
-                {{-- Mobile back button --}}
-                <button @click="mobileChat = false; activeId = null"
+                <button @click="mobileChat = false; activeItem = null"
                         class="lg:hidden p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition mr-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </button>
 
-                {{-- Project avatar --}}
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm shrink-0"
-                     style="background: linear-gradient(135deg,#6366f1,#8b5cf6)">
-                    <span x-text="activeProject?.initials ?? ''"></span>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm shrink-0 overflow-hidden"
+                     :style="activeItem?.type === 'forum' ? 'background: linear-gradient(135deg,#f59e0b,#d97706)' : 'background: linear-gradient(135deg,#6366f1,#8b5cf6)'">
+                    <img x-show="activeItem?.avatar" :src="activeItem?.avatar" class="w-full h-full object-cover">
+                    <span x-show="!activeItem?.avatar" x-text="activeItem?.initials ?? ''"></span>
                 </div>
 
                 <div class="flex-1 min-w-0">
-                    <h2 class="text-sm font-bold text-gray-900 truncate" x-text="activeProject?.name ?? ''"></h2>
-                    <p class="text-xs text-gray-400" x-text="members.length + ' anggota'"></p>
+                    <h2 class="text-sm font-bold text-gray-900 truncate" x-text="activeItem?.name ?? ''"></h2>
+                    <p x-show="activeItem?.type === 'forum'" class="text-xs text-gray-400" x-text="members.length + ' anggota'"></p>
                 </div>
 
-                {{-- Message count --}}
+                <button x-show="activeItem?.type === 'forum'" @click="openMembers()"
+                        class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Anggota">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+
                 <span class="text-xs text-gray-400" x-text="messages.filter(m => !m.deleted).length + ' pesan'"></span>
             </div>
 
@@ -166,7 +191,6 @@ $projectsData = $projects->map(fn($p) => [
 
                 <template x-for="(msg, idx) in messages" :key="msg.id">
                     <div>
-                        {{-- Date separator --}}
                         <template x-if="idx === 0 || messages[idx-1].date_label !== msg.date_label">
                             <div class="flex items-center gap-3 py-2">
                                 <div class="flex-1 h-px bg-gray-200"></div>
@@ -175,7 +199,6 @@ $projectsData = $projects->map(fn($p) => [
                             </div>
                         </template>
 
-                        {{-- Deleted --}}
                         <template x-if="msg.deleted">
                             <div class="flex items-center gap-2 py-0.5 px-1 text-xs text-gray-300 italic select-none">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
@@ -183,18 +206,15 @@ $projectsData = $projects->map(fn($p) => [
                             </div>
                         </template>
 
-                        {{-- Normal message --}}
                         <template x-if="!msg.deleted">
                             <div class="group flex gap-3 px-2 py-1.5 rounded-xl hover:bg-white hover:shadow-sm transition-all">
 
-                                {{-- Avatar --}}
                                 <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-bold mt-0.5 overflow-hidden"
                                      :style="msg.is_mine ? 'background:linear-gradient(135deg,#6366f1,#8b5cf6)' : 'background:linear-gradient(135deg,#10b981,#059669)'">
                                     <img x-show="msg.user.avatar" :src="msg.user.avatar" class="w-full h-full object-cover">
                                     <span x-show="!msg.user.avatar" x-text="msg.user.initials"></span>
                                 </div>
 
-                                {{-- Content --}}
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-baseline gap-2 mb-0.5">
                                         <span class="text-sm font-semibold text-gray-800" x-text="msg.user.name"></span>
@@ -212,7 +232,7 @@ $projectsData = $projects->map(fn($p) => [
                                     </template>
 
                                     <template x-if="editingId !== msg.id">
-                                        <p class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words" x-html="msg.formatted_body"></p>
+                                        <p class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words" x-text="msg.body"></p>
                                     </template>
                                     <template x-if="editingId === msg.id">
                                         <div class="mt-1">
@@ -227,65 +247,16 @@ $projectsData = $projects->map(fn($p) => [
                                             </div>
                                         </div>
                                     </template>
-
-                                    {{-- Attachments --}}
-                                    <template x-if="msg.attachments && msg.attachments.length > 0">
-                                        <div class="mt-2 flex flex-wrap gap-2">
-                                            <template x-for="att in msg.attachments" :key="att.id">
-                                                <div>
-                                                    <a x-show="att.is_image" :href="att.url" target="_blank">
-                                                        <img :src="att.url" class="max-w-[220px] max-h-[160px] rounded-lg border border-gray-200 object-cover hover:opacity-90 transition cursor-pointer">
-                                                    </a>
-                                                    <a x-show="!att.is_image" :href="att.url" target="_blank"
-                                                       class="inline-flex items-center gap-2 text-xs bg-gray-100 hover:bg-indigo-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:text-indigo-600 transition max-w-[240px]">
-                                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                        <span class="truncate" x-text="att.name"></span>
-                                                        <span class="text-gray-400 shrink-0" x-text="att.size"></span>
-                                                    </a>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </template>
-
-                                    {{-- Reactions --}}
-                                    <template x-if="msg.reactions && msg.reactions.length > 0">
-                                        <div class="mt-1.5 flex flex-wrap gap-1">
-                                            <template x-for="r in msg.reactions" :key="r.emoji">
-                                                <button @click="react(msg, r.emoji)"
-                                                        :class="r.reacted ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
-                                                        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full border transition"
-                                                        :title="r.users.join(', ')">
-                                                    <span x-text="r.emoji"></span>
-                                                    <span x-text="r.count"></span>
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </template>
                                 </div>
 
-                                {{-- Action buttons --}}
                                 <div class="invisible group-hover:visible shrink-0 flex items-start gap-0.5 pt-0.5">
-                                    {{-- Emoji picker --}}
-                                    <div class="relative" x-data="{ open: false }">
-                                        <button @click="open = !open"
-                                                class="p-1.5 rounded-lg text-gray-300 hover:text-yellow-500 hover:bg-gray-100 transition text-base leading-none"
-                                                title="Reaksi">😊</button>
-                                        <div x-show="open" @click.outside="open = false" x-cloak
-                                             class="absolute right-0 top-8 bg-white border border-gray-200 rounded-xl shadow-lg z-20 p-1.5 flex gap-0.5">
-                                            <template x-for="emoji in ['👍','❤️','😂','😮','😢','😡','🎉']" :key="emoji">
-                                                <button @click="react(msg, emoji); open = false"
-                                                        class="text-lg p-1 rounded-lg hover:bg-gray-100 transition"
-                                                        x-text="emoji"></button>
-                                            </template>
-                                        </div>
-                                    </div>
                                     <button @click="setReply(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-indigo-500 hover:bg-gray-100 transition" title="Balas">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                     </button>
                                     <button x-show="msg.is_mine && editingId !== msg.id" @click="startEdit(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-indigo-500 hover:bg-gray-100 transition" title="Edit">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </button>
-                                    <button x-show="msg.is_mine" @click="deleteMessage(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition" title="Hapus">
+                                    <button x-show="msg.is_mine || (activeItem?.type !== 'dm')" @click="deleteMessage(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition" title="Hapus">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
@@ -302,52 +273,20 @@ $projectsData = $projects->map(fn($p) => [
                 </svg>
                 <div class="flex-1 min-w-0">
                     <span class="text-xs text-indigo-600 font-semibold" x-text="'Membalas ' + (replyTo?.user?.name ?? '')"></span>
-                    <p class="text-xs text-gray-500 truncate" x-text="replyTo?.body || '[file]'"></p>
+                    <p class="text-xs text-gray-500 truncate" x-text="replyTo?.body || '[pesan dihapus]'"></p>
                 </div>
                 <button @click="replyTo = null" class="text-gray-400 hover:text-red-500 transition text-lg leading-none ml-2">&times;</button>
             </div>
 
-            {{-- File preview --}}
-            <div x-show="files.length > 0" x-cloak class="px-5 py-2 border-t border-gray-100 flex gap-2 flex-wrap shrink-0 bg-gray-50">
-                <template x-for="(f, i) in files" :key="i">
-                    <div class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs shadow-sm">
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                        <span class="max-w-[120px] truncate text-gray-600" x-text="f.name"></span>
-                        <button @click="removeFile(i)" class="text-red-400 hover:text-red-600 font-bold ml-0.5">&times;</button>
-                    </div>
-                </template>
-            </div>
-
             {{-- Input area --}}
             <div class="px-5 py-3 border-t border-gray-200 shrink-0 bg-white">
-                {{-- @mention dropdown --}}
-                <div class="relative">
-                    <div x-show="showMentions" x-cloak
-                         class="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 w-56 overflow-hidden">
-                        <template x-for="(m, i) in mentionResults" :key="m.id">
-                            <button @click="selectMention(m)"
-                                    :class="i === mentionIndex ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'"
-                                    class="w-full text-left px-3 py-2 text-sm flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-[10px] font-bold shrink-0"
-                                     x-text="m.name.substring(0,2).toUpperCase()"></div>
-                                <span x-text="m.name"></span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-
                 <div class="flex gap-2 items-end">
-                    <label class="cursor-pointer shrink-0 p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition mb-0.5" title="Lampiran">
-                        <input type="file" multiple class="hidden" @change="addFiles($event)">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                    </label>
-
                     <div class="flex-1 relative">
                         <textarea x-model="newBody"
                                   x-ref="inputArea"
-                                  @input="handleInput($event)"
-                                  @keydown="handleKeydown($event)"
-                                  @keydown.escape="showMentions = false; replyTo = null"
+                                  @input="autoGrow($event)"
+                                  @keydown.enter="if(!$event.shiftKey){$event.preventDefault();send();}"
+                                  @keydown.escape="replyTo = null"
                                   rows="1"
                                   placeholder="Tulis pesan… (Enter kirim, Shift+Enter baris baru)"
                                   class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 focus:border-transparent outline-none resize-none leading-relaxed transition"
@@ -355,7 +294,7 @@ $projectsData = $projects->map(fn($p) => [
                     </div>
 
                     <button @click="send()"
-                            :disabled="sending || (!newBody.trim() && files.length === 0)"
+                            :disabled="sending || !newBody.trim()"
                             class="shrink-0 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 mb-0.5">
                         <svg x-show="!sending" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -370,28 +309,116 @@ $projectsData = $projects->map(fn($p) => [
             </div>
         </div>
     </div>
+
+    {{-- ═══════════════════════════════════════
+         Modal — Buat Forum
+    ═══════════════════════════════════════ --}}
+    <div x-show="createForumOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background:rgba(0,0,0,0.5)">
+        <div class="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl bg-white" @click.stop>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <p class="font-bold text-gray-900">Buat Forum Baru</p>
+                <button @click="createForumOpen = false" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Nama Forum</label>
+                    <input type="text" x-model="newForumName" placeholder="cth: Diskusi Umum"
+                           class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Deskripsi (opsional)</label>
+                    <textarea x-model="newForumDesc" rows="2" placeholder="Tentang apa forum ini…"
+                              class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none transition resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Undang Anggota</label>
+                    <div class="border border-gray-200 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100">
+                        <template x-for="p in allPeers" :key="p.id">
+                            <label class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-gray-50">
+                                <input type="checkbox" :value="p.id" x-model="newForumMembers" class="rounded accent-indigo-600">
+                                <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 overflow-hidden" style="background:linear-gradient(135deg,#64748b,#475569)">
+                                    <img x-show="p.avatar" :src="p.avatar" class="w-full h-full object-cover">
+                                    <span x-show="!p.avatar" x-text="p.name.substring(0,2).toUpperCase()"></span>
+                                </div>
+                                <span class="text-sm text-gray-700" x-text="p.name"></span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex gap-2 justify-end">
+                <button @click="createForumOpen = false" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition">Batal</button>
+                <button @click="createForum()" :disabled="!newForumName.trim() || creatingForum"
+                        class="px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-40 transition">
+                    <span x-show="!creatingForum">Buat Forum</span>
+                    <span x-show="creatingForum">Membuat…</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════
+         Modal — Anggota Forum
+    ═══════════════════════════════════════ --}}
+    <div x-show="membersOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background:rgba(0,0,0,0.5)">
+        <div class="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-white" @click.stop>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <p class="font-bold text-gray-900">Anggota Forum</p>
+                <button @click="membersOpen = false" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 max-h-96 overflow-y-auto divide-y divide-gray-100">
+                <template x-for="m in members" :key="m.id">
+                    <div class="flex items-center gap-3 px-2 py-2.5">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden" style="background:linear-gradient(135deg,#64748b,#475569)">
+                            <img x-show="m.avatar" :src="m.avatar" class="w-full h-full object-cover">
+                            <span x-show="!m.avatar" x-text="m.name.substring(0,2).toUpperCase()"></span>
+                        </div>
+                        <span class="flex-1 text-sm text-gray-700" x-text="m.name"></span>
+                        <button @click="removeForumMember(m)" class="text-xs text-red-500 hover:text-red-700 transition">Keluarkan</button>
+                    </div>
+                </template>
+            </div>
+            <div class="p-4 border-t border-gray-100">
+                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Tambah Anggota</label>
+                <select x-model="addMemberId" @change="addForumMember()"
+                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 outline-none">
+                    <option value="">Pilih orang…</option>
+                    <template x-for="p in allPeers.filter(p => !members.some(m => m.id === p.id))" :key="p.id">
+                        <option :value="p.id" x-text="p.name"></option>
+                    </template>
+                </select>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('chatHubApp', (projectsData) => ({
-        projects: projectsData,
+    Alpine.data('chatHubApp', (projectsData, dmsData, forumsData, allPeers) => ({
+        tab: 'project',
         search: '',
-        activeId: null,
-        activeProject: null,
+        projects: projectsData,
+        dms: dmsData,
+        forums: forumsData,
+        allPeers: allPeers,
+
+        activeItem: null,
         members: [],
         messages: [],
         newBody: '',
         replyTo: null,
         editingId: null,
         editBody: '',
-        files: [],
-        mentionResults: [],
-        showMentions: false,
-        mentionIndex: 0,
-        mentionStart: 0,
         lastId: 0,
         loading: false,
         sending: false,
@@ -399,46 +426,97 @@ document.addEventListener('alpine:init', () => {
         pollingTimer: null,
         csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
 
-        get filteredProjects() {
-            const q = this.search.trim().toLowerCase();
-            return q ? this.projects.filter(p => p.name.toLowerCase().includes(q)) : this.projects;
+        createForumOpen: false,
+        newForumName: '',
+        newForumDesc: '',
+        newForumMembers: [],
+        creatingForum: false,
+
+        membersOpen: false,
+        addMemberId: '',
+
+        get list() {
+            return this.tab === 'project' ? this.projects : (this.tab === 'dm' ? this.dms : this.forums);
         },
 
-        async selectProject(p) {
-            if (this.activeId === p.id) return;
+        get filteredList() {
+            const q = this.search.trim().toLowerCase();
+            const l = this.list;
+            return q ? l.filter(i => i.name.toLowerCase().includes(q)) : l;
+        },
+
+        get unreadByTab() {
+            const sum = arr => arr.reduce((s, i) => s + (i.unread_count || 0), 0);
+            return { project: sum(this.projects), dm: sum(this.dms), forum: sum(this.forums) };
+        },
+
+        isActive(item) {
+            return this.activeItem && this.activeItem.type === item.type && this.activeItem.id === item.id;
+        },
+
+        endpoints(item) {
+            if (item.type === 'project') return {
+                thread: `/projects/${item.id}/chat/messages`,
+                send:   `/projects/${item.id}/chat`,
+                update: (mid) => `/projects/${item.id}/chat/${mid}`,
+                destroy:(mid) => `/projects/${item.id}/chat/${mid}`,
+                read:   `/projects/${item.id}/chat/read`,
+            };
+            if (item.type === 'dm') return {
+                thread: `/messages/${item.id}/thread`,
+                send:   `/messages/${item.id}`,
+                update: (mid) => `/messages/${item.id}/${mid}`,
+                destroy:(mid) => `/messages/${item.id}/${mid}`,
+                read:   `/messages/${item.id}/read`,
+            };
+            return {
+                thread: `/forums/${item.id}/messages`,
+                send:   `/forums/${item.id}/messages`,
+                update: (mid) => `/forums/${item.id}/messages/${mid}`,
+                destroy:(mid) => `/forums/${item.id}/messages/${mid}`,
+                read:   `/forums/${item.id}/read`,
+                members:`/forums/${item.id}/members`,
+            };
+        },
+
+        async selectItem(item) {
+            if (this.isActive(item)) return;
 
             clearInterval(this.pollingTimer);
-            this.messages  = [];
-            this.lastId    = 0;
-            this.replyTo   = null;
-            this.editingId = null;
-            this.newBody   = '';
-            this.files     = [];
-            this.activeId  = p.id;
-            this.activeProject = p;
+            this.messages   = [];
+            this.members    = [];
+            this.lastId     = 0;
+            this.replyTo    = null;
+            this.editingId  = null;
+            this.newBody    = '';
+            this.activeItem = item;
             this.mobileChat = true;
 
-            // Clear unread
-            const pi = this.projects.findIndex(pr => pr.id === p.id);
-            if (pi !== -1) this.projects[pi] = { ...this.projects[pi], unread_count: 0 };
+            const list = this.tab === 'project' ? this.projects : (this.tab === 'dm' ? this.dms : this.forums);
+            const idx  = list.findIndex(i => i.id === item.id);
+            if (idx !== -1) list[idx] = { ...list[idx], unread_count: 0 };
 
-            this.loading = true;
-            try {
-                const [mRes] = await Promise.all([
-                    fetch(`/projects/${p.id}/chat/members`),
-                ]);
-                this.members = await mRes.json();
-            } catch (_) { this.members = []; }
+            if (item.type === 'forum') await this.loadMembers();
 
             await this.loadMessages();
             this.markRead();
             this.startPolling();
         },
 
+        async loadMembers() {
+            const eps = this.endpoints(this.activeItem);
+            if (!eps.members) { this.members = []; return; }
+            try {
+                const res = await fetch(eps.members);
+                this.members = await res.json();
+            } catch (_) { this.members = []; }
+        },
+
         async loadMessages() {
             this.loading = true;
             try {
-                const res  = await fetch(`/projects/${this.activeId}/chat/messages`);
+                const eps  = this.endpoints(this.activeItem);
+                const res  = await fetch(eps.thread);
                 const data = await res.json();
                 this.messages = data.messages.map(m => this.addLabels(m));
                 this.lastId   = this.messages.at(-1)?.id ?? 0;
@@ -451,27 +529,27 @@ document.addEventListener('alpine:init', () => {
         startPolling() {
             clearInterval(this.pollingTimer);
             this.pollingTimer = setInterval(async () => {
-                if (!document.hidden && this.activeId && this.lastId > 0) {
-                    await this.pollNew();
-                }
+                if (!document.hidden && this.activeItem) await this.pollNew();
             }, 5000);
         },
 
         async pollNew() {
             try {
-                const res  = await fetch(`/projects/${this.activeId}/chat/messages?after=${this.lastId}`);
+                const eps  = this.endpoints(this.activeItem);
+                const res  = await fetch(`${eps.thread}?after=${this.lastId}`);
                 const data = await res.json();
                 if (data.messages.length > 0) {
                     const atBottom = this.isNearBottom();
                     data.messages.forEach(m => this.messages.push(this.addLabels(m)));
                     this.lastId = data.messages.at(-1).id;
 
-                    // Update sidebar last message
-                    const pi = this.projects.findIndex(p => p.id === this.activeId);
-                    if (pi !== -1) {
+                    const list = this.tab === 'project' ? this.projects : (this.tab === 'dm' ? this.dms : this.forums);
+                    const idx  = list.findIndex(i => i.id === this.activeItem.id);
+                    if (idx !== -1) {
                         const last = data.messages.at(-1);
-                        this.projects[pi] = { ...this.projects[pi], last_message: {
-                            body: last.body || '[file]',
+                        list[idx] = { ...list[idx], last_message: {
+                            body: last.body || '[pesan dihapus]',
+                            is_mine: last.is_mine,
                             user_name: last.user.name,
                             time: 'Baru saja',
                         }};
@@ -500,34 +578,38 @@ document.addEventListener('alpine:init', () => {
             if (el) el.scrollTop = el.scrollHeight;
         },
 
+        autoGrow(e) {
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+        },
+
         async send() {
-            if (this.sending || !this.activeId) return;
+            if (this.sending || !this.activeItem) return;
             const body = this.newBody.trim();
-            if (!body && this.files.length === 0) return;
+            if (!body) return;
 
             this.sending = true;
-            const fd = new FormData();
-            if (body) fd.append('body', body);
-            if (this.replyTo) fd.append('parent_id', this.replyTo.id);
-            this.files.forEach(f => fd.append('files[]', f));
-            fd.append('_token', this.csrf);
-
             try {
-                const res = await fetch(`/projects/${this.activeId}/chat`, { method: 'POST', body: fd });
+                const eps = this.endpoints(this.activeItem);
+                const res = await fetch(eps.send, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify({ body, parent_id: this.replyTo?.id ?? null }),
+                });
                 if (res.ok) {
                     const data = await res.json();
                     this.messages.push(this.addLabels(data.message));
                     this.lastId  = data.message.id;
                     this.newBody = '';
                     this.replyTo = null;
-                    this.files   = [];
                     this.$nextTick(() => this.scrollBottom());
 
-                    // Update sidebar
-                    const pi = this.projects.findIndex(p => p.id === this.activeId);
-                    if (pi !== -1) {
-                        this.projects[pi] = { ...this.projects[pi], last_message: {
-                            body: data.message.body || '[file]',
+                    const list = this.tab === 'project' ? this.projects : (this.tab === 'dm' ? this.dms : this.forums);
+                    const idx  = list.findIndex(i => i.id === this.activeItem.id);
+                    if (idx !== -1) {
+                        list[idx] = { ...list[idx], last_message: {
+                            body: data.message.body,
+                            is_mine: true,
                             user_name: data.message.user.name,
                             time: 'Baru saja',
                         }};
@@ -540,7 +622,8 @@ document.addEventListener('alpine:init', () => {
 
         async editSave(msg) {
             if (!this.editBody.trim()) return;
-            const res = await fetch(`/projects/${this.activeId}/chat/${msg.id}`, {
+            const eps = this.endpoints(this.activeItem);
+            const res = await fetch(eps.update(msg.id), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
                 body: JSON.stringify({ body: this.editBody }),
@@ -556,36 +639,22 @@ document.addEventListener('alpine:init', () => {
 
         async deleteMessage(msg) {
             if (!confirm('Hapus pesan ini?')) return;
-            const res = await fetch(`/projects/${this.activeId}/chat/${msg.id}`, {
+            const eps = this.endpoints(this.activeItem);
+            const res = await fetch(eps.destroy(msg.id), {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': this.csrf },
             });
             if (res.ok) {
                 const idx = this.messages.findIndex(m => m.id === msg.id);
-                if (idx !== -1) this.messages[idx] = { ...this.messages[idx], deleted: true, body: '', formatted_body: '' };
-            }
-        },
-
-        async react(msg, emoji) {
-            const res = await fetch(`/projects/${this.activeId}/chat/${msg.id}/react`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
-                body: JSON.stringify({ emoji }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                const idx  = this.messages.findIndex(m => m.id === msg.id);
-                if (idx !== -1) this.messages[idx] = { ...this.messages[idx], reactions: data.reactions };
+                if (idx !== -1) this.messages[idx] = { ...this.messages[idx], deleted: true, body: '' };
             }
         },
 
         async markRead() {
-            if (!this.activeId) return;
+            if (!this.activeItem) return;
             try {
-                await fetch(`/projects/${this.activeId}/chat/read`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': this.csrf },
-                });
+                const eps = this.endpoints(this.activeItem);
+                await fetch(eps.read, { method: 'POST', headers: { 'X-CSRF-TOKEN': this.csrf } });
             } catch (_) {}
         },
 
@@ -604,52 +673,77 @@ document.addEventListener('alpine:init', () => {
             this.editBody  = '';
         },
 
-        handleKeydown(e) {
-            if (this.showMentions) {
-                if (e.key === 'ArrowDown')  { e.preventDefault(); this.mentionIndex = Math.min(this.mentionIndex + 1, this.mentionResults.length - 1); return; }
-                if (e.key === 'ArrowUp')    { e.preventDefault(); this.mentionIndex = Math.max(this.mentionIndex - 1, 0); return; }
-                if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); if (this.mentionResults[this.mentionIndex]) this.selectMention(this.mentionResults[this.mentionIndex]); return; }
-            }
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); }
+        // ── Forum: create ────────────────────────────────────────────────
+        openCreateForum() {
+            this.newForumName    = '';
+            this.newForumDesc    = '';
+            this.newForumMembers = [];
+            this.createForumOpen = true;
         },
 
-        handleInput(e) {
-            e.target.style.height = 'auto';
-            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-            const val    = this.newBody;
-            const cursor = e.target.selectionStart;
-            const before = val.substring(0, cursor);
-            const match  = before.match(/@(\w*)$/);
-            if (match) {
-                const query = match[1].toLowerCase();
-                this.mentionResults = this.members.filter(m => m.name.toLowerCase().includes(query)).slice(0, 6);
-                this.showMentions   = this.mentionResults.length > 0;
-                this.mentionIndex   = 0;
-                this.mentionStart   = cursor - match[0].length;
-            } else {
-                this.showMentions = false;
+        async createForum() {
+            if (!this.newForumName.trim() || this.creatingForum) return;
+            this.creatingForum = true;
+            try {
+                const res = await fetch('{{ route('forums.store') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify({
+                        name: this.newForumName,
+                        description: this.newForumDesc,
+                        member_ids: this.newForumMembers,
+                    }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const forum = {
+                        type: 'forum',
+                        id: data.forum.id,
+                        name: data.forum.name,
+                        avatar: null,
+                        initials: data.forum.name.substring(0,2).toUpperCase(),
+                        unread_count: 0,
+                        member_count: data.forum.member_count,
+                        last_message: null,
+                    };
+                    this.forums.unshift(forum);
+                    this.createForumOpen = false;
+                    this.tab = 'forum';
+                    this.selectItem(forum);
+                }
+            } finally {
+                this.creatingForum = false;
             }
         },
 
-        selectMention(member) {
-            const before = this.newBody.substring(0, this.mentionStart);
-            const after  = this.newBody.substring(this.$refs.inputArea?.selectionStart ?? this.newBody.length);
-            this.newBody = before + '@' + member.name + ' ' + after;
-            this.showMentions = false;
-            this.$nextTick(() => {
-                const el  = this.$refs.inputArea;
-                const pos = (before + '@' + member.name + ' ').length;
-                if (el) { el.focus(); el.setSelectionRange(pos, pos); }
+        // ── Forum: members ───────────────────────────────────────────────
+        openMembers() {
+            this.addMemberId = '';
+            this.membersOpen = true;
+        },
+
+        async addForumMember() {
+            if (!this.addMemberId || !this.activeItem) return;
+            try {
+                const res = await fetch(`/forums/${this.activeItem.id}/members`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify({ user_id: this.addMemberId }),
+                });
+                if (res.ok) await this.loadMembers();
+            } finally {
+                this.addMemberId = '';
+            }
+        },
+
+        async removeForumMember(member) {
+            if (!this.activeItem) return;
+            if (!confirm(`Keluarkan ${member.name} dari forum?`)) return;
+            const res = await fetch(`/forums/${this.activeItem.id}/members/${member.id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': this.csrf },
             });
-        },
-
-        addFiles(e) {
-            this.files = [...this.files, ...Array.from(e.target.files)];
-            e.target.value = '';
-        },
-
-        removeFile(idx) {
-            this.files.splice(idx, 1);
+            if (res.ok) this.members = this.members.filter(m => m.id !== member.id);
         },
     }));
 });

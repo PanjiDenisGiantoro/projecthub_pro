@@ -21,6 +21,45 @@
 </a>
 @endcan
 
+{{-- Chat (Proyek + Pesan + Forum) --}}
+<a href="{{ route('chat.index') }}"
+   class="{{ request()->routeIs('chat.*') ? $active : $inactive }}">
+    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+    </svg>
+    <span class="flex-1">Chat</span>
+    @php
+        $chatUser = auth()->user();
+        $chatProjectUnread = \App\Models\ProjectMessage::whereHas('project', function($q) use ($chatUser) {
+            if ($chatUser->hasRole(['admin','manager'])) return;
+            $q->where('manager_id', $chatUser->id)
+              ->orWhere('client_id', $chatUser->id)
+              ->orWhereHas('members', fn($m) => $m->where('user_id', $chatUser->id));
+        })->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))->count();
+
+        $chatConversationIds = \App\Models\Conversation::where('user_one_id', $chatUser->id)->orWhere('user_two_id', $chatUser->id)->pluck('id');
+        $chatDmUnread = \App\Models\DirectMessage::withTrashed()
+            ->whereIn('conversation_id', $chatConversationIds)
+            ->where('user_id', '!=', $chatUser->id)
+            ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
+            ->count();
+
+        $chatForumIds = $chatUser->hasRole(['admin','manager'])
+            ? \App\Models\Forum::where('company_id', $chatUser->company_id)->pluck('id')
+            : \App\Models\Forum::whereHas('members', fn($q) => $q->where('user_id', $chatUser->id))->pluck('id');
+        $chatForumUnread = \App\Models\ForumMessage::withTrashed()
+            ->whereIn('forum_id', $chatForumIds)
+            ->where('user_id', '!=', $chatUser->id)
+            ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
+            ->count();
+
+        $chatUnread = $chatProjectUnread + $chatDmUnread + $chatForumUnread;
+    @endphp
+    @if($chatUnread > 0)
+    <span class="ph-nav-badge">{{ $chatUnread > 99 ? '99+' : $chatUnread }}</span>
+    @endif
+</a>
+
 {{-- ══ TASK MANAGEMENT NAV ══════════════════════════════════════════════════ --}}
 @if($showTm)
 
@@ -60,26 +99,6 @@
     @endif
 </a>
 @endcan
-
-{{-- Chat --}}
-<a href="{{ route('chat.index') }}"
-   class="{{ request()->routeIs('chat.*') ? $active : $inactive }}">
-    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-    </svg>
-    <span class="flex-1">Chat</span>
-    @php
-        $chatUnread = \App\Models\ProjectMessage::whereHas('project', function($q) {
-            $user = auth()->user();
-            if ($user->hasRole(['admin','manager'])) return;
-            $q->where('manager_id', $user->id)
-              ->orWhereHas('members', fn($m) => $m->where('user_id', $user->id));
-        })->whereDoesntHave('reads', fn($r) => $r->where('user_id', auth()->id()))->count();
-    @endphp
-    @if($chatUnread > 0)
-    <span class="ph-nav-badge">{{ $chatUnread > 99 ? '99+' : $chatUnread }}</span>
-    @endif
-</a>
 
 {{-- Customer Requests --}}
 @can('access requests')

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conversation;
+use App\Models\DirectMessage;
+use App\Models\Forum;
 use App\Models\MessageAttachment;
 use App\Models\MessageReaction;
 use App\Models\MessageRead;
@@ -24,30 +27,122 @@ class ChatWebController extends Controller
         $user = Auth::user();
         if ($user->hasRole(['admin', 'manager'])) return true;
         return $project->members()->where('user_id', $user->id)->exists()
-            || $project->manager_id === $user->id;
+            || $project->manager_id === $user->id
+            || $project->client_id === $user->id;
     }
 
     public function index()
     {
         $user = Auth::user();
 
-        $query = Project::query();
+        // ── Proyek ────────────────────────────────────────────────────────
+        $projectQuery = Project::query();
         if (!$user->hasRole(['admin', 'manager'])) {
-            $query->where(function ($q) use ($user) {
+            $projectQuery->where(function ($q) use ($user) {
                 $q->where('manager_id', $user->id)
+                  ->orWhere('client_id', $user->id)
                   ->orWhereHas('members', fn($m) => $m->where('user_id', $user->id));
             });
         }
 
-        $projects = $query
+        $projects = $projectQuery
             ->withCount(['messages as unread_count' => function ($q) use ($user) {
                 $q->whereDoesntHave('reads', fn($r) => $r->where('user_id', $user->id));
             }])
             ->with(['messages' => fn($q) => $q->with('user')->latest()->limit(1)])
-            ->latest()
-            ->get();
+            ->get()
+            ->map(fn($p) => [
+                'type'         => 'project',
+                'id'           => $p->id,
+                'name'         => $p->name,
+                'avatar'       => null,
+                'initials'     => strtoupper(mb_substr($p->name, 0, 2)),
+                'unread_count' => $p->unread_count,
+                'last_message' => $p->messages->first() ? [
+                    'body'      => $p->messages->first()->body ?: '[file]',
+                    'is_mine'   => $p->messages->first()->user_id === $user->id,
+                    'user_name' => $p->messages->first()->user?->name ?? 'User',
+                    'time'      => $p->messages->first()->created_at->diffForHumans(),
+                    'timestamp' => $p->messages->first()->created_at->timestamp,
+                ] : null,
+            ]);
 
-        return view('chat.index', compact('projects'));
+        // ── Pesan (DM) ───────────────────────────────────────────────────
+        $peers = User::where('company_id', $user->company_id)
+            ->where('id', '!=', $user->id)
+            ->where('is_active', true)
+            ->where('is_super_admin', false)
+            ->orderBy('name')
+            ->get(['id', 'name', 'avatar']);
+
+        $conversations = Conversation::where('user_one_id', $user->id)
+            ->orWhere('user_two_id', $user->id)
+            ->withCount(['messages as unread_count' => function ($q) use ($user) {
+                $q->where('user_id', '!=', $user->id)
+                  ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $user->id));
+            }])
+            ->with(['messages' => fn($q) => $q->with('user')->latest()->limit(1)])
+            ->get()
+            ->keyBy(fn($c) => $c->otherUser($user->id)->id);
+
+        $directMessages = $peers->map(function ($peer) use ($conversations, $user) {
+            $conv    = $conversations->get($peer->id);
+            $lastMsg = $conv?->messages->first();
+
+            return [
+                'type'         => 'dm',
+                'id'           => $peer->id,
+                'name'         => $peer->name,
+                'avatar'       => $peer->avatar ? Storage::url($peer->avatar) : null,
+                'initials'     => strtoupper(mb_substr($peer->name, 0, 2)),
+                'unread_count' => $conv->unread_count ?? 0,
+                'last_message' => $lastMsg ? [
+                    'body'      => $lastMsg->trashed() ? '[pesan dihapus]' : ($lastMsg->body ?: ''),
+                    'is_mine'   => $lastMsg->user_id === $user->id,
+                    'user_name' => $lastMsg->user?->name ?? 'User',
+                    'time'      => $lastMsg->created_at->diffForHumans(),
+                    'timestamp' => $lastMsg->created_at->timestamp,
+                ] : null,
+            ];
+        });
+
+        // ── Forum ────────────────────────────────────────────────────────
+        $forumQuery = Forum::where('company_id', $user->company_id);
+        if (!$user->hasRole(['admin', 'manager'])) {
+            $forumQuery->whereHas('members', fn($q) => $q->where('user_id', $user->id));
+        }
+
+        $forums = $forumQuery
+            ->withCount(['messages as unread_count' => function ($q) use ($user) {
+                $q->where('user_id', '!=', $user->id)
+                  ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $user->id));
+            }])
+            ->withCount('members')
+            ->with(['messages' => fn($q) => $q->with('user')->latest()->limit(1)])
+            ->get()
+            ->map(fn($f) => [
+                'type'         => 'forum',
+                'id'           => $f->id,
+                'name'         => $f->name,
+                'avatar'       => null,
+                'initials'     => strtoupper(mb_substr($f->name, 0, 2)),
+                'unread_count' => $f->unread_count,
+                'member_count' => $f->members_count,
+                'last_message' => $f->messages->first() ? [
+                    'body'      => $f->messages->first()->trashed() ? '[pesan dihapus]' : ($f->messages->first()->body ?: ''),
+                    'is_mine'   => $f->messages->first()->user_id === $user->id,
+                    'user_name' => $f->messages->first()->user?->name ?? 'User',
+                    'time'      => $f->messages->first()->created_at->diffForHumans(),
+                    'timestamp' => $f->messages->first()->created_at->timestamp,
+                ] : null,
+            ]);
+
+        return view('chat.index', [
+            'projects'  => $projects->values(),
+            'dms'       => $directMessages->values(),
+            'forums'    => $forums->values(),
+            'allPeers'  => $peers,
+        ]);
     }
 
     public function messages(Request $request, Project $project)
@@ -306,15 +401,36 @@ class ChatWebController extends Controller
         $projectIds = $user->hasRole(['admin', 'manager'])
             ? Project::pluck('id')
             : Project::where('manager_id', $user->id)
+                ->orWhere('client_id', $user->id)
                 ->orWhereHas('members', fn($q) => $q->where('user_id', $user->id))
                 ->pluck('id');
 
-        $total = ProjectMessage::withTrashed()
+        $projectUnread = ProjectMessage::withTrashed()
             ->whereIn('project_id', $projectIds)
             ->whereDoesntHave('reads', fn($q) => $q->where('user_id', $user->id))
             ->count();
 
-        return response()->json(['total' => $total]);
+        $conversationIds = Conversation::where('user_one_id', $user->id)
+            ->orWhere('user_two_id', $user->id)
+            ->pluck('id');
+
+        $dmUnread = DirectMessage::withTrashed()
+            ->whereIn('conversation_id', $conversationIds)
+            ->where('user_id', '!=', $user->id)
+            ->whereDoesntHave('reads', fn($q) => $q->where('user_id', $user->id))
+            ->count();
+
+        $forumIds = $user->hasRole(['admin', 'manager'])
+            ? Forum::where('company_id', $user->company_id)->pluck('id')
+            : Forum::whereHas('members', fn($q) => $q->where('user_id', $user->id))->pluck('id');
+
+        $forumUnread = \App\Models\ForumMessage::withTrashed()
+            ->whereIn('forum_id', $forumIds)
+            ->where('user_id', '!=', $user->id)
+            ->whereDoesntHave('reads', fn($q) => $q->where('user_id', $user->id))
+            ->count();
+
+        return response()->json(['total' => $projectUnread + $dmUnread + $forumUnread]);
     }
 
     public function members(Project $project)

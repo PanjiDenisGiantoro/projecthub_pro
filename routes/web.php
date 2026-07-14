@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Web\AnalyticsWebController;
 use App\Http\Controllers\Web\ChatWebController;
+use App\Http\Controllers\Web\DirectMessageWebController;
+use App\Http\Controllers\Web\ForumWebController;
 use App\Http\Controllers\Web\ApprovalWebController;
 use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
@@ -331,6 +333,25 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::delete('/projects/{project}/chat/{message}', [ChatWebController::class, 'destroy'])->name('chat.destroy');
     Route::post('/projects/{project}/chat/{message}/react', [ChatWebController::class, 'react'])->name('chat.react');
     Route::post('/projects/{project}/chat/read', [ChatWebController::class, 'markRead'])->name('chat.markRead');
+
+    // Direct Messages (chat per orang) — digabung ke halaman /chat
+    Route::get('/messages/unread', [DirectMessageWebController::class, 'unreadCount'])->name('messages.unread');
+    Route::get('/messages/{peer}/thread', [DirectMessageWebController::class, 'messages'])->name('messages.thread');
+    Route::post('/messages/{peer}', [DirectMessageWebController::class, 'store'])->name('messages.store');
+    Route::put('/messages/{peer}/{message}', [DirectMessageWebController::class, 'update'])->name('messages.update');
+    Route::delete('/messages/{peer}/{message}', [DirectMessageWebController::class, 'destroy'])->name('messages.destroy');
+    Route::post('/messages/{peer}/read', [DirectMessageWebController::class, 'markRead'])->name('messages.read');
+
+    // Forum (chat grup) — digabung ke halaman /chat
+    Route::post('/forums', [ForumWebController::class, 'store'])->name('forums.store');
+    Route::post('/forums/{forum}/members', [ForumWebController::class, 'addMember'])->name('forums.members.add');
+    Route::delete('/forums/{forum}/members/{user}', [ForumWebController::class, 'removeMember'])->name('forums.members.remove');
+    Route::get('/forums/{forum}/members', [ForumWebController::class, 'members'])->name('forums.members');
+    Route::get('/forums/{forum}/messages', [ForumWebController::class, 'messages'])->name('forums.messages');
+    Route::post('/forums/{forum}/messages', [ForumWebController::class, 'storeMessage'])->name('forums.messages.store');
+    Route::put('/forums/{forum}/messages/{message}', [ForumWebController::class, 'update'])->name('forums.messages.update');
+    Route::delete('/forums/{forum}/messages/{message}', [ForumWebController::class, 'destroy'])->name('forums.messages.destroy');
+    Route::post('/forums/{forum}/read', [ForumWebController::class, 'markRead'])->name('forums.read');
 
     // Exports
     Route::get('/projects/{project}/export/timesheet/excel', [ExportWebController::class, 'timesheetExcel'])->name('export.timesheet.excel');
