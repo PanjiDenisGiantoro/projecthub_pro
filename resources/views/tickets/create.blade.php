@@ -13,7 +13,9 @@
     </nav>
 
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('tickets.store', $project) }}" class="space-y-5" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('tickets.store', $project) }}" class="space-y-5" enctype="multipart/form-data"
+              x-data="{ submitting: false }"
+              @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Judul <span class="text-red-500">*</span></label>
@@ -59,8 +61,10 @@
                 <p class="text-xs text-gray-400 mt-1">Maks. 5 file, masing-masing maks. 10MB.</p>
             </div>
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
-                    Buat Tiket
+                <button type="submit" :disabled="submitting"
+                        class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="!submitting">Buat Tiket</span>
+                    <span x-show="submitting" x-cloak>Membuat...</span>
                 </button>
                 <a href="{{ route('tickets.index', $project) }}" class="text-gray-600 hover:text-gray-800 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
                     Batal

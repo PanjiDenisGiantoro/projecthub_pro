@@ -73,6 +73,20 @@ class TicketWebController extends Controller
             'attachments.*'  => 'file|max:10240',
         ]);
 
+        // Cegah double-submit (klik ganda / submit ulang): kalau tiket persis sama
+        // baru saja dibuat reporter yang sama di proyek ini, anggap itu duplikat.
+        $duplicate = $project->tickets()
+            ->where('reporter_id', auth()->id())
+            ->where('title', $request->title)
+            ->where('description', $request->description)
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->latest()
+            ->first();
+
+        if ($duplicate) {
+            return redirect()->route('tickets.show', $duplicate);
+        }
+
         $ticket = $project->tickets()->create([
             ...$request->only('title', 'description', 'type', 'error_category', 'priority'),
             'reporter_id' => auth()->id(),
