@@ -71,6 +71,8 @@ class InvoiceWebController extends Controller
 
     public function show(Invoice $invoice)
     {
+        abort_if(auth()->user()->hasRole('customer') && $invoice->client_id !== auth()->id(), 403);
+
         $invoice->load(['project', 'client', 'items']);
         return view('invoices.show', compact('invoice'));
     }
@@ -90,6 +92,8 @@ class InvoiceWebController extends Controller
 
     public function downloadPdf(Invoice $invoice)
     {
+        abort_if(auth()->user()->hasRole('customer') && $invoice->client_id !== auth()->id(), 403);
+
         $invoice->load(['project', 'client', 'items']);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
         return $pdf->download("invoice-{$invoice->invoice_number}.pdf");

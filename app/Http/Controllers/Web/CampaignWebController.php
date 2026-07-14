@@ -24,7 +24,7 @@ class CampaignWebController extends Controller
             'total'       => Campaign::count(),
             'active'      => Campaign::where('status', 'active')->count(),
             'total_leads' => Campaign::sum('leads_count'),
-            'converted'   => Lead::where('status', 'client')->count(),
+            'converted'   => Lead::whereHas('campaign')->where('status', 'client')->count(),
             'total_spend' => Campaign::sum('actual_spend'),
         ];
         $stats['conversion_rate'] = $stats['total_leads'] > 0
@@ -130,6 +130,8 @@ class CampaignWebController extends Controller
 
     public function updateLead(Request $request, Lead $lead)
     {
+        $this->authorizeCompany($lead->campaign->company_id);
+
         $oldStatus = $lead->status;
         $updates   = $request->only('name', 'contact', 'email', 'phone', 'company',
             'source', 'score', 'value', 'status', 'notes', 'lost_reason',
@@ -149,6 +151,7 @@ class CampaignWebController extends Controller
     public function destroyLead(Lead $lead)
     {
         $campaign = $lead->campaign;
+        $this->authorizeCompany($campaign->company_id);
         $lead->delete();
         if ($campaign) $campaign->decrement('leads_count');
         return back()->with('success', 'Lead dihapus.');

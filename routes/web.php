@@ -118,14 +118,16 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
 
-    // Projects
-    Route::middleware('can:access projects')->group(function () {
-        Route::get('/projects', [ProjectWebController::class, 'index'])->name('projects.index');
-        Route::get('/projects/{project}', [ProjectWebController::class, 'show'])->name('projects.show');
-    });
+    // Projects — 'create project' (punya route literal /projects/create) harus
+    // terdaftar SEBELUM 'access projects' (punya wildcard /projects/{project}),
+    // supaya "create" tidak ketangkep duluan sebagai {project}.
     Route::middleware('can:create project')->group(function () {
         Route::get('/projects/create', [ProjectWebController::class, 'create'])->name('projects.create');
         Route::post('/projects', [ProjectWebController::class, 'store'])->name('projects.store');
+    });
+    Route::middleware('can:access projects')->group(function () {
+        Route::get('/projects', [ProjectWebController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{project}', [ProjectWebController::class, 'show'])->name('projects.show');
     });
     Route::middleware('can:edit project')->group(function () {
         Route::get('/projects/{project}/edit', [ProjectWebController::class, 'edit'])->name('projects.edit');
@@ -192,12 +194,16 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('/activity-log', [\App\Http\Controllers\Web\ActivityLogWebController::class, 'index'])->name('activity-log.index');
     });
 
-    // Approval Policies (admin/manager)
-    Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');
-    Route::post('/approval-policies', [ApprovalWebController::class, 'storePolicy'])->name('approval-policies.store');
-    Route::put('/approval-policies/{policy}', [ApprovalWebController::class, 'updatePolicy'])->name('approval-policies.update');
-    Route::patch('/approval-policies/{policy}/toggle', [ApprovalWebController::class, 'togglePolicy'])->name('approval-policies.toggle');
-    Route::delete('/approval-policies/{policy}', [ApprovalWebController::class, 'destroyPolicy'])->name('approval-policies.destroy');
+    // Approval Policies
+    Route::middleware('can:access approval policies')->group(function () {
+        Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');
+    });
+    Route::middleware('can:manage approval policies')->group(function () {
+        Route::post('/approval-policies', [ApprovalWebController::class, 'storePolicy'])->name('approval-policies.store');
+        Route::put('/approval-policies/{policy}', [ApprovalWebController::class, 'updatePolicy'])->name('approval-policies.update');
+        Route::patch('/approval-policies/{policy}/toggle', [ApprovalWebController::class, 'togglePolicy'])->name('approval-policies.toggle');
+        Route::delete('/approval-policies/{policy}', [ApprovalWebController::class, 'destroyPolicy'])->name('approval-policies.destroy');
+    });
 
     // Customer Requests
     Route::resource('requests', RequestWebController::class)->only(['index', 'create', 'store', 'show']);
@@ -205,19 +211,31 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/requests/{request}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
     Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
 
-    // Campaigns & Leads
-    Route::resource('campaigns', CampaignWebController::class);
-    Route::post('/campaigns/{campaign}/leads', [CampaignWebController::class, 'storeLead'])->name('campaigns.leads.store');
-    Route::put('/leads/{lead}', [CampaignWebController::class, 'updateLead'])->name('leads.update');
-    Route::delete('/leads/{lead}', [CampaignWebController::class, 'destroyLead'])->name('leads.destroy');
-    Route::post('/campaigns/{campaign}/leads/bulk', [CampaignWebController::class, 'bulkUpdateLeads'])->name('campaigns.leads.bulk');
-    Route::patch('/campaigns/{campaign}/metrics', [CampaignWebController::class, 'updateMetrics'])->name('campaigns.metrics');
+    // Campaigns & Leads — grup 'manage' (punya route literal /create) harus terdaftar
+    // SEBELUM grup 'access' (punya wildcard /{campaign}), supaya /campaigns/create
+    // tidak "ketangkep" duluan sebagai {campaign} = "create".
+    Route::middleware('can:manage campaigns')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+        Route::post('/campaigns/{campaign}/leads', [CampaignWebController::class, 'storeLead'])->name('campaigns.leads.store');
+        Route::put('/leads/{lead}', [CampaignWebController::class, 'updateLead'])->name('leads.update');
+        Route::delete('/leads/{lead}', [CampaignWebController::class, 'destroyLead'])->name('leads.destroy');
+        Route::post('/campaigns/{campaign}/leads/bulk', [CampaignWebController::class, 'bulkUpdateLeads'])->name('campaigns.leads.bulk');
+        Route::patch('/campaigns/{campaign}/metrics', [CampaignWebController::class, 'updateMetrics'])->name('campaigns.metrics');
+    });
+    Route::middleware('can:access campaigns')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['index', 'show']);
+    });
 
-    // Invoices
-    Route::resource('invoices', InvoiceWebController::class)->only(['index', 'create', 'store', 'show']);
-    Route::put('/invoices/{invoice}/send', [InvoiceWebController::class, 'send'])->name('invoices.send');
-    Route::put('/invoices/{invoice}/mark-paid', [InvoiceWebController::class, 'markPaid'])->name('invoices.markPaid');
-    Route::get('/invoices/{invoice}/pdf', [InvoiceWebController::class, 'downloadPdf'])->name('invoices.pdf');
+    // Invoices — sama alasannya, 'manage' (punya /create) duluan sebelum 'access' ({invoice}).
+    Route::middleware('can:manage invoices')->group(function () {
+        Route::resource('invoices', InvoiceWebController::class)->only(['create', 'store']);
+        Route::put('/invoices/{invoice}/send', [InvoiceWebController::class, 'send'])->name('invoices.send');
+        Route::put('/invoices/{invoice}/mark-paid', [InvoiceWebController::class, 'markPaid'])->name('invoices.markPaid');
+    });
+    Route::middleware('can:access invoices')->group(function () {
+        Route::resource('invoices', InvoiceWebController::class)->only(['index', 'show']);
+        Route::get('/invoices/{invoice}/pdf', [InvoiceWebController::class, 'downloadPdf'])->name('invoices.pdf');
+    });
 
     // Knowledge Base — hanya anggota/manager/client proyek atau admin/manager
     Route::middleware('can:view,project')->group(function () {
