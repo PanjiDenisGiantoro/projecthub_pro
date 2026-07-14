@@ -38,7 +38,7 @@ class PermissionSeeder extends Seeder
         ],
         'customer' => [
             'access dashboard', 'access tickets', 'access requests',
-            'access invoices', 'access approvals',
+            'access invoices', 'access approvals', 'access projects',
             'create ticket',
             'create request',
         ],

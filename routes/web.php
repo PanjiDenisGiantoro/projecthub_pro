@@ -117,7 +117,21 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // Projects
     Route::middleware('can:access projects')->group(function () {
-        Route::resource('projects', ProjectWebController::class);
+        Route::get('/projects', [ProjectWebController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{project}', [ProjectWebController::class, 'show'])->name('projects.show');
+    });
+    Route::middleware('can:create project')->group(function () {
+        Route::get('/projects/create', [ProjectWebController::class, 'create'])->name('projects.create');
+        Route::post('/projects', [ProjectWebController::class, 'store'])->name('projects.store');
+    });
+    Route::middleware('can:edit project')->group(function () {
+        Route::get('/projects/{project}/edit', [ProjectWebController::class, 'edit'])->name('projects.edit');
+        Route::match(['put', 'patch'], '/projects/{project}', [ProjectWebController::class, 'update'])->name('projects.update');
+    });
+    Route::middleware('can:delete project')->group(function () {
+        Route::delete('/projects/{project}', [ProjectWebController::class, 'destroy'])->name('projects.destroy');
+    });
+    Route::middleware('can:manage project members')->group(function () {
         Route::post('/projects/{project}/members', [ProjectWebController::class, 'addMember'])->name('projects.members.add');
         Route::delete('/projects/{project}/members/{user}', [ProjectWebController::class, 'removeMember'])->name('projects.members.remove');
     });
