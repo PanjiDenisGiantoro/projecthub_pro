@@ -190,12 +190,28 @@ class AbsensiController extends Controller
         return back()->with('success', 'Pengaturan absensi berhasil disimpan.');
     }
 
+    // ── Pendaftaran Wajah Karyawan (halaman terpisah) ───────────────────────
+
+    public function faceEnrollment()
+    {
+        $this->authorizeFaceManagement();
+        $user      = auth()->user();
+        $setting   = AttendanceSetting::forCompany($user->company_id);
+        $employees = User::where('company_id', $user->company_id)
+            ->where('is_active', true)
+            ->where('is_super_admin', false)
+            ->orderBy('name')
+            ->get(['id', 'name', 'avatar', 'face_descriptor']);
+
+        return view('hris.absensi.face-enrollment', compact('setting', 'employees'));
+    }
+
     // ── Face enrollment (AJAX) ────────────────────────────────────────────
 
     public function enrollFace(Request $request, User $employee)
     {
         if ($employee->id !== auth()->id()) {
-            $this->authorize('manage absensi');
+            $this->authorizeFaceManagement();
         }
 
         $request->validate([
@@ -215,8 +231,15 @@ class AbsensiController extends Controller
 
     public function deleteFace(User $employee)
     {
-        $this->authorize('manage absensi');
+        $this->authorizeFaceManagement();
         $employee->update(['face_descriptor' => null]);
         return back()->with('success', 'Data wajah ' . $employee->name . ' dihapus.');
+    }
+
+    private function authorizeFaceManagement(): void
+    {
+        if (!auth()->user()->can('manage absensi') && !auth()->user()->can('manage face enrollment')) {
+            abort(403);
+        }
     }
 }

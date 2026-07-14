@@ -73,7 +73,8 @@ return [
     ],
 
     'HRIS — Absensi' => [
-        'manage absensi' => 'Kelola Absensi (rekap semua karyawan)',
+        'manage absensi'          => 'Kelola Absensi (rekap semua karyawan)',
+        'manage face enrollment'  => 'Kelola Pendaftaran Wajah Karyawan',
     ],
 
     'HRIS — Cuti & Izin' => [

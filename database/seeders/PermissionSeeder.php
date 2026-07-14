@@ -22,6 +22,7 @@ class PermissionSeeder extends Seeder
             'manage invoices',
             'decide approvals',
             'manage users',
+            'manage face enrollment',
         ],
         'developer' => [
             'access dashboard', 'access tickets', 'access requests',

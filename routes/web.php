@@ -334,6 +334,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('absensi/rekap',                      [AbsensiController::class, 'rekap'])->name('absensi.rekap');
         Route::get('absensi/setting',                    [AbsensiController::class, 'setting'])->name('absensi.setting');
         Route::post('absensi/setting',                   [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
+        Route::get('absensi/face-enrollment',             [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
         Route::post('absensi/enroll-face/{employee}',    [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
         Route::delete('absensi/delete-face/{employee}',  [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
 
