@@ -71,10 +71,22 @@ class Invoice extends Model
         $this->save();
     }
 
+    /**
+     * Harus dipanggil di dalam DB::transaction() supaya lockForUpdate() benar-benar
+     * menyerialisasi request yang bersamaan (mencegah dua invoice dapat nomor sama).
+     */
     public static function generateNumber(): string
     {
-        $last = static::withTrashed()->latest()->first();
+        $prefix = 'INV-' . now()->format('Ym') . '-';
+
+        $last = static::withTrashed()
+            ->where('invoice_number', 'like', $prefix . '%')
+            ->lockForUpdate()
+            ->orderByDesc('invoice_number')
+            ->first();
+
         $seq = $last ? ((int) substr($last->invoice_number, -4) + 1) : 1;
-        return 'INV-' . now()->format('Ym') . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+
+        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 }

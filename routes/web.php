@@ -205,11 +205,19 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/approval-policies/{policy}', [ApprovalWebController::class, 'destroyPolicy'])->name('approval-policies.destroy');
     });
 
-    // Customer Requests
-    Route::resource('requests', RequestWebController::class)->only(['index', 'create', 'store', 'show']);
-    Route::put('/requests/{request}/review', [RequestWebController::class, 'review'])->name('requests.review');
-    Route::put('/requests/{request}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
-    Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
+    // Customer Requests — 'create request' (punya route literal /requests/create)
+    // harus terdaftar SEBELUM 'access requests' (punya wildcard /requests/{request}).
+    Route::middleware('can:create request')->group(function () {
+        Route::resource('requests', RequestWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:access requests')->group(function () {
+        Route::resource('requests', RequestWebController::class)->only(['index', 'show']);
+    });
+    Route::middleware('can:approve request')->group(function () {
+        Route::put('/requests/{request}/review', [RequestWebController::class, 'review'])->name('requests.review');
+        Route::put('/requests/{request}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
+        Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
+    });
 
     // Campaigns & Leads — grup 'manage' (punya route literal /create) harus terdaftar
     // SEBELUM grup 'access' (punya wildcard /{campaign}), supaya /campaigns/create

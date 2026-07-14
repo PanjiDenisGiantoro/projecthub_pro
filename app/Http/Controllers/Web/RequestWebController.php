@@ -60,6 +60,8 @@ class RequestWebController extends Controller
 
     public function show(CustomerRequest $request)
     {
+        abort_if(auth()->user()->hasRole('customer') && $request->customer_id !== auth()->id(), 403);
+
         $request->load(['project', 'customer', 'reviewer', 'approver']);
         return view('requests.show', ['customerRequest' => $request]);
     }
