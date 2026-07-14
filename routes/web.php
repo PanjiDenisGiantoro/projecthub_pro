@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\AnalyticsWebController;
 use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\DirectMessageWebController;
 use App\Http\Controllers\Web\ForumWebController;
+use App\Http\Controllers\Web\AiAssistantWebController;
 use App\Http\Controllers\Web\ApprovalWebController;
 use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
@@ -352,6 +353,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/forums/{forum}/messages/{message}', [ForumWebController::class, 'update'])->name('forums.messages.update');
     Route::delete('/forums/{forum}/messages/{message}', [ForumWebController::class, 'destroy'])->name('forums.messages.destroy');
     Route::post('/forums/{forum}/read', [ForumWebController::class, 'markRead'])->name('forums.read');
+
+    // AI Assistant (widget mengambang)
+    Route::post('/ai/chat', [AiAssistantWebController::class, 'chat'])->name('ai.chat');
 
     // Exports
     Route::get('/projects/{project}/export/timesheet/excel', [ExportWebController::class, 'timesheetExcel'])->name('export.timesheet.excel');

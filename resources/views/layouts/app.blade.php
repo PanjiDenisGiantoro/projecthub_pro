@@ -407,8 +407,168 @@
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════
+     AI Assistant — floating widget
+═══════════════════════════════════════ --}}
+<div x-data="aiAssistantWidget()" x-cloak>
+    {{-- Bubble button --}}
+    <button @click="toggle()"
+            class="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5"
+            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 6px 20px rgba(109,40,217,0.4)">
+        <svg x-show="!open" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+
+    {{-- Panel --}}
+    <div x-show="open" x-cloak x-transition
+         class="fixed bottom-24 right-5 z-40 w-[min(360px,calc(100vw-2.5rem))] h-[min(520px,calc(100vh-8rem))] rounded-2xl overflow-hidden flex flex-col"
+         style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);box-shadow:0 10px 40px rgba(109,40,217,0.25)">
+
+        {{-- Header --}}
+        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(255,255,255,0.15)">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-white">AI Assistant</p>
+                <p class="text-[10px] text-white/70">Self-hosted · tidak dikirim ke pihak ketiga</p>
+            </div>
+            <button @click="clearHistory()" title="Hapus riwayat" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>
+        </div>
+
+        {{-- Messages --}}
+        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea" style="background:var(--fl-search-bg,#f9fafb)">
+            <div x-show="messages.length === 0" class="text-center py-8">
+                <p class="text-sm" style="color:var(--fl-text-muted,#6b7280)">Halo! Ada yang bisa saya bantu?</p>
+            </div>
+
+            <template x-for="(m, i) in messages" :key="i">
+                <div class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
+                    <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
+                         :class="m.role === 'user'
+                            ? 'text-white rounded-br-sm'
+                            : 'rounded-bl-sm border'"
+                         :style="m.role === 'user'
+                            ? 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'
+                            : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
+                         x-text="m.content"></div>
+                </div>
+            </template>
+
+            <div x-show="thinking" class="flex justify-start">
+                <div class="px-3 py-2 rounded-2xl rounded-bl-sm border flex items-center gap-1"
+                     style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe)">
+                    <span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#a78bfa;animation-delay:0ms"></span>
+                    <span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#a78bfa;animation-delay:150ms"></span>
+                    <span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#a78bfa;animation-delay:300ms"></span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Input --}}
+        <div class="p-3 border-t shrink-0" style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
+            <div class="flex gap-2 items-end">
+                <textarea x-model="input"
+                          x-ref="aiInput"
+                          @keydown.enter="if(!$event.shiftKey){$event.preventDefault();send();}"
+                          rows="1"
+                          placeholder="Tulis pertanyaan…"
+                          class="flex-1 px-3 py-2 text-sm rounded-xl border outline-none resize-none transition"
+                          style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d);max-height:80px"></textarea>
+                <button @click="send()" :disabled="thinking || !input.trim()"
+                        class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white transition disabled:opacity-40"
+                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @stack('modals')
 @stack('scripts')
+
+<script>
+function aiAssistantWidget() {
+    return {
+        open: false,
+        input: '',
+        messages: [],
+        thinking: false,
+        storageKey: 'ph_ai_assistant_history',
+        csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+
+        init() {
+            try {
+                const raw = localStorage.getItem(this.storageKey);
+                this.messages = raw ? JSON.parse(raw) : [];
+            } catch (_) { this.messages = []; }
+        },
+
+        toggle() {
+            this.open = !this.open;
+            if (this.open) this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
+        },
+
+        clearHistory() {
+            if (this.messages.length && !confirm('Hapus riwayat chat dengan AI?')) return;
+            this.messages = [];
+            localStorage.removeItem(this.storageKey);
+        },
+
+        save() {
+            try { localStorage.setItem(this.storageKey, JSON.stringify(this.messages)); } catch (_) {}
+        },
+
+        scrollBottom() {
+            const el = this.$refs.aiMsgArea;
+            if (el) el.scrollTop = el.scrollHeight;
+        },
+
+        async send() {
+            const text = this.input.trim();
+            if (!text || this.thinking) return;
+
+            this.messages.push({ role: 'user', content: text });
+            this.input = '';
+            this.thinking = true;
+            this.$nextTick(() => this.scrollBottom());
+
+            try {
+                const res = await fetch('{{ route('ai.chat') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify({ messages: this.messages.slice(-20) }),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
+                } else {
+                    this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
+                }
+            } catch (e) {
+                this.messages.push({ role: 'assistant', content: 'Gagal terhubung ke AI Assistant.' });
+            } finally {
+                this.thinking = false;
+                this.save();
+                this.$nextTick(() => this.scrollBottom());
+            }
+        },
+    };
+}
+</script>
 
 <script>
 function urlBase64ToUint8Array(base64String) {
