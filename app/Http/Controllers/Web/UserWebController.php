@@ -37,6 +37,25 @@ class UserWebController extends Controller
         return view('users.index', compact('users', 'roles', 'isAdmin'));
     }
 
+    /**
+     * Admin Tim — daftar user ber-role admin di company sendiri, termasuk yang
+     * juga is_super_admin=true (mis. admin yang punya akses /superadmin).
+     * Dipisah dari index() supaya /users (Anggota Tim) tetap fokus ke tim non-admin.
+     */
+    public function adminTeam(Request $request)
+    {
+        $authUser = auth()->user();
+
+        $users = User::with(['roles', 'structuralLevel', 'department'])
+            ->whereHas('roles', fn($q) => $q->where('name', 'admin'))
+            ->where('company_id', $authUser->company_id)
+            ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
+                ->orWhere('email', 'like', "%{$request->search}%"))
+            ->paginate(20);
+
+        return view('users.admin-team', compact('users'));
+    }
+
     public function create()
     {
         $roles            = Role::all();

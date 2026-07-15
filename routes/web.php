@@ -270,6 +270,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // User Management
     Route::middleware('can:access users')->group(function () {
         Route::resource('users', UserWebController::class)->only(['index']);
+        Route::get('/admin-team', [UserWebController::class, 'adminTeam'])->name('admin-team.index');
     });
     Route::middleware('can:manage users')->group(function () {
         Route::resource('users', UserWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
