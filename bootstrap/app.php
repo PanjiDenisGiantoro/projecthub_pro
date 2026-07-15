@@ -12,10 +12,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Deploy webhook dipanggil dari CI/CD — tidak butuh CSRF token
+        $middleware->validateCsrfTokens(except: [
+            'deploy/webhook',
+        ]);
+
         $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'superadmin'         => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'check.active'       => \App\Http\Middleware\CheckActiveAccess::class,
+            'package'            => \App\Http\Middleware\CheckPackageMiddleware::class,
         ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {

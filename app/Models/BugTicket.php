@@ -13,7 +13,7 @@ class BugTicket extends Model
 
     protected $fillable = [
         'project_id', 'reporter_id', 'assignee_id', 'merged_into_id',
-        'title', 'description', 'type', 'priority', 'status',
+        'title', 'description', 'type', 'error_category', 'solution', 'priority', 'status',
         'sla_policy_id', 'sla_due_at', 'sla_breached', 'sla_paused', 'sla_paused_at',
         'escalated_at', 'resolved_at', 'closed_at',
     ];
@@ -46,6 +46,7 @@ class BugTicket extends Model
     public function slaLogs()    { return $this->hasMany(SlaLog::class, 'ticket_id'); }
     public function slaPauses()  { return $this->hasMany(SlaPause::class, 'ticket_id'); }
     public function comments()   { return $this->hasMany(TicketComment::class, 'ticket_id'); }
+    public function attachments() { return $this->hasMany(TicketAttachment::class, 'ticket_id'); }
     public function histories()  { return $this->hasMany(TicketHistory::class, 'ticket_id'); }
     public function tasks()      { return $this->hasMany(Task::class, 'ticket_id'); }
     public function watchers()   { return $this->hasMany(TicketWatcher::class, 'ticket_id'); }

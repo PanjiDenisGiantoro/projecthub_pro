@@ -10,7 +10,7 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
     {{-- Header --}}
     <div class="flex items-center gap-4 mb-8">
-        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">PH</div>
+        <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">PH</div>
         <div>
             <p class="text-xs text-gray-400 uppercase font-semibold">Client Portal</p>
             <h1 class="text-xl font-bold text-gray-800">{{ $project->name }}</h1>
@@ -104,13 +104,13 @@
         <form method="POST" action="{{ route('portal.comment', $pt->token) }}">
             @csrf
             <textarea name="message" rows="4" required placeholder="Tulis komentar atau feedback Anda..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"></textarea>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim</button>
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 mb-3"></textarea>
+            <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim</button>
         </form>
     </div>
     @endif
 
-    <p class="text-xs text-gray-400 text-center mt-8">Powered by ProjectHub Pro · Link ini dibuat khusus untuk Anda</p>
+    <p class="text-xs text-gray-400 text-center mt-8">Powered by Flovig · Link ini dibuat khusus untuk Anda</p>
 </div>
 </body>
 </html>

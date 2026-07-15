@@ -5,7 +5,7 @@
 @section('content')
 @php
     $roleColors = [
-        'manager'   => ['bg'=>'bg-blue-600',  'light'=>'bg-blue-50',  'text'=>'text-blue-700',  'border'=>'border-blue-300'],
+        'manager'   => ['bg'=>'bg-violet-600',  'light'=>'bg-blue-50',  'text'=>'text-blue-700',  'border'=>'border-blue-300'],
         'developer' => ['bg'=>'bg-violet-600','light'=>'bg-violet-50','text'=>'text-violet-700','border'=>'border-violet-300'],
         'marketing' => ['bg'=>'bg-pink-600',  'light'=>'bg-pink-50',  'text'=>'text-pink-700',  'border'=>'border-pink-300'],
         'customer'  => ['bg'=>'bg-teal-600',  'light'=>'bg-teal-50',  'text'=>'text-teal-700',  'border'=>'border-teal-300'],
@@ -47,6 +47,25 @@
         </div>
     </div>
 
+    {{-- Context banner --}}
+    @if(($cid ?? null) === null)
+    <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+        <svg class="w-6 h-6 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3l9 4-9 4-9-4 9-4zm0 6l9 4-9 4-9-4 9-4z"/></svg>
+        <div>
+            <p class="text-sm font-semibold text-amber-800">Anda mengelola template default global</p>
+            <p class="text-xs text-amber-600">Perubahan di sini jadi default awal untuk perusahaan yang belum kustomisasi permission role-nya sendiri.</p>
+        </div>
+    </div>
+    @else
+    <div class="mb-6 bg-violet-50 border border-violet-200 rounded-xl p-4 flex items-center gap-3">
+        <svg class="w-6 h-6 text-violet-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        <div>
+            <p class="text-sm font-semibold text-violet-800">Kustomisasi permission perusahaan Anda</p>
+            <p class="text-xs text-violet-600">Role yang belum Anda ubah otomatis memakai default global. Simpan perubahan untuk membuat aturan khusus perusahaan Anda.</p>
+        </div>
+    </div>
+    @endif
+
     {{-- Role Tabs --}}
     <div class="flex gap-2 mb-4 flex-wrap">
         {{-- Admin tab (disabled) --}}
@@ -61,6 +80,9 @@
                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all">
             {{ ucfirst($role->name) }}
             <span class="text-xs font-bold opacity-80">{{ count($rolePermissions[$role->name]) }} hak</span>
+            @if(($cid ?? null) && in_array($role->name, $customizedRoleNames ?? []))
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-white/25">Kustom</span>
+            @endif
         </button>
         @endforeach
     </div>
@@ -78,7 +100,17 @@
                 <div class="px-5 py-4 {{ $c['light'] }} border-b {{ $c['border'] }} flex items-center justify-between">
                     <div>
                         <h3 class="font-semibold {{ $c['text'] }}">Permission Role: {{ ucfirst($role->name) }}</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ count($rolePermissions[$role->name]) }} dari {{ $stats['total_permissions'] }} permission aktif</p>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            {{ count($rolePermissions[$role->name]) }} dari {{ $stats['total_permissions'] }} permission aktif
+                            @if(($cid ?? null))
+                                &middot;
+                                @if(in_array($role->name, $customizedRoleNames ?? []))
+                                    <span class="text-violet-600 font-medium">Kustom perusahaan Anda</span>
+                                @else
+                                    <span class="text-gray-400">Memakai default global</span>
+                                @endif
+                            @endif
+                        </p>
                     </div>
                     <div class="flex items-center gap-2">
                         <a href="{{ route('permissions.reset', $role->name) }}"

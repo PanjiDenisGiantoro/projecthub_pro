@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -10,10 +11,26 @@ class Campaign extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'channel', 'budget', 'actual_spend', 'target',
+        'company_id', 'name', 'description', 'channel', 'budget', 'actual_spend', 'target',
         'start_date', 'end_date', 'status', 'created_by', 'owner_id', 'project_id',
         'impressions', 'clicks', 'reach', 'leads_count', 'goal_leads',
     ];
+
+    protected static function booted(): void
+    {
+        // Auto-filter per tenant; super admin bypass (sama seperti Project::booted()).
+        static::addGlobalScope('company', function (Builder $builder) {
+            if (auth()->check() && ! auth()->user()->is_super_admin && $cid = auth()->user()->company_id) {
+                $builder->where('campaigns.company_id', $cid);
+            }
+        });
+
+        static::creating(function (Campaign $campaign) {
+            if (! $campaign->company_id && auth()->check() && auth()->user()->company_id) {
+                $campaign->company_id = auth()->user()->company_id;
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -25,6 +42,7 @@ class Campaign extends Model
         ];
     }
 
+    public function company()  { return $this->belongsTo(Company::class); }
     public function creator()  { return $this->belongsTo(User::class, 'created_by'); }
     public function owner()    { return $this->belongsTo(User::class, 'owner_id'); }
     public function project()  { return $this->belongsTo(Project::class); }

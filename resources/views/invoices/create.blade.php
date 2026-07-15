@@ -5,13 +5,14 @@
 @section('content')
 <div class="py-4 max-w-3xl" x-data="invoiceForm()">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('invoices.store') }}" class="space-y-6">
+        <form method="POST" action="{{ route('invoices.store') }}" class="space-y-6"
+              @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Proyek <span class="text-red-500">*</span></label>
-                    <select name="project_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="project_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Pilih Proyek —</option>
                         @foreach($projects as $p)
                             <option value="{{ $p->id }}" {{ old('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -20,7 +21,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Client <span class="text-red-500">*</span></label>
-                    <select name="client_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="client_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Pilih Client —</option>
                         @foreach($clients as $c)
                             <option value="{{ $c->id }}" {{ old('client_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
@@ -32,15 +33,15 @@
             <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Terbit <span class="text-red-500">*</span></label>
-                    <input type="date" name="issue_date" value="{{ old('issue_date', date('Y-m-d')) }}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="date" name="issue_date" value="{{ old('issue_date', date('Y-m-d')) }}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jatuh Tempo <span class="text-red-500">*</span></label>
-                    <input type="date" name="due_date" value="{{ old('due_date') }}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="date" name="due_date" value="{{ old('due_date') }}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pajak (%)</label>
-                    <input type="number" name="tax" value="{{ old('tax', 0) }}" min="0" max="100" step="0.1" x-model="tax" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" name="tax" value="{{ old('tax', 0) }}" min="0" max="100" step="0.1" x-model="tax" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
             </div>
 
@@ -48,7 +49,7 @@
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <label class="text-sm font-medium text-gray-700">Item Invoice</label>
-                    <button type="button" @click="addItem()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ Tambah Item</button>
+                    <button type="button" @click="addItem()" class="text-sm text-violet-600 hover:text-violet-800 font-medium">+ Tambah Item</button>
                 </div>
 
                 <div class="border border-gray-200 rounded-lg overflow-hidden">
@@ -66,17 +67,17 @@
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="border-t border-gray-100">
                                     <td class="px-3 py-2">
-                                        <input type="text" :name="'items['+index+'][description]'" x-model="item.description" required
-                                               placeholder="Deskripsi item..."
-                                               class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        <textarea :name="'items['+index+'][description]'" x-model="item.description" required
+                                               placeholder="Deskripsi item..." rows="3"
+                                               class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm resize-y focus:outline-none focus:ring-1 focus:ring-violet-500"></textarea>
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" :name="'items['+index+'][quantity]'" x-model="item.quantity" @input="calcItem(item)" min="0" step="0.01"
-                                               class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                               class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center focus:outline-none focus:ring-1 focus:ring-violet-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" :name="'items['+index+'][unit_price]'" x-model="item.unit_price" @input="calcItem(item)" min="0"
-                                               class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                               class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-right focus:outline-none focus:ring-1 focus:ring-violet-500">
                                     </td>
                                     <td class="px-3 py-2 text-right font-medium text-gray-800" x-text="'Rp '+formatNumber(item.total)"></td>
                                     <td class="px-3 py-2 text-center">
@@ -108,11 +109,14 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
-                <textarea name="notes" rows="2" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('notes') }}</textarea>
+                <textarea name="notes" rows="2" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">{{ old('notes') }}</textarea>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Buat Invoice</button>
+                <button type="submit" :disabled="submitting" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="!submitting">Buat Invoice</span>
+                    <span x-show="submitting" x-cloak>Menyimpan...</span>
+                </button>
                 <a href="{{ route('invoices.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -124,6 +128,7 @@
 function invoiceForm() {
     return {
         tax: {{ old('tax', 0) }},
+        submitting: false,
         items: [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
         get subtotal() { return this.items.reduce((s, i) => s + (i.total || 0), 0); },
         get taxAmount() { return this.subtotal * this.tax / 100; },

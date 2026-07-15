@@ -1,7 +1,8 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-
 return [
-    AppServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    ...(class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)
+        ? [App\Providers\TelescopeServiceProvider::class]
+        : []),
 ];

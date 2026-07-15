@@ -79,8 +79,8 @@
             <form method="POST" action="{{ route('requests.review', $customerRequest) }}" class="space-y-3">
                 @csrf @method('PUT')
                 <textarea name="marketing_notes" rows="2" placeholder="Catatan marketing (opsional)..."
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Teruskan ke Manager</button>
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Teruskan ke Manager</button>
             </form>
         </div>
         @endif

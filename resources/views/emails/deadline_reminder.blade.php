@@ -11,7 +11,7 @@ body { font-family: Arial, sans-serif; color: #374151; background: #f9fafb; marg
 </style></head>
 <body>
 <div class="card">
-    <div style="color:#2563EB;font-weight:700;font-size:18px;margin-bottom:16px;">ProjectHub Pro</div>
+    <div style="color:#2563EB;font-weight:700;font-size:18px;margin-bottom:16px;">Flovig</div>
     <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">⏰ Deadline Besok!</h2>
     <p style="color:#6B7280;margin-bottom:20px;">Halo {{ $user->name }}, task berikut jatuh tempo besok:</p>
 

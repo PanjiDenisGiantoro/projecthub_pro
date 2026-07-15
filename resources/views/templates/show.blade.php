@@ -23,7 +23,7 @@
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('templates.apply', $template) }}"
-                   class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">Terapkan ke Proyek</a>
+                   class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg">Terapkan ke Proyek</a>
                 @if(!auth()->user()->hasRole('customer'))
                 <form method="POST" action="{{ route('templates.destroy', $template) }}"
                       data-confirm-delete="{{ $template->name }}">

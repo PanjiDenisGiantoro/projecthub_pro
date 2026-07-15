@@ -41,13 +41,13 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
 
             <div>
@@ -91,44 +91,37 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                        <select id="sel-branch" class="w-full" disabled>
+                        <select id="sel-branch" class="w-full">
                             <option value="">— Pilih Branch —</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                        <select id="sel-division" class="w-full" disabled>
+                        <select id="sel-division" class="w-full">
                             <option value="">— Pilih Divisi —</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Departemen</label>
-                        <select id="sel-department" name="department_id" class="w-full" disabled>
+                        <select id="sel-department" name="department_id" class="w-full">
                             <option value="">— Pilih Departemen —</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
-                <select name="timezone" id="select-timezone" class="w-full">
-                    @foreach(['Asia/Jakarta','Asia/Makassar','Asia/Jayapura','UTC'] as $tz)
-                        <option value="{{ $tz }}" {{ old('timezone', $user->timezone) === $tz ? 'selected' : '' }}>{{ $tz }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <input type="hidden" name="timezone" value="{{ $user->timezone ?? 'Asia/Jakarta' }}">
 
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active"
-                       {{ $user->is_active ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
+                       {{ $user->is_active ? 'checked' : '' }} class="w-4 h-4 text-violet-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan</button>
+                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan</button>
                 <a href="{{ route('users.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -147,72 +140,67 @@ $(function () {
         departments: '{{ route('ajax.departments') }}',
     };
 
-    // Preselect values dari server
     const preselect = {
-        company_id:  {{ $preselect['company_id']  ?? 'null' }},
-        branch_id:   {{ $preselect['branch_id']   ?? 'null' }},
-        division_id: {{ $preselect['division_id'] ?? 'null' }},
+        company_id:    {{ $preselect['company_id']  ?? 'null' }},
+        branch_id:     {{ $preselect['branch_id']   ?? 'null' }},
+        division_id:   {{ $preselect['division_id'] ?? 'null' }},
         department_id: {{ old('department_id', $user->department_id) ?? 'null' }},
     };
 
-    $('#select-role, #select-level, #select-timezone, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
+    $('#select-role, #select-level, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',
     });
 
-    function loadOptions(selectEl, url, params, placeholder, preselectVal) {
-        $(selectEl).empty().append(`<option value="">${placeholder}</option>`).prop('disabled', true).trigger('change');
-        $.getJSON(url, params, function (data) {
-            data.forEach(item => $(selectEl).append(new Option(item.name, item.id)));
-            $(selectEl).prop('disabled', data.length === 0);
-            if (preselectVal) {
-                $(selectEl).val(preselectVal).trigger('change');
-            } else {
-                $(selectEl).trigger('change');
-            }
+    function clearSelect(sel, placeholder) {
+        $(sel).empty().append(`<option value="">${placeholder}</option>`).trigger('change.select2');
+    }
+
+    function loadOptions(sel, url, params, placeholder, preselectVal, nextFn) {
+        clearSelect(sel, placeholder);
+        $.getJSON(url, params).done(function (data) {
+            $(sel).empty().append(`<option value="">${placeholder}</option>`);
+            data.forEach(item => $(sel).append(new Option(item.name, item.id)));
+            if (preselectVal) $(sel).val(preselectVal);
+            $(sel).trigger('change.select2');
+            if (nextFn) nextFn();
         });
     }
 
     $('#sel-company').on('change', function () {
         const id = $(this).val();
-        const isCascade = $(this).data('cascade');
-        $('#sel-branch, #sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
-        if (id) {
-            loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —',
-                isCascade ? preselect.branch_id : null);
-        }
-        $(this).removeData('cascade');
+        clearSelect('#sel-branch', '— Pilih Branch —');
+        clearSelect('#sel-division', '— Pilih Divisi —');
+        clearSelect('#sel-department', '— Pilih Departemen —');
+        if (id) loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —');
     });
 
     $('#sel-branch').on('change', function () {
         const id = $(this).val();
-        const isCascade = $(this).data('cascade');
-        $('#sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
-        if (id) {
-            loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —',
-                isCascade ? preselect.division_id : null);
-        }
-        $(this).removeData('cascade');
+        clearSelect('#sel-division', '— Pilih Divisi —');
+        clearSelect('#sel-department', '— Pilih Departemen —');
+        if (id) loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —');
     });
 
     $('#sel-division').on('change', function () {
         const id = $(this).val();
-        const isCascade = $(this).data('cascade');
-        $('#sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
-        if (id) {
-            loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —',
-                isCascade ? preselect.department_id : null);
-        }
-        $(this).removeData('cascade');
+        clearSelect('#sel-department', '— Pilih Departemen —');
+        if (id) loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —');
     });
 
-    // Trigger cascade pre-population on page load
+    // Pre-populate cascade on page load using sequential callbacks
     if (preselect.company_id) {
-        $('#sel-company').data('cascade', true).val(preselect.company_id).trigger('change');
+        loadOptions('#sel-branch', URLS.branches, { company_id: preselect.company_id }, '— Pilih Branch —',
+            preselect.branch_id, function () {
+                if (!preselect.branch_id) return;
+                loadOptions('#sel-division', URLS.divisions, { branch_id: preselect.branch_id }, '— Pilih Divisi —',
+                    preselect.division_id, function () {
+                        if (!preselect.division_id) return;
+                        loadOptions('#sel-department', URLS.departments, { division_id: preselect.division_id }, '— Pilih Departemen —',
+                            preselect.department_id, null);
+                    });
+            });
     }
 });
 </script>

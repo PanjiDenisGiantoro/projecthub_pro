@@ -42,25 +42,25 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
                 <input type="email" name="email" value="{{ old('email') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
                 <input type="password" name="password" required minlength="8"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password <span class="text-red-500">*</span></label>
                 <input type="password" name="password_confirmation" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
 
             <div>
@@ -101,21 +101,21 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                        <select id="sel-branch" class="w-full" disabled>
+                        <select id="sel-branch" class="w-full">
                             <option value="">— Pilih Branch —</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                        <select id="sel-division" class="w-full" disabled>
+                        <select id="sel-division" class="w-full">
                             <option value="">— Pilih Divisi —</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Departemen</label>
-                        <select id="sel-department" name="department_id" class="w-full" disabled>
+                        <select id="sel-department" name="department_id" class="w-full">
                             <option value="">— Pilih Departemen —</option>
                         </select>
                         <input type="hidden" name="_department_id_old" value="{{ old('department_id') }}">
@@ -124,12 +124,12 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <input type="checkbox" name="is_active" value="1" id="is_active" checked class="w-4 h-4 text-blue-600 rounded">
+                <input type="checkbox" name="is_active" value="1" id="is_active" checked class="w-4 h-4 text-violet-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Buat User</button>
+                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Buat User</button>
                 <a href="{{ route('users.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -148,47 +148,51 @@ $(function () {
         departments: '{{ route('ajax.departments') }}',
     };
 
-    // Init Select2 on all selects
     $('#select-role, #select-level, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',
     });
 
-    function loadOptions(selectEl, url, params, placeholder) {
-        $(selectEl).empty().append(`<option value="">${placeholder}</option>`).prop('disabled', true).trigger('change');
-        $.getJSON(url, params, function (data) {
-            data.forEach(item => $(selectEl).append(new Option(item.name, item.id)));
-            $(selectEl).prop('disabled', data.length === 0).trigger('change');
+    function clearSelect(sel, placeholder) {
+        $(sel).empty().append(`<option value="">${placeholder}</option>`).trigger('change.select2');
+    }
+
+    function loadOptions(sel, url, params, placeholder) {
+        clearSelect(sel, placeholder);
+        $.getJSON(url, params).done(function (data) {
+            $(sel).empty().append(`<option value="">${placeholder}</option>`);
+            data.forEach(item => $(sel).append(new Option(item.name, item.id)));
+            $(sel).trigger('change.select2');
         });
     }
 
     $('#sel-company').on('change', function () {
         const id = $(this).val();
-        $('#sel-branch, #sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
+        clearSelect('#sel-branch', '— Pilih Branch —');
+        clearSelect('#sel-division', '— Pilih Divisi —');
+        clearSelect('#sel-department', '— Pilih Departemen —');
         if (id) loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —');
     });
 
     $('#sel-branch').on('change', function () {
         const id = $(this).val();
-        $('#sel-division, #sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
+        clearSelect('#sel-division', '— Pilih Divisi —');
+        clearSelect('#sel-department', '— Pilih Departemen —');
         if (id) loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —');
     });
 
     $('#sel-division').on('change', function () {
         const id = $(this).val();
-        $('#sel-department').empty()
-            .append('<option value="">— Pilih —</option>').prop('disabled', true).trigger('change');
+        clearSelect('#sel-department', '— Pilih Departemen —');
         if (id) loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —');
     });
 
-    // Restore old value after validation error
-    const oldDeptId = $('input[name="_department_id_old"]').val();
-    const oldCompanyId = '{{ old('company_id') }}';
+    // Restore old company after validation error
+    const oldCompanyId = '{{ old('company_id') }}' || null;
     if (oldCompanyId) {
-        $('#sel-company').val(oldCompanyId).trigger('change');
+        $('#sel-company').val(oldCompanyId).trigger('change.select2');
+        loadOptions('#sel-branch', URLS.branches, { company_id: oldCompanyId }, '— Pilih Branch —');
     }
 });
 </script>

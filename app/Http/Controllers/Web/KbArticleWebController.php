@@ -75,6 +75,8 @@ class KbArticleWebController extends Controller
 
     public function deleteAttachment(KbArticleAttachment $attachment)
     {
+        $this->authorize('view', $attachment->article->project);
+
         Storage::disk('public')->delete($attachment->stored_name);
         $attachment->delete();
         return back()->with('success', 'Lampiran dihapus.');

@@ -6,7 +6,7 @@
 <div class="py-4">
     <div class="flex justify-between items-center mb-4">
         <form method="GET" class="flex gap-2">
-            <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                 <option value="">Semua Status</option>
                 @foreach(['draft','sent','paid','overdue','cancelled'] as $s)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
@@ -14,7 +14,7 @@
             </select>
         </form>
         @if(auth()->user()->hasRole(['admin','manager']))
-        <a href="{{ route('invoices.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+        <a href="{{ route('invoices.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Buat Invoice
         </a>
@@ -47,7 +47,7 @@
                         {{ $inv->due_date->format('d M Y') }}
                     </td>
                     <td class="px-4 py-3">
-                        <a href="{{ route('invoices.show', $inv) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Detail</a>
+                        <a href="{{ route('invoices.show', $inv) }}" class="text-violet-600 hover:text-violet-800 text-sm font-medium">Detail</a>
                     </td>
                 </tr>
                 @empty

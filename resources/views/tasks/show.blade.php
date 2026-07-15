@@ -41,6 +41,13 @@
                     <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ $task->description }}</p>
                 @endif
 
+                @if($task->completion_notes)
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Deskripsi Penyelesaian</p>
+                    <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-green-50 border border-green-100 rounded-lg px-4 py-3">{{ $task->completion_notes }}</p>
+                </div>
+                @endif
+
                 {{-- Date timeline --}}
                 @if($task->start_date || $task->due_date)
                 <div class="mt-4 pt-4 border-t border-gray-100">
@@ -155,7 +162,7 @@
                         @csrf
                         <input type="hidden" name="action" value="manual">
                         <input type="number" name="minutes" min="1" placeholder="Menit..."
-                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Log Manual</button>
                     </form>
                 </div>
@@ -250,14 +257,24 @@
             @if(!$user->hasRole('customer'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
-                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="flex gap-2">
+                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3">
                     @csrf @method('PUT')
-                    <select name="status" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
                             <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                            Deskripsi Penyelesaian <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="completion_notes" rows="4" required
+                                  placeholder="Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting..."
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                        Simpan Status
+                    </button>
                 </form>
             </div>
             @endif
@@ -268,13 +285,13 @@
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Re-assign</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Tidak ada —</option>
                         @foreach(\App\Models\User::role('developer')->get() as $dev)
                             <option value="{{ $dev->id }}" {{ $task->assigned_to === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
+                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
                 </form>
             </div>
             @endif

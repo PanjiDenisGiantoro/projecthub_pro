@@ -17,7 +17,7 @@
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Kampanye Aktif</span>
                 <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
                     </svg>
@@ -51,7 +51,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b border-gray-100 gap-3">
             <h2 class="font-semibold text-gray-800">Recent Campaigns</h2>
             <a href="{{ route('campaigns.index') }}"
-               class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+               class="inline-flex items-center px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-md transition-colors">
                 <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -131,7 +131,7 @@
                             <td class="px-3 py-3">
                                 @if($campaign->project)
                                     <a href="{{ route('projects.show', $campaign->project_id) }}"
-                                       class="text-xs text-blue-600 hover:text-blue-800 font-medium line-clamp-1">
+                                       class="text-xs text-violet-600 hover:text-violet-800 font-medium line-clamp-1">
                                         {{ $campaign->project->name }}
                                     </a>
                                 @else
@@ -141,7 +141,7 @@
                             <td class="px-3 py-3 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('campaigns.show', $campaign->id) }}"
-                                       class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                       class="text-violet-600 hover:text-violet-800 text-xs font-medium">
                                         Detail
                                     </a>
                                     @if($campaign->status === 'review')
@@ -162,7 +162,7 @@
                                     </svg>
                                     <p class="text-sm">Belum ada kampanye</p>
                                     <a href="{{ route('campaigns.create') }}"
-                                       class="mt-2 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                                       class="mt-2 inline-flex items-center px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-md transition-colors">
                                         Buat Kampanye Pertama
                                     </a>
                                 </div>

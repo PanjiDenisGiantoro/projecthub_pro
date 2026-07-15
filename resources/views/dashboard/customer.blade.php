@@ -66,7 +66,7 @@
         <div class="flex items-center justify-between mb-4">
             <h2 class="font-semibold text-gray-800">Proyek Saya</h2>
             <a href="{{ route('projects.index') }}"
-               class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+               class="text-xs text-violet-600 hover:text-violet-800 font-medium">
                 Lihat semua →
             </a>
         </div>
@@ -165,7 +165,7 @@
 
                         {{-- CTA --}}
                         <a href="{{ route('projects.show', $project->id) }}"
-                           class="w-full text-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors">
+                           class="w-full text-center px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-lg transition-colors">
                             Lihat Detail
                         </a>
                     </div>
@@ -182,11 +182,11 @@
             <h2 class="font-semibold text-gray-800">Request Terbaru</h2>
             <div class="flex items-center gap-2">
                 <a href="{{ route('requests.index') }}"
-                   class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                   class="text-xs text-violet-600 hover:text-violet-800 font-medium">
                     Lihat semua →
                 </a>
                 <a href="{{ route('requests.create') }}"
-                   class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                   class="inline-flex items-center px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-md transition-colors">
                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -246,7 +246,7 @@
                             </td>
                             <td class="px-3 py-3 text-right">
                                 <a href="{{ route('requests.show', $request->id) }}"
-                                   class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                   class="text-violet-600 hover:text-violet-800 text-xs font-medium">
                                     Detail
                                 </a>
                             </td>
@@ -261,7 +261,7 @@
                                     </svg>
                                     <p class="text-sm">Belum ada request</p>
                                     <a href="{{ route('requests.create') }}"
-                                       class="mt-2 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                                       class="mt-2 inline-flex items-center px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium rounded-md transition-colors">
                                         Buat Request Pertama
                                     </a>
                                 </div>

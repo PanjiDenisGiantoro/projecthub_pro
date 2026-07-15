@@ -29,7 +29,9 @@
     @endif
 
     {{-- Form --}}
-    <form action="{{ route('projects.store') }}" method="POST" class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <form action="{{ route('projects.store') }}" method="POST" class="bg-white rounded-xl shadow-sm border border-gray-200"
+          x-data="{ submitting: false }"
+          @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
         @csrf
 
         <div class="p-6 space-y-6">
@@ -64,9 +66,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label for="client_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Client <span class="text-red-500">*</span>
+                        Client
                     </label>
-                    <select id="client_id" name="client_id" required
+                    <select id="client_id" name="client_id"
                             class="w-full px-3 py-2 border @error('client_id') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">-- Pilih Client --</option>
                         @foreach($clients as $client)
@@ -82,9 +84,9 @@
 
                 <div>
                     <label for="manager_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Manager <span class="text-red-500">*</span>
+                        Manager
                     </label>
-                    <select id="manager_id" name="manager_id" required
+                    <select id="manager_id" name="manager_id"
                             class="w-full px-3 py-2 border @error('manager_id') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">-- Pilih Manager --</option>
                         @foreach($managers as $manager)
@@ -160,9 +162,10 @@
                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                 &larr; Kembali
             </a>
-            <button type="submit"
-                    class="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition">
-                Simpan Proyek
+            <button type="submit" :disabled="submitting"
+                    class="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <span x-show="!submitting">Simpan Proyek</span>
+                <span x-show="submitting" x-cloak>Menyimpan...</span>
             </button>
         </div>
 

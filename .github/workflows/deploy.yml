@@ -64,7 +64,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
+          port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
           script: |
             set -e
 
@@ -75,10 +77,18 @@ jobs:
             git pull origin dev
 
             echo ">>> Install Composer dependencies"
-            composer install --optimize-autoloader --no-interaction
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader --no-interaction --ignore-platform-req=php
+
+            echo ">>> Install NPM dan build assets"
+            npm ci --no-audit --no-fund
+            npm run build
 
             echo ">>> Jalankan migrasi database dev"
             php artisan migrate --force
+
+            echo ">>> Seed master data HRIS"
+            php artisan db:seed --class=LeaveTypeSeeder --force
+            php artisan db:seed --class=OvertimeRuleSeeder --force
 
             echo ">>> Build cache"
             php artisan config:cache
@@ -89,7 +99,7 @@ jobs:
             echo ">>> Restart queue worker"
             php artisan queue:restart
 
-            echo ">>> Deploy dev selesai!"
+            echo ">>> Deploy DEV selesai! → projecthub.arunikasolusiinovasi.tech"
 
   # ─────────────────────────────────────────────────────────
   # JOB 3: Deploy — jalan saat push ke master (PR di-merge)
@@ -106,7 +116,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
+          port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 60s
+          command_timeout: 15m
           script: |
             set -e
 
@@ -117,10 +129,21 @@ jobs:
             git pull origin master
 
             echo ">>> Install Composer dependencies (production)"
-            composer install --no-dev --optimize-autoloader --no-interaction
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=php
+
+            echo ">>> Install NPM dan build assets"
+            npm ci --no-audit --no-fund
+            npm run build
 
             echo ">>> Jalankan migrasi database"
             php artisan migrate --force
+
+
+            echo ">>> Seed master data HRIS"
+            php artisan db:seed --class=LeaveTypeSeeder --force
+            php artisan db:seed --class=OvertimeRuleSeeder --force
+
+
 
             echo ">>> Build cache"
             php artisan config:cache
@@ -134,4 +157,4 @@ jobs:
             echo ">>> Restart PHP-FPM"
             systemctl restart php8.4-fpm || service php8.4-fpm restart || true
 
-            echo ">>> Deploy selesai!"
+            echo ">>> Deploy PRODUCTION selesai! → projecthub.arunikasolusiinovasi.tech"

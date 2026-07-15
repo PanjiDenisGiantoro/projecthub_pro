@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\StructuralLevel;
 use App\Models\TimeLog;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
 
 class ProjectWebController extends Controller
 {
+    public function __construct(private NotificationService $notifier) {}
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -32,8 +36,9 @@ class ProjectWebController extends Controller
 
     public function create()
     {
-        $clients   = User::role('customer')->where('is_active', true)->get();
-        $managers  = User::role('manager')->where('is_active', true)->get();
+        $companyId = auth()->user()->company_id;
+        $clients   = User::role('customer')->where('is_active', true)->where('company_id', $companyId)->get();
+        $managers  = User::role('manager')->where('is_active', true)->where('company_id', $companyId)->get();
         return view('projects.create', compact('clients', 'managers'));
     }
 
@@ -53,6 +58,15 @@ class ProjectWebController extends Controller
             'status' => 'draft',
         ]);
 
+        $this->notifier->notifyManagers(
+            'new_project',
+            'Proyek Baru Dibuat',
+            "Proyek \"{$project->name}\" baru saja dibuat oleh " . auth()->user()->name . ".",
+            ['project_id' => $project->id],
+            push: true,
+            companyId: $project->company_id
+        );
+
         return redirect()->route('projects.show', $project)->with('success', 'Proyek berhasil dibuat.');
     }
 
@@ -64,8 +78,9 @@ class ProjectWebController extends Controller
             'milestones.assignee', 'milestones.tasks',
             'tasks' => fn($q) => $q->with('assignee')->limit(10),
         ]);
-        $slaPolicies = app(SlaService::class);
-        $developers  = User::role(['developer', 'marketing'])->where('is_active', true)->get();
+        $slaPolicies      = app(SlaService::class);
+        $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->where('company_id', $project->company_id)->get();
+        $structuralLevels = StructuralLevel::active()->where('company_id', $project->company_id)->get();
         $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
 
         // Task & hour stats per member
@@ -87,7 +102,14 @@ class ProjectWebController extends Controller
             ->latest()
             ->get();
 
-        return view('projects.show', compact('project', 'developers', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles'));
+        $chatMembers = \App\Models\User::whereIn('id',
+            $project->members()->pluck('user_id')
+                ->push($project->manager_id)
+                ->filter()
+                ->unique()
+        )->select('id', 'name')->get();
+
+        return view('projects.show', compact('project', 'developers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers'));
     }
 
     public function edit(Project $project)
@@ -120,14 +142,24 @@ class ProjectWebController extends Controller
     {
         $request->validate([
             'user_id'           => 'required|exists:users,id',
-            'role'              => 'required|in:developer,marketing',
-            'max_hours_per_day' => 'integer|min:1|max:24',
+            'role'              => 'nullable|string|max:100',
+            'max_hours_per_day' => 'nullable|integer|min:1|max:24',
         ]);
 
         ProjectMember::updateOrCreate(
             ['project_id' => $project->id, 'user_id' => $request->user_id],
-            ['role' => $request->role, 'max_hours_per_day' => $request->get('max_hours_per_day', 8)]
+            ['role' => $request->role ?? 'developer', 'max_hours_per_day' => $request->max_hours_per_day ?? 8]
         );
+
+        if ((int) $request->user_id !== auth()->id()) {
+            $this->notifier->send(
+                $request->user_id,
+                'project_member_added',
+                'Ditambahkan ke Tim Proyek',
+                auth()->user()->name . " menambahkan Anda ke tim proyek \"{$project->name}\".",
+                ['project_id' => $project->id]
+            );
+        }
 
         return back()->with('success', 'Anggota tim ditambahkan.');
     }

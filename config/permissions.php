@@ -67,4 +67,38 @@ return [
         'manage master data' => 'Kelola Master Data (perusahaan, divisi, dll)',
         'manage permissions' => 'Kelola Permission per Role (halaman ini)',
     ],
+
+    'HRIS — Akses' => [
+        'access hris' => 'Akses Modul HRIS',
+    ],
+
+    'HRIS — Absensi' => [
+        'manage absensi'          => 'Kelola Absensi (rekap semua karyawan)',
+        'manage face enrollment'  => 'Kelola Pendaftaran Wajah Karyawan',
+    ],
+
+    'HRIS — Cuti & Izin' => [
+        'manage leave'  => 'Kelola Cuti & Izin (approve/reject)',
+        'approve leave' => 'Approve / Reject Cuti',
+    ],
+
+    'HRIS — Lembur' => [
+        'manage overtime'  => 'Kelola Lembur (approve/reject)',
+        'approve overtime' => 'Approve / Reject Lembur',
+    ],
+
+    'HRIS — Reimburse' => [
+        'manage reimbursement'  => 'Kelola Reimburse (approve/reject)',
+        'approve reimbursement' => 'Approve / Reject Reimburse',
+    ],
+
+    'HRIS — Payroll' => [
+        'manage payroll'     => 'Kelola Payroll (lihat semua, finalize)',
+        'generate payroll'   => 'Generate / Buat Payroll',
+        'view payroll report' => 'Lihat Laporan Payroll',
+    ],
+
+    'HRIS — Master Data' => [
+        'manage hris master' => 'Kelola Master Data HRIS (jenis cuti, aturan lembur, PTKP, tarif PPh21)',
+    ],
 ];

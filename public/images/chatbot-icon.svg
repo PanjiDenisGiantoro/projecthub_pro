@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480">
+  <defs>
+    <!-- Body gradient - teal/green like reference -->
+    <radialGradient id="bodyGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#7EECD4"/>
+      <stop offset="50%" stop-color="#3DD6B0"/>
+      <stop offset="100%" stop-color="#1AA88A"/>
+    </radialGradient>
+
+    <!-- Head gradient -->
+    <radialGradient id="headGrad" cx="38%" cy="32%" r="62%">
+      <stop offset="0%" stop-color="#85F0DC"/>
+      <stop offset="45%" stop-color="#3DD6B0"/>
+      <stop offset="100%" stop-color="#17967C"/>
+    </radialGradient>
+
+    <!-- Visor gradient (dark face panel) -->
+    <linearGradient id="visorGrad" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#1a2340"/>
+      <stop offset="100%" stop-color="#0d1220"/>
+    </linearGradient>
+
+    <!-- Eye shine -->
+    <radialGradient id="eyeShine" cx="30%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Arm gradient -->
+    <radialGradient id="armGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#6EE4C8"/>
+      <stop offset="100%" stop-color="#1AA88A"/>
+    </radialGradient>
+
+    <!-- Shadow/depth filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0d1220" flood-opacity="0.25"/>
+    </filter>
+
+    <!-- Inner glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Highlight gradient for visor shine -->
+    <linearGradient id="visorShine" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== ANTENNA ===== -->
+  <!-- Antenna stem -->
+  <rect x="193" y="28" width="14" height="52" rx="7" fill="url(#headGrad)" filter="url(#shadow)"/>
+  <!-- Antenna ball -->
+  <circle cx="200" cy="22" r="16" fill="url(#headGrad)" filter="url(#shadow)"/>
+  <circle cx="200" cy="22" r="10" fill="#5CF0D0" opacity="0.5"/>
+  <circle cx="196" cy="18" r="4" fill="white" opacity="0.6"/>
+
+  <!-- ===== HEAD ===== -->
+  <rect x="82" y="72" width="236" height="178" rx="52" fill="url(#headGrad)" filter="url(#shadow)"/>
+  <!-- Head highlight top -->
+  <ellipse cx="152" cy="90" rx="55" ry="22" fill="white" opacity="0.15"/>
+
+  <!-- ===== VISOR / FACE PANEL ===== -->
+  <rect x="104" y="102" width="192" height="118" rx="30" fill="url(#visorGrad)"/>
+  <!-- Visor inner shine -->
+  <rect x="104" y="102" width="192" height="118" rx="30" fill="url(#visorShine)"/>
+  <!-- Visor rim highlight -->
+  <rect x="106" y="104" width="188" height="55" rx="28" fill="white" opacity="0.04"/>
+
+  <!-- ===== EYES ===== -->
+  <!-- Left eye socket -->
+  <circle cx="152" cy="158" r="30" fill="#0f172a"/>
+  <!-- Left eye iris -->
+  <circle cx="152" cy="158" r="22" fill="#1e3a5f"/>
+  <!-- Left eye highlight ring -->
+  <circle cx="152" cy="158" r="22" fill="none" stroke="#3b82f6" stroke-width="2" opacity="0.4"/>
+  <!-- Left eye pupil -->
+  <circle cx="152" cy="158" r="14" fill="#0a0f1e"/>
+  <!-- Left eye shine large -->
+  <circle cx="144" cy="149" r="7" fill="white" opacity="0.85"/>
+  <!-- Left eye shine small -->
+  <circle cx="159" cy="165" r="3" fill="white" opacity="0.4"/>
+
+  <!-- Right eye socket -->
+  <circle cx="248" cy="158" r="30" fill="#0f172a"/>
+  <!-- Right eye iris -->
+  <circle cx="248" cy="158" r="22" fill="#1e3a5f"/>
+  <!-- Right eye highlight ring -->
+  <circle cx="248" cy="158" r="22" fill="none" stroke="#3b82f6" stroke-width="2" opacity="0.4"/>
+  <!-- Right eye pupil -->
+  <circle cx="248" cy="158" r="14" fill="#0a0f1e"/>
+  <!-- Right eye shine large -->
+  <circle cx="240" cy="149" r="7" fill="white" opacity="0.85"/>
+  <!-- Right eye shine small -->
+  <circle cx="255" cy="165" r="3" fill="white" opacity="0.4"/>
+
+  <!-- ===== SMILE ===== -->
+  <path d="M 162 192 Q 200 216 238 192" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- ===== NECK ===== -->
+  <rect x="176" y="246" width="48" height="22" rx="10" fill="url(#headGrad)"/>
+
+  <!-- ===== BODY ===== -->
+  <rect x="80" y="260" width="240" height="160" rx="50" fill="url(#bodyGrad)" filter="url(#shadow)"/>
+  <!-- Body highlight top -->
+  <ellipse cx="160" cy="278" rx="60" ry="20" fill="white" opacity="0.18"/>
+  <!-- Body shine -->
+  <ellipse cx="200" cy="290" rx="80" ry="28" fill="white" opacity="0.06"/>
+
+  <!-- Chest panel -->
+  <rect x="130" y="292" width="140" height="80" rx="20" fill="#1AA88A" opacity="0.35"/>
+  <!-- Chest panel shine -->
+  <rect x="132" y="294" width="136" height="35" rx="18" fill="white" opacity="0.07"/>
+
+  <!-- Chest dots / buttons -->
+  <circle cx="170" cy="322" r="8" fill="#0d1220" opacity="0.5"/>
+  <circle cx="170" cy="322" r="5" fill="#5CF0D0" opacity="0.8"/>
+  <circle cx="200" cy="322" r="8" fill="#0d1220" opacity="0.5"/>
+  <circle cx="200" cy="322" r="5" fill="#5CF0D0" opacity="0.8"/>
+  <circle cx="230" cy="322" r="8" fill="#0d1220" opacity="0.5"/>
+  <circle cx="230" cy="322" r="5" fill="#5CF0D0" opacity="0.8"/>
+
+  <!-- Chest bottom bar -->
+  <rect x="148" y="348" width="104" height="12" rx="6" fill="#0d1220" opacity="0.25"/>
+  <rect x="150" y="350" width="60" height="8" rx="4" fill="#5CF0D0" opacity="0.6"/>
+
+  <!-- ===== LEFT ARM (waving) ===== -->
+  <g transform="rotate(-30, 80, 290)">
+    <rect x="28" y="268" width="60" height="110" rx="30" fill="url(#armGrad)" filter="url(#shadow)"/>
+    <!-- Arm highlight -->
+    <ellipse cx="46" cy="292" rx="14" ry="22" fill="white" opacity="0.15"/>
+    <!-- Hand -->
+    <circle cx="58" cy="378" r="28" fill="url(#armGrad)" filter="url(#shadow)"/>
+    <circle cx="46" cy="368" r="10" fill="url(#headGrad)"/>
+    <circle cx="70" cy="368" r="10" fill="url(#headGrad)"/>
+    <circle cx="58" cy="360" r="10" fill="url(#headGrad)"/>
+    <!-- Hand highlight -->
+    <circle cx="50" cy="370" r="8" fill="white" opacity="0.12"/>
+  </g>
+
+  <!-- ===== RIGHT ARM ===== -->
+  <rect x="312" y="272" width="58" height="105" rx="29" fill="url(#armGrad)" filter="url(#shadow)"/>
+  <!-- Arm highlight -->
+  <ellipse cx="327" cy="295" rx="13" ry="20" fill="white" opacity="0.15"/>
+  <!-- Right hand -->
+  <circle cx="341" cy="377" r="26" fill="url(#armGrad)" filter="url(#shadow)"/>
+
+  <!-- ===== LEGS / BASE ===== -->
+  <!-- Left leg -->
+  <rect x="130" y="406" width="64" height="52" rx="22" fill="url(#bodyGrad)" filter="url(#shadow)"/>
+  <!-- Right leg -->
+  <rect x="206" y="406" width="64" height="52" rx="22" fill="url(#bodyGrad)" filter="url(#shadow)"/>
+
+  <!-- Feet -->
+  <ellipse cx="162" cy="455" rx="40" ry="16" fill="url(#armGrad)" filter="url(#shadow)"/>
+  <ellipse cx="238" cy="455" rx="40" ry="16" fill="url(#armGrad)" filter="url(#shadow)"/>
+  <!-- Feet highlight -->
+  <ellipse cx="150" cy="450" rx="18" ry="6" fill="white" opacity="0.18"/>
+  <ellipse cx="226" cy="450" rx="18" ry="6" fill="white" opacity="0.18"/>
+
+  <!-- ===== FLOATING PARTICLES (optional flair) ===== -->
+  <circle cx="58" cy="170" r="5" fill="#5CF0D0" opacity="0.5"/>
+  <circle cx="48" cy="200" r="3" fill="#3DD6B0" opacity="0.4"/>
+  <circle cx="342" cy="175" r="4" fill="#5CF0D0" opacity="0.45"/>
+  <circle cx="352" cy="205" r="6" fill="#3DD6B0" opacity="0.35"/>
+</svg>

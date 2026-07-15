@@ -41,7 +41,7 @@
             @if(!auth()->user()->hasRole('customer'))
             <div class="flex items-center gap-3 flex-shrink-0">
                 <button @click="editing=!editing"
-                        class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        class="text-sm text-violet-600 hover:text-violet-800 font-medium"
                         x-text="editing ? 'Batal' : 'Edit'"></button>
                 <form method="POST" action="{{ route('kb.destroy', [$project, $article]) }}"
                       data-confirm-delete="{{ $article->title }}" data-confirm-label="Hapus Artikel">
@@ -65,17 +65,17 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Judul</label>
                     <input type="text" name="title" value="{{ $article->title }}" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat</label>
                     <input type="text" name="description" value="{{ $article->description }}" maxlength="500"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Konten</label>
                     <textarea name="body" rows="14" required
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">{{ $article->body }}</textarea>
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 font-mono">{{ $article->body }}</textarea>
                 </div>
 
                 {{-- Upload more files --}}
@@ -97,7 +97,7 @@
                 </div>
 
                 <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan</button>
+                        class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan</button>
             </form>
         </div>
     </div>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <a href="{{ $att->url() }}" download
-                       class="text-xs text-blue-600 hover:text-blue-800 font-medium">Unduh</a>
+                       class="text-xs text-violet-600 hover:text-violet-800 font-medium">Unduh</a>
                     @if(!auth()->user()->hasRole('customer'))
                     <form method="POST" action="{{ route('kb.attachment.destroy', $att) }}">
                         @csrf @method('DELETE')

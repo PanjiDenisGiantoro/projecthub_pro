@@ -15,12 +15,16 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ApprovalService::class);
+
+        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class)) {
+            $this->app->register(\App\Providers\TelescopeServiceProvider::class);
+        }
     }
 
     public function boot(): void
     {
-        // Admin bypasses ALL permission checks
-        Gate::before(fn($user) => $user->hasRole('admin') ? true : null);
+        // Superadmin & admin bypass ALL permission checks
+        Gate::before(fn($user) => ($user->is_super_admin || $user->hasRole('admin')) ? true : null);
 
         $this->registerApprovalHandlers();
     }

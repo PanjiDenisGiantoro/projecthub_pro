@@ -51,6 +51,16 @@ class TaskWebController extends Controller
             $this->notifier->send($task->assigned_to, 'task_assigned', 'Task Baru', "Task \"{$task->title}\" ditugaskan ke Anda.", ['task_id' => $task->id]);
         }
 
+        if ($project->manager_id && $project->manager_id !== auth()->id() && $project->manager_id !== $task->assigned_to) {
+            $this->notifier->send(
+                $project->manager_id,
+                'new_task',
+                'Task Baru di Proyek',
+                auth()->user()->name . " menambahkan task \"{$task->title}\" di proyek \"{$project->name}\".",
+                ['task_id' => $task->id, 'project_id' => $project->id]
+            );
+        }
+
         return back()->with('success', 'Task berhasil dibuat.');
     }
 
@@ -63,8 +73,12 @@ class TaskWebController extends Controller
 
     public function update(Request $request, Project $project, Task $task)
     {
+        $request->validate([
+            'completion_notes' => 'required_with:status|nullable|string|max:2000',
+        ]);
+
         $old = $task->status;
-        $task->update($request->only('title', 'description', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours'));
+        $task->update($request->only('title', 'description', 'completion_notes', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours'));
 
         if ($old !== $task->status) {
             $notify = $task->creator_id ?? $project->manager_id;
@@ -84,9 +98,15 @@ class TaskWebController extends Controller
 
     public function moveStatus(Request $request, Project $project, Task $task)
     {
-        $request->validate(['status' => 'required|in:todo,in_progress,review,done']);
+        $request->validate([
+            'status' => 'required|in:todo,in_progress,review,done',
+            'notes'  => 'nullable|string|max:2000',
+        ]);
         $old = $task->status;
-        $task->update(['status' => $request->status]);
+        $task->update([
+            'status'           => $request->status,
+            'completion_notes' => $request->notes ?: null,
+        ]);
 
         if ($old !== $task->status) {
             $notify = $task->created_by ?? $project->manager_id;
@@ -101,6 +121,8 @@ class TaskWebController extends Controller
 
     public function storeTimeLog(Request $request, Task $task)
     {
+        $this->authorize('view', $task->project);
+
         $request->validate(['action' => 'required|in:start,stop,manual', 'minutes' => 'required_if:action,manual|nullable|integer|min:1']);
 
         $user = auth()->user();
