@@ -9,6 +9,11 @@
     }
     $activePkg    = session('active_package', $userPkgs[0] ?? 'task_management');
     $activePkg    = is_string($activePkg) ? $activePkg : 'task_management'; // guard: jangan sampai object masuk session
+    if (!empty($userPkgs) && !in_array($activePkg, $userPkgs)) {
+        $activePkg = $userPkgs[0]; // session bisa nyimpen paket yang sudah tidak diizinkan (mis. hris utk customer)
+    } elseif (empty($userPkgs)) {
+        $activePkg = 'task_management';
+    }
     $showTm       = empty($userPkgs) || $activePkg === 'task_management';
     $showHris     = $activePkg === 'hris';
 @endphp

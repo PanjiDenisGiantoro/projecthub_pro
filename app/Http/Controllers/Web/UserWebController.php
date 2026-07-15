@@ -19,6 +19,7 @@ class UserWebController extends Controller
 
         $query = User::with(['roles', 'structuralLevel', 'department'])
             ->where('is_super_admin', false)
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'customer'))
             ->when($request->role, fn($q) => $q->role($request->role))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"));
@@ -31,7 +32,7 @@ class UserWebController extends Controller
         }
 
         $users = $query->paginate(20);
-        $roles = $isAdmin ? Role::all() : collect();
+        $roles = $isAdmin ? Role::where('name', '!=', 'customer')->get() : collect();
 
         return view('users.index', compact('users', 'roles', 'isAdmin'));
     }
