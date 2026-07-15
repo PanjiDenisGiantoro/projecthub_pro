@@ -5,7 +5,9 @@
 @section('content')
 <div class="py-4 max-w-2xl">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('requests.store') }}" class="space-y-5">
+        <form method="POST" action="{{ route('requests.store') }}" class="space-y-5"
+              x-data="{ submitting: false }"
+              @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Proyek <span class="text-red-500">*</span></label>
@@ -43,7 +45,10 @@
                 </div>
             </div>
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Kirim Request</button>
+                <button type="submit" :disabled="submitting" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="!submitting">Kirim Request</span>
+                    <span x-show="submitting" x-cloak>Mengirim...</span>
+                </button>
                 <a href="{{ route('requests.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>

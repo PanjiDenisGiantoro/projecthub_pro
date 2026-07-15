@@ -15,7 +15,7 @@ class UserWebController extends Controller
     public function index(Request $request)
     {
         $authUser  = auth()->user();
-        $isAdmin   = $authUser->hasRole('admin');
+        $isAdmin   = $authUser->can('manage users');
 
         $query = User::with(['roles', 'structuralLevel', 'department'])
             ->where('is_super_admin', false)
@@ -38,10 +38,6 @@ class UserWebController extends Controller
 
     public function create()
     {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
         $roles            = Role::all();
         $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
@@ -50,10 +46,6 @@ class UserWebController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
         $request->validate([
             'name'                => 'required|string|max:255',
             'email'               => 'required|email|unique:users',
@@ -86,10 +78,6 @@ class UserWebController extends Controller
 
     public function edit(User $user)
     {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
         $roles            = Role::all();
         $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
@@ -110,10 +98,6 @@ class UserWebController extends Controller
 
     public function update(Request $request, User $user)
     {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
         $request->validate([
             'name'                => 'required|string|max:255',
             'email'               => 'required|email|unique:users,email,' . $user->id,
@@ -133,10 +117,6 @@ class UserWebController extends Controller
 
     public function destroy(User $user)
     {
-        if (!auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
         if ($user->id === auth()->id()) {
             return back()->withErrors(['Tidak bisa menghapus akun sendiri.']);
         }

@@ -16,7 +16,9 @@
     @endif
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <form action="{{ route('hris.leave.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+        <form action="{{ route('hris.leave.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5"
+              x-data="{ submitting: false }"
+              @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
 
             <div>
@@ -60,10 +62,11 @@
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit"
-                        class="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm"
+                <button type="submit" :disabled="submitting"
+                        class="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
-                    Kirim Pengajuan
+                    <span x-show="!submitting">Kirim Pengajuan</span>
+                    <span x-show="submitting" x-cloak>Mengirim...</span>
                 </button>
                 <a href="{{ route('hris.leave.index') }}"
                    class="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">

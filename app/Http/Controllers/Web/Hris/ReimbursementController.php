@@ -41,6 +41,20 @@ class ReimbursementController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Cegah double-submit (klik ganda / submit ulang).
+        $duplicate = Reimbursement::where('user_id', $user->id)
+            ->where('title', $request->title)
+            ->where('amount', $request->amount)
+            ->where('expense_date', $request->expense_date)
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->latest()
+            ->first();
+
+        if ($duplicate) {
+            return redirect()->route('hris.reimburse.index')->with('success', 'Pengajuan reimburse berhasil dikirim.');
+        }
+
         $data = $request->only(['category', 'title', 'expense_date', 'amount', 'description']);
         $data['user_id']    = $user->id;
         $data['company_id'] = $user->company_id;

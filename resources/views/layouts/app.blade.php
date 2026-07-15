@@ -207,6 +207,9 @@
                 $userPackages = auth()->user()->is_super_admin
                     ? ['task_management', 'hris']
                     : auth()->user()->activePackages();
+                if (auth()->user()->hasRole('customer')) {
+                    $userPackages = array_values(array_diff($userPackages, ['hris']));
+                }
             @endphp
             @if(count($userPackages) > 1)
             <div class="fl-pkg-switcher hidden sm:flex items-center rounded-full p-0.5 shrink-0 ml-2">
@@ -414,9 +417,9 @@
     {{-- Bubble button --}}
     <button @click="toggle()"
             class="fixed bottom-5 right-5 z-40 w-16 h-16 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 overflow-hidden"
-            style="background:#fff;box-shadow:0 6px 20px rgba(109,40,217,0.35);border:1px solid rgba(124,58,237,0.15)">
-        <img x-show="!open" src="{{ asset('images/chatbot-icon.svg') }}" alt="AI Assistant" class="w-12 h-12 object-contain">
-        <svg x-show="open" x-cloak class="w-5 h-5" style="color:#7c3aed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 6px 20px rgba(109,40,217,0.4);border:2px solid rgba(255,255,255,0.25)">
+        <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
+        <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
     </button>
@@ -428,8 +431,8 @@
 
         {{-- Header --}}
         <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style="background:rgba(255,255,255,0.15)">
-                <img src="{{ asset('images/chatbot-icon.svg') }}" alt="AI Assistant" class="w-7 h-7 object-contain">
+            <div class="w-9 h-9 rounded-full shrink-0 overflow-hidden" style="border:1.5px solid rgba(255,255,255,0.4)">
+                <img src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold text-white">AI Assistant</p>
@@ -449,15 +452,49 @@
             </div>
 
             <template x-for="(m, i) in messages" :key="i">
-                <div class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
-                    <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
-                         :class="m.role === 'user'
-                            ? 'text-white rounded-br-sm'
-                            : 'rounded-bl-sm border'"
-                         :style="m.role === 'user'
-                            ? 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'
-                            : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
-                         x-text="m.content"></div>
+                <div>
+                    {{-- Kartu usulan aksi --}}
+                    <template x-if="m.action">
+                        <div class="rounded-2xl border p-3 space-y-2" style="background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.25)">
+                            <p class="text-xs font-bold uppercase tracking-wide" style="color:#7c3aed">Usulan Aksi</p>
+                            <p class="text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)" x-text="m.action.label"></p>
+                            <div class="text-xs space-y-0.5" style="color:var(--fl-text-muted,#6b7280)">
+                                <p><strong>Nama:</strong> <span x-text="m.action.args.name"></span></p>
+                                <p x-show="m.action.args.description"><strong>Deskripsi:</strong> <span x-text="m.action.args.description"></span></p>
+                            </div>
+                            <template x-if="m.action.status === 'pending'">
+                                <div class="flex gap-2 pt-1">
+                                    <button @click="confirmAction(i)" :disabled="m.action.executing"
+                                            class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                                        <span x-show="!m.action.executing">Konfirmasi</span>
+                                        <span x-show="m.action.executing" x-cloak>Memproses...</span>
+                                    </button>
+                                    <button @click="cancelAction(i)" :disabled="m.action.executing"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-medium"
+                                            style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);color:var(--fl-text-muted,#6b7280)">
+                                        Batal
+                                    </button>
+                                </div>
+                            </template>
+                            <p x-show="m.action.status === 'done'" class="text-xs font-medium" style="color:#10b981" x-text="m.action.resultMessage"></p>
+                            <a x-show="m.action.status === 'done' && m.action.url" :href="m.action.url" class="text-xs font-semibold underline" style="color:#7c3aed">Buka proyeknya →</a>
+                            <p x-show="m.action.status === 'error'" class="text-xs font-medium" style="color:#ef4444" x-text="m.action.resultMessage"></p>
+                            <p x-show="m.action.status === 'cancelled'" class="text-xs italic" style="color:var(--fl-text-muted,#6b7280)">Dibatalkan.</p>
+                        </div>
+                    </template>
+
+                    {{-- Bubble teks biasa --}}
+                    <div x-show="!m.action" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
+                        <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
+                             :class="m.role === 'user'
+                                ? 'text-white rounded-br-sm'
+                                : 'rounded-bl-sm border'"
+                             :style="m.role === 'user'
+                                ? 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'
+                                : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
+                             x-text="m.content"></div>
+                    </div>
                 </div>
             </template>
 
@@ -543,13 +580,20 @@ function aiAssistantWidget() {
             this.$nextTick(() => this.scrollBottom());
 
             try {
+                const history = this.messages.slice(-20).map(m => ({ role: m.role, content: m.content }));
                 const res = await fetch('{{ route('ai.chat') }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
-                    body: JSON.stringify({ messages: this.messages.slice(-20) }),
+                    body: JSON.stringify({ messages: history }),
                 });
                 const data = await res.json();
-                if (res.ok) {
+                if (res.ok && data.action) {
+                    this.messages.push({
+                        role: 'assistant',
+                        content: '(mengusulkan aksi: ' + data.action.label + ')',
+                        action: { ...data.action, status: 'pending', executing: false },
+                    });
+                } else if (res.ok) {
                     this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
                 } else {
                     this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
@@ -558,6 +602,39 @@ function aiAssistantWidget() {
                 this.messages.push({ role: 'assistant', content: 'Gagal terhubung ke AI Assistant.' });
             } finally {
                 this.thinking = false;
+                this.save();
+                this.$nextTick(() => this.scrollBottom());
+            }
+        },
+
+        cancelAction(i) {
+            this.messages[i].action.status = 'cancelled';
+            this.save();
+        },
+
+        async confirmAction(i) {
+            const action = this.messages[i].action;
+            action.executing = true;
+            try {
+                const res = await fetch('{{ route('ai.execute-action') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    body: JSON.stringify({ tool: action.tool, args: action.args }),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    action.status = 'done';
+                    action.resultMessage = data.message;
+                    action.url = data.url ?? null;
+                } else {
+                    action.status = 'error';
+                    action.resultMessage = data.error || 'Gagal menjalankan aksi.';
+                }
+            } catch (e) {
+                action.status = 'error';
+                action.resultMessage = 'Gagal terhubung ke server.';
+            } finally {
+                action.executing = false;
                 this.save();
                 this.$nextTick(() => this.scrollBottom());
             }

@@ -43,6 +43,19 @@ class LeaveService
         $end       = Carbon::parse($data['end_date']);
         $totalDays = self::hitungHariKerja($start, $end);
 
+        // Cegah double-submit (klik ganda / submit ulang).
+        $duplicate = LeaveRequest::where('user_id', $user->id)
+            ->where('leave_type_id', $type->id)
+            ->where('start_date', $start->toDateString())
+            ->where('end_date', $end->toDateString())
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->latest()
+            ->first();
+
+        if ($duplicate) {
+            return $duplicate;
+        }
+
         throw_if(!$type->isEligible($user), \Exception::class,
             "Jenis cuti {$type->name} tidak tersedia untuk Anda.");
 

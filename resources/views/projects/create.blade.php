@@ -29,7 +29,9 @@
     @endif
 
     {{-- Form --}}
-    <form action="{{ route('projects.store') }}" method="POST" class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <form action="{{ route('projects.store') }}" method="POST" class="bg-white rounded-xl shadow-sm border border-gray-200"
+          x-data="{ submitting: false }"
+          @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
         @csrf
 
         <div class="p-6 space-y-6">
@@ -160,9 +162,10 @@
                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                 &larr; Kembali
             </a>
-            <button type="submit"
-                    class="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition">
-                Simpan Proyek
+            <button type="submit" :disabled="submitting"
+                    class="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <span x-show="!submitting">Simpan Proyek</span>
+                <span x-show="submitting" x-cloak>Menyimpan...</span>
             </button>
         </div>
 

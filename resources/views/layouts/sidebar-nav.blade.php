@@ -4,6 +4,9 @@
     $inactive     = 'ph-nav-link';
     $isSuperAdmin = auth()->user()->is_super_admin;
     $userPkgs     = $isSuperAdmin ? ['task_management', 'hris'] : auth()->user()->activePackages();
+    if (auth()->user()->hasRole('customer')) {
+        $userPkgs = array_values(array_diff($userPkgs, ['hris']));
+    }
     $activePkg    = session('active_package', $userPkgs[0] ?? 'task_management');
     $activePkg    = is_string($activePkg) ? $activePkg : 'task_management'; // guard: jangan sampai object masuk session
     $showTm       = empty($userPkgs) || $activePkg === 'task_management';

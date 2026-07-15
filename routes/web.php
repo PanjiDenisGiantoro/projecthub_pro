@@ -106,6 +106,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         $pkg = $request->input('package');
         $valid = ['task_management', 'hris'];
         $allowed = auth()->user()->is_super_admin ? $valid : auth()->user()->activePackages();
+        if (auth()->user()->hasRole('customer')) {
+            $allowed = array_diff($allowed, ['hris']);
+        }
         if (is_string($pkg) && in_array($pkg, $allowed)) {
             $request->session()->put('active_package', $pkg);
         }
@@ -264,8 +267,13 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('/departments',[AjaxController::class, 'departments'])->name('departments');
     });
 
-    // User Management (Admin only)
-    Route::resource('users', UserWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    // User Management
+    Route::middleware('can:access users')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['index']);
+    });
+    Route::middleware('can:manage users')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+    });
 
     // Client Management
     Route::resource('clients', ClientWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -386,6 +394,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // AI Assistant (widget mengambang)
     Route::post('/ai/chat', [AiAssistantWebController::class, 'chat'])->name('ai.chat');
+    Route::post('/ai/execute-action', [AiAssistantWebController::class, 'executeAction'])->name('ai.execute-action');
 
     // Exports
     Route::get('/projects/{project}/export/timesheet/excel', [ExportWebController::class, 'timesheetExcel'])->name('export.timesheet.excel');

@@ -5,7 +5,8 @@
 @section('content')
 <div class="py-4 max-w-3xl" x-data="invoiceForm()">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('invoices.store') }}" class="space-y-6">
+        <form method="POST" action="{{ route('invoices.store') }}" class="space-y-6"
+              @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
 
             <div class="grid grid-cols-2 gap-4">
@@ -112,7 +113,10 @@
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Buat Invoice</button>
+                <button type="submit" :disabled="submitting" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="!submitting">Buat Invoice</span>
+                    <span x-show="submitting" x-cloak>Menyimpan...</span>
+                </button>
                 <a href="{{ route('invoices.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -124,6 +128,7 @@
 function invoiceForm() {
     return {
         tax: {{ old('tax', 0) }},
+        submitting: false,
         items: [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
         get subtotal() { return this.items.reduce((s, i) => s + (i.total || 0), 0); },
         get taxAmount() { return this.subtotal * this.tax / 100; },

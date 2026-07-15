@@ -46,6 +46,19 @@ class OvertimeController extends Controller
         $end   = Carbon::parse($request->end_time);
         $hours = round($start->diffInMinutes($end) / 60, 2);
 
+        // Cegah double-submit (klik ganda / submit ulang).
+        $duplicate = Overtime::where('user_id', $user->id)
+            ->where('date', $request->date)
+            ->where('start_time', $request->start_time)
+            ->where('end_time', $request->end_time)
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->latest()
+            ->first();
+
+        if ($duplicate) {
+            return redirect()->route('hris.overtime.index')->with('success', 'Pengajuan lembur berhasil dikirim.');
+        }
+
         $overtime = Overtime::create([
             'user_id'     => $user->id,
             'company_id'  => $user->company_id,
