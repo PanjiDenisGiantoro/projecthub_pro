@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Mail\AccountCredentialsMail;
-use App\Models\Branch;
 use App\Models\Company;
-use App\Models\Department;
-use App\Models\Division;
 use App\Models\LeaveType;
+use App\Models\OrganizationUnit;
 use App\Models\OvertimeRule;
 use App\Models\Package;
 use App\Models\User;
@@ -55,36 +53,22 @@ class RegisterWebController extends Controller
                 'is_active' => true,
             ]);
 
-            $branch = Branch::create([
+            $rootUnit = OrganizationUnit::create([
                 'company_id' => $company->id,
                 'name'       => 'Kantor Pusat',
-                'code'       => 'PUSAT',
                 'is_active'  => true,
-            ]);
-
-            $division = Division::create([
-                'branch_id'  => $branch->id,
-                'name'       => 'Umum',
-                'code'       => 'UMUM',
-                'is_active'  => true,
-            ]);
-
-            $department = Department::create([
-                'division_id' => $division->id,
-                'name'        => 'Manajemen',
-                'code'        => 'MGT',
-                'is_active'   => true,
+                ...OrganizationUnit::nextCodeForParent(null, $company->id),
             ]);
 
             $user = User::create([
-                'name'          => $request->name,
-                'email'         => $request->email,
-                'password'      => $request->password,
-                'company_id'    => $company->id,
-                'department_id' => $department->id,
-                'is_active'     => true,
-                'is_registered' => true,
-                'timezone'      => 'Asia/Jakarta',
+                'name'                 => $request->name,
+                'email'                => $request->email,
+                'password'             => $request->password,
+                'company_id'           => $company->id,
+                'organization_unit_id' => $rootUnit->id,
+                'is_active'            => true,
+                'is_registered'        => true,
+                'timezone'             => 'Asia/Jakarta',
             ]);
 
             $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');

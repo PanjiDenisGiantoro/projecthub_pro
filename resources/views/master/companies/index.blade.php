@@ -92,12 +92,12 @@
                     {{-- Stats --}}
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-xl font-bold text-gray-800">{{ $company->divisions_count }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">Divisi</div>
+                            <div class="text-xl font-bold text-gray-800">{{ $company->root_organization_units_count }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">Unit Level 1</div>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-xl font-bold text-gray-800">{{ $company->departments_count }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">Departemen</div>
+                            <div class="text-xl font-bold text-gray-800">{{ $company->organization_units_count }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">Total Unit</div>
                         </div>
                     </div>
 
@@ -119,9 +119,9 @@
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
-                        <a href="{{ route('divisions.index', ['company_id' => $company->id]) }}"
+                        <a href="{{ route('organization-units.index', ['company_id' => $company->id]) }}"
                            class="text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors">
-                            Lihat Divisi →
+                            Lihat Organisasi →
                         </a>
                         <div class="flex-1"></div>
                         <a href="{{ route('companies.edit', $company) }}" class="text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors">Edit</a>

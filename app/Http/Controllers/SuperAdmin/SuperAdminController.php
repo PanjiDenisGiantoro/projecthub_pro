@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
 use App\Models\Company;
-use App\Models\Department;
-use App\Models\Division;
+use App\Models\OrganizationUnit;
 use App\Models\Package;
 use App\Models\Project;
 use App\Models\StructuralLevel;
@@ -28,8 +26,8 @@ class SuperAdminController extends Controller
                                         ->count(),
         ];
 
-        $companies = Company::withCount(['branches'])
-            ->with(['branches.divisions.departments.users' => fn($q) => $q->limit(1)])
+        $companies = Company::withCount(['rootOrganizationUnits'])
+            ->with(['organizationUnits.users' => fn($q) => $q->limit(1)])
             ->latest()
             ->paginate(15);
 
@@ -38,7 +36,7 @@ class SuperAdminController extends Controller
 
     public function companies()
     {
-        $companies = Company::withCount(['branches'])
+        $companies = Company::withCount(['rootOrganizationUnits'])
             ->latest()
             ->paginate(20);
 
@@ -47,7 +45,7 @@ class SuperAdminController extends Controller
 
     public function users()
     {
-        $users = User::with('department.division.branch.company')
+        $users = User::with('organizationUnit.company')
             ->where('is_super_admin', false)
             ->latest()
             ->paginate(20);
@@ -66,7 +64,7 @@ class SuperAdminController extends Controller
      * Hapus permanen perusahaan beserta seluruh user & data terkait (project, absensi,
      * payroll, dst). Dipakai superadmin untuk bersih-bersih data hasil tes register.
      * Urutan hapus penting: projects dulu (invoices.client_id tidak cascade dari user,
-     * tapi cascade dari project), baru users, baru company (cascade ke branch/division/department).
+     * tapi cascade dari project), baru users, baru company (cascade ke organization_units).
      */
     public function destroyCompany(Request $request, Company $company)
     {
@@ -110,37 +108,23 @@ class SuperAdminController extends Controller
                 'is_active' => true,
             ]);
 
-            $branch = Branch::create([
+            $rootUnit = OrganizationUnit::create([
                 'company_id' => $company->id,
                 'name'       => 'Kantor Pusat',
-                'code'       => 'PUSAT',
                 'is_active'  => true,
-            ]);
-
-            $division = Division::create([
-                'branch_id'  => $branch->id,
-                'name'       => 'Umum',
-                'code'       => 'UMUM',
-                'is_active'  => true,
-            ]);
-
-            $department = Department::create([
-                'division_id' => $division->id,
-                'name'        => 'Manajemen',
-                'code'        => 'MGT',
-                'is_active'   => true,
+                ...OrganizationUnit::nextCodeForParent(null, $company->id),
             ]);
 
             $user = User::create([
-                'name'          => $request->name,
-                'email'         => $request->email,
-                'password'      => $request->password,
-                'company_id'    => $company->id,
-                'department_id' => $department->id,
-                'is_active'     => true,
-                'is_registered' => true,
-                'timezone'      => 'Asia/Jakarta',
-                'active_until'  => $request->type === 'lifetime' ? null : $request->active_until,
+                'name'                 => $request->name,
+                'email'                => $request->email,
+                'password'             => $request->password,
+                'company_id'           => $company->id,
+                'organization_unit_id' => $rootUnit->id,
+                'is_active'            => true,
+                'is_registered'        => true,
+                'timezone'             => 'Asia/Jakarta',
+                'active_until'         => $request->type === 'lifetime' ? null : $request->active_until,
             ]);
 
             $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');
@@ -157,7 +141,7 @@ class SuperAdminController extends Controller
     {
         $filter = $request->query('filter', 'all');
 
-        $query = User::with(['department.division.branch.company', 'packages'])
+        $query = User::with(['organizationUnit.company', 'packages'])
             ->where('is_registered', true)
             ->latest();
 

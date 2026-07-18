@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
+use App\Models\OrganizationUnit;
 use App\Models\Package;
 use App\Models\StructuralLevel;
 use App\Models\User;
@@ -17,7 +17,7 @@ class UserWebController extends Controller
         $authUser  = auth()->user();
         $isAdmin   = $authUser->can('manage users');
 
-        $query = User::with(['roles', 'structuralLevel', 'department'])
+        $query = User::with(['roles', 'structuralLevel', 'organizationUnit'])
             ->where('is_super_admin', false)
             ->whereDoesntHave('roles', fn($q) => $q->where('name', 'customer'))
             ->when($request->role, fn($q) => $q->role($request->role))
@@ -46,7 +46,7 @@ class UserWebController extends Controller
     {
         $authUser = auth()->user();
 
-        $users = User::with(['roles', 'structuralLevel', 'department'])
+        $users = User::with(['roles', 'structuralLevel', 'organizationUnit'])
             ->whereHas('roles', fn($q) => $q->where('name', 'admin'))
             ->where('company_id', $authUser->company_id)
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
@@ -58,31 +58,31 @@ class UserWebController extends Controller
 
     public function create()
     {
-        $roles            = Role::all();
-        $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
-        $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
-        return view('users.create', compact('roles', 'structuralLevels', 'companies'));
+        $roles             = Role::all();
+        $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
+        $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
+        return view('users.create', compact('roles', 'structuralLevels', 'organizationUnits'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'                => 'required|string|max:255',
-            'email'               => 'required|email|unique:users',
-            'password'            => 'required|min:8|confirmed',
-            'role'                => 'required|exists:roles,name',
-            'structural_level_id' => 'nullable|exists:structural_levels,id',
-            'department_id'       => 'nullable|exists:departments,id',
+            'name'                  => 'required|string|max:255',
+            'email'                 => 'required|email|unique:users',
+            'password'              => 'required|min:8|confirmed',
+            'role'                  => 'required|exists:roles,name',
+            'structural_level_id'   => 'nullable|exists:structural_levels,id',
+            'organization_unit_id'  => 'nullable|exists:organization_units,id',
         ]);
 
         $user = User::create([
-            'name'                => $request->name,
-            'email'               => $request->email,
-            'password'            => $request->password,
-            'company_id'          => auth()->user()->company_id,
-            'is_active'           => $request->boolean('is_active', true),
-            'structural_level_id' => $request->structural_level_id,
-            'department_id'       => $request->department_id,
+            'name'                 => $request->name,
+            'email'                => $request->email,
+            'password'             => $request->password,
+            'company_id'           => auth()->user()->company_id,
+            'is_active'            => $request->boolean('is_active', true),
+            'structural_level_id'  => $request->structural_level_id,
+            'organization_unit_id' => $request->organization_unit_id,
         ]);
         $user->assignRole($request->role);
 
@@ -98,36 +98,25 @@ class UserWebController extends Controller
 
     public function edit(User $user)
     {
-        $roles            = Role::all();
-        $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
-        $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
+        $roles             = Role::all();
+        $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
+        $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
 
-        // Pre-populate cascade dari department_id yang sudah ada
-        $preselect = ['company_id' => null, 'branch_id' => null, 'division_id' => null];
-        if ($user->department_id) {
-            $dept = $user->department()->with('division.branch')->first();
-            if ($dept) {
-                $preselect['division_id'] = $dept->division_id;
-                $preselect['branch_id']   = $dept->division?->branch_id;
-                $preselect['company_id']  = $dept->division?->branch?->company_id;
-            }
-        }
-
-        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'companies', 'preselect'));
+        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'organizationUnits'));
     }
 
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'                => 'required|string|max:255',
-            'email'               => 'required|email|unique:users,email,' . $user->id,
-            'role'                => 'required|exists:roles,name',
-            'structural_level_id' => 'nullable|exists:structural_levels,id',
-            'department_id'       => 'nullable|exists:departments,id',
+            'name'                 => 'required|string|max:255',
+            'email'                => 'required|email|unique:users,email,' . $user->id,
+            'role'                 => 'required|exists:roles,name',
+            'structural_level_id'  => 'nullable|exists:structural_levels,id',
+            'organization_unit_id' => 'nullable|exists:organization_units,id',
         ]);
 
         $user->update([
-            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'department_id'),
+            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id'),
             'is_active' => $request->boolean('is_active'),
         ]);
         $user->syncRoles([$request->role]);

@@ -73,8 +73,8 @@
                         @endif
                     </td>
                     <td class="px-4 py-3">
-                        @if($u->department)
-                            <span class="text-xs text-gray-700">{{ $u->department->name }}</span>
+                        @if($u->organizationUnit)
+                            <span class="text-xs text-gray-700">{{ $u->organizationUnit->name }}</span>
                         @else
                             <span class="text-gray-300 text-xs">—</span>
                         @endif

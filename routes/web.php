@@ -10,7 +10,6 @@ use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
 use App\Http\Controllers\Web\RegisterWebController;
 use App\Http\Controllers\Web\VerificationController;
-use App\Http\Controllers\Web\BranchWebController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
 use App\Http\Controllers\Web\CampaignWebController;
@@ -18,13 +17,12 @@ use App\Http\Controllers\Web\ClientPortalWebController;
 use App\Http\Controllers\Web\ClientWebController;
 use App\Http\Controllers\Web\CompanyWebController;
 use App\Http\Controllers\Web\DashboardWebController;
-use App\Http\Controllers\Web\DepartmentWebController;
-use App\Http\Controllers\Web\DivisionWebController;
 use App\Http\Controllers\Web\ExportWebController;
 use App\Http\Controllers\Web\InvoiceWebController;
 use App\Http\Controllers\Web\KbArticleWebController;
 use App\Http\Controllers\Web\MasterDataWebController;
 use App\Http\Controllers\Web\MilestoneWebController;
+use App\Http\Controllers\Web\OrganizationUnitWebController;
 use App\Http\Controllers\Web\ProjectFileWebController;
 use App\Http\Controllers\Web\ProjectTemplateWebController;
 use App\Http\Controllers\Web\ProjectWebController;
@@ -261,10 +259,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // AJAX cascade dropdowns
     Route::prefix('ajax')->name('ajax.')->group(function () {
-        Route::get('/companies',  [AjaxController::class, 'companies'])->name('companies');
-        Route::get('/branches',   [AjaxController::class, 'branches'])->name('branches');
-        Route::get('/divisions',  [AjaxController::class, 'divisions'])->name('divisions');
-        Route::get('/departments',[AjaxController::class, 'departments'])->name('departments');
+        Route::get('/companies',          [AjaxController::class, 'companies'])->name('companies');
+        Route::get('/organization-units', [AjaxController::class, 'organizationUnits'])->name('organization-units');
     });
 
     // User Management
@@ -283,9 +279,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/master', [MasterDataWebController::class, 'index'])->name('master.index');
         Route::resource('companies', CompanyWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('branches', BranchWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('divisions', DivisionWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('departments', DepartmentWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
         Route::post('structural-levels/reset', [StructuralLevelWebController::class, 'resetDefault'])->name('structural-levels.reset');
     });

@@ -2,18 +2,16 @@
 
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BugTicketController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerRequestController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KbArticleController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrganizationUnitController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SlaPolicyController;
 use App\Http\Controllers\TaskController;
@@ -50,23 +48,17 @@ Route::middleware('auth:sanctum')->group(function () {
         // Companies
         Route::apiResource('companies', CompanyController::class);
 
-        // Branches
-        Route::apiResource('branches', BranchController::class);
-
-        // Divisions
-        Route::apiResource('divisions', DivisionController::class);
-
-        // Departments (write: admin only)
-        Route::apiResource('departments', DepartmentController::class)->except(['index', 'show']);
+        // Organization units (write: admin only)
+        Route::apiResource('organization-units', OrganizationUnitController::class)->except(['index', 'show']);
     });
 
     // ─── Admin / Manager only ────────────────────────────────────────────────
     Route::middleware('role:admin|manager')->group(function () {
 
-        // Departments (read: admin + manager, for user form dropdown)
-        Route::get('/departments', [DepartmentController::class, 'index']);
-        Route::get('/departments/options', [DepartmentController::class, 'options']);
-        Route::get('/departments/{department}', [DepartmentController::class, 'show']);
+        // Organization units (read: admin + manager, for user form dropdown)
+        Route::get('/organization-units', [OrganizationUnitController::class, 'index']);
+        Route::get('/organization-units/options', [OrganizationUnitController::class, 'options']);
+        Route::get('/organization-units/{organizationUnit}', [OrganizationUnitController::class, 'show']);
 
         // User management
         Route::get('/users', [UserController::class, 'index']);

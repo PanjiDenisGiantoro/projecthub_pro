@@ -47,25 +47,13 @@ class Company extends Model
         return $code;
     }
 
-    public function branches()
+    public function organizationUnits()
     {
-        return $this->hasMany(Branch::class);
+        return $this->hasMany(OrganizationUnit::class);
     }
 
-    public function divisions()
+    public function rootOrganizationUnits()
     {
-        return $this->hasManyThrough(Division::class, Branch::class);
-    }
-
-    public function departments()
-    {
-        return $this->hasManyThrough(
-            Department::class,
-            Division::class,
-            'branch_id',
-            'division_id',
-            'id',
-            'id'
-        );
+        return $this->hasMany(OrganizationUnit::class)->whereNull('parent_id');
     }
 }

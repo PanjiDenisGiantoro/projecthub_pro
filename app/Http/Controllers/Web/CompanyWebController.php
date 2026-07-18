@@ -12,7 +12,7 @@ class CompanyWebController extends Controller
     {
         $cid = $this->tenantId();
 
-        $companies = Company::withCount(['divisions', 'departments'])
+        $companies = Company::withCount(['organizationUnits', 'rootOrganizationUnits'])
             ->when($cid, fn($q) => $q->where('id', $cid))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('code', 'like', "%{$request->search}%"))
@@ -80,8 +80,8 @@ class CompanyWebController extends Controller
     {
         abort_if($this->tenantId() !== null, 403, 'Tidak dapat menghapus perusahaan sendiri.');
 
-        if ($company->divisions()->exists()) {
-            return back()->withErrors(['Tidak bisa menghapus perusahaan yang masih memiliki divisi.']);
+        if ($company->organizationUnits()->exists()) {
+            return back()->withErrors(['Tidak bisa menghapus perusahaan yang masih memiliki unit organisasi.']);
         }
         $company->delete();
         return redirect()->route('companies.index')->with('success', 'Perusahaan dihapus.');

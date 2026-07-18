@@ -149,10 +149,10 @@
                         </span>
                     </dd>
                 </div>
-                @if($user->department)
+                @if($user->organizationUnit)
                 <div class="flex items-center gap-4 py-2 border-b border-gray-50">
-                    <dt class="text-sm text-gray-400 w-28 shrink-0">Departemen</dt>
-                    <dd class="text-sm font-medium text-gray-800">{{ $user->department->name }}</dd>
+                    <dt class="text-sm text-gray-400 w-28 shrink-0">Unit Organisasi</dt>
+                    <dd class="text-sm font-medium text-gray-800">{{ $user->organizationUnit->name }}</dd>
                 </div>
                 @endif
                 @if($user->structuralLevel)

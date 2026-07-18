@@ -81,7 +81,7 @@
         </thead>
         <tbody class="divide-y divide-white/5">
             @forelse($users as $user)
-            @php $company = $user->department?->division?->branch?->company; @endphp
+            @php $company = $user->organizationUnit?->company; @endphp
             <tr class="hover:bg-white/2 transition-colors">
 
                 {{-- Pelanggan --}}

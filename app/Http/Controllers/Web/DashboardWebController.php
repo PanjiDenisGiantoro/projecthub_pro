@@ -25,7 +25,7 @@ class DashboardWebController extends Controller
         if ($activePkg === 'hris' && !$user->hasRole('customer') && ($user->is_super_admin || $user->hasPackage('hris'))) {
             $companyId      = $user->company_id;
             $totalKaryawan  = User::where('company_id', $companyId)->where('is_super_admin', false)->count();
-            $totalDept      = \App\Models\Department::whereHas('division.branch', fn($q) => $q->where('company_id', $companyId))->count();
+            $totalDept      = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
 
             return view('dashboard.hris', compact('totalKaryawan', 'totalDept'));
         }

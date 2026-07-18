@@ -2,17 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Models\Branch;
 use App\Models\BudgetEntry;
 use App\Models\BugTicket;
 use App\Models\Campaign;
 use App\Models\Company;
 use App\Models\CustomerRequest;
-use App\Models\Department;
-use App\Models\Division;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Milestone;
+use App\Models\OrganizationUnit;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
@@ -31,24 +29,24 @@ class TestingSeeder extends Seeder
             ['name' => 'PT Testing Indonesia', 'is_active' => true]
         );
 
-        $branch = Branch::updateOrCreate(
-            ['code' => 'PUSAT', 'company_id' => $company->id],
-            ['name' => 'Kantor Pusat', 'is_active' => true]
+        $rootUnit = OrganizationUnit::firstOrCreate(
+            ['company_id' => $company->id, 'parent_id' => null, 'name' => 'Kantor Pusat'],
+            [...OrganizationUnit::nextCodeForParent(null, $company->id), 'is_active' => true]
         );
 
-        $division = Division::updateOrCreate(
-            ['code' => 'ITDEV', 'branch_id' => $branch->id],
-            ['name' => 'IT & Development', 'is_active' => true]
+        $divisionUnit = OrganizationUnit::firstOrCreate(
+            ['company_id' => $company->id, 'parent_id' => $rootUnit->id, 'name' => 'IT & Development'],
+            [...OrganizationUnit::nextCodeForParent($rootUnit->id, $company->id), 'is_active' => true]
         );
 
-        $department = Department::updateOrCreate(
-            ['code' => 'ENG', 'division_id' => $division->id],
-            ['name' => 'Engineering', 'is_active' => true]
+        $department = OrganizationUnit::firstOrCreate(
+            ['company_id' => $company->id, 'parent_id' => $divisionUnit->id, 'name' => 'Engineering'],
+            [...OrganizationUnit::nextCodeForParent($divisionUnit->id, $company->id), 'is_active' => true]
         );
 
-        $levelStaff   = StructuralLevel::firstOrCreate(['name' => 'Staff'],   ['level' => 3]);
-        $levelManager = StructuralLevel::firstOrCreate(['name' => 'Manager'], ['level' => 2]);
-        $levelAdmin   = StructuralLevel::firstOrCreate(['name' => 'Admin'],   ['level' => 1]);
+        $levelStaff   = StructuralLevel::firstOrCreate(['name' => 'Staff'],   ['sort_order' => 3]);
+        $levelManager = StructuralLevel::firstOrCreate(['name' => 'Manager'], ['sort_order' => 2]);
+        $levelAdmin   = StructuralLevel::firstOrCreate(['name' => 'Admin'],   ['sort_order' => 1]);
 
         // ── 2. Roles ──────────────────────────────────────────────────────────
         foreach (['admin', 'manager', 'developer', 'marketing', 'customer'] as $r) {
@@ -63,7 +61,7 @@ class TestingSeeder extends Seeder
                 'password'             => 'password',
                 'is_active'            => true,
                 'timezone'             => 'Asia/Jakarta',
-                'department_id'        => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id'  => $levelAdmin->id,
             ]
         );
@@ -76,7 +74,7 @@ class TestingSeeder extends Seeder
                 'password'            => 'password',
                 'is_active'           => true,
                 'timezone'            => 'Asia/Jakarta',
-                'department_id'       => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id' => $levelManager->id,
             ]
         );
@@ -89,7 +87,7 @@ class TestingSeeder extends Seeder
                 'password'            => 'password',
                 'is_active'           => true,
                 'timezone'            => 'Asia/Jakarta',
-                'department_id'       => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id' => $levelStaff->id,
             ]
         );
@@ -102,7 +100,7 @@ class TestingSeeder extends Seeder
                 'password'            => 'password',
                 'is_active'           => true,
                 'timezone'            => 'Asia/Jakarta',
-                'department_id'       => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id' => $levelStaff->id,
             ]
         );

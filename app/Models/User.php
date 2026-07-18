@@ -30,7 +30,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'active_until',
         'timezone',
         'company_id',
-        'department_id',
+        'organization_unit_id',
         'structural_level_id',
         'face_descriptor',
         'email_verified_at',
@@ -154,26 +154,14 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(PhNotification::class);
     }
 
-    public function department()
+    public function organizationUnit()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(OrganizationUnit::class);
     }
 
     public function structuralLevel()
     {
         return $this->belongsTo(StructuralLevel::class);
-    }
-
-    public function division()
-    {
-        return $this->hasOneThrough(
-            Division::class,
-            Department::class,
-            'id',
-            'id',
-            'department_id',
-            'division_id'
-        );
     }
 
     public function company()

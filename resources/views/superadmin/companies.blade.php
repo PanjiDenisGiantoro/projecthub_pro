@@ -16,7 +16,7 @@
             <tr class="border-b border-white/5 text-xs text-slate-500 uppercase tracking-wide">
                 <th class="text-left px-6 py-3 font-medium">Perusahaan</th>
                 <th class="text-left px-6 py-3 font-medium">Kontak</th>
-                <th class="text-center px-6 py-3 font-medium">Cabang</th>
+                <th class="text-center px-6 py-3 font-medium">Unit Organisasi</th>
                 <th class="text-left px-6 py-3 font-medium">Terdaftar</th>
                 <th class="text-center px-6 py-3 font-medium">Status</th>
                 <th class="px-6 py-3"></th>
@@ -41,7 +41,7 @@
                     <p class="text-slate-300 text-xs">{{ $company->email ?? '-' }}</p>
                     <p class="text-slate-500 text-xs">{{ $company->phone ?? '-' }}</p>
                 </td>
-                <td class="px-6 py-4 text-center text-slate-300">{{ $company->branches_count }}</td>
+                <td class="px-6 py-4 text-center text-slate-300">{{ $company->root_organization_units_count }}</td>
                 <td class="px-6 py-4 text-slate-400 text-xs">{{ $company->created_at->format('d M Y, H:i') }}</td>
                 <td class="px-6 py-4 text-center">
                     @if($company->is_active)

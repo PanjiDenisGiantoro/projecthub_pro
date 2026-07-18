@@ -71,44 +71,19 @@
                 </select>
             </div>
 
-            {{-- Cascade: Company → Branch → Division → Department --}}
             <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Penempatan Organisasi</p>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan</label>
-                        <select id="sel-company" class="w-full">
-                            <option value="">— Pilih Perusahaan —</option>
-                            @foreach($companies as $company)
-                                <option value="{{ $company->id }}"
-                                    {{ (old('company_id', $preselect['company_id'])) == $company->id ? 'selected' : '' }}>
-                                    {{ $company->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                        <select id="sel-branch" class="w-full">
-                            <option value="">— Pilih Branch —</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                        <select id="sel-division" class="w-full">
-                            <option value="">— Pilih Divisi —</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Departemen</label>
-                        <select id="sel-department" name="department_id" class="w-full">
-                            <option value="">— Pilih Departemen —</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit Organisasi</label>
+                    <select name="organization_unit_id" id="sel-org-unit" class="w-full">
+                        <option value="">— Tidak Ditentukan —</option>
+                        @foreach($organizationUnits as $unit)
+                            <option value="{{ $unit->id }}" {{ old('organization_unit_id', $user->organization_unit_id) == $unit->id ? 'selected' : '' }}>
+                                {{ str_repeat('— ', $unit->level - 1) }}{{ $unit->name }} (L{{ $unit->code }})
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -134,74 +109,11 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
-    const URLS = {
-        branches:    '{{ route('ajax.branches') }}',
-        divisions:   '{{ route('ajax.divisions') }}',
-        departments: '{{ route('ajax.departments') }}',
-    };
-
-    const preselect = {
-        company_id:    {{ $preselect['company_id']  ?? 'null' }},
-        branch_id:     {{ $preselect['branch_id']   ?? 'null' }},
-        division_id:   {{ $preselect['division_id'] ?? 'null' }},
-        department_id: {{ old('department_id', $user->department_id) ?? 'null' }},
-    };
-
-    $('#select-role, #select-level, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
+    $('#select-role, #select-level, #sel-org-unit').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',
     });
-
-    function clearSelect(sel, placeholder) {
-        $(sel).empty().append(`<option value="">${placeholder}</option>`).trigger('change.select2');
-    }
-
-    function loadOptions(sel, url, params, placeholder, preselectVal, nextFn) {
-        clearSelect(sel, placeholder);
-        $.getJSON(url, params).done(function (data) {
-            $(sel).empty().append(`<option value="">${placeholder}</option>`);
-            data.forEach(item => $(sel).append(new Option(item.name, item.id)));
-            if (preselectVal) $(sel).val(preselectVal);
-            $(sel).trigger('change.select2');
-            if (nextFn) nextFn();
-        });
-    }
-
-    $('#sel-company').on('change', function () {
-        const id = $(this).val();
-        clearSelect('#sel-branch', '— Pilih Branch —');
-        clearSelect('#sel-division', '— Pilih Divisi —');
-        clearSelect('#sel-department', '— Pilih Departemen —');
-        if (id) loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —');
-    });
-
-    $('#sel-branch').on('change', function () {
-        const id = $(this).val();
-        clearSelect('#sel-division', '— Pilih Divisi —');
-        clearSelect('#sel-department', '— Pilih Departemen —');
-        if (id) loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —');
-    });
-
-    $('#sel-division').on('change', function () {
-        const id = $(this).val();
-        clearSelect('#sel-department', '— Pilih Departemen —');
-        if (id) loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —');
-    });
-
-    // Pre-populate cascade on page load using sequential callbacks
-    if (preselect.company_id) {
-        loadOptions('#sel-branch', URLS.branches, { company_id: preselect.company_id }, '— Pilih Branch —',
-            preselect.branch_id, function () {
-                if (!preselect.branch_id) return;
-                loadOptions('#sel-division', URLS.divisions, { branch_id: preselect.branch_id }, '— Pilih Divisi —',
-                    preselect.division_id, function () {
-                        if (!preselect.division_id) return;
-                        loadOptions('#sel-department', URLS.departments, { division_id: preselect.division_id }, '— Pilih Departemen —',
-                            preselect.department_id, null);
-                    });
-            });
-    }
 });
 </script>
 @endpush

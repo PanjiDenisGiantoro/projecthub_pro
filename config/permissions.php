@@ -64,7 +64,7 @@ return [
 
     'Admin & Master Data' => [
         'manage users'       => 'Kelola Users (tambah, edit, hapus)',
-        'manage master data' => 'Kelola Master Data (perusahaan, divisi, dll)',
+        'manage master data' => 'Kelola Master Data (perusahaan, unit organisasi, dll)',
         'manage permissions' => 'Kelola Permission per Role (halaman ini)',
     ],
 
