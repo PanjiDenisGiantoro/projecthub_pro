@@ -16,18 +16,15 @@
                 <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Folder</p>
                 <button @click="activeFolder='All'"
                         :class="activeFolder==='All' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
-                        class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors">
+                        class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors mb-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     Semua ({{ $files->count() }})
                 </button>
-                @foreach($folders as $folder)
-                <button @click="activeFolder='{{ $folder }}'"
-                        :class="activeFolder==='{{ $folder }}' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
-                        class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-                    {{ $folder }} ({{ $files->where('folder', $folder)->count() }})
-                </button>
-                @endforeach
+                <div class="space-y-0.5">
+                    @foreach($folderTree as $name => $node)
+                        <x-file-folder-node :name="$name" :node="$node" :files="$files" />
+                    @endforeach
+                </div>
             </div>
         </div>
 
@@ -36,7 +33,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-semibold text-gray-700" x-text="activeFolder === 'All' ? 'Semua File' : activeFolder"></h3>
                 @if(!auth()->user()->hasRole('customer'))
-                <button @click="showUpload=!showUpload"
+                <button @click="showUpload=!showUpload; if(showUpload && activeFolder!=='All') newFolder=activeFolder"
                         class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     <span x-text="showUpload ? 'Batal' : 'Upload File'"></span>
@@ -53,11 +50,12 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Folder</label>
-                            <input type="text" name="folder" x-model="newFolder" placeholder="General" list="folder-list"
+                            <input type="text" name="folder" x-model="newFolder" placeholder="General atau Docs/Kontrak" list="folder-list"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                             <datalist id="folder-list">
                                 @foreach($folders as $f)<option value="{{ $f }}">@endforeach
                             </datalist>
+                            <p class="text-[11px] text-gray-400 mt-1">Pakai "/" untuk folder di dalam folder, mis. Docs/Kontrak/2024</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>

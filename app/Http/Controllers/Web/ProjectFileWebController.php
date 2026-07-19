@@ -14,18 +14,19 @@ class ProjectFileWebController extends Controller
     {
         $files = $project->files()->with('uploader')->orderBy('folder')->orderByDesc('created_at')->get();
         $folders = $files->pluck('folder')->unique()->sort()->values();
-        return view('files.index', compact('project', 'files', 'folders'));
+        $folderTree = $this->buildFolderTree($folders);
+        return view('files.index', compact('project', 'files', 'folders', 'folderTree'));
     }
 
     public function store(Request $request, Project $project)
     {
         $request->validate([
             'files.*' => 'required|file|max:51200', // 50MB
-            'folder' => 'nullable|string|max:100',
+            'folder' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:500',
         ]);
 
-        $folder = trim($request->input('folder', 'General')) ?: 'General';
+        $folder = $this->normalizeFolderPath($request->input('folder', 'General')) ?: 'General';
         $description = $request->input('description');
 
         foreach ($request->file('files', []) as $file) {
@@ -55,8 +56,38 @@ class ProjectFileWebController extends Controller
 
     public function moveFolder(Request $request, Project $project, ProjectFile $projectFile)
     {
-        $request->validate(['folder' => 'required|string|max:100']);
-        $projectFile->update(['folder' => $request->folder]);
+        $request->validate(['folder' => 'required|string|max:255']);
+        $projectFile->update(['folder' => $this->normalizeFolderPath($request->folder)]);
         return back()->with('success', 'File dipindahkan.');
+    }
+
+    /**
+     * "Docs / Kontrak / / 2024/" -> "Docs/Kontrak/2024" — supaya folder bisa
+     * dinamai lewat "/" (folder di dalam folder) tanpa slash ganda/nyasar di ujung.
+     */
+    private function normalizeFolderPath(?string $path): string
+    {
+        $segments = array_filter(array_map('trim', explode('/', $path ?? '')), fn($s) => $s !== '');
+        return implode('/', $segments);
+    }
+
+    /**
+     * Ubah daftar path folder flat ("Docs", "Docs/Kontrak") jadi tree bersarang
+     * untuk ditampilkan sebagai folder-di-dalam-folder di sidebar.
+     */
+    private function buildFolderTree(\Illuminate\Support\Collection $paths): array
+    {
+        $tree = [];
+        foreach ($paths as $path) {
+            $node = &$tree;
+            $currentPath = '';
+            foreach (explode('/', $path) as $segment) {
+                $currentPath = $currentPath === '' ? $segment : "{$currentPath}/{$segment}";
+                $node[$segment] ??= ['path' => $currentPath, 'children' => []];
+                $node = &$node[$segment]['children'];
+            }
+            unset($node);
+        }
+        return $tree;
     }
 }
