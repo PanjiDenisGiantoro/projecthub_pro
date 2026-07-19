@@ -5,6 +5,13 @@
 @push('head')
 <style>
 .org-chart-wrapper { width: 100%; overflow-x: auto; padding-bottom: 24px; }
+
+/* Bagan Vertikal: tiap unit level 1 (L1, L2, dst) pohonnya sendiri, ditumpuk ke
+   bawah satu-satu (bukan sejajar ke samping seperti Bagan Horizontal). */
+.org-chart-box--standalone { margin: 0 auto 28px; }
+.org-chart-roots { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.org-chart--standalone { padding-top: 0 !important; }
+
 .org-chart, .org-chart ul {
     display: flex;
     justify-content: center;
@@ -127,15 +134,11 @@
         </a>
         <a href="{{ route('organization-units.index', array_merge(request()->except('view'), ['view' => 'chart'])) }}"
            class="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors {{ $viewMode === 'chart' ? 'bg-violet-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-            Bagan Horizontal
-        </a>
-        <a href="{{ route('organization-units.index', array_merge(request()->except('view'), ['view' => 'chart-vertical'])) }}"
-           class="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors {{ $viewMode === 'chart-vertical' ? 'bg-violet-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
-            Bagan Vertikal
+            Bagan Organisasi
         </a>
     </div>
 
-    @if($viewMode === 'chart' || $viewMode === 'chart-vertical')
+    @if($viewMode === 'chart')
         <div class="bg-white rounded-xl border border-gray-200 p-6">
             @if($units->isEmpty())
                 <p class="text-center text-gray-400 py-10">
@@ -147,9 +150,8 @@
                     @endif
                 </p>
             @else
-                {{-- Top-down klasik: per level = 1 baris, children center di bawah parent,
-                     connector elbow (siku), tinggi bagan mengikuti kedalaman level bukan jumlah node. --}}
-                <x-org-chart :units="$units" :company="$companies->firstWhere('id', (int) $selectedCompany)" />
+                {{-- Tiap unit level 1 pohonnya sendiri, ditumpuk ke bawah satu-satu (bukan sejajar ke samping). --}}
+                <x-org-chart-vertical :units="$units" :company="$companies->firstWhere('id', (int) $selectedCompany)" />
             @endif
         </div>
     @else
