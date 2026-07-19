@@ -18,7 +18,6 @@ class UserWebController extends Controller
         $isAdmin   = $authUser->can('manage users');
 
         $query = User::with(['roles', 'structuralLevel', 'organizationUnit'])
-            ->where('is_super_admin', false)
             ->whereDoesntHave('roles', fn($q) => $q->where('name', 'customer'))
             ->when($request->role, fn($q) => $q->role($request->role))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
