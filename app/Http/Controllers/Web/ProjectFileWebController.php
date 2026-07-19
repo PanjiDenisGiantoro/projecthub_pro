@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectFolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,9 +14,41 @@ class ProjectFileWebController extends Controller
     public function index(Project $project)
     {
         $files = $project->files()->with('uploader')->orderBy('folder')->orderByDesc('created_at')->get();
-        $folders = $files->pluck('folder')->unique()->sort()->values();
+
+        // Gabungkan folder yang sudah berisi file dengan folder kosong yang
+        // sengaja dibuat duluan (belum ada file di dalamnya).
+        $folders = $files->pluck('folder')
+            ->merge($project->folders()->pluck('path'))
+            ->unique()
+            ->sort()
+            ->values();
+
         $folderTree = $this->buildFolderTree($folders);
         return view('files.index', compact('project', 'files', 'folders', 'folderTree'));
+    }
+
+    /** Buat folder kosong (bisa bersarang lebih dari 1 level lewat "parent"). */
+    public function storeFolder(Request $request, Project $project)
+    {
+        $request->validate([
+            'name'   => 'required|string|max:100',
+            'parent' => 'nullable|string|max:255',
+        ]);
+
+        $parent = $this->normalizeFolderPath($request->input('parent'));
+        $name   = $this->normalizeFolderPath($request->input('name'));
+        $path   = $parent !== '' ? "{$parent}/{$name}" : $name;
+
+        if ($path === '') {
+            return back()->withErrors(['name' => 'Nama folder tidak boleh kosong.']);
+        }
+
+        ProjectFolder::firstOrCreate(
+            ['project_id' => $project->id, 'path' => $path],
+            ['created_by' => auth()->id()]
+        );
+
+        return back()->with('success', "Folder \"{$path}\" berhasil dibuat.");
     }
 
     public function store(Request $request, Project $project)

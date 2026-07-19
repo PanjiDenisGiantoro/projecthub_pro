@@ -327,6 +327,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/files', [ProjectFileWebController::class, 'store'])->name('project.files.store');
         Route::delete('/projects/{project}/files/{projectFile}', [ProjectFileWebController::class, 'destroy'])->name('project.files.destroy');
         Route::patch('/projects/{project}/files/{projectFile}/folder', [ProjectFileWebController::class, 'moveFolder'])->name('project.files.move');
+        Route::post('/projects/{project}/files/folders', [ProjectFileWebController::class, 'storeFolder'])->name('project.files.folders.store');
 
         Route::get('/projects/{project}/budget', [BudgetWebController::class, 'index'])->name('budget.index');
         Route::post('/projects/{project}/budget', [BudgetWebController::class, 'store'])->name('budget.store');

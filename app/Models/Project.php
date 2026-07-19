@@ -118,6 +118,11 @@ class Project extends Model
         return $this->hasMany(ProjectFile::class);
     }
 
+    public function folders()
+    {
+        return $this->hasMany(ProjectFolder::class);
+    }
+
     public function risks()
     {
         return $this->hasMany(Risk::class);

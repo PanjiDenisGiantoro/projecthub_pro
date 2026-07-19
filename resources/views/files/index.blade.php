@@ -3,7 +3,7 @@
 @section('page-title', 'File Manager')
 
 @section('content')
-<div class="py-4" x-data="{showUpload:false,activeFolder:'All',newFolder:''}">
+<div class="py-4" x-data="{showUpload:false,activeFolder:'All',newFolder:'',showNewFolder:false,newFolderName:''}">
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
         <span class="mx-2">/</span><span class="text-gray-700">File Manager</span>
@@ -13,7 +13,31 @@
         {{-- Folder sidebar --}}
         <div class="lg:col-span-1">
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Folder</p>
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs font-semibold text-gray-500 uppercase">Folder</p>
+                    @if(!auth()->user()->hasRole('customer'))
+                    <button type="button" @click="showNewFolder=!showNewFolder" title="Buat folder baru"
+                            class="text-gray-400 hover:text-violet-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                    @endif
+                </div>
+
+                @if(!auth()->user()->hasRole('customer'))
+                <div x-show="showNewFolder" x-cloak class="mb-3">
+                    <form method="POST" action="{{ route('project.files.folders.store', $project) }}" class="flex gap-1.5">
+                        @csrf
+                        <input type="hidden" name="parent" :value="activeFolder === 'All' ? '' : activeFolder">
+                        <input type="text" name="name" x-model="newFolderName" required placeholder="Nama folder"
+                               class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <button type="submit" class="shrink-0 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium px-2.5 rounded-lg transition-colors">Buat</button>
+                    </form>
+                    <p class="text-[11px] text-gray-400 mt-1" x-show="activeFolder !== 'All'">
+                        Di dalam: <span x-text="activeFolder"></span>
+                    </p>
+                </div>
+                @endif
+
                 <button @click="activeFolder='All'"
                         :class="activeFolder==='All' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
                         class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors mb-1">
