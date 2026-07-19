@@ -88,6 +88,19 @@
                 <label for="is_active" class="text-sm text-gray-700">Unit Aktif</label>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Kotak (Bagan Organisasi)</label>
+                <div class="flex items-center gap-3">
+                    <label class="flex items-center gap-2 text-sm text-gray-600">
+                        <input type="checkbox" id="color-auto" onchange="toggleColorAuto(this)" {{ old('color') ? '' : 'checked' }} class="w-4 h-4 text-violet-600 rounded">
+                        Otomatis sesuai level
+                    </label>
+                    <input type="color" name="color" id="color-input" value="{{ old('color', '#1d4ed8') }}"
+                           class="w-12 h-9 border border-gray-300 rounded-lg cursor-pointer" {{ old('color') ? '' : 'disabled' }}>
+                </div>
+                @error('color')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+            </div>
+
             <div class="flex gap-3 pt-2">
                 <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan Unit</button>
                 <a href="{{ route('organization-units.index', ['company_id' => $selectedCompany]) }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
@@ -105,5 +118,8 @@ $(function () {
     $('#sel-parent').select2({ placeholder: '— Tanpa Parent (Level 1) —', allowClear: true, width: '100%' });
     $('#sel-head').select2({ placeholder: '— Tidak ada —', allowClear: true, width: '100%' });
 });
+function toggleColorAuto(checkbox) {
+    document.getElementById('color-input').disabled = checkbox.checked;
+}
 </script>
 @endpush

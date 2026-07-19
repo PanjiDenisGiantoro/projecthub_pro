@@ -10,10 +10,11 @@ class CompanyWebController extends Controller
 {
     public function index(Request $request)
     {
-        $cid = $this->tenantId();
+        $user = auth()->user();
+        $accessibleIds = $user->is_super_admin ? null : $user->accessibleCompanies()->pluck('id');
 
         $companies = Company::withCount(['organizationUnits', 'rootOrganizationUnits'])
-            ->when($cid, fn($q) => $q->where('id', $cid))
+            ->when($accessibleIds !== null, fn($q) => $q->whereIn('id', $accessibleIds))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('code', 'like', "%{$request->search}%"))
             ->when($request->has('is_active') && $request->is_active !== '', fn($q) =>
@@ -25,15 +26,11 @@ class CompanyWebController extends Controller
 
     public function create()
     {
-        // Tenant tidak boleh buat company baru (sudah punya 1)
-        abort_if($this->tenantId() !== null, 403, 'Anda tidak dapat menambah perusahaan baru.');
         return view('master.companies.create');
     }
 
     public function store(Request $request)
     {
-        abort_if($this->tenantId() !== null, 403);
-
         $data = $request->validate([
             'name'      => 'required|string|max:255',
             'code'      => 'nullable|string|max:50|unique:companies,code',
@@ -45,20 +42,27 @@ class CompanyWebController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
-        Company::create($data);
+        $company = Company::create($data);
+
+        // Admin (non-superadmin) yang membuat company baru otomatis dapat akses
+        // tambahan ke company tsb, supaya langsung bisa kelolanya (mis. Organization Units).
+        $user = auth()->user();
+        if (! $user->is_super_admin) {
+            $user->additionalCompanies()->syncWithoutDetaching([$company->id]);
+        }
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil ditambahkan.');
     }
 
     public function edit(Company $company)
     {
-        $this->authorizeCompany($company->id);
+        $this->authorizeCompanyAccess($company->id);
         return view('master.companies.edit', compact('company'));
     }
 
     public function update(Request $request, Company $company)
     {
-        $this->authorizeCompany($company->id);
+        $this->authorizeCompanyAccess($company->id);
 
         $data = $request->validate([
             'name'      => 'required|string|max:255',
@@ -85,5 +89,14 @@ class CompanyWebController extends Controller
         }
         $company->delete();
         return redirect()->route('companies.index')->with('success', 'Perusahaan dihapus.');
+    }
+
+    /** Sama seperti authorizeCompany(), tapi juga mengizinkan company tambahan (lihat User::accessibleCompanies()). */
+    private function authorizeCompanyAccess(int $companyId): void
+    {
+        $user = auth()->user();
+        if (! $user->is_super_admin && ! $user->canAccessCompany($companyId)) {
+            abort(403);
+        }
     }
 }

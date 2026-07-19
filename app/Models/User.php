@@ -169,6 +169,29 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->belongsTo(Company::class);
     }
 
+    /** Company tambahan (di luar company utama) yang boleh diakses user ini. */
+    public function additionalCompanies()
+    {
+        return $this->belongsToMany(Company::class, 'user_companies');
+    }
+
+    /** Semua company yang boleh diakses user ini: company utama + company tambahan. */
+    public function accessibleCompanies()
+    {
+        return Company::query()
+            ->where(fn($q) => $q->where('id', $this->company_id)
+                ->orWhereIn('id', $this->additionalCompanies()->pluck('companies.id')))
+            ->orderBy('name')
+            ->get();
+    }
+
+    /** Cek apakah user ini boleh mengakses company tertentu (utama atau tambahan). */
+    public function canAccessCompany(int $companyId): bool
+    {
+        return $this->company_id === $companyId
+            || $this->additionalCompanies()->where('companies.id', $companyId)->exists();
+    }
+
     /**
      * Override Spatie: jika company sudah kustomisasi permission salah satu role user
      * (lihat company_role_permissions / halaman /permissions), role itu dinilai penuh

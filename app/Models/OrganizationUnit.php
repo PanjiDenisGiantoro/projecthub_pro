@@ -17,6 +17,7 @@ class OrganizationUnit extends Model
         'order',
         'head_id',
         'is_active',
+        'color',
     ];
 
     protected function casts(): array
@@ -55,6 +56,18 @@ class OrganizationUnit extends Model
     {
         return static::where('company_id', $this->company_id)
             ->where('code', 'like', $this->code . '.%');
+    }
+
+    /** Warna kotak di Bagan Organisasi: dipilih manual per unit, atau default bergilir per level. */
+    public function displayColor(): string
+    {
+        return $this->color ?: self::defaultColorForLevel($this->level);
+    }
+
+    public static function defaultColorForLevel(int $level): string
+    {
+        $palette = ['#1d4ed8', '#7c3aed', '#db2777', '#d97706', '#0891b2', '#16a34a'];
+        return $palette[($level - 1) % count($palette)];
     }
 
     public function scopeRoots($query)

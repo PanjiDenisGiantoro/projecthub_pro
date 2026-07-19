@@ -12,13 +12,16 @@ class OrganizationUnitWebController extends Controller
 {
     public function index(Request $request)
     {
-        $cid = $this->tenantId();
+        $user = auth()->user();
 
-        $companies = $cid
-            ? Company::where('id', $cid)->get()
-            : Company::orderBy('name')->get();
+        $companies = $user->is_super_admin
+            ? Company::orderBy('name')->get()
+            : $user->accessibleCompanies();
 
-        $selectedCompany = $cid ?? $request->integer('company_id') ?: $companies->first()?->id;
+        $requested = $request->integer('company_id') ?: null;
+        $selectedCompany = ($requested && ($user->is_super_admin || $user->canAccessCompany($requested)))
+            ? $requested
+            : $companies->first()?->id;
 
         $units = collect();
         if ($selectedCompany) {
@@ -37,13 +40,16 @@ class OrganizationUnitWebController extends Controller
 
     public function create(Request $request)
     {
-        $cid = $this->tenantId();
+        $user = auth()->user();
 
-        $companies = $cid
-            ? Company::where('id', $cid)->get()
-            : Company::where('is_active', true)->orderBy('name')->get();
+        $companies = $user->is_super_admin
+            ? Company::where('is_active', true)->orderBy('name')->get()
+            : $user->accessibleCompanies();
 
-        $selectedCompany = $cid ?? $request->company_id;
+        $requested = $request->integer('company_id') ?: null;
+        $selectedCompany = ($requested && ($user->is_super_admin || $user->canAccessCompany($requested)))
+            ? $requested
+            : ($companies->count() === 1 ? $companies->first()->id : null);
 
         $tree  = $this->treeForCompany($selectedCompany);
         $users = $this->activeUsersForCompany($selectedCompany);
@@ -53,7 +59,7 @@ class OrganizationUnitWebController extends Controller
 
     public function store(Request $request)
     {
-        $cid = $this->tenantId();
+        $user = auth()->user();
 
         $data = $request->validate([
             'company_id' => 'required|exists:companies,id',
@@ -61,9 +67,10 @@ class OrganizationUnitWebController extends Controller
             'name'       => 'required|string|max:255',
             'head_id'    => 'nullable|exists:users,id',
             'is_active'  => 'boolean',
+            'color'      => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
         ]);
 
-        if ($cid && (int) $data['company_id'] !== $cid) {
+        if (! $user->is_super_admin && ! $user->canAccessCompany((int) $data['company_id'])) {
             abort(403);
         }
 
@@ -84,13 +91,13 @@ class OrganizationUnitWebController extends Controller
 
     public function edit(OrganizationUnit $organizationUnit)
     {
-        $this->authorizeCompany($organizationUnit->company_id);
+        $this->authorizeCompanyAccess($organizationUnit->company_id);
 
-        $cid = $this->tenantId();
+        $user = auth()->user();
 
-        $companies = $cid
-            ? Company::where('id', $cid)->get()
-            : Company::where('is_active', true)->orderBy('name')->get();
+        $companies = $user->is_super_admin
+            ? Company::where('is_active', true)->orderBy('name')->get()
+            : $user->accessibleCompanies();
 
         $tree  = $this->treeForCompany($organizationUnit->company_id, exclude: $organizationUnit);
         $users = $this->activeUsersForCompany($organizationUnit->company_id);
@@ -100,13 +107,14 @@ class OrganizationUnitWebController extends Controller
 
     public function update(Request $request, OrganizationUnit $organizationUnit)
     {
-        $this->authorizeCompany($organizationUnit->company_id);
+        $this->authorizeCompanyAccess($organizationUnit->company_id);
 
         $data = $request->validate([
             'parent_id' => 'nullable|exists:organization_units,id',
             'name'      => 'required|string|max:255',
             'head_id'   => 'nullable|exists:users,id',
             'is_active' => 'boolean',
+            'color'     => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
@@ -143,7 +151,7 @@ class OrganizationUnitWebController extends Controller
 
     public function destroy(OrganizationUnit $organizationUnit)
     {
-        $this->authorizeCompany($organizationUnit->company_id);
+        $this->authorizeCompanyAccess($organizationUnit->company_id);
 
         if ($organizationUnit->children()->exists()) {
             return back()->withErrors(['Tidak bisa menghapus unit yang masih memiliki unit turunan.']);
@@ -155,6 +163,18 @@ class OrganizationUnitWebController extends Controller
         $organizationUnit->delete();
 
         return redirect()->route('organization-units.index')->with('success', 'Unit organisasi dihapus.');
+    }
+
+    /**
+     * Sama seperti authorizeCompany(), tapi juga mengizinkan company tambahan
+     * (lihat User::accessibleCompanies()), bukan cuma company utama user.
+     */
+    private function authorizeCompanyAccess(int $companyId): void
+    {
+        $user = auth()->user();
+        if (! $user->is_super_admin && ! $user->canAccessCompany($companyId)) {
+            abort(403);
+        }
     }
 
     /** Seluruh unit se-company dalam urutan DFS, untuk render <select> parent berindentasi. */

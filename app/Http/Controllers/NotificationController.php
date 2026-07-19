@@ -37,6 +37,11 @@ class NotificationController extends Controller
 
     public function unreadCount(Request $request)
     {
+        // Dibuka langsung lewat address bar (bukan dipanggil via fetch oleh aplikasi)
+        if ($request->header('Sec-Fetch-Mode') === 'navigate') {
+            return redirect()->route('dashboard');
+        }
+
         return response()->json([
             'count' => $request->user()->phNotifications()->unread()->count(),
         ]);

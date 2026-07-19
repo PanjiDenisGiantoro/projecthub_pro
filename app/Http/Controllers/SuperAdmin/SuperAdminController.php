@@ -45,12 +45,32 @@ class SuperAdminController extends Controller
 
     public function users()
     {
-        $users = User::with('organizationUnit.company')
+        $users = User::with(['organizationUnit.company', 'company', 'additionalCompanies'])
             ->where('is_super_admin', false)
             ->latest()
             ->paginate(20);
 
-        return view('superadmin.users', compact('users'));
+        $companies = Company::orderBy('name')->get();
+
+        return view('superadmin.users', compact('users', 'companies'));
+    }
+
+    /**
+     * Atur company tambahan (di luar company utama) yang boleh diakses seorang
+     * user non-superadmin, mis. supaya bisa mengelola Organization Units milik
+     * beberapa company sekaligus.
+     */
+    public function updateUserCompanies(Request $request, User $user)
+    {
+        $request->validate([
+            'companies'   => 'array',
+            'companies.*' => 'exists:companies,id',
+        ]);
+
+        $additional = array_diff($request->input('companies', []), [$user->company_id]);
+        $user->additionalCompanies()->sync($additional);
+
+        return back()->with('success', "Akses company untuk {$user->name} berhasil diperbarui.");
     }
 
     public function toggleCompany(Company $company)
