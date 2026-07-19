@@ -161,8 +161,16 @@
 </div>
 
 @push('scripts')
+@php
+    $matrixData = $risks->map(fn($r) => [
+        'x'     => $r->probability,
+        'y'     => $r->impact,
+        'label' => $r->title,
+        'score' => $r->score(),
+    ]);
+@endphp
 <script>
-const matrixData = @json($risks->map(fn($r) => ['x'=>$r->probability,'y'=>$r->impact,'label'=>$r->title,'score'=>$r->score()]));
+const matrixData = @json($matrixData);
 
 new Chart(document.getElementById('riskMatrix'), {
     type: 'scatter',
