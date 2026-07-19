@@ -38,55 +38,49 @@
     width: 0; height: 28px;
 }
 
+/* Kartu gaya "Olivia" (avatar bulat + nama + jabatan), aksen warna di garis atas */
 .org-chart-box {
-    width: 172px; background: #fff;
-    border: 2px solid #e5e7eb; border-radius: 8px;
+    width: 176px; background: #fff;
+    border: 1px solid #e5e7eb; border-top: 4px solid #cbd5e1; border-radius: 10px;
     overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    padding: 14px 10px 8px 10px; text-align: center;
 }
-.org-chart-box__header {
-    padding: 6px 8px; color: #fff; font-size: 0.7rem; font-weight: 700;
-    text-align: center; line-height: 1.25;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.org-chart-box--company { padding-top: 16px; }
+.org-chart-box__avatar-wrap { position: relative; width: 48px; height: 48px; margin: 0 auto 8px; }
+.org-chart-box__avatar, .org-chart-box__avatar-img {
+    width: 48px; height: 48px; border-radius: 9999px;
 }
-.org-chart-box__body { padding: 8px; text-align: center; }
-.org-chart-box__meta {
-    font-size: 0.74rem; font-weight: 600; color: #1f2937;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.org-chart-box__avatar {
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700;
 }
-.org-chart-box__code { font-size: 0.6rem; color: #9ca3af; font-family: monospace; margin-top: 2px; }
-.org-chart-box__badges { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 5px; }
-.org-chart-box__badges span:not(.org-chart-box__status) {
-    font-size: 0.58rem; background: #f3f4f6; color: #4b5563; padding: 1px 6px; border-radius: 9999px; white-space: nowrap;
+.org-chart-box__avatar-img { object-fit: cover; border: 1px solid #e5e7eb; }
+.org-chart-box__status {
+    position: absolute; bottom: 0; right: -1px; width: 11px; height: 11px;
+    border-radius: 9999px; border: 2px solid #fff;
 }
-.org-chart-box__status { width: 8px; height: 8px; border-radius: 9999px; display: inline-block; }
 .org-chart-box__status.is-active { background: #22c55e; }
 .org-chart-box__status.is-inactive { background: #9ca3af; }
+.org-chart-box__name {
+    font-size: 0.78rem; font-weight: 700; color: #1f2937;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.org-chart-box__title {
+    font-size: 0.68rem; color: #6b7280; margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.org-chart-box__code { font-size: 0.58rem; color: #b0b7c3; font-family: monospace; margin-top: 3px; }
+.org-chart-box__badges { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 6px; }
+.org-chart-box__badges span {
+    font-size: 0.56rem; background: #f3f4f6; color: #4b5563; padding: 1px 6px; border-radius: 9999px; white-space: nowrap;
+}
 .org-chart-box__actions {
     display: flex; justify-content: center; gap: 10px;
-    padding: 6px 8px; border-top: 1px solid #f3f4f6;
+    margin-top: 8px; padding-top: 6px; border-top: 1px solid #f3f4f6;
 }
 .org-chart-box__actions a, .org-chart-box__actions button { color: #9ca3af; }
 .org-chart-box__actions a:hover { color: #7c3aed; }
 .org-chart-box__actions button:hover { color: #ef4444; }
-.org-chart-box--wide { width: auto; min-width: 172px; display: inline-block; }
-
-/* Bagan Vertikal: root (L1, L2, dst) ditumpuk ke bawah (baris masing-masing),
-   tapi anak-anak dalam satu cabang disusun menyamping (wrap), bukan ditumpuk ke bawah satu-satu. */
-.org-tree-wrapper { width: 100%; overflow-x: auto; }
-.org-tree, .org-tree ul { list-style: none; margin: 0; padding: 0; }
-.org-tree--root { margin-top: 16px; }
-.org-tree--root > li { margin-bottom: 20px; }
-.org-tree--root > li:last-child { margin-bottom: 0; }
-.org-tree:not(.org-tree--root) {
-    display: flex; flex-wrap: wrap; gap: 14px;
-    margin-left: 21px; padding-left: 24px; padding-top: 4px; padding-bottom: 2px;
-    border-left: 2px solid #cbd5e1; margin-top: 12px;
-}
-.org-tree:not(.org-tree--root) > li { position: relative; }
-.org-tree:not(.org-tree--root) > li::before {
-    content: ''; position: absolute; left: -24px; top: 24px;
-    width: 24px; height: 0; border-top: 2px solid #cbd5e1;
-}
 </style>
 @endpush
 
@@ -152,9 +146,9 @@
                         <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="text-violet-600 hover:underline ml-1">Tambah sekarang</a>
                     @endif
                 </p>
-            @elseif($viewMode === 'chart-vertical')
-                <x-org-chart-vertical :units="$units" :company="$companies->firstWhere('id', (int) $selectedCompany)" />
             @else
+                {{-- Top-down klasik: per level = 1 baris, children center di bawah parent,
+                     connector elbow (siku), tinggi bagan mengikuti kedalaman level bukan jumlah node. --}}
                 <x-org-chart :units="$units" :company="$companies->firstWhere('id', (int) $selectedCompany)" />
             @endif
         </div>

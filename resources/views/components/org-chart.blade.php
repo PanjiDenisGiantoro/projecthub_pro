@@ -11,11 +11,12 @@
 <div class="org-chart-wrapper">
     <ul class="org-chart">
         <li>
-            <div class="org-chart-box">
-                <div class="org-chart-box__header" style="background:#4c1d95">{{ $company?->name ?? 'Perusahaan' }}</div>
-                <div class="org-chart-box__body">
-                    <div class="org-chart-box__meta">{{ $roots->count() }} unit level 1</div>
+            <div class="org-chart-box org-chart-box--company" style="border-top-color:#4c1d95">
+                <div class="org-chart-box__avatar-wrap">
+                    <div class="org-chart-box__avatar" style="background:#4c1d95">{{ strtoupper(substr($company?->name ?? 'PR', 0, 2)) }}</div>
                 </div>
+                <div class="org-chart-box__name">{{ $company?->name ?? 'Perusahaan' }}</div>
+                <div class="org-chart-box__title">{{ $roots->count() }} unit level 1</div>
             </div>
             @if($roots->isNotEmpty())
                 <ul>

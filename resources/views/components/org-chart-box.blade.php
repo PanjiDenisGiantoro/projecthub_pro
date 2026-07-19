@@ -1,20 +1,28 @@
 @props(['unit', 'childrenCount' => null])
 
-<div class="org-chart-box">
-    <div class="org-chart-box__header" style="background: {{ $unit->displayColor() }}" title="{{ $unit->name }}">
-        {{ $unit->name }}
+<div class="org-chart-box" style="border-top-color: {{ $unit->displayColor() }}">
+    <div class="org-chart-box__avatar-wrap">
+        @if($unit->head?->avatar)
+            <img src="{{ Storage::url($unit->head->avatar) }}" alt="{{ $unit->head->name }}" class="org-chart-box__avatar-img">
+        @else
+            <div class="org-chart-box__avatar" style="background: {{ $unit->displayColor() }}">
+                {{ strtoupper(substr($unit->head?->name ?? $unit->name, 0, 2)) }}
+            </div>
+        @endif
+        <span class="org-chart-box__status {{ $unit->is_active ? 'is-active' : 'is-inactive' }}" title="{{ $unit->is_active ? 'Aktif' : 'Nonaktif' }}"></span>
     </div>
-    <div class="org-chart-box__body">
-        <div class="org-chart-box__meta" title="{{ $unit->head?->name ?? 'Belum ada kepala unit' }}">
-            {{ $unit->head?->name ?? '—' }}
-        </div>
-        <div class="org-chart-box__code">L{{ $unit->code }}</div>
-        <div class="org-chart-box__badges">
-            <span title="Unit turunan">{{ $unit->children_count ?? $childrenCount ?? 0 }} unit</span>
-            <span title="Anggota">{{ $unit->users_count ?? 0 }} orang</span>
-            <span class="org-chart-box__status {{ $unit->is_active ? 'is-active' : 'is-inactive' }}" title="{{ $unit->is_active ? 'Aktif' : 'Nonaktif' }}"></span>
-        </div>
+
+    <div class="org-chart-box__name" title="{{ $unit->head?->name ?? 'Belum ada kepala unit' }}">
+        {{ $unit->head?->name ?? '— Belum diisi —' }}
     </div>
+    <div class="org-chart-box__title" title="{{ $unit->name }}">{{ $unit->name }}</div>
+    <div class="org-chart-box__code">L{{ $unit->code }}</div>
+
+    <div class="org-chart-box__badges">
+        <span title="Unit turunan">{{ $unit->children_count ?? $childrenCount ?? 0 }} unit</span>
+        <span title="Anggota">{{ $unit->users_count ?? 0 }} orang</span>
+    </div>
+
     <div class="org-chart-box__actions">
         <a href="{{ route('organization-units.create', ['company_id' => $unit->company_id, 'parent_id' => $unit->id]) }}" title="Tambah sub-unit">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
