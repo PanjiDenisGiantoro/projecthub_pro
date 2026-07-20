@@ -15,6 +15,11 @@ class Project extends Model
     protected $fillable = [
         'company_id', 'name', 'description', 'client_id', 'manager_id',
         'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress',
+        'github_repo_url', 'github_token', 'slack_webhook_url', 'discord_webhook_url',
+    ];
+
+    protected $hidden = [
+        'github_token', 'slack_webhook_url', 'discord_webhook_url',
     ];
 
     protected static function booted(): void
@@ -45,7 +50,41 @@ class Project extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'budget' => 'decimal:2',
+            'github_token' => 'encrypted',
+            'slack_webhook_url' => 'encrypted',
+            'discord_webhook_url' => 'encrypted',
         ];
+    }
+
+    public function hasGithubIntegration(): bool
+    {
+        return !empty($this->github_repo_url) && !empty($this->github_token);
+    }
+
+    public function hasSlackIntegration(): bool
+    {
+        return !empty($this->slack_webhook_url);
+    }
+
+    public function hasDiscordIntegration(): bool
+    {
+        return !empty($this->discord_webhook_url);
+    }
+
+    /**
+     * Parse "owner/repo" dari berbagai format URL GitHub yang dimasukkan user.
+     */
+    public function githubOwnerRepo(): ?string
+    {
+        if (!$this->github_repo_url) {
+            return null;
+        }
+
+        $path = trim(parse_url($this->github_repo_url, PHP_URL_PATH) ?? $this->github_repo_url, '/');
+        $path = preg_replace('/\.git$/', '', $path);
+        $parts = explode('/', $path);
+
+        return count($parts) >= 2 ? "{$parts[0]}/{$parts[1]}" : null;
     }
 
     public function getActivitylogOptions(): LogOptions

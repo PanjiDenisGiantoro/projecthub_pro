@@ -8,11 +8,12 @@ use App\Models\Task;
 use App\Models\TimeLog;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\TeamNotifier;
 use Illuminate\Http\Request;
 
 class TaskWebController extends Controller
 {
-    public function __construct(private NotificationService $notifier) {}
+    public function __construct(private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
 
     public function index(Request $request, Project $project)
     {
@@ -61,6 +62,8 @@ class TaskWebController extends Controller
             );
         }
 
+        $this->teamNotifier->notify($project, '🆕 Task Baru', "\"{$task->title}\" ditambahkan oleh " . auth()->user()->name . '.');
+
         return back()->with('success', 'Task berhasil dibuat.');
     }
 
@@ -84,6 +87,9 @@ class TaskWebController extends Controller
             $notify = $task->creator_id ?? $project->manager_id;
             if ($notify) {
                 $this->notifier->send($notify, 'task_status_changed', 'Status Task Berubah', "Task \"{$task->title}\" berubah dari {$old} ke {$task->status}.", ['task_id' => $task->id]);
+            }
+            if ($task->status === 'done') {
+                $this->teamNotifier->notify($project, '✅ Task Selesai', "\"{$task->title}\" ditandai selesai oleh " . auth()->user()->name . '.');
             }
         }
 
@@ -113,6 +119,9 @@ class TaskWebController extends Controller
             if ($notify) {
                 $this->notifier->send($notify, 'task_status_changed', 'Status Task Berubah',
                     "Task \"{$task->title}\" berubah dari {$old} ke {$task->status}.", ['task_id' => $task->id]);
+            }
+            if ($task->status === 'done') {
+                $this->teamNotifier->notify($project, '✅ Task Selesai', "\"{$task->title}\" ditandai selesai oleh " . auth()->user()->name . '.');
             }
         }
 

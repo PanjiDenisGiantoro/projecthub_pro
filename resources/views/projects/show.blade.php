@@ -37,6 +37,8 @@
             ['key' => 'risks',      'label' => 'Risiko',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"/>'],
             ['key' => 'recurring',  'label' => 'Recurring',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
             ['key' => 'portal',     'label' => 'Portal',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
+            ['key' => 'github',     'label' => 'Code',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/>'],
+            ['key' => 'notif',      'label' => 'Notifikasi', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>'],
             ['key' => 'chat',       'label' => 'Chat',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
         ];
         $coreTabs     = array_slice($tabs, 0, 5);
@@ -1250,6 +1252,46 @@
             <a href="{{ route('portal.index', $project) }}"
                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
                 Kelola Portal Link &rarr;
+            </a>
+        </div>
+    </div>
+
+    {{-- ============================================================
+         TAB: GITHUB (CODE)
+    ============================================================ --}}
+    <div x-show="tab === 'github'" x-cloak>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-base font-semibold text-gray-900 mb-4">Integrasi GitHub</h2>
+            @if($project->hasGithubIntegration())
+                <p class="text-sm text-gray-500 mb-4 font-mono">{{ $project->githubOwnerRepo() }}</p>
+            @else
+                <p class="text-sm text-gray-500 mb-4">Belum terhubung ke repo GitHub manapun.</p>
+            @endif
+            <a href="{{ route('github.index', $project) }}"
+               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+                {{ $project->hasGithubIntegration() ? 'Lihat Commit & PR' : 'Hubungkan Repo GitHub' }} &rarr;
+            </a>
+        </div>
+    </div>
+
+    {{-- ============================================================
+         TAB: NOTIFIKASI TIM (SLACK/DISCORD)
+    ============================================================ --}}
+    <div x-show="tab === 'notif'" x-cloak>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-base font-semibold text-gray-900 mb-4">Notifikasi Tim</h2>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $project->hasSlackIntegration() ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400' }}">
+                    Slack {{ $project->hasSlackIntegration() ? 'terhubung' : 'belum terhubung' }}
+                </span>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $project->hasDiscordIntegration() ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400' }}">
+                    Discord {{ $project->hasDiscordIntegration() ? 'terhubung' : 'belum terhubung' }}
+                </span>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Kirim notifikasi otomatis ke channel Slack/Discord saat ada task atau tiket baru.</p>
+            <a href="{{ route('team-notifications.index', $project) }}"
+               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+                Kelola Notifikasi &rarr;
             </a>
         </div>
     </div>

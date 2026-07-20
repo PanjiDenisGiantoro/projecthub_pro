@@ -26,16 +26,31 @@
                 &mdash; Pantau progress proyek Anda hari ini
             </p>
         </div>
-        @can('create projects')
-        <a href="{{ route('projects.create') }}"
-           class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shrink-0 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-           style="background:linear-gradient(135deg,#4f46e5,#7c3aed);box-shadow:0 4px 14px rgba(79,70,229,0.35)">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-            </svg>
-            Proyek Baru
-        </a>
-        @endcan
+        <div class="flex items-center gap-3 shrink-0">
+            @if(isset($companies) && $companies->isNotEmpty())
+            <form method="GET" action="{{ route('dashboard') }}">
+                <select name="company_id" onchange="this.form.submit()"
+                        class="text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer">
+                    <option value="" {{ empty($selected_company_id) ? 'selected' : '' }}>Semua Company</option>
+                    @foreach($companies as $company)
+                        <option value="{{ $company->id }}" {{ (int) $selected_company_id === $company->id ? 'selected' : '' }}>
+                            {{ $company->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+            @endif
+            @can('create projects')
+            <a href="{{ route('projects.create') }}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shrink-0 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+               style="background:linear-gradient(135deg,#4f46e5,#7c3aed);box-shadow:0 4px 14px rgba(79,70,229,0.35)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                Proyek Baru
+            </a>
+            @endcan
+        </div>
     </div>
 
     {{-- ── KPI Cards ───────────────────────────────────────────────────────── --}}
