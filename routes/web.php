@@ -344,6 +344,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/recurring', [RecurringTaskWebController::class, 'store'])->name('recurring.store');
         Route::put('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'update'])->name('recurring.update');
         Route::delete('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'destroy'])->name('recurring.destroy');
+        Route::post('/projects/{project}/recurring/{recurringTask}/generate', [RecurringTaskWebController::class, 'generateNow'])->name('recurring.generateNow');
 
         Route::get('/projects/{project}/portal', [ClientPortalWebController::class, 'index'])->name('portal.index');
         Route::post('/projects/{project}/portal', [ClientPortalWebController::class, 'store'])->name('portal.store');

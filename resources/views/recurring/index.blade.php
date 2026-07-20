@@ -3,7 +3,7 @@
 @section('page-title', 'Recurring Tasks')
 
 @section('content')
-<div class="py-4" x-data="{showForm:false}">
+<div class="py-4" x-data="{showForm:false, freq:'daily'}">
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
         <span class="mx-2">/</span><span class="text-gray-700">Recurring Tasks</span>
@@ -29,15 +29,44 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1">Judul Task *</label>
                 <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
             </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+            </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Frekuensi *</label>
                 <select name="frequency" required x-model="freq"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                        x-data="{freq:'daily'}">
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                     <option value="daily">Harian</option>
                     <option value="weekly">Mingguan</option>
                     <option value="biweekly">2 Minggu sekali</option>
                     <option value="monthly">Bulanan</option>
+                </select>
+            </div>
+            <div x-show="freq==='weekly' || freq==='biweekly'" x-cloak>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Hari (untuk Mingguan/2 Minggu sekali)</label>
+                <select name="day_of_week" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="1" selected>Senin</option>
+                    <option value="2">Selasa</option>
+                    <option value="3">Rabu</option>
+                    <option value="4">Kamis</option>
+                    <option value="5">Jumat</option>
+                    <option value="6">Sabtu</option>
+                    <option value="0">Minggu</option>
+                </select>
+            </div>
+            <div x-show="freq==='monthly'" x-cloak>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal (untuk Bulanan)</label>
+                <input type="number" name="day_of_month" value="1" min="1" max="28" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <p class="text-[11px] text-gray-400 mt-1">Maks tanggal 28 supaya berlaku di semua bulan.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Milestone (opsional)</label>
+                <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="">— Tidak ada —</option>
+                    @foreach($milestones as $m)
+                    <option value="{{ $m->id }}">{{ $m->title }}</option>
+                    @endforeach
                 </select>
             </div>
             <div>
@@ -88,6 +117,7 @@
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Assignee</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Terakhir Dibuat</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Task Dibuat</th>
                     @if(!auth()->user()->hasRole('customer'))
                     <th class="px-4 py-3"></th>
                     @endif
@@ -105,13 +135,21 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $def->last_generated_at?->format('d/m/Y') ?? '—' }}</td>
+                    <td class="px-4 py-3 text-center text-gray-600">{{ $def->tasks_count }}</td>
                     @if(!auth()->user()->hasRole('customer'))
                     <td class="px-4 py-3 text-right">
-                        <form method="POST" action="{{ route('recurring.destroy', [$project, $def]) }}"
-                              data-confirm-delete="{{ $def->title }}">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="text-xs text-red-500 hover:text-red-700">Hapus</button>
-                        </form>
+                        <div class="flex gap-3 justify-end items-center">
+                            <form method="POST" action="{{ route('recurring.generateNow', [$project, $def]) }}"
+                                  data-confirm-submit="Buat task dari definisi &quot;{{ $def->title }}&quot; sekarang?" data-confirm-btn="Ya, Generate">
+                                @csrf
+                                <button type="submit" class="text-xs text-violet-600 hover:text-violet-800 font-medium">Generate Sekarang</button>
+                            </form>
+                            <form method="POST" action="{{ route('recurring.destroy', [$project, $def]) }}"
+                                  data-confirm-delete="{{ $def->title }}">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Hapus</button>
+                            </form>
+                        </div>
                     </td>
                     @endif
                 </tr>

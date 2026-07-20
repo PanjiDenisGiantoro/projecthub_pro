@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\RecurringTaskDefinition;
 use App\Models\User;
+use App\Services\RecurringTaskGenerator;
 use Illuminate\Http\Request;
 
 class RecurringTaskWebController extends Controller
 {
     public function index(Project $project)
     {
-        $definitions = $project->recurringTasks()->with('assignee', 'milestone')->orderByDesc('id')->get();
+        $definitions = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')->get();
         $milestones = $project->milestones()->orderBy('title')->get(['id', 'title']);
         $users = User::orderBy('name')->get(['id', 'name']);
         return view('recurring.index', compact('project', 'definitions', 'milestones', 'users'));
@@ -66,5 +67,17 @@ class RecurringTaskWebController extends Controller
         $recurringTask->update(['is_active' => false]);
         $recurringTask->delete();
         return back()->with('success', 'Recurring task dihapus.');
+    }
+
+    /** Tombol "Generate Sekarang" — buat task dari definisi ini sekarang juga, tanpa nunggu jadwal harian. */
+    public function generateNow(Project $project, RecurringTaskDefinition $recurringTask, RecurringTaskGenerator $generator)
+    {
+        $task = $generator->generateOne($recurringTask, force: true);
+
+        if (! $task) {
+            return back()->withErrors(['Task untuk definisi ini sudah pernah dibuat hari ini.']);
+        }
+
+        return redirect()->route('tasks.show', [$project, $task])->with('success', "Task \"{$task->title}\" berhasil dibuat.");
     }
 }
