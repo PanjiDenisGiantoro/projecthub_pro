@@ -133,7 +133,7 @@ class AbsensiController extends Controller
 
         $rekap = Attendance::with('user')
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage absensi'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view absensi'), fn($q) => $q->where('user_id', $user->id))
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->orderByDesc('date')
@@ -146,7 +146,7 @@ class AbsensiController extends Controller
 
     public function setting()
     {
-        $this->authorize('manage absensi');
+        $this->authorize('update absensi');
         $user    = auth()->user();
         $setting = AttendanceSetting::forCompany($user->company_id);
         $employees = User::where('company_id', $user->company_id)
@@ -160,7 +160,7 @@ class AbsensiController extends Controller
 
     public function saveSetting(Request $request)
     {
-        $this->authorize('manage absensi');
+        $this->authorize('update absensi');
         $user    = auth()->user();
         $setting = AttendanceSetting::forCompany($user->company_id);
 
@@ -238,7 +238,7 @@ class AbsensiController extends Controller
 
     private function authorizeFaceManagement(): void
     {
-        if (!auth()->user()->can('manage absensi') && !auth()->user()->can('manage face enrollment')) {
+        if (!auth()->user()->can('update absensi') && !auth()->user()->can('manage face enrollment')) {
             abort(403);
         }
     }

@@ -17,7 +17,7 @@ class ReimbursementController extends Controller
 
         $items = Reimbursement::with('user')
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage reimbursement'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view reimbursement'), fn($q) => $q->where('user_id', $user->id))
             ->orderByDesc('expense_date')
             ->paginate(20);
 
@@ -66,7 +66,7 @@ class ReimbursementController extends Controller
         $reimburse = Reimbursement::create($data);
 
         $this->notifier->notifyByPermission(
-            'manage reimbursement',
+            'approve reimbursement',
             'reimbursement_submitted',
             'Pengajuan Reimburse Baru',
             "{$user->name} mengajukan reimburse \"{$reimburse->title}\" sebesar Rp" . number_format($reimburse->amount, 0, ',', '.') . ".",
@@ -87,7 +87,7 @@ class ReimbursementController extends Controller
 
     public function approve(Reimbursement $reimburse)
     {
-        $this->authorize('manage reimbursement');
+        $this->authorize('approve reimbursement');
         abort_if($reimburse->status !== 'pending', 422, 'Status tidak valid.');
         $reimburse->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
 

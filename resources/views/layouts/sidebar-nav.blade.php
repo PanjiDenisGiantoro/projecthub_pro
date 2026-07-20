@@ -258,11 +258,11 @@
 </div>
 
 {{-- Penggajian & Konfigurasi — admin only --}}
-@canany(['manage payroll', 'manage hris master', 'manage absensi', 'manage face enrollment'])
+@canany(['view payroll', 'create payroll', 'update payroll', 'delete payroll', 'view hris master', 'create hris master', 'update hris master', 'delete hris master', 'update absensi', 'manage face enrollment'])
 <div class="pt-2 pb-1">
     <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Administrasi</p>
 
-    @can('manage payroll')
+    @can('view payroll')
     <a href="{{ route('hris.payroll.index') }}"
        class="{{ request()->routeIs('hris.payroll.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +272,7 @@
     </a>
     @endcan
 
-    @can('manage absensi')
+    @can('update absensi')
     <a href="{{ route('hris.absensi.setting') }}"
        class="{{ request()->routeIs('hris.absensi.setting') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,7 +292,7 @@
     </a>
     @endcan
 
-    @can('manage hris master')
+    @can('view hris master')
     <a href="{{ route('hris.master.index') }}"
        class="{{ request()->routeIs('hris.master.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -334,11 +334,11 @@
 @endif
 
 {{-- ══ Master Data section ═════════════════════════════════════════════════ --}}
-@if(auth()->user()->can('access master data') || auth()->user()->can('manage master data') || auth()->user()->can('manage permissions'))
+@if(auth()->user()->canAny(['access master data', 'create master data', 'update master data', 'delete master data', 'manage permissions']))
 <div class="pt-3">
     <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Master Data</p>
 
-    @can('manage master data')
+    @can('access master data')
     <a href="{{ route('master.index') }}"
        class="{{ request()->routeIs('master.index') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

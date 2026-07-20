@@ -18,10 +18,10 @@ class PermissionSeeder extends Seeder
             'create project', 'edit project', 'delete project', 'manage project members',
             'create ticket', 'assign ticket', 'close ticket', 'view all tickets', 'manage tickets',
             'create request', 'approve request',
-            'manage campaigns',
-            'manage invoices',
+            'create campaign', 'update campaign', 'delete campaign',
+            'create invoice', 'update invoice',
             'decide approvals',
-            'manage users',
+            'create user', 'update user', 'delete user',
             'manage face enrollment',
         ],
         'developer' => [
@@ -33,7 +33,7 @@ class PermissionSeeder extends Seeder
         'marketing' => [
             'access dashboard', 'access campaigns', 'access requests',
             'access calendar', 'access search', 'access approvals',
-            'manage campaigns',
+            'create campaign', 'update campaign', 'delete campaign',
             'decide approvals',
         ],
         'customer' => [

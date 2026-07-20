@@ -11,7 +11,7 @@ class TaxPtkpController extends Controller
 {
     public function update(Request $request, TaxPtkp $taxPtkp)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $request->validate(['amount' => 'required|numeric|min:0']);
         $taxPtkp->update(['amount' => $request->amount]);
         Cache::forget("tax_ptkp_{$taxPtkp->status_code}");
@@ -20,14 +20,14 @@ class TaxPtkpController extends Controller
 
     public function toggle(TaxPtkp $taxPtkp)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $taxPtkp->update(['is_active' => !$taxPtkp->is_active]);
         return back()->with('success', 'Status diperbarui.');
     }
 
     public function resetDefault()
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $defaults = [
             ['TK/0', 'Tidak Kawin, 0 Tanggungan',            54_000_000],
             ['TK/1', 'Tidak Kawin, 1 Tanggungan',            58_500_000],

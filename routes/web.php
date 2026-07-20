@@ -200,10 +200,14 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('can:access approval policies')->group(function () {
         Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');
     });
-    Route::middleware('can:manage approval policies')->group(function () {
+    Route::middleware('can:create approval policy')->group(function () {
         Route::post('/approval-policies', [ApprovalWebController::class, 'storePolicy'])->name('approval-policies.store');
+    });
+    Route::middleware('can:update approval policy')->group(function () {
         Route::put('/approval-policies/{policy}', [ApprovalWebController::class, 'updatePolicy'])->name('approval-policies.update');
         Route::patch('/approval-policies/{policy}/toggle', [ApprovalWebController::class, 'togglePolicy'])->name('approval-policies.toggle');
+    });
+    Route::middleware('can:delete approval policy')->group(function () {
         Route::delete('/approval-policies/{policy}', [ApprovalWebController::class, 'destroyPolicy'])->name('approval-policies.destroy');
     });
 
@@ -221,24 +225,32 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
     });
 
-    // Campaigns & Leads — grup 'manage' (punya route literal /create) harus terdaftar
-    // SEBELUM grup 'access' (punya wildcard /{campaign}), supaya /campaigns/create
+    // Campaigns & Leads — grup 'create'/'update' (punya route literal /create) harus
+    // terdaftar SEBELUM grup 'access' (punya wildcard /{campaign}), supaya /campaigns/create
     // tidak "ketangkep" duluan sebagai {campaign} = "create".
-    Route::middleware('can:manage campaigns')->group(function () {
-        Route::resource('campaigns', CampaignWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::middleware('can:create campaign')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['create', 'store']);
         Route::post('/campaigns/{campaign}/leads', [CampaignWebController::class, 'storeLead'])->name('campaigns.leads.store');
+    });
+    Route::middleware('can:update campaign')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['edit', 'update']);
         Route::put('/leads/{lead}', [CampaignWebController::class, 'updateLead'])->name('leads.update');
-        Route::delete('/leads/{lead}', [CampaignWebController::class, 'destroyLead'])->name('leads.destroy');
         Route::post('/campaigns/{campaign}/leads/bulk', [CampaignWebController::class, 'bulkUpdateLeads'])->name('campaigns.leads.bulk');
         Route::patch('/campaigns/{campaign}/metrics', [CampaignWebController::class, 'updateMetrics'])->name('campaigns.metrics');
+    });
+    Route::middleware('can:delete campaign')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['destroy']);
+        Route::delete('/leads/{lead}', [CampaignWebController::class, 'destroyLead'])->name('leads.destroy');
     });
     Route::middleware('can:access campaigns')->group(function () {
         Route::resource('campaigns', CampaignWebController::class)->only(['index', 'show']);
     });
 
-    // Invoices — sama alasannya, 'manage' (punya /create) duluan sebelum 'access' ({invoice}).
-    Route::middleware('can:manage invoices')->group(function () {
+    // Invoices — sama alasannya, 'create'/'update' (punya /create) duluan sebelum 'access' ({invoice}).
+    Route::middleware('can:create invoice')->group(function () {
         Route::resource('invoices', InvoiceWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:update invoice')->group(function () {
         Route::put('/invoices/{invoice}/send', [InvoiceWebController::class, 'send'])->name('invoices.send');
         Route::put('/invoices/{invoice}/mark-paid', [InvoiceWebController::class, 'markPaid'])->name('invoices.markPaid');
     });
@@ -269,20 +281,41 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::resource('users', UserWebController::class)->only(['index']);
         Route::get('/admin-team', [UserWebController::class, 'adminTeam'])->name('admin-team.index');
     });
-    Route::middleware('can:manage users')->group(function () {
-        Route::resource('users', UserWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::middleware('can:create user')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:update user')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['edit', 'update']);
+    });
+    Route::middleware('can:delete user')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['destroy']);
     });
 
     // Client Management
     Route::resource('clients', ClientWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
-    // Master Data (Admin only)
-    Route::middleware('role:admin')->group(function () {
+    // Master Data
+    Route::middleware('can:access master data')->group(function () {
         Route::get('/master', [MasterDataWebController::class, 'index'])->name('master.index');
-        Route::resource('companies', CompanyWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('companies', CompanyWebController::class)->only(['index']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['index']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index']);
+    });
+    Route::middleware('can:create master data')->group(function () {
+        Route::resource('companies', CompanyWebController::class)->only(['create', 'store']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['create', 'store']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:update master data')->group(function () {
+        Route::resource('companies', CompanyWebController::class)->only(['edit', 'update']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['edit', 'update']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['edit', 'update']);
         Route::post('structural-levels/reset', [StructuralLevelWebController::class, 'resetDefault'])->name('structural-levels.reset');
+    });
+    Route::middleware('can:delete master data')->group(function () {
+        Route::resource('companies', CompanyWebController::class)->only(['destroy']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['destroy']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['destroy']);
     });
 
     // Timesheet
@@ -452,31 +485,38 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::patch('payroll/{payroll}/finalize',   [PayrollController::class, 'finalize'])->name('payroll.finalize');
 
         // Master Data HRIS
-        Route::prefix('master')->name('master.')->middleware('can:manage hris master')->group(function () {
-            Route::get('/',                                    [HrisMasterController::class, 'index'])->name('index');
+        Route::prefix('master')->name('master.')->group(function () {
+            Route::middleware('can:view hris master')->group(function () {
+                Route::get('/', [HrisMasterController::class, 'index'])->name('index');
+                Route::get('tax-brackets/{taxBracket}/edit', [TaxBracketController::class, 'edit'])->name('tax-brackets.edit');
+            });
 
-            Route::post('leave-types',                         [LeaveTypeController::class, 'store'])->name('leave-types.store');
-            Route::put('leave-types/{leaveType}',              [LeaveTypeController::class, 'update'])->name('leave-types.update');
-            Route::delete('leave-types/{leaveType}',           [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
-            Route::patch('leave-types/{leaveType}/toggle',     [LeaveTypeController::class, 'toggle'])->name('leave-types.toggle');
-            Route::post('leave-types/reset',                   [LeaveTypeController::class, 'resetDefault'])->name('leave-types.reset');
+            Route::middleware('can:create hris master')->group(function () {
+                Route::post('leave-types',    [LeaveTypeController::class, 'store'])->name('leave-types.store');
+                Route::post('leave-types/reset', [LeaveTypeController::class, 'resetDefault'])->name('leave-types.reset');
+                Route::post('overtime-rules', [OvertimeRuleController::class, 'store'])->name('overtime-rules.store');
+                Route::post('overtime-rules/reset', [OvertimeRuleController::class, 'resetDefault'])->name('overtime-rules.reset');
+                Route::post('tax-ptkp/reset', [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
+                Route::post('tax-brackets',   [TaxBracketController::class, 'store'])->name('tax-brackets.store');
+                Route::post('tax-brackets/reset', [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
+            });
 
-            Route::post('overtime-rules',                      [OvertimeRuleController::class, 'store'])->name('overtime-rules.store');
-            Route::put('overtime-rules/{overtimeRule}',        [OvertimeRuleController::class, 'update'])->name('overtime-rules.update');
-            Route::delete('overtime-rules/{overtimeRule}',     [OvertimeRuleController::class, 'destroy'])->name('overtime-rules.destroy');
-            Route::patch('overtime-rules/{overtimeRule}/toggle',[OvertimeRuleController::class, 'toggle'])->name('overtime-rules.toggle');
-            Route::post('overtime-rules/reset',                [OvertimeRuleController::class, 'resetDefault'])->name('overtime-rules.reset');
+            Route::middleware('can:update hris master')->group(function () {
+                Route::put('leave-types/{leaveType}', [LeaveTypeController::class, 'update'])->name('leave-types.update');
+                Route::patch('leave-types/{leaveType}/toggle', [LeaveTypeController::class, 'toggle'])->name('leave-types.toggle');
+                Route::put('overtime-rules/{overtimeRule}', [OvertimeRuleController::class, 'update'])->name('overtime-rules.update');
+                Route::patch('overtime-rules/{overtimeRule}/toggle', [OvertimeRuleController::class, 'toggle'])->name('overtime-rules.toggle');
+                Route::patch('tax-ptkp/{taxPtkp}', [TaxPtkpController::class, 'update'])->name('tax-ptkp.update');
+                Route::patch('tax-ptkp/{taxPtkp}/toggle', [TaxPtkpController::class, 'toggle'])->name('tax-ptkp.toggle');
+                Route::put('tax-brackets/{taxBracket}', [TaxBracketController::class, 'update'])->name('tax-brackets.update');
+                Route::patch('tax-brackets/{taxBracket}/toggle', [TaxBracketController::class, 'toggle'])->name('tax-brackets.toggle');
+            });
 
-            Route::patch('tax-ptkp/{taxPtkp}',                 [TaxPtkpController::class, 'update'])->name('tax-ptkp.update');
-            Route::patch('tax-ptkp/{taxPtkp}/toggle',          [TaxPtkpController::class, 'toggle'])->name('tax-ptkp.toggle');
-            Route::post('tax-ptkp/reset',                      [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
-
-            Route::post('tax-brackets',                        [TaxBracketController::class, 'store'])->name('tax-brackets.store');
-            Route::get('tax-brackets/{taxBracket}/edit',       [TaxBracketController::class, 'edit'])->name('tax-brackets.edit');
-            Route::put('tax-brackets/{taxBracket}',            [TaxBracketController::class, 'update'])->name('tax-brackets.update');
-            Route::delete('tax-brackets/{taxBracket}',         [TaxBracketController::class, 'destroy'])->name('tax-brackets.destroy');
-            Route::patch('tax-brackets/{taxBracket}/toggle',   [TaxBracketController::class, 'toggle'])->name('tax-brackets.toggle');
-            Route::post('tax-brackets/reset',                  [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
+            Route::middleware('can:delete hris master')->group(function () {
+                Route::delete('leave-types/{leaveType}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
+                Route::delete('overtime-rules/{overtimeRule}', [OvertimeRuleController::class, 'destroy'])->name('overtime-rules.destroy');
+                Route::delete('tax-brackets/{taxBracket}', [TaxBracketController::class, 'destroy'])->name('tax-brackets.destroy');
+            });
         });
     });
 

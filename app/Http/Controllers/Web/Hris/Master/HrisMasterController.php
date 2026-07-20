@@ -13,7 +13,7 @@ class HrisMasterController extends Controller
 {
     public function index(Request $request)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('view hris master');
         $tab        = $request->get('tab', 'leave-types');
         $user       = auth()->user();
         $isSuperAdmin = $user->is_super_admin;

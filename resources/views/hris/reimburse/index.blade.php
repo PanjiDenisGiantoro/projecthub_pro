@@ -50,7 +50,7 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                         @if($item->status === 'pending')
-                            @can('manage reimbursement')
+                            @can('approve reimbursement')
                             <form action="{{ route('hris.reimburse.approve', $item) }}" method="POST" class="inline">
                                 @csrf @method('PATCH')
                                 <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>

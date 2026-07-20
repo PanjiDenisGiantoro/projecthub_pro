@@ -15,7 +15,10 @@ class UserWebController extends Controller
     public function index(Request $request)
     {
         $authUser  = auth()->user();
-        $isAdmin   = $authUser->can('manage users');
+        $canCreate = $authUser->can('create user');
+        $canUpdate = $authUser->can('update user');
+        $canDelete = $authUser->can('delete user');
+        $isAdmin   = $canCreate || $canUpdate || $canDelete;
 
         $query = User::with(['roles', 'structuralLevel', 'organizationUnit'])
             ->whereDoesntHave('roles', fn($q) => $q->where('name', 'customer'))
@@ -33,7 +36,7 @@ class UserWebController extends Controller
         $users = $query->paginate(20);
         $roles = $isAdmin ? Role::where('name', '!=', 'customer')->get() : collect();
 
-        return view('users.index', compact('users', 'roles', 'isAdmin'));
+        return view('users.index', compact('users', 'roles', 'isAdmin', 'canCreate', 'canUpdate', 'canDelete'));
     }
 
     /**

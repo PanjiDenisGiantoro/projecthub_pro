@@ -25,7 +25,7 @@
             @endif
         </form>
 
-        @can('manage users')
+        @can('create user')
         <a href="{{ route('clients.create') }}"
            class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,9 +82,9 @@
                     <th class="px-4 py-3 text-left">Email</th>
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Bergabung</th>
-                    @can('manage users')
+                    @canany(['update user', 'delete user'])
                     <th class="px-4 py-3"></th>
-                    @endcan
+                    @endcanany
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -116,19 +116,23 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-sm">{{ $client->created_at->format('d M Y') }}</td>
-                    @can('manage users')
+                    @canany(['update user', 'delete user'])
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3 justify-end">
+                            @can('update user')
                             <a href="{{ route('clients.edit', $client) }}"
                                class="text-violet-600 hover:text-violet-800 text-sm font-medium">Edit</a>
+                            @endcan
+                            @can('delete user')
                             <form method="POST" action="{{ route('clients.destroy', $client) }}"
                                   onsubmit="return confirm('Hapus client {{ $client->name }}?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Hapus</button>
                             </form>
+                            @endcan
                         </div>
                     </td>
-                    @endcan
+                    @endcanany
                 </tr>
                 @empty
                 <tr>

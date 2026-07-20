@@ -80,7 +80,7 @@ class LeaveService
 
         if ($leave->status === 'pending') {
             $this->notifier->notifyByPermission(
-                'manage leave',
+                'approve leave',
                 'leave_submitted',
                 'Pengajuan Cuti Baru',
                 "{$user->name} mengajukan {$type->name} ({$totalDays} hari).",

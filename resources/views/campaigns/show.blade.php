@@ -22,12 +22,14 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
             <span class="text-gray-700 font-medium">{{ $campaign->name }}</span>
         </div>
         <div class="flex gap-2">
-            @can('manage campaigns')
+            @can('update campaign')
             <a href="{{ route('campaigns.edit', $campaign) }}"
                class="inline-flex items-center gap-1.5 text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 Edit
             </a>
+            @endcan
+            @can('delete campaign')
             <form method="POST" action="{{ route('campaigns.destroy', $campaign) }}" data-confirm-delete="{{ $campaign->name }}">
                 @csrf @method('DELETE')
                 <button type="submit" class="inline-flex items-center gap-1.5 text-sm border border-red-200 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50">
@@ -145,7 +147,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                             </form>
                         </div>
                     </template>
-                    @can('manage campaigns')
+                    @can('create campaign')
                     <button @click="openLeadModal(null)"
                             class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -341,7 +343,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 </div>
 
                 {{-- Update metrics form --}}
-                @can('manage campaigns')
+                @can('update campaign')
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
                     <h4 class="text-sm font-semibold text-gray-700 mb-4">Update Metrik</h4>
                     <form method="POST" action="{{ route('campaigns.metrics', $campaign) }}" class="space-y-3">

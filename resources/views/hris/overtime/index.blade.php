@@ -54,7 +54,7 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                         @if($ot->status === 'pending')
-                            @can('manage overtime')
+                            @can('approve overtime')
                             <form action="{{ route('hris.overtime.approve', $ot) }}" method="POST" class="inline">
                                 @csrf @method('PATCH')
                                 <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>

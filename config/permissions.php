@@ -4,6 +4,12 @@
  * Permission registry — single source of truth.
  * Groups are displayed as sections in the permission matrix UI.
  * Key = permission name (stored in DB), Value = human-readable label.
+ *
+ * Pola granular per modul: view/access (lihat), create (buat), update (ubah),
+ * delete (hapus). Modul HRIS yang aksinya self-service (karyawan selalu boleh
+ * ajukan/batalkan cuti/lembur/reimburse miliknya sendiri tanpa izin khusus)
+ * cuma punya "view X" (lihat punya semua orang) + "approve X" (setuju/tolak),
+ * bukan create/update/delete penuh.
  */
 return [
 
@@ -50,22 +56,31 @@ return [
     ],
 
     'Campaigns & Marketing' => [
-        'manage campaigns' => 'Kelola Campaign & Lead',
+        'create campaign' => 'Buat Campaign & Lead',
+        'update campaign' => 'Edit Campaign, Lead & Metrik',
+        'delete campaign' => 'Hapus Campaign & Lead',
     ],
 
     'Invoice' => [
-        'manage invoices' => 'Buat, Edit, Kirim, Mark Paid Invoice',
+        'create invoice' => 'Buat Invoice',
+        'update invoice' => 'Kirim & Tandai Lunas Invoice',
     ],
 
     'Approvals' => [
-        'decide approvals'         => 'Setujui / Tolak Approval',
-        'manage approval policies' => 'Kelola Master Approval Policy',
+        'decide approvals'        => 'Setujui / Tolak Approval',
+        'create approval policy'  => 'Buat Approval Policy',
+        'update approval policy'  => 'Edit / Aktifkan-Nonaktifkan Approval Policy',
+        'delete approval policy'  => 'Hapus Approval Policy',
     ],
 
     'Admin & Master Data' => [
-        'manage users'       => 'Kelola Users (tambah, edit, hapus)',
-        'manage master data' => 'Kelola Master Data (perusahaan, unit organisasi, dll)',
-        'manage permissions' => 'Kelola Permission per Role (halaman ini)',
+        'create user'         => 'Tambah User',
+        'update user'         => 'Edit User',
+        'delete user'         => 'Hapus User',
+        'create master data'  => 'Tambah Perusahaan / Unit Organisasi / Level Struktural',
+        'update master data'  => 'Edit Perusahaan / Unit Organisasi / Level Struktural',
+        'delete master data'  => 'Hapus Perusahaan / Unit Organisasi / Level Struktural',
+        'manage permissions'  => 'Kelola Permission per Role (halaman ini)',
     ],
 
     'HRIS — Akses' => [
@@ -73,32 +88,37 @@ return [
     ],
 
     'HRIS — Absensi' => [
-        'manage absensi'          => 'Kelola Absensi (rekap semua karyawan)',
-        'manage face enrollment'  => 'Kelola Pendaftaran Wajah Karyawan',
+        'view absensi'           => 'Lihat Rekap Absensi Semua Karyawan',
+        'update absensi'         => 'Kelola Pengaturan Absensi (lokasi, wajah)',
+        'manage face enrollment' => 'Kelola Pendaftaran Wajah Karyawan',
     ],
 
     'HRIS — Cuti & Izin' => [
-        'manage leave'  => 'Kelola Cuti & Izin (approve/reject)',
+        'view leave'    => 'Lihat Cuti & Izin Semua Karyawan',
         'approve leave' => 'Approve / Reject Cuti',
     ],
 
     'HRIS — Lembur' => [
-        'manage overtime'  => 'Kelola Lembur (approve/reject)',
+        'view overtime'    => 'Lihat Lembur Semua Karyawan',
         'approve overtime' => 'Approve / Reject Lembur',
     ],
 
     'HRIS — Reimburse' => [
-        'manage reimbursement'  => 'Kelola Reimburse (approve/reject)',
+        'view reimbursement'    => 'Lihat Reimburse Semua Karyawan',
         'approve reimbursement' => 'Approve / Reject Reimburse',
     ],
 
     'HRIS — Payroll' => [
-        'manage payroll'     => 'Kelola Payroll (lihat semua, finalize)',
-        'generate payroll'   => 'Generate / Buat Payroll',
-        'view payroll report' => 'Lihat Laporan Payroll',
+        'view payroll'   => 'Lihat Payroll & Data Gaji Semua Karyawan',
+        'create payroll' => 'Generate Payroll & Tambah Data Gaji',
+        'update payroll' => 'Edit Data Gaji & Finalize Payroll',
+        'delete payroll' => 'Hapus Data Gaji',
     ],
 
     'HRIS — Master Data' => [
-        'manage hris master' => 'Kelola Master Data HRIS (jenis cuti, aturan lembur, PTKP, tarif PPh21)',
+        'view hris master'   => 'Lihat Master Data HRIS (jenis cuti, aturan lembur, PTKP, tarif PPh21)',
+        'create hris master' => 'Tambah / Reset Master Data HRIS',
+        'update hris master' => 'Edit / Aktifkan-Nonaktifkan Master Data HRIS',
+        'delete hris master' => 'Hapus Master Data HRIS',
     ],
 ];

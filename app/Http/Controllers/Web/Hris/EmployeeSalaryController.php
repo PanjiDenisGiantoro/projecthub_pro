@@ -12,7 +12,7 @@ class EmployeeSalaryController extends Controller
 {
     public function index(User $user)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('view payroll');
         abort_if($user->company_id !== auth()->user()->company_id, 403);
 
         $salaries   = $user->salaries()->orderByDesc('effective_date')->get();
@@ -23,7 +23,7 @@ class EmployeeSalaryController extends Controller
 
     public function create(User $user)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('create payroll');
         abort_if($user->company_id !== auth()->user()->company_id, 403);
 
         $latest        = $user->salaries()->latest('effective_date')->first();
@@ -34,7 +34,7 @@ class EmployeeSalaryController extends Controller
 
     public function store(Request $request, User $user)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('create payroll');
         abort_if($user->company_id !== auth()->user()->company_id, 403);
 
         $request->validate([
@@ -67,7 +67,7 @@ class EmployeeSalaryController extends Controller
 
     public function edit(User $user, EmployeeSalary $salary)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('update payroll');
         abort_if($user->company_id !== auth()->user()->company_id || $salary->user_id !== $user->id, 403);
 
         $statusOptions = TaxPtkp::forSelect();
@@ -77,7 +77,7 @@ class EmployeeSalaryController extends Controller
 
     public function update(Request $request, User $user, EmployeeSalary $salary)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('update payroll');
         abort_if($user->company_id !== auth()->user()->company_id || $salary->user_id !== $user->id, 403);
 
         $request->validate([
@@ -109,7 +109,7 @@ class EmployeeSalaryController extends Controller
 
     public function destroy(User $user, EmployeeSalary $salary)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('delete payroll');
         abort_if($salary->user_id !== $user->id, 403);
         $salary->delete();
         return back()->with('success', 'Data gaji dihapus.');

@@ -18,7 +18,7 @@ class LeaveController extends Controller
 
         $requests = LeaveRequest::with(['user', 'leaveType'])
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage leave'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view leave'), fn($q) => $q->where('user_id', $user->id))
             ->orderByDesc('created_at')
             ->paginate(20);
 
@@ -72,7 +72,7 @@ class LeaveController extends Controller
 
     public function approve(LeaveRequest $leave)
     {
-        $this->authorize('manage leave');
+        $this->authorize('approve leave');
         abort_if($leave->status !== 'pending', 422, 'Status tidak valid.');
         $this->leaveService->approve($leave, auth()->user());
         return back()->with('success', 'Cuti disetujui.');
@@ -80,7 +80,7 @@ class LeaveController extends Controller
 
     public function reject(Request $request, LeaveRequest $leave)
     {
-        $this->authorize('manage leave');
+        $this->authorize('approve leave');
         $request->validate(['rejection_reason' => 'required|string|max:500']);
         $this->leaveService->reject($leave, auth()->user(), $request->rejection_reason);
         return back()->with('success', 'Cuti ditolak.');

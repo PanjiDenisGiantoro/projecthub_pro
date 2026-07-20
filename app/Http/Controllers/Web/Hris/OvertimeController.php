@@ -19,7 +19,7 @@ class OvertimeController extends Controller
 
         $overtimes = Overtime::with('user')
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage overtime'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view overtime'), fn($q) => $q->where('user_id', $user->id))
             ->orderByDesc('date')
             ->paginate(20);
 
@@ -71,7 +71,7 @@ class OvertimeController extends Controller
         ]);
 
         $this->notifier->notifyByPermission(
-            'manage overtime',
+            'approve overtime',
             'overtime_submitted',
             'Pengajuan Lembur Baru',
             "{$user->name} mengajukan lembur {$hours} jam pada {$date->format('d M Y')}.",
@@ -92,7 +92,7 @@ class OvertimeController extends Controller
 
     public function approve(Overtime $overtime)
     {
-        $this->authorize('manage overtime');
+        $this->authorize('approve overtime');
         abort_if($overtime->status !== 'pending', 422, 'Status tidak valid.');
 
         try {

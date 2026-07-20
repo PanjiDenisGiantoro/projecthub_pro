@@ -11,7 +11,7 @@ class TaxBracketController extends Controller
 {
     public function store(Request $request)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $request->validate([
             'income_from' => 'required|numeric|min:0',
             'income_to'   => 'nullable|numeric|min:0',
@@ -25,13 +25,13 @@ class TaxBracketController extends Controller
 
     public function edit(TaxBracket $taxBracket)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('view hris master');
         return view('hris.master.tax-brackets.edit', compact('taxBracket'));
     }
 
     public function update(Request $request, TaxBracket $taxBracket)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $request->validate([
             'income_from' => 'required|numeric|min:0',
             'income_to'   => 'nullable|numeric|min:0',
@@ -45,7 +45,7 @@ class TaxBracketController extends Controller
 
     public function destroy(TaxBracket $taxBracket)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('delete hris master');
         $taxBracket->delete();
         Cache::forget('tax_brackets_active');
         return redirect()->route('hris.master.index', ['tab' => 'tax-brackets'])->with('success', 'Lapisan tarif dihapus.');
@@ -53,7 +53,7 @@ class TaxBracketController extends Controller
 
     public function toggle(TaxBracket $taxBracket)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $taxBracket->update(['is_active' => !$taxBracket->is_active]);
         Cache::forget('tax_brackets_active');
         return back()->with('success', 'Status diperbarui.');
@@ -61,7 +61,7 @@ class TaxBracketController extends Controller
 
     public function resetDefault()
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $brackets = [
             [0,              60_000_000,    0.05,  '5%  — s/d Rp 60 juta'],
             [60_000_000,     250_000_000,   0.15,  '15% — Rp 60 jt s/d Rp 250 jt'],

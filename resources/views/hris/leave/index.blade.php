@@ -52,7 +52,7 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                         @if($req->status === 'pending')
-                            @can('manage leave')
+                            @can('approve leave')
                             <div x-data="{ open: false }" class="relative inline-block">
                                 <button @click="open=!open" class="text-xs text-gray-500 hover:text-gray-700">Aksi ▾</button>
                                 <div x-show="open" @click.away="open=false" class="absolute right-0 mt-1 w-40 bg-white border border-gray-100 rounded-xl shadow-lg z-10">
@@ -75,7 +75,7 @@
                     </td>
                 </tr>
                 {{-- Reject Modal --}}
-                @can('manage leave')
+                @can('approve leave')
                 <dialog id="reject-{{ $req->id }}" class="rounded-2xl p-6 shadow-xl w-full max-w-md">
                     <form action="{{ route('hris.leave.reject', $req) }}" method="POST">
                         @csrf @method('PATCH')

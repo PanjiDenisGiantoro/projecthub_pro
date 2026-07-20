@@ -83,7 +83,7 @@
                     <td class="px-4 py-3 text-center flex items-center justify-center gap-2">
                         <a href="{{ route('hris.payroll.show', $p) }}" class="text-xs text-violet-600 hover:text-violet-800">Detail</a>
                         <a href="{{ route('hris.payroll.slip', $p) }}" class="text-xs text-violet-600 hover:text-violet-800">Slip PDF</a>
-                        @can('manage payroll')
+                        @can('update payroll')
                         @if($p->status === 'draft')
                         <form action="{{ route('hris.payroll.finalize', $p) }}" method="POST" class="inline">
                             @csrf @method('PATCH')

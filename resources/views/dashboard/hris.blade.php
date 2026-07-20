@@ -148,7 +148,7 @@
             @endcan
 
             {{-- Struktur Organisasi --}}
-            @can('manage master data')
+            @can('access master data')
             <a href="{{ route('master.index') }}"
                class="group bg-white rounded-2xl border border-blue-100 p-5 flex items-center gap-4 hover:border-blue-300 hover:shadow-md transition-all">
                 <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0 group-hover:bg-blue-200 transition-colors">
@@ -167,7 +167,7 @@
             @endcan
 
             {{-- Level Struktural --}}
-            @can('manage master data')
+            @can('access master data')
             <a href="{{ route('structural-levels.index') }}"
                class="group bg-white rounded-2xl border border-indigo-100 p-5 flex items-center gap-4 hover:border-indigo-300 hover:shadow-md transition-all">
                 <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 group-hover:bg-indigo-200 transition-colors">

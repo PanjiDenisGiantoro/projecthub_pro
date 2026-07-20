@@ -18,7 +18,7 @@
             @endif
             <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg transition-colors">Filter</button>
         </form>
-        @if($isAdmin)
+        @if($canCreate)
         <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
             Tambah User
@@ -86,15 +86,17 @@
                     </td>
                     <td class="px-4 py-3 text-gray-500">{{ $u->created_at->format('d M Y') }}</td>
                     <td class="px-4 py-3">
-                        @if($isAdmin)
+                        @if($canCreate || $canUpdate || $canDelete)
                         <div class="flex gap-3 flex-wrap">
+                            @if($canUpdate)
                             <a href="{{ route('users.edit', $u) }}" class="text-violet-600 hover:text-violet-800 text-sm font-medium">Edit</a>
-                            @can('manage payroll')
+                            @endif
+                            @can('view payroll')
                             @if(Route::has('hris.salary.index'))
                             <a href="{{ route('hris.salary.index', $u) }}" class="text-violet-600 hover:text-violet-800 text-sm font-medium">Gaji</a>
                             @endif
                             @endcan
-                            @if($u->id !== auth()->id())
+                            @if($canDelete && $u->id !== auth()->id())
                             <form method="POST" action="{{ route('users.destroy', $u) }}"
                                   data-confirm-delete="{{ $u->name }}" data-confirm-label="Hapus User">
                                 @csrf @method('DELETE')

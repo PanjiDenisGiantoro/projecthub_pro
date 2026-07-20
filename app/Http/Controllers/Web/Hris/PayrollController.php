@@ -22,13 +22,13 @@ class PayrollController extends Controller
 
         $payrolls = Payroll::with('user')
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage payroll'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view payroll'), fn($q) => $q->where('user_id', $user->id))
             ->where('year', $year)
             ->where('month', $month)
             ->orderBy('created_at')
             ->paginate(30);
 
-        $employees = $user->can('manage payroll')
+        $employees = $user->can('view payroll')
             ? User::where('company_id', $user->company_id)->where('is_active', true)->get()
             : collect();
 
@@ -81,7 +81,7 @@ class PayrollController extends Controller
 
     public function finalize(Payroll $payroll)
     {
-        $this->authorize('manage payroll');
+        $this->authorize('update payroll');
         abort_if($payroll->status !== 'draft', 422, 'Hanya draft yang bisa difinalize.');
         $payroll->update(['status' => 'finalized']);
 
