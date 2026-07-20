@@ -114,6 +114,24 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->companyRegistrant()?->isExpired() ?? false;
     }
 
+    /** Sisa hari masa aktif company (dari registrant-nya), null kalau lifetime/belum expired-relevant. */
+    public function companyDaysRemaining(): ?int
+    {
+        $registrant = $this->companyRegistrant();
+        if (! $registrant || $registrant->isLifetime()) {
+            return null;
+        }
+
+        return now()->diffInDays($registrant->active_until, false);
+    }
+
+    /** Masa aktif company akan berakhir dalam <= $days hari (tapi belum lewat). */
+    public function isCompanyExpiringSoon(int $days = 7): bool
+    {
+        $remaining = $this->companyDaysRemaining();
+        return $remaining !== null && $remaining >= 0 && $remaining <= $days;
+    }
+
     public function scopeRegistered($query)
     {
         return $query->where('is_registered', true);
