@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\BugTicket;
 use App\Models\Campaign;
+use App\Models\Company;
 use App\Models\CustomerRequest;
 use App\Models\Invoice;
 use App\Models\Project;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Cache;
 
 class DashboardWebController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user       = auth()->user();
         $activePkg  = session('active_package', 'task_management');
@@ -31,80 +32,107 @@ class DashboardWebController extends Controller
         }
 
         if ($user->hasRole(['admin', 'manager'])) {
-            $cid   = $user->company_id;
-            $ckey  = $cid ?? 'superadmin';
+            $companies = collect();
+            $cid       = $user->company_id;
 
-            $stats = Cache::remember("dashboard.admin.stats.{$ckey}.v1", 60, function () use ($cid) {
-                // Tasks scoped via project (Project global scope aplly otomatis)
-                $totalTasks  = Task::whereHas('project')->count();
-                $doneTasks   = Task::whereHas('project')->where('status', 'done')->count();
-                $openTickets = BugTicket::whereHas('project')->whereIn('status', ['open', 'assigned'])->count();
+            if ($user->is_super_admin) {
+                $companies = Company::orderBy('name')->get(['id', 'name']);
 
-                $revThis  = (float) Invoice::whereHas('project')->where('status', 'paid')->whereYear('paid_at', now()->year)->whereMonth('paid_at', now()->month)->sum('total');
-                $revLast  = (float) Invoice::whereHas('project')->where('status', 'paid')->whereYear('paid_at', now()->subMonth()->year)->whereMonth('paid_at', now()->subMonth()->month)->sum('total');
+                if ($request->has('company_id')) {
+                    session(['dashboard_company_id' => $request->integer('company_id') ?: null]);
+                }
+
+                // Default sebelum dropdown pernah disentuh: admin "hybrid" (is_super_admin=true
+                // tapi tetap terikat 1 company, mis. buat akses /superadmin) langsung ke company
+                // miliknya sendiri — bukan data gabungan semua company. Super admin murni (tanpa
+                // company_id) tetap default ke "Semua Company". Setelah dropdown dipilih manual
+                // (termasuk pilih "Semua Company"), pilihan itu yang dipakai.
+                $cid = session()->has('dashboard_company_id')
+                    ? session('dashboard_company_id')
+                    : $user->company_id;
+            }
+
+            $ckey = $cid ?? 'all';
+
+            // Filter tambahan untuk relasi ->project ketika super admin memilih 1 company
+            // (global scope company di model Project di-bypass untuk super admin)
+            $projectFilter = fn($q) => $cid ? $q->where('company_id', $cid) : $q;
+
+            $stats = Cache::remember("dashboard.admin.stats.{$ckey}.v1", 60, function () use ($cid, $projectFilter) {
+                $totalTasks  = Task::whereHas('project', $projectFilter)->count();
+                $doneTasks   = Task::whereHas('project', $projectFilter)->where('status', 'done')->count();
+                $openTickets = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->count();
+
+                $revThis  = (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', now()->year)->whereMonth('paid_at', now()->month)->sum('total');
+                $revLast  = (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', now()->subMonth()->year)->whereMonth('paid_at', now()->subMonth()->month)->sum('total');
                 $revChange = $revLast > 0 ? round(($revThis - $revLast) / $revLast * 100, 1) : null;
 
-                $tickNow  = BugTicket::whereHas('project')->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
-                $tickPrev = BugTicket::whereHas('project')->whereIn('status', ['open', 'assigned'])->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
+                $tickNow  = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
+                $tickPrev = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
                 $tickChange = $tickPrev > 0 ? round(($tickNow - $tickPrev) / $tickPrev * 100, 1) : null;
+
+                $projectsQuery = Project::query()->when($cid, fn($q) => $q->where('company_id', $cid));
 
                 return [
                     'projects'         => [
-                        'total'     => Project::count(),
-                        'active'    => Project::where('status', 'active')->count(),
-                        'completed' => Project::where('status', 'completed')->count(),
-                        'new_month' => Project::whereYear('created_at', now()->year)->whereMonth('created_at', now()->month)->count(),
+                        'total'     => (clone $projectsQuery)->count(),
+                        'active'    => (clone $projectsQuery)->where('status', 'active')->count(),
+                        'completed' => (clone $projectsQuery)->where('status', 'completed')->count(),
+                        'new_month' => (clone $projectsQuery)->whereYear('created_at', now()->year)->whereMonth('created_at', now()->month)->count(),
                     ],
                     'tasks'            => [
                         'total'           => $totalTasks,
-                        'in_progress'     => Task::whereHas('project')->where('status', 'in_progress')->count(),
+                        'in_progress'     => Task::whereHas('project', $projectFilter)->where('status', 'in_progress')->count(),
                         'done'            => $doneTasks,
                         'completion_rate' => $totalTasks > 0 ? round($doneTasks / $totalTasks * 100, 1) : 0,
                     ],
                     'tasks_dist'       => [
                         'done'        => $doneTasks,
-                        'in_progress' => Task::whereHas('project')->where('status', 'in_progress')->count(),
-                        'todo'        => Task::whereHas('project')->where('status', 'todo')->count(),
-                        'review'      => Task::whereHas('project')->where('status', 'review')->count(),
+                        'in_progress' => Task::whereHas('project', $projectFilter)->where('status', 'in_progress')->count(),
+                        'todo'        => Task::whereHas('project', $projectFilter)->where('status', 'todo')->count(),
+                        'review'      => Task::whereHas('project', $projectFilter)->where('status', 'review')->count(),
                     ],
-                    'tickets'          => ['open' => $openTickets, 'breached' => BugTicket::whereHas('project')->where('sla_breached', true)->count(), 'week_change' => $tickChange],
-                    'pending_requests' => CustomerRequest::whereHas('project', fn($q) => $q->when($cid, fn($q) => $q->where('company_id', $cid)))->whereIn('status', ['submitted', 'under_review'])->count(),
-                    'revenue'          => ['total' => Invoice::whereHas('project')->where('status', 'paid')->sum('total'), 'overdue' => Invoice::whereHas('project')->where('status', 'overdue')->count(), 'change' => $revChange],
+                    'tickets'          => ['open' => $openTickets, 'breached' => BugTicket::whereHas('project', $projectFilter)->where('sla_breached', true)->count(), 'week_change' => $tickChange],
+                    'pending_requests' => CustomerRequest::whereHas('project', $projectFilter)->whereIn('status', ['submitted', 'under_review'])->count(),
+                    'revenue'          => ['total' => Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->sum('total'), 'overdue' => Invoice::whereHas('project', $projectFilter)->where('status', 'overdue')->count(), 'change' => $revChange],
                 ];
             });
 
-            $revenueMonthly = Cache::remember("dashboard.revenue.monthly.{$ckey}.v1", 60, function () {
-                return collect(range(5, 0))->map(function ($monthsAgo) {
+            $revenueMonthly = Cache::remember("dashboard.revenue.monthly.{$ckey}.v1", 60, function () use ($projectFilter) {
+                return collect(range(5, 0))->map(function ($monthsAgo) use ($projectFilter) {
                     $month = now()->subMonths($monthsAgo);
                     return [
                         'month'   => $month->locale('id')->isoFormat('MMM'),
-                        'revenue' => (float) Invoice::whereHas('project')->where('status', 'paid')->whereYear('paid_at', $month->year)->whereMonth('paid_at', $month->month)->sum('total'),
-                        'target'  => (float) Invoice::whereHas('project')->whereNotIn('status', ['cancelled'])->whereYear('issue_date', $month->year)->whereMonth('issue_date', $month->month)->sum('total'),
+                        'revenue' => (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', $month->year)->whereMonth('paid_at', $month->month)->sum('total'),
+                        'target'  => (float) Invoice::whereHas('project', $projectFilter)->whereNotIn('status', ['cancelled'])->whereYear('issue_date', $month->year)->whereMonth('issue_date', $month->month)->sum('total'),
                     ];
                 })->values();
             });
 
             $topProjects = Project::with('client')
+                ->when($cid, fn($q) => $q->where('company_id', $cid))
                 ->whereIn('status', ['active', 'on_hold', 'draft'])
                 ->orderByDesc('updated_at')
                 ->limit(5)
                 ->get();
 
-            $recentActivities = Task::with('assignee')->where('status', 'done')->orderByDesc('updated_at')->limit(5)->get()
+            $recentActivities = Task::with('assignee')->whereHas('project', $projectFilter)->where('status', 'done')->orderByDesc('updated_at')->limit(5)->get()
                 ->map(fn($t) => ['type' => 'task', 'user' => $t->assignee, 'message' => 'menyelesaikan task', 'subject' => $t->title, 'time' => $t->updated_at])
                 ->concat(
-                    BugTicket::with('reporter')->orderByDesc('created_at')->limit(5)->get()
+                    BugTicket::with('reporter')->whereHas('project', $projectFilter)->orderByDesc('created_at')->limit(5)->get()
                         ->map(fn($t) => ['type' => 'ticket', 'user' => $t->reporter, 'message' => 'membuka tiket', 'subject' => "#{$t->id} {$t->title}", 'time' => $t->created_at])
                 )
                 ->sortByDesc('time')->take(6)->values();
 
             $recentTickets = BugTicket::with(['project.client'])
+                ->whereHas('project', $projectFilter)
                 ->whereIn('status', ['open', 'assigned', 'in_progress'])
                 ->orderByDesc('created_at')
                 ->limit(6)
                 ->get();
 
             $upcomingDeadlines = \App\Models\Milestone::with('project')
+                ->whereHas('project', $projectFilter)
                 ->where('due_date', '>=', now()->toDateString())
                 ->where('status', '!=', 'completed')
                 ->orderBy('due_date')
@@ -118,6 +146,8 @@ class DashboardWebController extends Controller
                 'recent_activities'   => $recentActivities,
                 'recent_tickets'      => $recentTickets,
                 'upcoming_deadlines'  => $upcomingDeadlines,
+                'companies'           => $companies,
+                'selected_company_id' => $cid,
             ]);
         }
 
