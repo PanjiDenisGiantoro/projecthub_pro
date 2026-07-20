@@ -11,11 +11,12 @@ use App\Models\TicketLink;
 use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\SlaService;
+use App\Services\TeamNotifier;
 use Illuminate\Http\Request;
 
 class TicketWebController extends Controller
 {
-    public function __construct(private SlaService $sla, private NotificationService $notifier) {}
+    public function __construct(private SlaService $sla, private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
 
     public function allTickets(Request $request)
     {
@@ -97,6 +98,7 @@ class TicketWebController extends Controller
 
         $this->sla->applyPolicy($ticket);
         $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id], companyId: $project->company_id);
+        $this->teamNotifier->notify($project, '🐞 Tiket Baru', "[{$ticket->priority}] \"{$ticket->title}\" dilaporkan oleh " . auth()->user()->name . '.');
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Tiket berhasil dibuat.');
     }

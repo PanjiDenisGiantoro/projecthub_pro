@@ -14,6 +14,8 @@ use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
 use App\Http\Controllers\Web\CampaignWebController;
 use App\Http\Controllers\Web\ClientPortalWebController;
+use App\Http\Controllers\Web\GithubWebController;
+use App\Http\Controllers\Web\TeamNotificationWebController;
 use App\Http\Controllers\Web\ClientWebController;
 use App\Http\Controllers\Web\CompanyWebController;
 use App\Http\Controllers\Web\DashboardWebController;
@@ -382,6 +384,16 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('/projects/{project}/portal', [ClientPortalWebController::class, 'index'])->name('portal.index');
         Route::post('/projects/{project}/portal', [ClientPortalWebController::class, 'store'])->name('portal.store');
         Route::delete('/projects/{project}/portal/{portalToken}', [ClientPortalWebController::class, 'destroy'])->name('portal.destroy');
+
+        Route::get('/projects/{project}/github', [GithubWebController::class, 'index'])->name('github.index');
+        Route::post('/projects/{project}/github', [GithubWebController::class, 'store'])->name('github.store');
+        Route::post('/projects/{project}/github/refresh', [GithubWebController::class, 'refresh'])->name('github.refresh');
+        Route::delete('/projects/{project}/github', [GithubWebController::class, 'destroy'])->name('github.destroy');
+
+        Route::get('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'index'])->name('team-notifications.index');
+        Route::post('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'store'])->name('team-notifications.store');
+        Route::post('/projects/{project}/team-notifications/test', [TeamNotificationWebController::class, 'test'])->name('team-notifications.test');
+        Route::delete('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'destroy'])->name('team-notifications.destroy');
     });
 
     // Project Templates
