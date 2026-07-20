@@ -67,10 +67,15 @@
 
                 <div class="p-5">
                     <div class="flex items-start gap-4 mb-4">
-                        {{-- Avatar --}}
-                        <div class="w-11 h-11 rounded-xl {{ $c['light'] }} {{ $c['text'] }} flex items-center justify-center font-bold text-base flex-shrink-0">
-                            {{ strtoupper(substr($company->name, 0, 2)) }}
-                        </div>
+                        {{-- Logo / Avatar --}}
+                        @if($company->logo)
+                            <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}"
+                                 class="w-11 h-11 rounded-xl object-cover border border-gray-200 flex-shrink-0">
+                        @else
+                            <div class="w-11 h-11 rounded-xl {{ $c['light'] }} {{ $c['text'] }} flex items-center justify-center font-bold text-base flex-shrink-0">
+                                {{ strtoupper(substr($company->name, 0, 2)) }}
+                            </div>
+                        @endif
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">

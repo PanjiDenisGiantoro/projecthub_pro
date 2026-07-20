@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyWebController extends Controller
 {
@@ -39,9 +40,15 @@ class CompanyWebController extends Controller
             'email'     => 'nullable|email',
             'website'   => 'nullable|url|max:255',
             'is_active' => 'boolean',
+            'logo'      => 'nullable|image|max:2048',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
+
+        if ($request->hasFile('logo')) {
+            $data['logo'] = $request->file('logo')->store('company-logos', 'public');
+        }
+
         $company = Company::create($data);
 
         // Admin (non-superadmin) yang membuat company baru otomatis dapat akses
@@ -72,9 +79,18 @@ class CompanyWebController extends Controller
             'email'     => 'nullable|email',
             'website'   => 'nullable|url|max:255',
             'is_active' => 'boolean',
+            'logo'      => 'nullable|image|max:2048',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
+
+        if ($request->hasFile('logo')) {
+            if ($company->logo) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $data['logo'] = $request->file('logo')->store('company-logos', 'public');
+        }
+
         $company->update($data);
 
         return redirect()->route('companies.index')->with('success', 'Perusahaan berhasil diperbarui.');

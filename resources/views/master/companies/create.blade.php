@@ -15,11 +15,26 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('companies.store') }}" class="space-y-5"
+        <form method="POST" action="{{ route('companies.store') }}" enctype="multipart/form-data" class="space-y-5"
               data-confirm-submit="Simpan perusahaan baru?" data-confirm-btn="Ya, Simpan">
             @csrf
 
             <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2" x-data="{ preview: null }">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Perusahaan</label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+                            <img x-show="preview" :src="preview" class="w-full h-full object-cover">
+                            <svg x-show="!preview" class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 8h16M4 4h16v16H4V4z"/></svg>
+                        </div>
+                        <input type="file" name="logo" accept="image/*"
+                               @change="preview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
+                               class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 @error('logo') border-red-400 @enderror">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Opsional. Format JPG/PNG, maks 2MB.</p>
+                    @error('logo')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+                </div>
+
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Perusahaan <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name') }}" required
