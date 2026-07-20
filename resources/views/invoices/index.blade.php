@@ -39,7 +39,7 @@
                 @php $sc = ['draft'=>'bg-gray-100 text-gray-700','sent'=>'bg-blue-100 text-blue-700','paid'=>'bg-green-100 text-green-700','overdue'=>'bg-red-100 text-red-700','cancelled'=>'bg-gray-100 text-gray-500']; @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono font-medium text-gray-800">{{ $inv->invoice_number }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $inv->project->name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $inv->project->name ?? 'Internal' }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $inv->client->name }}</td>
                     <td class="px-4 py-3 font-medium">Rp {{ number_format($inv->total,0,',','.') }}</td>
                     <td class="px-4 py-3"><span class="badge {{ $sc[$inv->status] ?? '' }}">{{ ucfirst($inv->status) }}</span></td>

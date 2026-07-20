@@ -2,13 +2,17 @@
 @section('title', 'Invoice ' . $invoice->invoice_number)
 @section('page-title', 'Detail Invoice')
 
+@push('head')
+<style>@media print { .no-print { display: none !important; } }</style>
+@endpush
+
 @section('content')
 @php
     $sc = ['draft'=>'bg-gray-100 text-gray-700','sent'=>'bg-blue-100 text-blue-700','paid'=>'bg-green-100 text-green-700','overdue'=>'bg-red-100 text-red-700','cancelled'=>'bg-gray-100 text-gray-500'];
     $user = auth()->user();
 @endphp
 <div class="py-4 max-w-3xl">
-    <nav class="text-sm text-gray-500 mb-4">
+    <nav class="text-sm text-gray-500 mb-4 no-print">
         <a href="{{ route('invoices.index') }}" class="hover:text-blue-600">Invoices</a>
         <span class="mx-2">/</span>
         <span class="text-gray-700">{{ $invoice->invoice_number }}</span>
@@ -19,10 +23,13 @@
         <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
             <div>
                 <h2 class="text-xl font-bold font-mono text-gray-800">{{ $invoice->invoice_number }}</h2>
-                <p class="text-sm text-gray-500 mt-1">{{ $invoice->project->name }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ $invoice->project->name ?? 'Invoice Internal (Non-Proyek)' }}</p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 no-print">
                 <span class="badge {{ $sc[$invoice->status] ?? '' }} text-sm py-1 px-3">{{ ucfirst($invoice->status) }}</span>
+                <button type="button" onclick="window.print()" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                    🖨 Cetak
+                </button>
                 <a href="{{ route('invoices.pdf', $invoice) }}" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
                     ↓ PDF
                 </a>
@@ -81,11 +88,20 @@
             @if($invoice->notes)
                 <div class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600"><strong>Catatan:</strong> {{ $invoice->notes }}</div>
             @endif
+
+            @if($invoice->attachment)
+                <div class="mt-3 text-sm">
+                    <span class="text-gray-500">Lampiran:</span>
+                    <a href="{{ $invoice->attachmentUrl() }}" target="_blank" class="text-violet-600 hover:text-violet-800 font-medium ml-1">
+                        📎 {{ basename($invoice->attachment) }}
+                    </a>
+                </div>
+            @endif
         </div>
 
         {{-- Actions --}}
         @if($user->hasRole(['admin','manager']))
-        <div class="px-6 py-4 border-t border-gray-100 flex gap-3">
+        <div class="px-6 py-4 border-t border-gray-100 flex gap-3 no-print">
             @if($invoice->status === 'draft')
             <form method="POST" action="{{ route('invoices.send', $invoice) }}">
                 @csrf @method('PUT')

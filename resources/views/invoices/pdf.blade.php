@@ -47,7 +47,7 @@
         </div>
         <div style="text-align:right">
             <div class="section-label">Invoice Details</div>
-            <strong>Project:</strong> {{ $invoice->project->name }}<br>
+            <strong>Project:</strong> {{ $invoice->project->name ?? 'Internal (Non-Proyek)' }}<br>
             <strong>Issue Date:</strong> {{ $invoice->issue_date->format('d M Y') }}<br>
             <strong>Due Date:</strong> {{ $invoice->due_date->format('d M Y') }}<br>
             @if($invoice->paid_at)

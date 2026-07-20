@@ -5,14 +5,45 @@
 @section('content')
 <div class="py-4 max-w-3xl" x-data="invoiceForm()">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('invoices.store') }}" class="space-y-6"
+        <form method="POST" action="{{ route('invoices.store') }}" enctype="multipart/form-data" class="space-y-6"
               @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
 
+            @if($companies->count() > 1)
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan <span class="text-red-500">*</span></label>
+                <select name="company_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="">— Pilih Perusahaan —</option>
+                    @foreach($companies as $co)
+                        <option value="{{ $co->id }}" {{ old('company_id') == $co->id ? 'selected' : '' }}>{{ $co->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @elseif($companies->isNotEmpty())
+                <input type="hidden" name="company_id" value="{{ $companies->first()->id }}">
+            @endif
+
+            {{-- Jenis Invoice --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Invoice</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="flex items-center gap-2 border rounded-lg px-4 py-2.5 cursor-pointer transition-colors"
+                           :class="invoiceType==='project' ? 'border-violet-500 bg-violet-50' : 'border-gray-300'">
+                        <input type="radio" name="invoice_type" value="project" x-model="invoiceType" class="text-violet-600">
+                        <span class="text-sm text-gray-700">Untuk Proyek</span>
+                    </label>
+                    <label class="flex items-center gap-2 border rounded-lg px-4 py-2.5 cursor-pointer transition-colors"
+                           :class="invoiceType==='internal' ? 'border-violet-500 bg-violet-50' : 'border-gray-300'">
+                        <input type="radio" name="invoice_type" value="internal" x-model="invoiceType" class="text-violet-600">
+                        <span class="text-sm text-gray-700">Internal (Non-Proyek)</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
-                <div>
+                <div x-show="invoiceType==='project'">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Proyek <span class="text-red-500">*</span></label>
-                    <select name="project_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="project_id" :required="invoiceType==='project'" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
                         <option value="">— Pilih Proyek —</option>
                         @foreach($projects as $p)
                             <option value="{{ $p->id }}" {{ old('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -112,6 +143,14 @@
                 <textarea name="notes" rows="2" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">{{ old('notes') }}</textarea>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lampiran (opsional)</label>
+                <input type="file" name="attachment"
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 @error('attachment') border border-red-400 rounded-lg @enderror">
+                <p class="text-xs text-gray-400 mt-1">Mis. kontrak, bukti pendukung, dsb. Maks 10MB.</p>
+                @error('attachment')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+            </div>
+
             <div class="flex gap-3 pt-2">
                 <button type="submit" :disabled="submitting" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     <span x-show="!submitting">Buat Invoice</span>
@@ -127,6 +166,7 @@
 <script>
 function invoiceForm() {
     return {
+        invoiceType: '{{ old('invoice_type', 'project') }}',
         tax: {{ old('tax', 0) }},
         submitting: false,
         items: [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
