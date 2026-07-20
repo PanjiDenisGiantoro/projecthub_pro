@@ -22,6 +22,12 @@
     <div class="bg-white rounded-2xl shadow-xl p-8">
         <h2 class="text-xl font-semibold text-gray-800 mb-6">Masuk ke Akun Anda</h2>
 
+        @if(session('status'))
+            <div class="mb-4 bg-violet-50 border border-violet-200 text-violet-700 rounded-lg px-4 py-3 text-sm">
+                {{ session('status') }}
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
                 {{ $errors->first() }}

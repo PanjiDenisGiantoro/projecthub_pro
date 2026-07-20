@@ -96,11 +96,7 @@ class RegisterWebController extends Controller
         Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password));
         $user->sendEmailVerificationNotification();
 
-        Auth::login($user);
-        $request->session()->regenerate();
-        $firstPkg = $user->packages()->active()->first();
-        $request->session()->put('active_package', $firstPkg?->slug ?? 'task_management');
-
-        return redirect()->route('dashboard');
+        return redirect()->route('login')
+            ->with('status', 'Pendaftaran berhasil! Silakan login dengan email dan password Anda, lalu verifikasi email untuk mengaktifkan akun.');
     }
 }
