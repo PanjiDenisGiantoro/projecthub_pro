@@ -22,7 +22,9 @@ body { font-family: Arial, sans-serif; color: #374151; background: #f9fafb; marg
 
     <p style="font-size:13px;color:#6B7280;">Simpan informasi ini baik-baik dan segera ganti password setelah login pertama Anda. Jangan bagikan email ini kepada siapa pun.</p>
 
-    <a href="{{ $loginUrl }}" class="btn">Masuk ke Flovig</a>
+    <p style="font-size:13px;color:#6B7280;margin-top:20px;">Satu langkah lagi: verifikasi email Anda supaya akun aktif sepenuhnya.</p>
+    <a href="{{ $verificationUrl }}" class="btn">Verifikasi Email Saya</a>
+    <p style="font-size:12px;color:#9CA3AF;margin-top:16px;">Sudah login? <a href="{{ $loginUrl }}" style="color:#7C3AED;">Masuk ke Flovig</a></p>
 </div>
 </body>
 </html>

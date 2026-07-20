@@ -23,6 +23,11 @@ class QueuedVerifyEmail extends VerifyEmail implements ShouldQueue
      */
     protected function verificationUrl($notifiable)
     {
+        return static::urlFor($notifiable);
+    }
+
+    public static function urlFor($notifiable): string
+    {
         $token = Crypt::encryptString(json_encode([
             'id'      => $notifiable->getKey(),
             'hash'    => sha1($notifiable->getEmailForVerification()),

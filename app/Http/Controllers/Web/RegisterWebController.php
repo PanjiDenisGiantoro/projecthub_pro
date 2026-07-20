@@ -93,8 +93,8 @@ class RegisterWebController extends Controller
             return $user;
         });
 
-        Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password));
-        $user->sendEmailVerificationNotification();
+        $verificationUrl = \App\Notifications\QueuedVerifyEmail::urlFor($user);
+        Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password, $verificationUrl));
 
         Auth::login($user);
         $request->session()->regenerate();
