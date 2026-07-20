@@ -128,7 +128,7 @@ class TaskWebController extends Controller
         $user = auth()->user();
 
         if ($request->action === 'start') {
-            TimeLog::where('user_id', $user->id)->where('is_running', true)->each->stop();
+            TimeLog::where('user_id', $user->id)->where('is_running', true)->get()->each->stop();
             $task->timeLogs()->create(['user_id' => $user->id, 'started_at' => now(), 'is_running' => true, 'notes' => $request->notes]);
         } elseif ($request->action === 'stop') {
             $log = $task->timeLogs()->where('user_id', $user->id)->where('is_running', true)->first();
