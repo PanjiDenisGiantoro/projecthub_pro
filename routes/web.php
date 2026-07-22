@@ -389,6 +389,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/github', [GithubWebController::class, 'store'])->name('github.store');
         Route::post('/projects/{project}/github/refresh', [GithubWebController::class, 'refresh'])->name('github.refresh');
         Route::delete('/projects/{project}/github', [GithubWebController::class, 'destroy'])->name('github.destroy');
+        Route::get('/projects/{project}/github/files', [GithubWebController::class, 'files'])->name('github.files');
+        Route::get('/projects/{project}/github/files/edit', [GithubWebController::class, 'editFile'])->name('github.files.edit');
+        Route::put('/projects/{project}/github/files', [GithubWebController::class, 'updateFile'])->name('github.files.update');
 
         Route::get('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'index'])->name('team-notifications.index');
         Route::post('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'store'])->name('team-notifications.store');

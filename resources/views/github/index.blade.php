@@ -55,13 +55,28 @@
         </div>
     @else
         {{-- ── Connected: Summary ───────────────────────────────────────── --}}
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
             <div class="flex items-center gap-2 text-sm text-gray-500">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.8.1-.8 1.2.1 1.9 1.2 1.9 1.2 1.1 1.9 2.9 1.3 3.6 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0012 .3z"/></svg>
                 <span class="font-mono">{{ $project->githubOwnerRepo() }}</span>
             </div>
-            <div class="flex items-center gap-2">
-                <form method="POST" action="{{ route('github.refresh', $project) }}">
+            <div class="flex items-center gap-2 flex-wrap">
+                @if(!empty($branches))
+                <form method="GET" action="{{ route('github.index', $project) }}" class="flex items-center gap-1.5">
+                    <label class="text-xs text-gray-500">Branch</label>
+                    <select name="branch" onchange="this.form.submit()"
+                            class="rounded-lg border-gray-300 text-sm font-mono focus:border-indigo-500 focus:ring-indigo-500">
+                        @foreach($branches as $b)
+                        <option value="{{ $b }}" @selected(($summary['branch'] ?? null) === $b)>{{ $b }}</option>
+                        @endforeach
+                    </select>
+                </form>
+                @endif
+                <a href="{{ route('github.files', array_filter(['project' => $project->id, 'branch' => $summary['branch'] ?? null])) }}"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                    Jelajahi File
+                </a>
+                <form method="POST" action="{{ route('github.refresh', array_filter(['project' => $project->id, 'branch' => $summary['branch'] ?? null])) }}">
                     @csrf
                     <button type="submit" class="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
                         ↻ Refresh
@@ -84,8 +99,11 @@
             @php $repo = $summary['repo']; @endphp
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Default Branch</p>
-                    <p class="text-lg font-bold text-gray-800 font-mono">{{ $repo['default_branch'] }}</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Branch Aktif</p>
+                    <p class="text-lg font-bold text-gray-800 font-mono">{{ $summary['branch'] ?? $repo['default_branch'] }}</p>
+                    @if(($summary['branch'] ?? null) !== $repo['default_branch'])
+                        <p class="text-xs text-gray-400 mt-0.5">Default: <span class="font-mono">{{ $repo['default_branch'] }}</span></p>
+                    @endif
                 </div>
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Open Issues</p>
