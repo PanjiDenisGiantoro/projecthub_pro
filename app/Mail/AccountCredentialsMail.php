@@ -18,6 +18,7 @@ class AccountCredentialsMail extends Mailable implements ShouldQueue
     public function __construct(
         public User $user,
         public string $password,
+        public string $verificationUrl,
     ) {}
 
     public function build()
@@ -25,10 +26,11 @@ class AccountCredentialsMail extends Mailable implements ShouldQueue
         return $this->subject('Akun Flovig Anda Sudah Siap')
             ->view('emails.account-credentials')
             ->with([
-                'name'     => $this->user->name,
-                'email'    => $this->user->email,
-                'password' => $this->password,
-                'loginUrl' => route('login'),
+                'name'            => $this->user->name,
+                'email'           => $this->user->email,
+                'password'        => $this->password,
+                'loginUrl'        => route('login'),
+                'verificationUrl' => $this->verificationUrl,
             ]);
     }
 }

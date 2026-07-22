@@ -93,8 +93,8 @@ class RegisterWebController extends Controller
             return $user;
         });
 
-        Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password));
-        $user->sendEmailVerificationNotification();
+        $verificationUrl = \App\Notifications\QueuedVerifyEmail::urlFor($user);
+        Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password, $verificationUrl));
 
         return redirect()->route('login')
             ->with('status', 'Pendaftaran berhasil! Silakan login dengan email dan password Anda, lalu verifikasi email untuk mengaktifkan akun.');
