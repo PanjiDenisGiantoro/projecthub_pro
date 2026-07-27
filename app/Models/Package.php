@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Package extends Model
 {
-    protected $fillable = ['slug', 'name', 'description', 'is_active'];
+    protected $fillable = ['slug', 'name', 'description', 'price', 'duration_days', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'price'     => 'integer',
     ];
 
     public function users()

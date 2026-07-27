@@ -11,16 +11,20 @@ class PackageSeeder extends Seeder
     {
         $packages = [
             [
-                'slug'        => 'hris',
-                'name'        => 'HRIS',
-                'description' => 'Human Resource Information System — manajemen karyawan, struktur organisasi, dan penggajian.',
-                'is_active'   => true,
+                'slug'          => 'hris',
+                'name'          => 'HRIS',
+                'description'   => 'Human Resource Information System — manajemen karyawan, struktur organisasi, dan penggajian.',
+                'price'         => 500000,
+                'duration_days' => 30,
+                'is_active'     => true,
             ],
             [
-                'slug'        => 'task_management',
-                'name'        => 'Task Management',
-                'description' => 'Manajemen tugas, proyek, sprint, dan pelacakan waktu.',
-                'is_active'   => true,
+                'slug'          => 'task_management',
+                'name'          => 'Task Management',
+                'description'   => 'Manajemen tugas, proyek, sprint, dan pelacakan waktu.',
+                'price'         => 300000,
+                'duration_days' => 30,
+                'is_active'     => true,
             ],
         ];
 

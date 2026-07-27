@@ -39,7 +39,7 @@
         @endif
 
         {{-- Pricing Plan Selection --}}
-        <div class="mb-6" x-data="{ plan: 'starter' }">
+        <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Paket Harga</label>
             <p class="text-xs text-gray-500 mb-3">Sederhana, transparan, terjangkau. Ganti kapan saja.</p>
 
@@ -113,6 +113,7 @@
 
         <form method="POST" action="{{ route('register.post') }}" class="space-y-4">
             @csrf
+            <input type="hidden" name="plan" x-model="plan">
 
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
@@ -301,6 +302,7 @@
 function registerForm() {
     return {
         packages: @json(old('packages', [])),
+        plan: @json(old('plan', 'starter')),
     }
 }
 </script>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AnalyticsWebController;
+use App\Http\Controllers\Web\BillingWebController;
 use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\DirectMessageWebController;
 use App\Http\Controllers\Web\ForumWebController;
@@ -96,6 +97,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
         ->middleware('throttle:6,1')->name('verification.send');
 });
+
+// ─── Perpanjangan Langganan (Midtrans) ─────────────────────────────────────────
+// Sengaja di luar middleware check.active supaya user yang masa aktifnya sudah
+// habis tetap bisa membuka halaman ini (tidak logout paksa / redirect loop).
+Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function () {
+    Route::get('/renew', [BillingWebController::class, 'renew'])->name('renew');
+    Route::post('/checkout/{package}', [BillingWebController::class, 'checkout'])->name('checkout');
+    Route::get('/finish', [BillingWebController::class, 'finish'])->name('finish');
+});
+Route::post('/billing/notification', [BillingWebController::class, 'notification'])->name('billing.notification');
 
 // ─── Authenticated ────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'check.active', 'verified'])->group(function () {

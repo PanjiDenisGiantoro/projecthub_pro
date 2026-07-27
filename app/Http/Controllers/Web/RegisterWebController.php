@@ -38,6 +38,7 @@ class RegisterWebController extends Controller
             'password'     => 'required|string|min:8|confirmed',
             'packages'     => 'required|array|min:1',
             'packages.*'   => 'in:task_management,hris',
+            'plan'         => 'required|in:starter,pro',
         ], [
             'email.unique'       => 'Email ini sudah terdaftar.',
             'password.min'       => 'Password minimal 8 karakter.',
@@ -69,6 +70,9 @@ class RegisterWebController extends Controller
                 'is_active'            => true,
                 'is_registered'        => true,
                 'timezone'             => 'Asia/Jakarta',
+                // Starter = gratis selamanya (active_until null = lifetime).
+                // Pro = uji coba 14 hari, lalu diarahkan ke pembayaran (lihat CheckActiveAccess + BillingWebController).
+                'active_until'         => $request->plan === 'pro' ? now()->addDays(14) : null,
             ]);
 
             $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');
