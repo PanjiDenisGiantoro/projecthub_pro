@@ -36,15 +36,11 @@ class RegisterWebController extends Controller
             'email'        => 'required|email|unique:users,email',
             'company_name' => 'required|string|max:255',
             'password'     => 'required|string|min:8|confirmed',
-            'packages'     => 'required|array|min:1',
-            'packages.*'   => 'in:task_management,hris',
             'plan'         => 'required|in:starter,pro',
         ], [
             'email.unique'       => 'Email ini sudah terdaftar.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
-            'packages.required'  => 'Pilih minimal satu paket aplikasi.',
-            'packages.min'       => 'Pilih minimal satu paket aplikasi.',
         ]);
 
         $user = DB::transaction(function () use ($request) {
@@ -71,11 +67,14 @@ class RegisterWebController extends Controller
                 'is_registered'        => true,
                 'timezone'             => 'Asia/Jakarta',
                 // Starter = gratis selamanya (active_until null = lifetime).
-                // Pro = uji coba 14 hari, lalu diarahkan ke pembayaran (lihat CheckActiveAccess + BillingWebController).
-                'active_until'         => $request->plan === 'pro' ? now()->addDays(14) : null,
+                // Pro = belum bayar, langsung diarahkan ke Midtrans setelah akun dibuat
+                // (lihat bawah); active_until di masa lalu supaya CheckActiveAccess
+                // memaksa ke billing.renew kalau pembayaran belum selesai/dibatalkan.
+                'active_until'         => $request->plan === 'pro' ? now()->subMinute() : null,
             ]);
 
-            $pkgIds = Package::whereIn('slug', $request->packages)->pluck('id');
+            // Semua paket mendaftar dengan modul Task Management & HRIS aktif.
+            $pkgIds = Package::whereIn('slug', ['task_management', 'hris'])->pluck('id');
             $user->packages()->sync($pkgIds);
 
             // Clone HRIS master templates for this company
@@ -99,6 +98,14 @@ class RegisterWebController extends Controller
 
         $verificationUrl = \App\Notifications\QueuedVerifyEmail::urlFor($user);
         Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password, $verificationUrl));
+
+        if ($request->plan === 'pro') {
+            $proPackage = Package::where('slug', 'pro')->firstOrFail();
+
+            Auth::login($user);
+
+            return app(BillingWebController::class)->checkout($request, $proPackage);
+        }
 
         return redirect()->route('login')
             ->with('status', 'Pendaftaran berhasil! Silakan login dengan email dan password Anda, lalu verifikasi email untuk mengaktifkan akun.');
