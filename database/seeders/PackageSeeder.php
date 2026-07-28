@@ -26,6 +26,14 @@ class PackageSeeder extends Seeder
                 'duration_days' => 30,
                 'is_active'     => true,
             ],
+            [
+                'slug'          => 'pro',
+                'name'          => 'Pro',
+                'description'   => 'Untuk tim yang sedang berkembang. Mencakup semua modul (HRIS & Task Management), project unlimited, CRM & Invoice, Bug tracker + SLA, chat real-time, priority support.',
+                'price'         => 299000,
+                'duration_days' => 30,
+                'is_active'     => true,
+            ],
         ];
 
         foreach ($packages as $data) {

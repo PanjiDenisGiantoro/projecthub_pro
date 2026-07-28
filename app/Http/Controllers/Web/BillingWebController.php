@@ -23,16 +23,14 @@ class BillingWebController extends Controller
     {
         $user       = Auth::user();
         $registrant = $user->companyRegistrant();
-        $isRegistrant = $registrant && $registrant->is($user);
 
-        $packages = Package::active()->orderBy('price')->get();
+        $packages = Package::active()->where('slug', 'pro')->orderBy('price')->get();
         $ownedSlugs = $registrant?->packages->pluck('slug')->toArray() ?? [];
 
         return view('billing.renew', [
-            'packages'     => $packages,
-            'ownedSlugs'   => $ownedSlugs,
-            'registrant'   => $registrant,
-            'isRegistrant' => $isRegistrant,
+            'packages'   => $packages,
+            'ownedSlugs' => $ownedSlugs,
+            'registrant' => $registrant,
         ]);
     }
 
@@ -42,7 +40,7 @@ class BillingWebController extends Controller
         $user       = Auth::user();
         $registrant = $user->companyRegistrant();
 
-        abort_unless($registrant && $registrant->is($user), 403, 'Hanya admin/pendaftar perusahaan yang bisa melakukan pembayaran.');
+        abort_unless($registrant, 404, 'Data pendaftar perusahaan tidak ditemukan.');
         abort_unless($package->is_active, 404);
 
         $order = SubscriptionOrder::create([
@@ -122,7 +120,17 @@ class BillingWebController extends Controller
                     : now();
 
                 $registrant->update(['active_until' => $base->copy()->addDays($order->duration_days)]);
-                $registrant->packages()->syncWithoutDetaching([$order->package_id]);
+
+                // Paket "Pro" adalah bundle yang mencakup semua modul (HRIS & Task Management).
+                $packageIds = [$order->package_id];
+                if ($order->package?->slug === 'pro') {
+                    $packageIds = array_merge(
+                        $packageIds,
+                        Package::whereIn('slug', ['hris', 'task_management'])->pluck('id')->all()
+                    );
+                }
+
+                $registrant->packages()->syncWithoutDetaching($packageIds);
             }
         });
 

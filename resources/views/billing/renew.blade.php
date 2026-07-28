@@ -28,16 +28,10 @@
         </p>
     </div>
 
-    @if(!$isRegistrant)
+    @if(!$registrant)
         <div class="rounded-2xl border border-gray-200 bg-white p-5">
             <p class="text-sm text-gray-600">
-                Hanya admin pendaftar perusahaan yang dapat melakukan pembayaran perpanjangan.
-                @if($registrant)
-                    Silakan hubungi <span class="font-semibold text-gray-800">{{ $registrant->name }}</span>
-                    ({{ $registrant->email }}) untuk memperpanjang masa aktif perusahaan.
-                @else
-                    Silakan hubungi admin perusahaan Anda.
-                @endif
+                Data pendaftar perusahaan tidak ditemukan. Silakan hubungi administrator sistem.
             </p>
         </div>
     @endif
@@ -46,7 +40,8 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @forelse($packages as $package)
             @php $owned = in_array($package->slug, $ownedSlugs); @endphp
-            <div class="rounded-2xl border border-gray-200 bg-white p-6 flex flex-col shadow-sm">
+            <div class="rounded-2xl border border-violet-200 bg-white p-6 flex flex-col shadow-sm relative">
+                <span class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-[11px] font-semibold">Paling Populer</span>
                 <div class="flex items-start justify-between gap-2">
                     <h3 class="text-base font-bold text-gray-900">{{ $package->name }}</h3>
                     @if($owned)
@@ -62,7 +57,7 @@
                     <p class="text-xs text-gray-400 mt-0.5">/ {{ $package->duration_days }} hari</p>
                 </div>
 
-                @if($isRegistrant)
+                @if($registrant)
                     <form method="POST" action="{{ route('billing.checkout', $package) }}" class="mt-5">
                         @csrf
                         <button type="submit"
@@ -75,6 +70,22 @@
         @empty
             <p class="text-sm text-gray-500 col-span-2">Belum ada paket tersedia.</p>
         @endforelse
+
+        {{-- Enterprise: paket custom, bukan lewat Midtrans --}}
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 flex flex-col shadow-sm">
+            <h3 class="text-base font-bold text-gray-900">Enterprise</h3>
+            <p class="text-sm text-gray-500 mt-2 flex-1">Untuk organisasi besar. Semua di Pro, SSO & SAML, custom integrasi, SLA 99.99%, dedicated manager.</p>
+
+            <div class="mt-4">
+                <p class="text-2xl font-bold text-gray-900">Custom</p>
+                <p class="text-xs text-gray-400 mt-0.5">Hubungi kami</p>
+            </div>
+
+            <a href="mailto:sales@projecthubpro.id?subject={{ urlencode('Perpanjangan Akun Flovig - Enterprise') }}"
+               class="mt-5 w-full inline-flex items-center justify-center py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors">
+                Hubungi Sales
+            </a>
+        </div>
     </div>
 </div>
 @endsection

@@ -82,16 +82,8 @@ class AuthWebController extends Controller
         }
 
         if (!$user->is_super_admin && $user->isCompanyExpired()) {
-            $email       = $user->email;
-            $activeUntil = $user->companyRegistrant()?->active_until;
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('account.expired', [
-                'email'        => $email,
-                'active_until' => $activeUntil?->format('Y-m-d'),
-            ]);
+            // Tetap login supaya user bisa memperpanjang mandiri via Midtrans.
+            return redirect()->route('billing.renew');
         }
 
         if (!$request->session()->has('active_package')) {
