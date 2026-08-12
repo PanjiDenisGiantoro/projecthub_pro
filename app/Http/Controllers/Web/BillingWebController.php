@@ -24,14 +24,34 @@ class BillingWebController extends Controller
         $user       = Auth::user();
         $registrant = $user->companyRegistrant();
 
-        $packages = Package::active()->where('slug', 'pro')->orderBy('price')->get();
+        $packages = Package::tiers()->active()
+            ->where('cta_type', 'register')
+            ->whereNotNull('price')
+            ->where('price', '>', 0)
+            ->orderBy('price')
+            ->get();
+        $contactPackage = Package::tiers()->active()->where('cta_type', 'contact')->orderBy('sort_order')->first();
         $ownedSlugs = $registrant?->packages->pluck('slug')->toArray() ?? [];
 
         return view('billing.renew', [
-            'packages'   => $packages,
-            'ownedSlugs' => $ownedSlugs,
-            'registrant' => $registrant,
+            'packages'       => $packages,
+            'contactPackage' => $contactPackage,
+            'ownedSlugs'     => $ownedSlugs,
+            'registrant'     => $registrant,
         ]);
+    }
+
+    /** GET /billing/history — riwayat pembayaran perusahaan (admin only). */
+    public function history(Request $request)
+    {
+        abort_unless(Auth::user()->hasRole('admin'), 403);
+
+        $orders = SubscriptionOrder::with('package')
+            ->where('company_id', Auth::user()->company_id)
+            ->latest()
+            ->paginate(15);
+
+        return view('billing.history', compact('orders'));
     }
 
     /** POST /billing/checkout/{package} — buat transaksi Midtrans & redirect ke halaman pembayaran. */
@@ -73,6 +93,14 @@ class BillingWebController extends Controller
         $order = SubscriptionOrder::where('order_number', $request->query('order_id'))->first();
 
         return view('billing.finish', ['order' => $order]);
+    }
+
+    /** GET /billing/status/{order} — polling status order dari halaman finish (untuk VA yang baru settle via webhook belakangan). */
+    public function status(Request $request, SubscriptionOrder $order)
+    {
+        abort_unless($order->user_id === Auth::id(), 403);
+
+        return response()->json(['status' => $order->status]);
     }
 
     /** POST /billing/notification — webhook server-to-server dari Midtrans. */
@@ -121,9 +149,9 @@ class BillingWebController extends Controller
 
                 $registrant->update(['active_until' => $base->copy()->addDays($order->duration_days)]);
 
-                // Paket "Pro" adalah bundle yang mencakup semua modul (HRIS & Task Management).
+                // Semua paket tier (kartu harga) adalah bundle yang mencakup semua modul (HRIS & Task Management).
                 $packageIds = [$order->package_id];
-                if ($order->package?->slug === 'pro') {
+                if ($order->package?->type === 'tier') {
                     $packageIds = array_merge(
                         $packageIds,
                         Package::whereIn('slug', ['hris', 'task_management'])->pluck('id')->all()

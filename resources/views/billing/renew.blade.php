@@ -37,12 +37,14 @@
     @endif
 
     {{-- Daftar Paket --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($packages as $package)
             @php $owned = in_array($package->slug, $ownedSlugs); @endphp
             <div class="rounded-2xl border border-violet-200 bg-white p-6 flex flex-col shadow-sm relative">
-                <span class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-[11px] font-semibold">Paling Populer</span>
-                <div class="flex items-start justify-between gap-2">
+                @if($package->is_popular)
+                    <span class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-[11px] font-semibold">Paling Populer</span>
+                @endif
+                <div class="flex items-start justify-between gap-2 {{ $package->is_popular ? 'mt-1' : '' }}">
                     <h3 class="text-base font-bold text-gray-900">{{ $package->name }}</h3>
                     @if($owned)
                         <span class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">Aktif</span>
@@ -51,9 +53,7 @@
                 <p class="text-sm text-gray-500 mt-2 flex-1">{{ $package->description }}</p>
 
                 <div class="mt-4">
-                    <p class="text-2xl font-bold text-gray-900">
-                        Rp{{ number_format($package->price, 0, ',', '.') }}
-                    </p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $package->priceDisplay() }}</p>
                     <p class="text-xs text-gray-400 mt-0.5">/ {{ $package->duration_days }} hari</p>
                 </div>
 
@@ -71,21 +71,23 @@
             <p class="text-sm text-gray-500 col-span-2">Belum ada paket tersedia.</p>
         @endforelse
 
-        {{-- Enterprise: paket custom, bukan lewat Midtrans --}}
-        <div class="rounded-2xl border border-gray-200 bg-white p-6 flex flex-col shadow-sm">
-            <h3 class="text-base font-bold text-gray-900">Enterprise</h3>
-            <p class="text-sm text-gray-500 mt-2 flex-1">Untuk organisasi besar. Semua di Pro, SSO & SAML, custom integrasi, SLA 99.99%, dedicated manager.</p>
+        {{-- Paket contact-sales (mis. Enterprise) — bukan lewat Midtrans --}}
+        @if($contactPackage)
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 flex flex-col shadow-sm">
+                <h3 class="text-base font-bold text-gray-900">{{ $contactPackage->name }}</h3>
+                <p class="text-sm text-gray-500 mt-2 flex-1">{{ $contactPackage->description }}</p>
 
-            <div class="mt-4">
-                <p class="text-2xl font-bold text-gray-900">Custom</p>
-                <p class="text-xs text-gray-400 mt-0.5">Hubungi kami</p>
+                <div class="mt-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ $contactPackage->priceDisplay() }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ $contactPackage->price_period }}</p>
+                </div>
+
+                <a href="mailto:sales@projecthubpro.id?subject={{ urlencode('Perpanjangan Akun Flovig - ' . $contactPackage->name) }}"
+                   class="mt-5 w-full inline-flex items-center justify-center py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors">
+                    {{ $contactPackage->cta_label }}
+                </a>
             </div>
-
-            <a href="mailto:sales@projecthubpro.id?subject={{ urlencode('Perpanjangan Akun Flovig - Enterprise') }}"
-               class="mt-5 w-full inline-flex items-center justify-center py-2.5 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold transition-colors">
-                Hubungi Sales
-            </a>
-        </div>
+        @endif
     </div>
 </div>
 @endsection

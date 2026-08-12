@@ -21,9 +21,14 @@ class TaxBracket extends Model
 
     public static function getActive(): Collection
     {
-        return Cache::remember('tax_brackets_active', 3600, fn() =>
-            static::where('is_active', true)->orderBy('sort_order')->get()
+        // Cache array mentah, bukan Collection — menyimpan objek Eloquent lewat cache
+        // driver "database" gagal di-unserialize di proses/request baru (jadi
+        // __PHP_Incomplete_Class). Array biasa aman, lalu di-hydrate lagi jadi model.
+        $rows = Cache::remember('tax_brackets_active', 3600, fn() =>
+            static::where('is_active', true)->orderBy('sort_order')->get()->toArray()
         );
+
+        return static::hydrate($rows);
     }
 
     protected static function booted(): void

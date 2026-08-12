@@ -80,11 +80,11 @@
                 ['Alpha (' . $payroll->hari_alpha . ' hari)', $payroll->potongan_alpha],
                 ['Potongan Lainnya', $payroll->potongan_lainnya],
             ] as [$label, $val])
-            @if($val > 0)
-            <tr><td>{{ $label }}</td><td class="amount">- Rp {{ number_format($val, 0, ',', '.') }}</td></tr>
+            @if($val != 0)
+            <tr><td>{{ $label }}{{ $val < 0 ? ' (kelebihan potong dikembalikan)' : '' }}</td><td class="amount" style="{{ $val < 0 ? 'color:#16a34a;' : '' }}">{{ $val < 0 ? '+' : '-' }} Rp {{ number_format(abs($val), 0, ',', '.') }}</td></tr>
             @endif
             @endforeach
-            <tr class="total-row"><td>Total Potongan</td><td class="amount">- Rp {{ number_format($payroll->total_potongan, 0, ',', '.') }}</td></tr>
+            <tr class="total-row"><td>Total Potongan</td><td class="amount" style="{{ $payroll->total_potongan < 0 ? 'color:#16a34a;' : '' }}">{{ $payroll->total_potongan < 0 ? '+' : '-' }} Rp {{ number_format(abs($payroll->total_potongan), 0, ',', '.') }}</td></tr>
         </tbody>
     </table>
 

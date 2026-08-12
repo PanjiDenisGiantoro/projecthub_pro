@@ -145,8 +145,8 @@
         .big-stat p { color: var(--muted); font-weight: 500; }
 
         /* ── Pricing ── */
-        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 60px; align-items: start; }
-        .pricing-card { background: white; border-radius: 28px; padding: 36px; border: 1px solid var(--border); position: relative; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 60px; align-items: start; }
+        .pricing-card { background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border); position: relative; }
         .pricing-card.popular { border: 2px solid var(--primary); transform: scale(1.03); box-shadow: 0 25px 70px rgba(37,99,235,0.15); }
         .popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
         .pricing-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
@@ -426,51 +426,24 @@
         </div>
 
         <div class="pricing-grid">
-            <div class="pricing-card">
-                <h3>Starter</h3>
-                <p>Tim kecil yang baru mulai.</p>
-                <div class="price">Rp 0</div>
-                <div class="price-note">Selamanya gratis</div>
-                <a href="{{ route('register') }}" class="btn btn-outline">Mulai Gratis</a>
-                <ul>
-                    <li>✓ 5 project aktif</li>
-                    <li>✓ 3 anggota tim</li>
-                    <li>✓ Task & milestone</li>
-                    <li>✓ 1 GB storage</li>
-                </ul>
-            </div>
-
-            <div class="pricing-card popular">
-                <div class="popular-badge">Paling Populer</div>
-                <h3>Pro</h3>
-                <p>Untuk tim yang sedang berkembang.</p>
-                <div class="price">Rp 299K</div>
-                <div class="price-note">per bulan / tim</div>
-                <a href="{{ route('register') }}" class="btn btn-primary">Coba 14 Hari Gratis</a>
-                <ul>
-                    <li>✓ Semua di Starter</li>
-                    <li>✓ Project unlimited</li>
-                    <li>✓ CRM & Invoice</li>
-                    <li>✓ Bug tracker + SLA</li>
-                    <li>✓ Chat real-time</li>
-                    <li>✓ Priority support</li>
-                </ul>
-            </div>
-
-            <div class="pricing-card">
-                <h3>Enterprise</h3>
-                <p>Untuk organisasi besar.</p>
-                <div class="price">Custom</div>
-                <div class="price-note">Hubungi kami</div>
-                <a href="mailto:sales@projecthubpro.id" class="btn btn-outline">Hubungi Sales</a>
-                <ul>
-                    <li>✓ Semua di Pro</li>
-                    <li>✓ SSO & SAML</li>
-                    <li>✓ Custom integrasi</li>
-                    <li>✓ SLA 99.99%</li>
-                    <li>✓ Dedicated manager</li>
-                </ul>
-            </div>
+            @foreach($pricingTiers as $tier)
+                <div class="pricing-card @if($tier->is_popular) popular @endif">
+                    @if($tier->is_popular)
+                        <div class="popular-badge">Paling Populer</div>
+                    @endif
+                    <h3>{{ $tier->name }}</h3>
+                    <p>{{ $tier->tagline }}</p>
+                    <div class="price">{{ $tier->priceDisplay() }}</div>
+                    <div class="price-note">{{ $tier->price_period }}</div>
+                    <a href="{{ $tier->cta_type === 'contact' ? 'mailto:sales@projecthubpro.id' : route('register', ['plan' => $tier->slug]) }}"
+                       class="btn {{ $tier->is_popular ? 'btn-primary' : 'btn-outline' }}">{{ $tier->cta_label }}</a>
+                    <ul>
+                        @foreach($tier->features as $feature)
+                            <li>✓ {{ $feature->label }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endforeach
         </div>
     </div>
 </section>

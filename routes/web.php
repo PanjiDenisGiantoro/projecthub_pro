@@ -47,11 +47,13 @@ use App\Http\Controllers\Web\Hris\OvertimeController;
 use App\Http\Controllers\Web\Hris\ReimbursementController;
 use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
 use App\Http\Controllers\Web\Hris\PayrollController;
+use App\Http\Controllers\Web\Hris\PayrollSettingController;
 use App\Http\Controllers\Web\Hris\Master\HrisMasterController;
 use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
 use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
 use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
 use App\Http\Controllers\Web\Hris\Master\TaxBracketController;
+use App\Http\Controllers\Web\Hris\Master\TaxTerRateController;
 use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
@@ -64,7 +66,9 @@ Route::prefix('deploy')->name('deploy.')->group(function () {
 });
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-Route::get('/', fn() => view('landing'))->name('home');
+Route::get('/', fn() => view('landing', [
+    'pricingTiers' => \App\Models\Package::tiers()->active()->orderBy('sort_order')->with('features')->get(),
+]))->name('home');
 Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
 
@@ -79,6 +83,12 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
     Route::get('/registered-users', [SuperAdminController::class, 'registeredUsers'])->name('registered-users');
     Route::post('/registered-users', [SuperAdminController::class, 'storeRegisteredUser'])->name('registered-users.store');
     Route::patch('/registered-users/{user}/lifetime', [SuperAdminController::class, 'updateLifetime'])->name('registered-users.lifetime');
+
+    Route::get('/packages', [SuperAdminController::class, 'packages'])->name('packages');
+    Route::post('/packages', [SuperAdminController::class, 'storePackage'])->name('packages.store');
+    Route::put('/packages/{package}', [SuperAdminController::class, 'updatePackage'])->name('packages.update');
+    Route::patch('/packages/{package}/toggle', [SuperAdminController::class, 'togglePackage'])->name('packages.toggle');
+    Route::delete('/packages/{package}', [SuperAdminController::class, 'destroyPackage'])->name('packages.destroy');
 });
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -103,8 +113,10 @@ Route::middleware('auth')->group(function () {
 // habis tetap bisa membuka halaman ini (tidak logout paksa / redirect loop).
 Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function () {
     Route::get('/renew', [BillingWebController::class, 'renew'])->name('renew');
+    Route::get('/history', [BillingWebController::class, 'history'])->name('history');
     Route::post('/checkout/{package}', [BillingWebController::class, 'checkout'])->name('checkout');
     Route::get('/finish', [BillingWebController::class, 'finish'])->name('finish');
+    Route::get('/status/{order:order_number}', [BillingWebController::class, 'status'])->name('status');
 });
 Route::post('/billing/notification', [BillingWebController::class, 'notification'])->name('billing.notification');
 
@@ -506,6 +518,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         // Payroll
         Route::get('payroll',                        [PayrollController::class, 'index'])->name('payroll.index');
         Route::post('payroll/generate',              [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::get('payroll/setting',                [PayrollSettingController::class, 'edit'])->name('payroll.setting');
+        Route::post('payroll/setting',                [PayrollSettingController::class, 'update'])->name('payroll.setting.save');
         Route::get('payroll/{payroll}',              [PayrollController::class, 'show'])->name('payroll.show');
         Route::get('payroll/{payroll}/slip',         [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
         Route::patch('payroll/{payroll}/finalize',   [PayrollController::class, 'finalize'])->name('payroll.finalize');
@@ -515,6 +529,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
             Route::middleware('can:view hris master')->group(function () {
                 Route::get('/', [HrisMasterController::class, 'index'])->name('index');
                 Route::get('tax-brackets/{taxBracket}/edit', [TaxBracketController::class, 'edit'])->name('tax-brackets.edit');
+                Route::get('tax-ter/{taxTerRate}/edit', [TaxTerRateController::class, 'edit'])->name('tax-ter.edit');
             });
 
             Route::middleware('can:create hris master')->group(function () {
@@ -525,6 +540,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
                 Route::post('tax-ptkp/reset', [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
                 Route::post('tax-brackets',   [TaxBracketController::class, 'store'])->name('tax-brackets.store');
                 Route::post('tax-brackets/reset', [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
+                Route::post('tax-ter',   [TaxTerRateController::class, 'store'])->name('tax-ter.store');
+                Route::post('tax-ter/reset', [TaxTerRateController::class, 'resetDefault'])->name('tax-ter.reset');
             });
 
             Route::middleware('can:update hris master')->group(function () {
@@ -536,12 +553,15 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
                 Route::patch('tax-ptkp/{taxPtkp}/toggle', [TaxPtkpController::class, 'toggle'])->name('tax-ptkp.toggle');
                 Route::put('tax-brackets/{taxBracket}', [TaxBracketController::class, 'update'])->name('tax-brackets.update');
                 Route::patch('tax-brackets/{taxBracket}/toggle', [TaxBracketController::class, 'toggle'])->name('tax-brackets.toggle');
+                Route::put('tax-ter/{taxTerRate}', [TaxTerRateController::class, 'update'])->name('tax-ter.update');
+                Route::patch('tax-ter/{taxTerRate}/toggle', [TaxTerRateController::class, 'toggle'])->name('tax-ter.toggle');
             });
 
             Route::middleware('can:delete hris master')->group(function () {
                 Route::delete('leave-types/{leaveType}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
                 Route::delete('overtime-rules/{overtimeRule}', [OvertimeRuleController::class, 'destroy'])->name('overtime-rules.destroy');
                 Route::delete('tax-brackets/{taxBracket}', [TaxBracketController::class, 'destroy'])->name('tax-brackets.destroy');
+                Route::delete('tax-ter/{taxTerRate}', [TaxTerRateController::class, 'destroy'])->name('tax-ter.destroy');
             });
         });
     });

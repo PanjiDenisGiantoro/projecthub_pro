@@ -11,6 +11,7 @@ use App\Models\StructuralLevel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
 class SuperAdminController extends Controller
@@ -203,5 +204,112 @@ class SuperAdminController extends Controller
             : "Masa aktif {$user->name} diset hingga " . \Carbon\Carbon::parse($request->active_until)->format('d M Y') . '.';
 
         return back()->with('success', $msg);
+    }
+
+    public function packages()
+    {
+        $packages = Package::withCount('users')->with('features')
+            ->orderBy('type')->orderBy('sort_order')->orderBy('name')
+            ->get();
+
+        return view('superadmin.packages', compact('packages'));
+    }
+
+    private function packageValidationRules(?Package $package = null): array
+    {
+        return [
+            'type'            => 'required|in:tier,module',
+            'slug'            => ['required', 'alpha_dash', 'max:50', Rule::unique('packages', 'slug')->ignore($package)],
+            'name'            => 'required|string|max:255',
+            'description'     => 'nullable|string',
+            'tagline'         => 'nullable|string|max:255',
+            'is_custom_price' => 'sometimes|boolean',
+            'price'           => 'nullable|integer|min:0',
+            'price_display'   => 'nullable|string|max:50',
+            'price_period'    => 'nullable|string|max:100',
+            'duration_days'   => 'nullable|integer|min:1',
+            'is_custom_users' => 'sometimes|boolean',
+            'max_users'       => 'nullable|integer|min:0',
+            'is_active'       => 'sometimes|boolean',
+            'is_popular'      => 'sometimes|boolean',
+            'cta_label'       => 'nullable|string|max:100',
+            'cta_type'        => 'required|in:register,contact',
+            'sort_order'      => 'nullable|integer|min:0',
+            'icon'            => 'nullable|string|max:30',
+            'color'           => 'nullable|string|max:20',
+            'fitur_text'      => 'nullable|string|max:255',
+            'hris_feature'    => 'nullable|string|max:255',
+            'features'        => 'nullable|array',
+            'features.*'      => 'required|string|max:255',
+        ];
+    }
+
+    /**
+     * "Custom" (mis. paket Enterprise) ditandai dengan price = null, bukan 0 —
+     * checkbox is_custom_price di form yang memaksa ini, angka di field price
+     * diabaikan kalau dicentang.
+     */
+    private function packageDataFromRequest(Request $request): array
+    {
+        $data = $request->only([
+            'type', 'slug', 'name', 'description', 'tagline',
+            'price_display', 'price_period', 'duration_days',
+            'cta_label', 'cta_type', 'sort_order',
+            'icon', 'color', 'fitur_text', 'hris_feature',
+        ]);
+
+        $data['price']       = $request->boolean('is_custom_price') ? null : $request->input('price', 0);
+        $data['max_users']   = $request->boolean('is_custom_users') ? null : $request->input('max_users', 0);
+        $data['is_active']   = $request->boolean('is_active');
+        $data['is_popular']  = $request->boolean('is_popular');
+        $data['sort_order']  = $data['sort_order'] ?? 0;
+
+        return $data;
+    }
+
+    private function syncPackageFeatures(Package $package, array $labels): void
+    {
+        $package->features()->delete();
+        foreach (array_values($labels) as $i => $label) {
+            $package->features()->create(['label' => $label, 'sort_order' => $i]);
+        }
+    }
+
+    public function storePackage(Request $request)
+    {
+        $request->validate($this->packageValidationRules());
+
+        $package = Package::create($this->packageDataFromRequest($request));
+        $this->syncPackageFeatures($package, $request->input('features', []));
+
+        return back()->with('success', "Paket {$package->name} berhasil dibuat.");
+    }
+
+    public function updatePackage(Request $request, Package $package)
+    {
+        $request->validate($this->packageValidationRules($package));
+
+        $package->update($this->packageDataFromRequest($request));
+        $this->syncPackageFeatures($package, $request->input('features', []));
+
+        return back()->with('success', "Paket {$package->name} berhasil diperbarui.");
+    }
+
+    public function togglePackage(Package $package)
+    {
+        $package->update(['is_active' => !$package->is_active]);
+
+        return back()->with('success', 'Status paket diperbarui.');
+    }
+
+    public function destroyPackage(Package $package)
+    {
+        if ($package->users()->exists()) {
+            return back()->with('error', "Paket {$package->name} masih dipakai oleh pelanggan, tidak bisa dihapus. Nonaktifkan saja.");
+        }
+
+        $package->delete();
+
+        return back()->with('success', "Paket {$package->name} berhasil dihapus.");
     }
 }

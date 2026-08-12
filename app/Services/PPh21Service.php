@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\EmployeeSalary;
 use App\Models\TaxBracket;
 use App\Models\TaxPtkp;
+use App\Models\TaxTerRate;
 
 class PPh21Service
 {
@@ -67,6 +68,51 @@ class PPh21Service
         return [
             ...$result,
             'pajak_bulanan' => round($result['pajak_setahun'] / 12),
+        ];
+    }
+
+    /**
+     * Potongan bulanan metode TER (PP 58/2023 & PMK 168/2023) — dipakai untuk
+     * masa pajak Januari-November. Langsung kalikan bruto bulan berjalan dengan
+     * tarif efektif dari tabel TER, tanpa proyeksi setahun.
+     */
+    public function hitungBulananTer(EmployeeSalary $salary): array
+    {
+        $brutoBulanan = $salary->gaji_pokok + $salary->tunjangan_jabatan
+                      + $salary->tunjangan_transport + $salary->tunjangan_makan;
+
+        $kategori = TaxPtkp::getTerCategory($salary->status_pajak) ?? 'A';
+        $tarif    = TaxTerRate::rateFor($kategori, $brutoBulanan);
+        $pajak    = round($brutoBulanan * $tarif);
+
+        return [
+            'metode'        => 'ter',
+            'kategori_ter'  => $kategori,
+            'bruto_bulanan' => $brutoBulanan,
+            'tarif_ter'     => $tarif,
+            'pajak_bulanan' => $pajak,
+        ];
+    }
+
+    /**
+     * Rekonsiliasi masa pajak Desember (atau karyawan berhenti di tengah tahun):
+     * hitung ulang pajak setahun pakai metode lama (progresif) dari bruto riil
+     * setahun, lalu kurangi dengan yang sudah dipotong Jan-Nov (metode TER).
+     * Hasil bisa negatif = kelebihan potong, dikembalikan ke karyawan bulan itu.
+     */
+    public function hitungDesember(
+        float  $brutoSetahunRiil,
+        string $statusPajak,
+        bool   $punyaNpwp,
+        float  $sudahDipotongJanNov
+    ): array {
+        $tahunan = $this->hitungTahunan($brutoSetahunRiil, $statusPajak, $punyaNpwp);
+
+        return [
+            ...$tahunan,
+            'metode'                 => 'ter_rekonsiliasi',
+            'sudah_dipotong_jan_nov' => $sudahDipotongJanNov,
+            'pajak_bulanan'          => round($tahunan['pajak_setahun'] - $sudahDipotongJanNov),
         ];
     }
 }

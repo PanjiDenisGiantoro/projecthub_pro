@@ -18,6 +18,7 @@
             ['overtime-rules', 'Aturan Lembur'],
             ['tax-ptkp',       'PTKP'],
             ['tax-brackets',   'Tarif PPh 21'],
+            ['tax-ter',        'Tarif TER'],
         ] as [$key, $label])
         <button @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
@@ -47,6 +48,11 @@
     {{-- Tab: Tarif PPh 21 --}}
     <div x-show="tab === 'tax-brackets'" x-cloak>
         @include('hris.master._tax-brackets', ['taxBrackets' => $taxBrackets])
+    </div>
+
+    {{-- Tab: Tarif TER --}}
+    <div x-show="tab === 'tax-ter'" x-cloak>
+        @include('hris.master._tax-ter', ['terRates' => $terRates])
     </div>
 
 </div>

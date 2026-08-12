@@ -23,27 +23,37 @@ class RegisterWebController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
+        $tiers = Package::tiers()->active()->orderBy('sort_order')->with('features')->get();
+
         return view('auth.register', [
             'prefillName'  => $request->query('name'),
             'prefillEmail' => $request->query('email'),
+            'prefillPlan'  => $request->query('plan', 'free'),
+            'tiers'        => $tiers,
         ]);
     }
 
     public function store(Request $request)
     {
+        $selectableTiers = Package::tiers()->active()->where('cta_type', 'register')->get();
+        $selectablePlans = $selectableTiers->pluck('slug');
+
         $request->validate([
             'name'         => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
             'company_name' => 'required|string|max:255',
             'password'     => 'required|string|min:8|confirmed',
-            'plan'         => 'required|in:starter,pro',
+            'plan'         => ['required', \Illuminate\Validation\Rule::in($selectablePlans)],
         ], [
             'email.unique'       => 'Email ini sudah terdaftar.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
-        $user = DB::transaction(function () use ($request) {
+        $selectedPackage = $selectableTiers->firstWhere('slug', $request->plan);
+
+        $user = DB::transaction(function () use ($request, $selectedPackage) {
             $company = Company::create([
                 'name'      => $request->company_name,
                 'code'      => Company::uniqueCodeFor($request->company_name),
@@ -66,11 +76,11 @@ class RegisterWebController extends Controller
                 'is_active'            => true,
                 'is_registered'        => true,
                 'timezone'             => 'Asia/Jakarta',
-                // Starter = gratis selamanya (active_until null = lifetime).
-                // Pro = belum bayar, langsung diarahkan ke Midtrans setelah akun dibuat
-                // (lihat bawah); active_until di masa lalu supaya CheckActiveAccess
+                // Free = gratis selamanya (active_until null = lifetime).
+                // Paket berbayar = belum bayar, langsung diarahkan ke Midtrans setelah akun
+                // dibuat (lihat bawah); active_until di masa lalu supaya CheckActiveAccess
                 // memaksa ke billing.renew kalau pembayaran belum selesai/dibatalkan.
-                'active_until'         => $request->plan === 'pro' ? now()->subMinute() : null,
+                'active_until'         => $selectedPackage->price > 0 ? now()->subMinute() : null,
             ]);
 
             // Semua paket mendaftar dengan modul Task Management & HRIS aktif.
@@ -99,12 +109,10 @@ class RegisterWebController extends Controller
         $verificationUrl = \App\Notifications\QueuedVerifyEmail::urlFor($user);
         Mail::to($user->email)->send(new AccountCredentialsMail($user, $request->password, $verificationUrl));
 
-        if ($request->plan === 'pro') {
-            $proPackage = Package::where('slug', 'pro')->firstOrFail();
-
+        if ($selectedPackage->price > 0) {
             Auth::login($user);
 
-            return app(BillingWebController::class)->checkout($request, $proPackage);
+            return app(BillingWebController::class)->checkout($request, $selectedPackage);
         }
 
         return redirect()->route('login')

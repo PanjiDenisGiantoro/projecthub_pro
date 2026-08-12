@@ -61,6 +61,14 @@
                 Pelanggan
             </a>
 
+            <a href="{{ route('superadmin.packages') }}" class="{{ request()->routeIs('superadmin.packages') ? $a : $i }}">
+                <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01"/>
+                </svg>
+                Paket & Harga
+            </a>
+
             <div class="pt-3 mt-3 border-t border-white/5">
                 <a href="{{ route('dashboard') }}" class="{{ $i }}">
                     <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,6 +116,11 @@
             @if(session('success'))
                 <div class="mb-6 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl px-4 py-3 text-sm">
                     {{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-4 py-3 text-sm">
+                    {{ session('error') }}
                 </div>
             @endif
             @if($errors->any())

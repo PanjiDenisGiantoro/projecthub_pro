@@ -47,4 +47,9 @@ class SubscriptionOrder extends Model
     {
         return $this->status === 'paid';
     }
+
+    public function isFailed(): bool
+    {
+        return in_array($this->status, ['failed', 'expired']);
+    }
 }

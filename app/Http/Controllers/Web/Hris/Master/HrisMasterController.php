@@ -7,6 +7,7 @@ use App\Models\LeaveType;
 use App\Models\OvertimeRule;
 use App\Models\TaxBracket;
 use App\Models\TaxPtkp;
+use App\Models\TaxTerRate;
 use Illuminate\Http\Request;
 
 class HrisMasterController extends Controller
@@ -30,6 +31,7 @@ class HrisMasterController extends Controller
                                     ->orderBy('day_type')->orderBy('hour_from')->get(),
             'ptkpList'      => TaxPtkp::orderBy('sort_order')->get(),
             'taxBrackets'   => TaxBracket::orderBy('sort_order')->get(),
+            'terRates'      => TaxTerRate::orderBy('category')->orderBy('sort_order')->get(),
         ]);
     }
 }

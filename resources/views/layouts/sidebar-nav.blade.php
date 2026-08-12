@@ -264,11 +264,22 @@
 
     @can('view payroll')
     <a href="{{ route('hris.payroll.index') }}"
-       class="{{ request()->routeIs('hris.payroll.*') ? $active : $inactive }}">
+       class="{{ request()->routeIs('hris.payroll.index') || request()->routeIs('hris.payroll.show') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
         </svg>
         Penggajian
+    </a>
+    @endcan
+
+    @can('update payroll')
+    <a href="{{ route('hris.payroll.setting') }}"
+       class="{{ request()->routeIs('hris.payroll.setting') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Pengaturan PPh 21
     </a>
     @endcan
 
@@ -331,6 +342,21 @@
     </svg>
     Clients
 </a>
+@endif
+
+{{-- ══ Langganan (admin only) ══════════════════════════════════════════════ --}}
+@if(auth()->user()->hasRole('admin'))
+<div class="pt-3">
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Langganan</p>
+
+    <a href="{{ route('billing.history') }}"
+       class="{{ request()->routeIs('billing.history') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+        </svg>
+        Riwayat Pembayaran
+    </a>
+</div>
 @endif
 
 {{-- ══ Master Data section ═════════════════════════════════════════════════ --}}

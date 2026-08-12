@@ -14,7 +14,7 @@ class Payroll extends Model
         'tunjangan_lainnya', 'lembur', 'reimburse',
         'hari_kerja', 'hari_hadir', 'hari_cuti', 'hari_alpha', 'potongan_alpha',
         'penghasilan_bruto',
-        'potongan_bpjs_kes', 'potongan_bpjs_tk', 'potongan_pph21', 'potongan_lainnya',
+        'potongan_bpjs_kes', 'potongan_bpjs_tk', 'potongan_pph21', 'pph21_method', 'potongan_lainnya',
         'total_potongan', 'gaji_bersih', 'status', 'paid_at',
     ];
 

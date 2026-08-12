@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\Overtime;
 use App\Models\Payroll;
+use App\Models\Pph21Setting;
 use App\Models\Reimbursement;
 use App\Models\User;
 use Carbon\Carbon;
@@ -37,7 +38,7 @@ class PayrollService
                + $lembur + $reimburse;
 
         // --- Potongan ---
-        $pph21   = (new PPh21Service)->hitungBulanan($salary);
+        $pph21   = $this->hitungPph21($user, $salary, $year, $month);
         $bpjsKes = $salary->bpjs_kesehatan
             ? round(min($salary->gaji_pokok, 12_000_000) * 0.01) : 0;
         $bpjsTk  = $salary->bpjs_ketenagakerjaan
@@ -64,11 +65,56 @@ class PayrollService
                 'potongan_bpjs_kes'   => $bpjsKes,
                 'potongan_bpjs_tk'    => $bpjsTk,
                 'potongan_pph21'      => $pph21['pajak_bulanan'],
+                'pph21_method'        => $pph21['metode'],
                 'total_potongan'      => $totalPotongan,
                 'gaji_bersih'         => $bruto - $totalPotongan,
                 'status'              => 'draft',
             ]
         );
+    }
+
+    /**
+     * Hitung potongan PPh 21 sesuai metode yang dipilih perusahaan (progresif/TER).
+     * Untuk TER, masa Desember dihitung ulang pakai metode lama (rekonsiliasi
+     * tahunan) — bandingkan pajak riil setahun dengan yang sudah dipotong Jan-Nov.
+     */
+    private function hitungPph21(User $user, $salary, int $year, int $month): array
+    {
+        $service = new PPh21Service();
+        $setting = Pph21Setting::forCompany($user->company_id);
+
+        if ($setting->method !== 'ter') {
+            $result = $service->hitungBulanan($salary);
+            return ['pajak_bulanan' => $result['pajak_bulanan'], 'metode' => 'progresif'];
+        }
+
+        if ($month < 12) {
+            $result = $service->hitungBulananTer($salary);
+            return ['pajak_bulanan' => $result['pajak_bulanan'], 'metode' => 'ter'];
+        }
+
+        // Desember: rekonsiliasi — jumlahkan bruto & potongan riil Jan-Nov dari payroll yang sudah ada.
+        $priorPayrolls = Payroll::where('user_id', $user->id)
+            ->where('year', $year)
+            ->where('month', '<', 12)
+            ->get();
+
+        $brutoJanNov = $priorPayrolls->sum(fn ($p) =>
+            $p->gaji_pokok + $p->tunjangan_transport + $p->tunjangan_makan + $p->tunjangan_jabatan
+        );
+        $pphJanNov = $priorPayrolls->sum('potongan_pph21');
+
+        $brutoDesemberIni = $salary->gaji_pokok + $salary->tunjangan_jabatan
+                           + $salary->tunjangan_transport + $salary->tunjangan_makan;
+
+        $result = $service->hitungDesember(
+            $brutoJanNov + $brutoDesemberIni,
+            $salary->status_pajak,
+            (bool) $salary->npwp,
+            $pphJanNov
+        );
+
+        return ['pajak_bulanan' => $result['pajak_bulanan'], 'metode' => 'ter'];
     }
 
     private function hitungHariKerja(int $year, int $month): int
