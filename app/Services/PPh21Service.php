@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\EmployeeSalary;
+use App\Models\Pph21Setting;
 use App\Models\TaxBracket;
 use App\Models\TaxPtkp;
 use App\Models\TaxTerRate;
@@ -54,10 +55,18 @@ class PPh21Service
         ];
     }
 
-    public function hitungBulanan(EmployeeSalary $salary): array
+    /**
+     * Bonus/THR/gratifikasi (penghasilan tidak teratur) dihitung pakai metode
+     * selisih: pajak atas bonus = pajak(setahun reguler + bonus) - pajak(setahun
+     * reguler), lalu ditambahkan penuh ke potongan bulan bonus itu dibayarkan
+     * (bukan ikut diproyeksikan x12 seperti gaji reguler).
+     */
+    public function hitungBulanan(EmployeeSalary $salary, Pph21Setting $setting, float $bonusBulanan = 0, float $tambahanTaxable = 0): array
     {
-        $brutoSebulan = $salary->gaji_pokok + $salary->tunjangan_jabatan
-                      + $salary->tunjangan_transport + $salary->tunjangan_makan;
+        $brutoSebulan = $setting->brutoPajak(
+            $salary->gaji_pokok, $salary->tunjangan_jabatan,
+            $salary->tunjangan_transport, $salary->tunjangan_makan
+        ) + $tambahanTaxable;
         $brutoSetahun = $brutoSebulan * 12;
         $result       = $this->hitungTahunan(
             $brutoSetahun,
@@ -65,9 +74,20 @@ class PPh21Service
             (bool) $salary->npwp
         );
 
+        $pajakBulanan = round($result['pajak_setahun'] / 12);
+
+        if ($bonusBulanan > 0) {
+            $resultDenganBonus = $this->hitungTahunan(
+                $brutoSetahun + $bonusBulanan,
+                $salary->status_pajak,
+                (bool) $salary->npwp
+            );
+            $pajakBulanan += $resultDenganBonus['pajak_setahun'] - $result['pajak_setahun'];
+        }
+
         return [
             ...$result,
-            'pajak_bulanan' => round($result['pajak_setahun'] / 12),
+            'pajak_bulanan' => $pajakBulanan,
         ];
     }
 
@@ -76,10 +96,12 @@ class PPh21Service
      * masa pajak Januari-November. Langsung kalikan bruto bulan berjalan dengan
      * tarif efektif dari tabel TER, tanpa proyeksi setahun.
      */
-    public function hitungBulananTer(EmployeeSalary $salary): array
+    public function hitungBulananTer(EmployeeSalary $salary, Pph21Setting $setting, float $bonusBulanan = 0, float $tambahanTaxable = 0): array
     {
-        $brutoBulanan = $salary->gaji_pokok + $salary->tunjangan_jabatan
-                      + $salary->tunjangan_transport + $salary->tunjangan_makan;
+        $brutoBulanan = $setting->brutoPajak(
+            $salary->gaji_pokok, $salary->tunjangan_jabatan,
+            $salary->tunjangan_transport, $salary->tunjangan_makan
+        ) + $bonusBulanan + $tambahanTaxable;
 
         $kategori = TaxPtkp::getTerCategory($salary->status_pajak) ?? 'A';
         $tarif    = TaxTerRate::rateFor($kategori, $brutoBulanan);
@@ -91,6 +113,35 @@ class PPh21Service
             'bruto_bulanan' => $brutoBulanan,
             'tarif_ter'     => $tarif,
             'pajak_bulanan' => $pajak,
+        ];
+    }
+
+    /**
+     * Skema gross-up: perusahaan kasih tunjangan PPh21 yang besarnya harus persis sama
+     * dengan pajak yang dihasilkan — tapi tunjangan itu sendiri menambah bruto (kena pajak
+     * lagi), jadi diselesaikan dengan iterasi titik tetap: tunjangan_{n+1} = pajak(bruto +
+     * tunjangan_n). Konvergen cepat karena tarif marjinal progresif < 100% (kontraksi), dan
+     * TER konstan per lapisan bruto (biasanya 1-2 iterasi).
+     */
+    public function hitungGrossUp(EmployeeSalary $salary, Pph21Setting $setting, bool $useTer, float $bonusBulanan = 0): array
+    {
+        $tunjangan = 0.0;
+        $result    = [];
+
+        for ($i = 0; $i < 20; $i++) {
+            $result = $useTer
+                ? $this->hitungBulananTer($salary, $setting, $bonusBulanan, $tunjangan)
+                : $this->hitungBulanan($salary, $setting, $bonusBulanan, $tunjangan);
+
+            $pajakBaru = $result['pajak_bulanan'];
+            $konvergen = abs($pajakBaru - $tunjangan) < 1;
+            $tunjangan = $pajakBaru;
+            if ($konvergen) break;
+        }
+
+        return [
+            ...$result,
+            'tunjangan_pph21' => $tunjangan,
         ];
     }
 

@@ -48,6 +48,8 @@ use App\Http\Controllers\Web\Hris\ReimbursementController;
 use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
 use App\Http\Controllers\Web\Hris\PayrollController;
 use App\Http\Controllers\Web\Hris\PayrollSettingController;
+use App\Http\Controllers\Web\Hris\BonusController;
+use App\Http\Controllers\Web\Hris\KasbonController;
 use App\Http\Controllers\Web\Hris\Master\HrisMasterController;
 use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
 use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
@@ -520,6 +522,17 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('payroll/generate',              [PayrollController::class, 'generate'])->name('payroll.generate');
         Route::get('payroll/setting',                [PayrollSettingController::class, 'edit'])->name('payroll.setting');
         Route::post('payroll/setting',                [PayrollSettingController::class, 'update'])->name('payroll.setting.save');
+
+        // Bonus / THR
+        Route::get('bonus',                          [BonusController::class, 'index'])->name('bonus.index');
+        Route::post('bonus',                          [BonusController::class, 'store'])->name('bonus.store');
+        Route::delete('bonus/{bonus}',                [BonusController::class, 'destroy'])->name('bonus.destroy');
+
+        // Kasbon
+        Route::get('kasbon',                          [KasbonController::class, 'index'])->name('kasbon.index');
+        Route::post('kasbon',                          [KasbonController::class, 'store'])->name('kasbon.store');
+        Route::delete('kasbon/{kasbon}',               [KasbonController::class, 'destroy'])->name('kasbon.destroy');
+
         Route::get('payroll/{payroll}',              [PayrollController::class, 'show'])->name('payroll.show');
         Route::get('payroll/{payroll}/slip',         [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
         Route::patch('payroll/{payroll}/finalize',   [PayrollController::class, 'finalize'])->name('payroll.finalize');

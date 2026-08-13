@@ -4,9 +4,8 @@
     $inactive     = 'ph-nav-link';
     $isSuperAdmin = auth()->user()->is_super_admin;
     $userPkgs     = $isSuperAdmin ? ['task_management', 'hris'] : auth()->user()->activePackages();
-    if (auth()->user()->hasRole('customer')) {
-        $userPkgs = array_values(array_diff($userPkgs, ['hris']));
-    }
+    // HRIS disembunyikan sementara dari UI dashboard
+    $userPkgs     = array_values(array_diff($userPkgs, ['hris']));
     $activePkg    = session('active_package', $userPkgs[0] ?? 'task_management');
     $activePkg    = is_string($activePkg) ? $activePkg : 'task_management'; // guard: jangan sampai object masuk session
     if (!empty($userPkgs) && !in_array($activePkg, $userPkgs)) {
@@ -280,6 +279,26 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
         Pengaturan PPh 21
+    </a>
+    @endcan
+
+    @can('view payroll')
+    <a href="{{ route('hris.bonus.index') }}"
+       class="{{ request()->routeIs('hris.bonus.*') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 2v8m0 0v2m0-2c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Bonus / THR
+    </a>
+    @endcan
+
+    @can('view payroll')
+    <a href="{{ route('hris.kasbon.index') }}"
+       class="{{ request()->routeIs('hris.kasbon.*') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a4 4 0 00-8 0v2M5 9h14l-1 11H6L5 9z"/>
+        </svg>
+        Kasbon
     </a>
     @endcan
 

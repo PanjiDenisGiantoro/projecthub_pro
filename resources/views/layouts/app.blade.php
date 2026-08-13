@@ -207,9 +207,8 @@
                 $userPackages = auth()->user()->is_super_admin
                     ? ['task_management', 'hris']
                     : auth()->user()->activePackages();
-                if (auth()->user()->hasRole('customer')) {
-                    $userPackages = array_values(array_diff($userPackages, ['hris']));
-                }
+                // HRIS disembunyikan sementara dari UI dashboard
+                $userPackages = array_values(array_diff($userPackages, ['hris']));
             @endphp
             @if(count($userPackages) > 1)
             <div class="fl-pkg-switcher hidden sm:flex items-center rounded-full p-0.5 shrink-0 ml-2">

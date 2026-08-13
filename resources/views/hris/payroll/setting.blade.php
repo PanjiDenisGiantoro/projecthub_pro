@@ -3,7 +3,7 @@
 @section('page-title', 'Pengaturan PPh 21')
 
 @section('content')
-<div class="max-w-2xl mx-auto pt-5 space-y-6" x-data="{ method: '{{ old('method', $setting->method) }}' }">
+<div class="max-w-2xl mx-auto pt-5 space-y-6" x-data="{ method: '{{ old('method', $setting->method) }}', scheme: '{{ old('payment_scheme', $setting->payment_scheme) }}', potongAlpha: {{ old('potong_alpha', $setting->potong_alpha) ? 'true' : 'false' }}, alphaMetode: '{{ old('potongan_alpha_metode', $setting->potongan_alpha_metode) }}' }">
 
     <div class="flex items-center gap-3">
         <a href="{{ route('hris.payroll.index') }}" class="text-gray-400 hover:text-gray-700">
@@ -58,6 +58,118 @@
         <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-800">
             Tabel tarif TER (Kategori A/B/C) bisa dilihat & disesuaikan di
             <a href="{{ route('hris.master.index', ['tab' => 'tax-ter']) }}" class="font-semibold underline">Master Data HRIS → Tarif TER</a>.
+        </div>
+
+        <div class="rounded-2xl border-2 border-gray-200 p-5">
+            <p class="font-semibold text-gray-900">Skema Pembayaran PPh 21</p>
+            <p class="text-sm text-gray-500 mt-0.5 mb-3">Siapa yang menanggung pajak penghasilan karyawan. Tarifnya tetap dihitung sesuai metode di atas — ini cuma menentukan di bagian mana nilainya muncul di slip gaji.</p>
+
+            <div class="space-y-2.5">
+                <label class="flex items-start gap-2 rounded-xl border-2 p-3 cursor-pointer transition-all"
+                       :class="scheme === 'gross' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white hover:border-gray-300'">
+                    <input type="radio" name="payment_scheme" value="gross" x-model="scheme" class="mt-1 accent-violet-600">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Gross</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Karyawan tanggung penuh pajaknya sendiri. Muncul sebagai potongan di slip gaji.</p>
+                    </div>
+                </label>
+                <label class="flex items-start gap-2 rounded-xl border-2 p-3 cursor-pointer transition-all"
+                       :class="scheme === 'gross_up' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white hover:border-gray-300'">
+                    <input type="radio" name="payment_scheme" value="gross_up" x-model="scheme" class="mt-1 accent-violet-600">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Gross-Up</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Perusahaan kasih tunjangan pajak sebesar PPh 21 terutang. Muncul di Pendapatan (tunjangan) sekaligus Potongan (pajak) — gaji bersih karyawan tidak berubah, tapi bruto & DPP jadi lebih besar.</p>
+                    </div>
+                </label>
+                <label class="flex items-start gap-2 rounded-xl border-2 p-3 cursor-pointer transition-all"
+                       :class="scheme === 'net' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white hover:border-gray-300'">
+                    <input type="radio" name="payment_scheme" value="net" x-model="scheme" class="mt-1 accent-violet-600">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Net</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Perusahaan tanggung penuh pajaknya sebagai biaya perusahaan. Tidak muncul di Pendapatan maupun Potongan karyawan — masuk ke bagian Tanggungan Perusahaan.</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border-2 border-gray-200 p-5">
+            <p class="font-semibold text-gray-900">BPJS Ketenagakerjaan — Kelas Risiko JKK</p>
+            <p class="text-sm text-gray-500 mt-0.5 mb-3">Tarif Jaminan Kecelakaan Kerja (ditanggung penuh perusahaan) tergantung tingkat risiko pekerjaan. Komponen BPJS employer lain (JHT 3,7%, JP 2%, JKM 0,3%, Kesehatan 4%) sudah tetap sesuai aturan.</p>
+            <select name="jkk_rate" class="w-full text-sm rounded-xl border-gray-300 focus:border-violet-500 focus:ring-violet-500">
+                @foreach(\App\Models\Pph21Setting::JKK_RATES as $kelas => $rate)
+                <option value="{{ $rate }}" @selected(old('jkk_rate', $setting->jkk_rate) == $rate)>
+                    Kelas Risiko {{ $kelas }} — {{ rtrim(rtrim(number_format($rate * 100, 2, ',', '.'), '0'), ',') }}%
+                </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="rounded-2xl border-2 border-gray-200 p-5">
+            <p class="font-semibold text-gray-900">Potongan Alpha (Tidak Hadir Tanpa Keterangan)</p>
+            <p class="text-sm text-gray-500 mt-0.5 mb-3">Jumlah hari alpha tetap dihitung & ditampilkan di setiap payroll berdasarkan absensi karyawan. Pengaturan ini hanya menentukan apakah hari alpha tersebut ikut memotong gaji atau tidak.</p>
+
+            <label class="flex items-start gap-2 rounded-xl border-2 p-3 cursor-pointer transition-all"
+                   :class="potongAlpha ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white hover:border-gray-300'">
+                <input type="checkbox" name="potong_alpha" value="1" x-model="potongAlpha" class="mt-1 accent-violet-600">
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">Potong gaji untuk hari alpha</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Aktif: gaji dipotong sesuai metode di bawah. Nonaktif: hari alpha tetap tercatat tapi tidak mengurangi gaji.</p>
+                </div>
+            </label>
+
+            <div x-show="potongAlpha" class="mt-3 space-y-2.5">
+                <label class="flex items-start gap-2 rounded-xl border-2 p-3 cursor-pointer transition-all"
+                       :class="alphaMetode === 'proporsional' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white hover:border-gray-300'">
+                    <input type="radio" name="potongan_alpha_metode" value="proporsional" x-model="alphaMetode" class="mt-1 accent-violet-600">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Proporsional dari gaji pokok</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Gaji pokok ÷ hari kerja × hari alpha. Nominal potongan per hari beda-beda untuk tiap karyawan sesuai gajinya.</p>
+                    </div>
+                </label>
+                <label class="flex items-start gap-2 rounded-xl border-2 p-3 cursor-pointer transition-all"
+                       :class="alphaMetode === 'nominal' ? 'border-violet-500 bg-violet-50' : 'border-gray-200 bg-white hover:border-gray-300'">
+                    <input type="radio" name="potongan_alpha_metode" value="nominal" x-model="alphaMetode" class="mt-1 accent-violet-600">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-900">Nominal tetap per hari</p>
+                        <p class="text-xs text-gray-500 mt-0.5 mb-2">Potongan per hari alpha sama untuk semua karyawan, berapa pun gajinya.</p>
+                        <div x-show="alphaMetode === 'nominal'" class="flex items-center gap-2">
+                            <span class="text-sm text-gray-500">Rp</span>
+                            <input type="number" name="potongan_alpha_nominal" min="0" step="1000"
+                                   value="{{ old('potongan_alpha_nominal', $setting->potongan_alpha_nominal) }}"
+                                   class="w-40 text-sm rounded-xl border-gray-300 focus:border-violet-500 focus:ring-violet-500"
+                                   placeholder="0" @click.stop>
+                            <span class="text-xs text-gray-400">/ hari</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border-2 border-gray-200 p-5">
+            <p class="font-semibold text-gray-900">Komponen Gaji yang Dihitung Pajak</p>
+            <p class="text-sm text-gray-500 mt-0.5 mb-3">Pilih komponen mana yang ikut jadi bruto pajak (PPh 21). Gaji pokok selalu dihitung.</p>
+
+            <div class="space-y-2.5">
+                <label class="flex items-center gap-2 text-sm text-gray-400">
+                    <input type="checkbox" checked disabled class="accent-violet-600">
+                    Gaji Pokok <span class="text-xs">(selalu kena pajak)</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="tax_tunjangan_jabatan" value="1"
+                           @checked(old('tax_tunjangan_jabatan', $setting->tax_tunjangan_jabatan)) class="accent-violet-600">
+                    Tunjangan Jabatan
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="tax_tunjangan_transport" value="1"
+                           @checked(old('tax_tunjangan_transport', $setting->tax_tunjangan_transport)) class="accent-violet-600">
+                    Tunjangan Transport
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="tax_tunjangan_makan" value="1"
+                           @checked(old('tax_tunjangan_makan', $setting->tax_tunjangan_makan)) class="accent-violet-600">
+                    Tunjangan Makan
+                </label>
+            </div>
         </div>
 
         <button type="submit"

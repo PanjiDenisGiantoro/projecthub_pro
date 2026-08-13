@@ -11,11 +11,15 @@ class Payroll extends Model
     protected $fillable = [
         'user_id', 'company_id', 'year', 'month',
         'gaji_pokok', 'tunjangan_transport', 'tunjangan_makan', 'tunjangan_jabatan',
-        'tunjangan_lainnya', 'lembur', 'reimburse',
+        'tunjangan_lainnya', 'bonus', 'lembur', 'reimburse',
         'hari_kerja', 'hari_hadir', 'hari_cuti', 'hari_alpha', 'potongan_alpha',
+        'potongan_kasbon',
         'penghasilan_bruto',
-        'potongan_bpjs_kes', 'potongan_bpjs_tk', 'potongan_pph21', 'pph21_method', 'potongan_lainnya',
-        'total_potongan', 'gaji_bersih', 'status', 'paid_at',
+        'potongan_bpjs_kes', 'potongan_bpjs_tk', 'potongan_pph21', 'tunjangan_pph21',
+        'pph21_method', 'pph21_scheme', 'potongan_lainnya',
+        'total_potongan',
+        'tanggungan_bpjs_kes', 'tanggungan_bpjs_tk', 'tanggungan_pph21', 'total_tanggungan_perusahaan',
+        'gaji_bersih', 'status', 'paid_at',
     ];
 
     protected $casts = [

@@ -134,9 +134,9 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Paket Aplikasi
                 </label>
-                <p class="text-xs text-gray-500 mb-3">Semua akun otomatis mendapat kedua modul berikut.</p>
+                <p class="text-xs text-gray-500 mb-3">Semua akun otomatis mendapat modul berikut.</p>
 
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-3">
 
                     {{-- Task Management Card --}}
                     <div class="relative flex flex-col rounded-xl border-2 border-violet-500 bg-blue-50 p-4">
@@ -176,43 +176,7 @@
                         </ul>
                     </div>
 
-                    {{-- HRIS Card --}}
-                    <div class="relative flex flex-col rounded-xl border-2 border-violet-500 bg-violet-50 p-4">
-                        <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-violet-500">
-                                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-violet-700">
-                                    HRIS
-                                </p>
-                                <p class="text-xs mt-0.5 text-violet-600">
-                                    SDM, absensi, penggajian, cuti
-                                </p>
-                            </div>
-                            <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-violet-500 bg-violet-500 flex items-center justify-center mt-0.5">
-                                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <ul class="mt-3 space-y-1 text-violet-600">
-                            <li class="text-xs flex items-center gap-1.5">
-                                <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                Data karyawan & struktur org
-                            </li>
-                            <li class="text-xs flex items-center gap-1.5">
-                                <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                Absensi & jadwal kerja
-                            </li>
-                            <li class="text-xs flex items-center gap-1.5">
-                                <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                Penggajian & slip gaji
-                            </li>
-                        </ul>
-                    </div>
+                    {{-- HRIS Card — disembunyikan sementara --}}
 
                 </div>
             </div>
