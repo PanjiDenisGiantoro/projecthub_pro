@@ -60,12 +60,23 @@ class AiAssistantWebController extends Controller
             $tools = $this->toolDefinitions();
         }
 
-        $response = Http::timeout(90)->post('http://127.0.0.1:11434/api/chat', [
-            'model'    => 'llama3.2:3b',
-            'messages' => $messages,
-            'tools'    => $tools,
-            'stream'   => false,
-        ]);
+        try {
+            // Ollama jalan di CPU (tanpa GPU) — cold start (model belum ke-load
+            // di memory) bisa makan >90 detik, makanya timeout dilonggarkan.
+            // Http::post melempar ConnectionException (bukan response gagal biasa)
+            // kalau timeout/koneksi putus, jadi WAJIB ditangkap di sini — kalau tidak,
+            // request berakhir sebagai 500 mentah (bukan JSON) dan bikin frontend
+            // nampilin "Gagal terhubung ke AI Assistant" tanpa alasan yang jelas.
+            $response = Http::timeout(110)->post('http://127.0.0.1:11434/api/chat', [
+                'model'    => 'llama3.2:3b',
+                'messages' => $messages,
+                'tools'    => $tools,
+                'stream'   => false,
+            ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            report($e);
+            return response()->json(['error' => 'AI Assistant sedang sibuk/lambat merespons. Coba lagi sesaat lagi.'], 504);
+        }
 
         if (!$response->successful()) {
             return response()->json(['error' => 'AI Assistant sedang tidak tersedia.'], 502);
