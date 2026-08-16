@@ -19,6 +19,36 @@ class AiAssistantWebController extends Controller
      * lewat executeAction() (yang mengulangi validasi & permission check sendiri,
      * tidak percaya begitu saja pada apa yang "diusulkan" AI).
      */
+    /**
+     * llama3.2:3b (model kecil, self-hosted) cenderung manggil tool yang
+     * ditawarkan hampir di setiap pesan kalau tersedia — instruksi di system
+     * prompt saja tidak cukup buat nahan itu. Makanya tool "create_project"
+     * cuma ditawarkan ke model kalau pesan terakhir user memang kelihatan
+     * minta dibuatkan proyek, bukan diputuskan oleh model sendiri.
+     */
+    private function looksLikeProjectRequest(array $messages): bool
+    {
+        $lastUser = collect($messages)->last(fn ($m) => ($m['role'] ?? null) === 'user');
+        if (!$lastUser) {
+            return false;
+        }
+
+        $text     = strtolower($lastUser['content'] ?? '');
+        $keywords = [
+            'buat proyek', 'bikin proyek', 'proyek baru', 'buatkan proyek',
+            'membuat proyek', 'create a project', 'create project', 'new project',
+            'make a project',
+        ];
+
+        foreach ($keywords as $keyword) {
+            if (str_contains($text, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function toolDefinitions(): array
     {
         return [
@@ -56,7 +86,7 @@ class AiAssistantWebController extends Controller
         // Cuma tawarkan tool ke model kalau user memang punya izin buat aksinya —
         // supaya AI tidak mengusulkan sesuatu yang bakal ditolak pas konfirmasi.
         $tools = [];
-        if (auth()->user()->can('create project')) {
+        if (auth()->user()->can('create project') && $this->looksLikeProjectRequest($request->messages)) {
             $tools = $this->toolDefinitions();
         }
 
@@ -86,7 +116,11 @@ class AiAssistantWebController extends Controller
 
         if (!empty($toolCalls)) {
             $call = $toolCalls[0]['function'] ?? null;
-            if ($call && $call['name'] === 'create_project') {
+            $name = trim($call['arguments']['name'] ?? '') ?: null;
+            // Model (llama3.2:3b) kadang halu manggil tool tanpa alasan jelas (mis.
+            // buat sapaan biasa) dan ngasih nama proyek kosong — jangan tampilkan
+            // usulan aksi kalau nama proyeknya tidak ada, biar tidak nyasar ke user.
+            if ($call && $call['name'] === 'create_project' && $name) {
                 $args = $call['arguments'] ?? [];
                 return response()->json([
                     'reply'  => '',
@@ -94,7 +128,7 @@ class AiAssistantWebController extends Controller
                         'tool'  => 'create_project',
                         'label' => 'Buat proyek baru',
                         'args'  => [
-                            'name'        => $args['name'] ?? '',
+                            'name'        => $name,
                             'description' => $args['description'] ?? '',
                         ],
                     ],
