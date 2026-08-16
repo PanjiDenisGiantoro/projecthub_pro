@@ -439,7 +439,12 @@
 
     {{-- Panel --}}
     <div x-show="open" x-cloak x-transition
-         class="fixed bottom-24 right-5 z-40 w-[min(360px,calc(100vw-2.5rem))] h-[min(520px,calc(100vh-8rem))] rounded-2xl overflow-hidden flex flex-col"
+         class="fixed bottom-24 right-5 z-40 rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
+         :class="minimized
+            ? 'w-[min(360px,calc(100vw-2.5rem))] h-auto'
+            : (expanded
+                ? 'w-[min(640px,calc(100vw-2.5rem))] h-[min(85vh,calc(100vh-6rem))]'
+                : 'w-[min(360px,calc(100vw-2.5rem))] h-[min(520px,calc(100vh-8rem))]')"
          style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);box-shadow:0 10px 40px rgba(109,40,217,0.25)">
 
         {{-- Header --}}
@@ -451,7 +456,23 @@
                 <p class="text-sm font-bold text-white">AI Assistant</p>
                 <p class="text-[10px] text-white/70">Self-hosted · tidak dikirim ke pihak ketiga</p>
             </div>
-            <button @click="clearHistory()" title="Hapus riwayat" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+            <button @click="minimized = !minimized" :title="minimized ? 'Perbesar' : 'Minimize'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+                <svg x-show="!minimized" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
+                </svg>
+                <svg x-show="minimized" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                </svg>
+            </button>
+            <button x-show="!minimized" @click="expanded = !expanded" :title="expanded ? 'Kecilkan' : 'Perbesar ukuran'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+                <svg x-show="!expanded" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                </svg>
+                <svg x-show="expanded" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 4H5m4 0L4 4m11 5V5m0 4h4m-4 0l5-5M9 15v4m0-4H5m4 0l-5 5m11-5v4m0-4h4m-4 0l5 5"/>
+                </svg>
+            </button>
+            <button x-show="!minimized" @click="clearHistory()" title="Hapus riwayat" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
@@ -459,7 +480,7 @@
         </div>
 
         {{-- Messages --}}
-        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea" style="background:var(--fl-search-bg,#f9fafb)">
+        <div x-show="!minimized" class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea" style="background:var(--fl-search-bg,#f9fafb)">
             <div x-show="messages.length === 0" class="text-center py-8">
                 <p class="text-sm" style="color:var(--fl-text-muted,#6b7280)">Halo! Ada yang bisa saya bantu?</p>
             </div>
@@ -522,7 +543,7 @@
         </div>
 
         {{-- Input --}}
-        <div class="p-3 border-t shrink-0" style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
+        <div x-show="!minimized" class="p-3 border-t shrink-0" style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
             <div class="flex gap-2 items-end">
                 <textarea x-model="input"
                           x-ref="aiInput"
@@ -550,6 +571,8 @@
 function aiAssistantWidget() {
     return {
         open: false,
+        minimized: false,
+        expanded: false,
         input: '',
         messages: [],
         thinking: false,
@@ -565,7 +588,10 @@ function aiAssistantWidget() {
 
         toggle() {
             this.open = !this.open;
-            if (this.open) this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
+            if (this.open) {
+                this.minimized = false;
+                this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
+            }
         },
 
         clearHistory() {
