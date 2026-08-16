@@ -87,8 +87,11 @@ class AuthWebController extends Controller
         }
 
         if (!$request->session()->has('active_package')) {
-            $pkgs       = $user->is_super_admin ? ['task_management'] : $user->activePackages();
-            $defaultPkg = $pkgs[0] ?? null;
+            $pkgs = $user->is_super_admin ? ['task_management'] : $user->activePackages();
+            // task_management diprioritaskan sebagai default kalau user punya beberapa
+            // modul aktif — urutan activePackages() ikut urutan id package di DB (bukan
+            // preferensi), dan modul HRIS kebetulan punya id lebih kecil.
+            $defaultPkg = in_array('task_management', $pkgs, true) ? 'task_management' : ($pkgs[0] ?? null);
             if ($defaultPkg) {
                 $request->session()->put('active_package', $defaultPkg);
             }

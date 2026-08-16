@@ -22,8 +22,13 @@ class DashboardWebController extends Controller
         $user       = auth()->user();
         $activePkg  = session('active_package', 'task_management');
 
+        // HRIS disembunyikan sementara dari UI dashboard (lihat sidebar-nav.blade.php
+        // & app.blade.php) — sesi lama yang masih menyimpan 'hris' harus tetap jatuh
+        // ke dashboard role biasa, bukan dashboard HRIS, selama flag ini aktif.
+        $hrisHidden = true;
+
         // ── HRIS Dashboard ──────────────────────────────────────────────────
-        if ($activePkg === 'hris' && !$user->hasRole('customer') && ($user->is_super_admin || $user->hasPackage('hris'))) {
+        if (!$hrisHidden && $activePkg === 'hris' && !$user->hasRole('customer') && ($user->is_super_admin || $user->hasPackage('hris'))) {
             $companyId      = $user->company_id;
             $totalKaryawan  = User::where('company_id', $companyId)->where('is_super_admin', false)->count();
             $totalDept      = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
