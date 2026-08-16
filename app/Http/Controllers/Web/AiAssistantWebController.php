@@ -14,17 +14,15 @@ class AiAssistantWebController extends Controller
     public function __construct(private NotificationService $notifier) {}
 
     /**
-     * Daftar aksi yang boleh diusulkan AI. Setiap aksi TIDAK langsung dieksekusi
-     * di sini — cuma diusulkan ke user, dieksekusi setelah user klik konfirmasi
-     * lewat executeAction() (yang mengulangi validasi & permission check sendiri,
-     * tidak percaya begitu saja pada apa yang "diusulkan" AI).
-     */
-    /**
      * llama3.2:3b (model kecil, self-hosted) cenderung manggil tool yang
      * ditawarkan hampir di setiap pesan kalau tersedia — instruksi di system
      * prompt saja tidak cukup buat nahan itu. Makanya tool "create_project"
      * cuma ditawarkan ke model kalau pesan terakhir user memang kelihatan
-     * minta dibuatkan proyek, bukan diputuskan oleh model sendiri.
+     * minta dibuatkan proyek (ada kata kerja "buat/bikin/create/make/new"
+     * berdekatan dengan kata "proyek/project"), bukan diputuskan oleh model
+     * sendiri. Cukup longgar biar nangkep variasi kalimat ("bikinin proyek
+     * dong", "tolong buatkan project baru"), tapi tetap butuh dua kata itu
+     * berdekatan supaya "kenapa proyek saya belum muncul" tidak ketangkep.
      */
     private function looksLikeProjectRequest(array $messages): bool
     {
@@ -33,22 +31,20 @@ class AiAssistantWebController extends Controller
             return false;
         }
 
-        $text     = strtolower($lastUser['content'] ?? '');
-        $keywords = [
-            'buat proyek', 'bikin proyek', 'proyek baru', 'buatkan proyek',
-            'membuat proyek', 'create a project', 'create project', 'new project',
-            'make a project',
-        ];
+        $text = strtolower($lastUser['content'] ?? '');
 
-        foreach ($keywords as $keyword) {
-            if (str_contains($text, $keyword)) {
-                return true;
-            }
-        }
-
-        return false;
+        return (bool) preg_match(
+            '/\b(buat|buatkan|bikin|bikinkan|membuat|create|make|new)\w*\s+(\w+\s+){0,2}(proyek|projek|project)\b/u',
+            $text
+        );
     }
 
+    /**
+     * Daftar aksi yang boleh diusulkan AI. Setiap aksi TIDAK langsung dieksekusi
+     * di sini — cuma diusulkan ke user, dieksekusi setelah user klik konfirmasi
+     * lewat executeAction() (yang mengulangi validasi & permission check sendiri,
+     * tidak percaya begitu saja pada apa yang "diusulkan" AI).
+     */
     private function toolDefinitions(): array
     {
         return [
