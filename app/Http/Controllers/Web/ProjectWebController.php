@@ -8,6 +8,7 @@ use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
 use App\Models\TimeLog;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
@@ -125,11 +126,32 @@ class ProjectWebController extends Controller
             'name'     => 'required|string|max:255',
             'status'   => 'in:draft,active,on_hold,completed,cancelled',
             'progress' => 'nullable|integer|min:0|max:100',
+            'meeting_default_time'             => 'nullable|date_format:H:i',
+            'meeting_default_duration_minutes' => 'nullable|integer|min:15|max:480',
         ]);
 
-        $project->update($request->only('name', 'description', 'client_id', 'manager_id', 'status', 'start_date', 'end_date', 'budget', 'progress'));
+        $project->update([
+            ...$request->only('name', 'description', 'client_id', 'manager_id', 'status', 'start_date', 'end_date', 'budget', 'progress'),
+            'google_meet_enabled' => $request->boolean('google_meet_enabled'),
+            'meeting_auto_create' => $request->boolean('meeting_auto_create'),
+            'meeting_default_time' => $request->meeting_default_time,
+            'meeting_default_duration_minutes' => $request->meeting_default_duration_minutes ?? 60,
+        ]);
 
         return redirect()->route('projects.show', $project)->with('success', 'Proyek diperbarui.');
+    }
+
+    public function createMeeting(Project $project, GoogleCalendarService $calendar)
+    {
+        try {
+            $calendar->createMeetingForProject($project, auth()->user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Meeting berhasil dibuat.');
     }
 
     public function destroy(Project $project)

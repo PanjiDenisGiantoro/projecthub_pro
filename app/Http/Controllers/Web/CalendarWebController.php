@@ -54,6 +54,7 @@ class CalendarWebController extends Controller
                     'assignee' => $t->assignee?->name,
                     'overdue'  => $t->due_date->isPast() && $t->status !== 'done',
                     'url'      => route('tasks.show', [$t->project_id, $t->id]),
+                    'meetLink' => $t->google_meet_link,
                 ],
             ]));
         }
@@ -82,6 +83,7 @@ class CalendarWebController extends Controller
                     'project' => $m->project?->name,
                     'overdue' => $m->isOverdue(),
                     'url'     => route('projects.show', $m->project_id),
+                    'meetLink' => $m->google_meet_link,
                 ],
             ]));
         }
@@ -110,6 +112,8 @@ class CalendarWebController extends Controller
                     'status'  => $s->status,
                     'project' => $s->project?->name,
                     'url'     => route('sprints.show', [$s->project_id, $s->id]),
+                    'meetLink' => $s->google_meet_link,
+                    'recurring' => $s->google_meeting_is_recurring,
                 ],
             ]));
         }
@@ -138,6 +142,7 @@ class CalendarWebController extends Controller
                     'assignee' => $t->assignee?->name,
                     'breached' => $t->sla_breached,
                     'url'      => route('tickets.show', $t->id),
+                    'meetLink' => $t->google_meet_link,
                 ],
             ]));
         }

@@ -136,15 +136,32 @@
                     </div>
                 </div>
 
-                @if(!auth()->user()->hasRole('customer'))
-                <a href="{{ route('projects.edit', $project) }}"
-                   class="shrink-0 self-start inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
-                    </svg>
-                    Edit proyek
-                </a>
-                @endif
+                <div class="shrink-0 self-start flex items-center gap-2">
+                    @if($project->google_meet_link)
+                        <a href="{{ $project->google_meet_link }}" target="_blank" rel="noopener"
+                           class="inline-flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition shadow-sm">
+                            Join Meeting
+                        </a>
+                    @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
+                        <form method="POST" action="{{ route('projects.meeting.create', $project) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50 transition">
+                                Buat Meeting
+                            </button>
+                        </form>
+                    @endif
+
+                    @if(!auth()->user()->hasRole('customer'))
+                    <a href="{{ route('projects.edit', $project) }}"
+                       class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                        </svg>
+                        Edit proyek
+                    </a>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -710,6 +727,23 @@
                                 @endif
                             </div>
                             @endif
+
+                            {{-- Google Meet --}}
+                            <div class="mt-1.5">
+                                @if($ms->google_meet_link)
+                                    <a href="{{ $ms->google_meet_link }}" target="_blank" rel="noopener"
+                                       class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200">
+                                        Join Meeting
+                                    </a>
+                                @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
+                                    <form method="POST" action="{{ route('milestones.meeting.create', [$project, $ms]) }}">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-medium px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100">
+                                            Buat Meeting
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </div>
                     </div>
 

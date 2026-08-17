@@ -89,6 +89,35 @@
             </div>
         </div>
 
+        {{-- Google Calendar --}}
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Google Calendar</h3>
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    @if($googleToken)
+                        <p class="text-sm font-medium text-gray-700">Terhubung</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Anda bisa membuat meeting Google Meet dari Sprint & Milestone.</p>
+                    @else
+                        <p class="text-sm font-medium text-gray-700">Belum terhubung</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Hubungkan akun Google untuk membuat jadwal & link Google Meet otomatis.</p>
+                    @endif
+                </div>
+                @if($googleToken)
+                    <form method="POST" action="{{ route('google-calendar.disconnect') }}" onsubmit="return confirm('Putuskan sambungan Google Calendar?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
+                            Putuskan Sambungan
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('google-calendar.connect') }}" class="px-3 py-1.5 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700">
+                        Hubungkan Google Calendar
+                    </a>
+                @endif
+            </div>
+        </div>
+
         {{-- Change Password --}}
         <div class="px-6 py-5 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Ubah Password</h3>

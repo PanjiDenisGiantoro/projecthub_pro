@@ -9,6 +9,7 @@ use App\Models\TicketAttachment;
 use App\Models\TicketHistory;
 use App\Models\TicketLink;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use App\Services\SlaService;
 use App\Services\TeamNotifier;
@@ -62,7 +63,7 @@ class TicketWebController extends Controller
         return view('tickets.create', compact('project'));
     }
 
-    public function store(Request $request, Project $project)
+    public function store(Request $request, Project $project, GoogleCalendarService $calendar)
     {
         $request->validate([
             'title'          => 'required|string|max:255',
@@ -100,7 +101,28 @@ class TicketWebController extends Controller
         $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id], companyId: $project->company_id);
         $this->teamNotifier->notify($project, '🐞 Tiket Baru', "[{$ticket->priority}] \"{$ticket->title}\" dilaporkan oleh " . auth()->user()->name . '.');
 
+        if ($project->meeting_auto_create) {
+            try {
+                $calendar->createMeetingForBugTicket($ticket, auth()->user());
+            } catch (\Throwable $e) {
+                // silent — user tetap bisa klik "Buat Meeting" manual nanti
+            }
+        }
+
         return redirect()->route('tickets.show', $ticket)->with('success', 'Tiket berhasil dibuat.');
+    }
+
+    public function createMeeting(BugTicket $ticket, GoogleCalendarService $calendar)
+    {
+        try {
+            $calendar->createMeetingForBugTicket($ticket, auth()->user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Meeting berhasil dibuat.');
     }
 
     public function show(BugTicket $ticket)

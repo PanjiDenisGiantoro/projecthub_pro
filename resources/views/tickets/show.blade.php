@@ -233,6 +233,26 @@
                 @endif
             </div>
 
+            {{-- Google Meet --}}
+            @if($ticket->google_meet_link || (!$user->hasRole('customer') && $ticket->project->google_meet_enabled))
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Google Meet</h4>
+                @if($ticket->google_meet_link)
+                    <a href="{{ $ticket->google_meet_link }}" target="_blank" rel="noopener"
+                       class="inline-block px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                        Join Meeting
+                    </a>
+                @else
+                    <form method="POST" action="{{ route('tickets.meeting.create', $ticket) }}">
+                        @csrf
+                        <button type="submit" class="px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50">
+                            Buat Meeting
+                        </button>
+                    </form>
+                @endif
+            </div>
+            @endif
+
             {{-- Update Status --}}
             @if($user->hasRole(['admin','manager','developer']))
             <div class="bg-white rounded-xl border border-gray-200 p-5">

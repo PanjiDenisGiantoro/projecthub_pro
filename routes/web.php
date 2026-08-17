@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\RegisterWebController;
 use App\Http\Controllers\Web\VerificationController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
+use App\Http\Controllers\Web\MeetingWebController;
 use App\Http\Controllers\Web\CampaignWebController;
 use App\Http\Controllers\Web\ClientPortalWebController;
 use App\Http\Controllers\Web\GithubWebController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Web\ProjectFileWebController;
 use App\Http\Controllers\Web\ProjectTemplateWebController;
 use App\Http\Controllers\Web\ProjectWebController;
 use App\Http\Controllers\Web\RecurringTaskWebController;
+use App\Http\Controllers\Web\ReportWebController;
 use App\Http\Controllers\Web\RequestWebController;
 use App\Http\Controllers\Web\RiskWebController;
 use App\Http\Controllers\Web\SearchWebController;
@@ -40,6 +42,7 @@ use App\Http\Controllers\Web\AjaxController;
 use App\Http\Controllers\Web\RoleWebController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\UserWebController;
+use App\Http\Controllers\Web\GoogleCalendarController;
 use App\Http\Controllers\Web\ProfileWebController;
 use App\Http\Controllers\Web\Hris\AbsensiController;
 use App\Http\Controllers\Web\Hris\LeaveController;
@@ -147,6 +150,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
 
+    // Google Calendar (connect terpisah dari login, scope Calendar events)
+    Route::get('/google-calendar/connect', [GoogleCalendarController::class, 'connect'])->name('google-calendar.connect');
+    Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback'])->name('google-calendar.callback');
+    Route::delete('/google-calendar/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('google-calendar.disconnect');
+
     // Projects — 'create project' (punya route literal /projects/create) harus
     // terdaftar SEBELUM 'access projects' (punya wildcard /projects/{project}),
     // supaya "create" tidak ketangkep duluan sebagai {project}.
@@ -162,6 +170,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('/projects/{project}/edit', [ProjectWebController::class, 'edit'])->name('projects.edit');
         Route::match(['put', 'patch'], '/projects/{project}', [ProjectWebController::class, 'update'])->name('projects.update');
     });
+    Route::middleware('can:access projects')->group(function () {
+        Route::post('/projects/{project}/meeting', [ProjectWebController::class, 'createMeeting'])->name('projects.meeting.create');
+    });
     Route::middleware('can:delete project')->group(function () {
         Route::delete('/projects/{project}', [ProjectWebController::class, 'destroy'])->name('projects.destroy');
     });
@@ -175,6 +186,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/milestones', [MilestoneWebController::class, 'store'])->name('milestones.store');
         Route::put('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'update'])->name('milestones.update');
         Route::delete('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'destroy'])->name('milestones.destroy');
+        Route::post('/projects/{project}/milestones/{milestone}/meeting', [MilestoneWebController::class, 'createMeeting'])->name('milestones.meeting.create');
 
         // Tasks
         Route::get('/projects/{project}/tasks', [TaskWebController::class, 'index'])->name('tasks.index');
@@ -183,6 +195,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::put('/projects/{project}/tasks/{task}', [TaskWebController::class, 'update'])->name('tasks.update');
         Route::delete('/projects/{project}/tasks/{task}', [TaskWebController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/projects/{project}/tasks/{task}/move', [TaskWebController::class, 'moveStatus'])->name('tasks.move');
+        Route::post('/projects/{project}/tasks/{task}/meeting', [TaskWebController::class, 'createMeeting'])->name('tasks.meeting.create');
     });
     // {task} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::post('/tasks/{task}/time-logs', [TaskWebController::class, 'storeTimeLog'])->name('tasks.timelog.store');
@@ -201,6 +214,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::delete('/tickets/{ticket}/attachments/{attachment}', [TicketWebController::class, 'deleteAttachment'])->name('tickets.attachments.delete');
     Route::post('/tickets/{ticket}/links', [TicketWebController::class, 'linkTicket'])->name('tickets.links.store');
     Route::delete('/tickets/{ticket}/links/{link}', [TicketWebController::class, 'unlinkTicket'])->name('tickets.links.delete');
+    Route::post('/tickets/{ticket}/meeting', [TicketWebController::class, 'createMeeting'])->name('tickets.meeting.create');
 
     // Approvals
     Route::get('/approvals', [ApprovalWebController::class, 'index'])->name('approvals.index');
@@ -356,6 +370,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/calendar/events', [CalendarWebController::class, 'events'])->name('calendar.events');
     Route::get('/calendar/upcoming', [CalendarWebController::class, 'upcoming'])->name('calendar.upcoming');
 
+    // Meetings
+    Route::get('/meetings', [MeetingWebController::class, 'index'])->name('meetings.index');
+
     // Global Search
     Route::get('/search', [SearchWebController::class, 'index'])->name('search.index');
 
@@ -372,6 +389,13 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Analytics
     Route::get('/analytics', [AnalyticsWebController::class, 'index'])->name('analytics.index');
 
+    // Reports
+    Route::middleware('can:access reports')->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportWebController::class, 'index'])->name('index');
+        Route::get('/{key}', [ReportWebController::class, 'show'])->name('show');
+        Route::get('/{key}/export/{format}', [ReportWebController::class, 'export'])->name('export')->whereIn('format', ['pdf', 'xlsx']);
+    });
+
     // Sprints, File Manager, Budget, Risk Register, Recurring Tasks, Client Portal
     // — hanya anggota/manager/client proyek atau admin/manager
     Route::middleware('can:view,project')->group(function () {
@@ -382,6 +406,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'destroy'])->name('sprints.destroy');
         Route::post('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'addTask'])->name('sprints.tasks.add');
         Route::delete('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'removeTask'])->name('sprints.tasks.remove');
+        Route::post('/projects/{project}/sprints/{sprint}/meeting', [SprintWebController::class, 'createMeeting'])->name('sprints.meeting.create');
+        Route::post('/projects/{project}/sprints/{sprint}/standup', [SprintWebController::class, 'createStandup'])->name('sprints.standup.create');
 
         Route::get('/projects/{project}/files', [ProjectFileWebController::class, 'index'])->name('project.files.index');
         Route::post('/projects/{project}/files', [ProjectFileWebController::class, 'store'])->name('project.files.store');

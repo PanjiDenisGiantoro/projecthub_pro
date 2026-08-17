@@ -129,9 +129,17 @@
                      class="mt-2 bg-red-50 border border-red-200 text-red-600 rounded-lg px-3 py-1.5 font-medium">
                     ⚠ SLA Breached
                 </div>
+                <div x-show="modal.meetLink"
+                     class="mt-2 bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-1.5 font-medium flex items-center justify-between gap-2">
+                    <span>📹 Ada Google Meet<template x-if="modal.recurring"><span> (berulang, Sen–Jum)</span></template></span>
+                </div>
             </div>
 
             <div class="mt-4 flex gap-2">
+                <a x-show="modal.meetLink" :href="modal.meetLink" target="_blank" rel="noopener"
+                   class="flex-1 text-center text-xs font-semibold bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    Join Meeting
+                </a>
                 <a :href="modal.url" target="_blank"
                    class="flex-1 text-center text-xs font-semibold bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700">
                     Lihat Detail →
@@ -170,7 +178,7 @@
 function calendarApp() {
     return {
         calendar: null,
-        modal: { open: false, title:'', type:'', project:'', date:'', status:'', priority:'', assignee:'', url:'#', color:'#3B82F6', overdue:false, breached:false },
+        modal: { open: false, title:'', type:'', project:'', date:'', status:'', priority:'', assignee:'', url:'#', color:'#3B82F6', overdue:false, breached:false, meetLink:'', recurring:false },
         stats:   { task: 0, milestone: 0, sprint: 0, ticket: 0 },
         filters: [
             { type: 'task',      label: 'Task Due',     color: '#3B82F6', active: true },
@@ -246,6 +254,8 @@ function calendarApp() {
                         color:    info.event.backgroundColor,
                         overdue:  p.overdue   || false,
                         breached: p.breached  || false,
+                        meetLink: p.meetLink  || '',
+                        recurring:p.recurring || false,
                     };
                     info.jsEvent.preventDefault();
                 },

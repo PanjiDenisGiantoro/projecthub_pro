@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TimeLog;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use App\Services\TeamNotifier;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class TaskWebController extends Controller
         return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers'));
     }
 
-    public function store(Request $request, Project $project)
+    public function store(Request $request, Project $project, GoogleCalendarService $calendar)
     {
         $request->validate([
             'title'           => 'required|string|max:255',
@@ -47,6 +48,14 @@ class TaskWebController extends Controller
             ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'priority', 'start_date', 'due_date', 'estimated_hours'),
             'created_by' => auth()->id(),
         ]);
+
+        if ($project->meeting_auto_create) {
+            try {
+                $calendar->createMeetingForTask($task, auth()->user());
+            } catch (\Throwable $e) {
+                // silent — user tetap bisa klik "Buat Meeting" manual nanti
+            }
+        }
 
         if ($task->assigned_to) {
             $this->notifier->send($task->assigned_to, 'task_assigned', 'Task Baru', "Task \"{$task->title}\" ditugaskan ke Anda.", ['task_id' => $task->id]);
@@ -74,7 +83,7 @@ class TaskWebController extends Controller
         return view('tasks.show', compact('project', 'task', 'runningLog'));
     }
 
-    public function update(Request $request, Project $project, Task $task)
+    public function update(Request $request, Project $project, Task $task, GoogleCalendarService $calendar)
     {
         $request->validate([
             'completion_notes' => 'required_with:status|nullable|string|max:2000',
@@ -82,6 +91,14 @@ class TaskWebController extends Controller
 
         $old = $task->status;
         $task->update($request->only('title', 'description', 'completion_notes', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours'));
+
+        if (($task->wasChanged('due_date') || $task->wasChanged('start_date')) && $task->google_event_id) {
+            try {
+                $calendar->syncMeetingTime($task, auth()->user());
+            } catch (\Throwable $e) {
+                // silent — jadwal Google Calendar tetap yang lama, tidak blokir update task
+            }
+        }
 
         if ($old !== $task->status) {
             $notify = $task->creator_id ?? $project->manager_id;
@@ -126,6 +143,19 @@ class TaskWebController extends Controller
         }
 
         return response()->json(['ok' => true, 'status' => $task->status]);
+    }
+
+    public function createMeeting(Project $project, Task $task, GoogleCalendarService $calendar)
+    {
+        try {
+            $calendar->createMeetingForTask($task, auth()->user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Meeting berhasil dibuat.');
     }
 
     public function storeTimeLog(Request $request, Task $task)

@@ -10,7 +10,10 @@ class ProfileWebController extends Controller
 {
     public function index()
     {
-        return view('profile.index', ['user' => auth()->user()]);
+        return view('profile.index', [
+            'user'        => auth()->user(),
+            'googleToken' => auth()->user()->googleToken,
+        ]);
     }
 
     public function updateAvatar(Request $request)

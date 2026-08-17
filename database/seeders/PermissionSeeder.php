@@ -12,8 +12,8 @@ class PermissionSeeder extends Seeder
     private array $defaults = [
         'manager' => [
             'access dashboard', 'access projects', 'access tickets', 'access requests',
-            'access campaigns', 'access invoices', 'access calendar', 'access search',
-            'access templates', 'access workload', 'access analytics', 'access users',
+            'access campaigns', 'access invoices', 'access calendar', 'access meetings', 'access search',
+            'access templates', 'access workload', 'access analytics', 'access reports', 'access users',
             'access approvals', 'access kb', 'access sprints', 'access budget', 'access risks',
             'create project', 'edit project', 'delete project', 'manage project members',
             'create ticket', 'assign ticket', 'close ticket', 'view all tickets', 'manage tickets',
@@ -26,13 +26,13 @@ class PermissionSeeder extends Seeder
         ],
         'developer' => [
             'access dashboard', 'access tickets', 'access requests',
-            'access calendar', 'access search', 'access approvals', 'access kb', 'access sprints',
+            'access calendar', 'access meetings', 'access search', 'access approvals', 'access kb', 'access sprints',
             'create ticket', 'view all tickets', 'manage tickets',
             'decide approvals',
         ],
         'marketing' => [
             'access dashboard', 'access campaigns', 'access requests',
-            'access calendar', 'access search', 'access approvals',
+            'access calendar', 'access meetings', 'access search', 'access approvals',
             'create campaign', 'update campaign', 'delete campaign',
             'decide approvals',
         ],
@@ -44,7 +44,7 @@ class PermissionSeeder extends Seeder
         ],
         'tester' => [
             'access dashboard', 'access tickets', 'access requests',
-            'access calendar', 'access search', 'access kb', 'access sprints',
+            'access calendar', 'access meetings', 'access search', 'access kb', 'access sprints',
             'create ticket', 'view all tickets', 'close ticket',
         ],
     ];

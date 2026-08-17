@@ -193,6 +193,11 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->belongsToMany(Company::class, 'user_companies');
     }
 
+    public function googleToken()
+    {
+        return $this->hasOne(GoogleToken::class);
+    }
+
     /** Semua company yang boleh diakses user ini: company utama + company tambahan. */
     public function accessibleCompanies()
     {

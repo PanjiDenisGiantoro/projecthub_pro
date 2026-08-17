@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
+use App\Services\GoogleCalendarService;
 use Illuminate\Http\Request;
 
 class SprintWebController extends Controller
@@ -17,7 +18,7 @@ class SprintWebController extends Controller
         return view('sprints.index', compact('project', 'sprints', 'backlog'));
     }
 
-    public function store(Request $request, Project $project)
+    public function store(Request $request, Project $project, GoogleCalendarService $calendar)
     {
         $data = $request->validate([
             'name'       => 'required|string|max:255',
@@ -29,7 +30,15 @@ class SprintWebController extends Controller
         $data['project_id'] = $project->id;
         $data['created_by'] = auth()->id();
 
-        Sprint::create($data);
+        $sprint = Sprint::create($data);
+
+        if ($project->meeting_auto_create) {
+            try {
+                $calendar->createMeetingForSprint($sprint, auth()->user());
+            } catch (\Throwable $e) {
+                // silent — user tetap bisa klik "Buat Meeting" manual nanti
+            }
+        }
 
         return back()->with('success', 'Sprint dibuat.');
     }
@@ -41,7 +50,7 @@ class SprintWebController extends Controller
         return view('sprints.show', compact('project', 'sprint', 'statuses'));
     }
 
-    public function update(Request $request, Project $project, Sprint $sprint)
+    public function update(Request $request, Project $project, Sprint $sprint, GoogleCalendarService $calendar)
     {
         $data = $request->validate([
             'name'       => 'required|string|max:255',
@@ -57,6 +66,14 @@ class SprintWebController extends Controller
         }
 
         $sprint->update($data);
+
+        if ($sprint->wasChanged('start_date') && $sprint->google_event_id) {
+            try {
+                $calendar->syncMeetingTime($sprint, auth()->user());
+            } catch (\Throwable $e) {
+                // silent — jadwal Google Calendar tetap yang lama, tidak blokir update sprint
+            }
+        }
 
         return back()->with('success', 'Sprint diperbarui.');
     }
@@ -81,5 +98,31 @@ class SprintWebController extends Controller
         $request->validate(['task_id' => 'required|exists:tasks,id']);
         Task::where('id', $request->task_id)->where('sprint_id', $sprint->id)->update(['sprint_id' => null]);
         return back()->with('success', 'Task dipindahkan ke backlog.');
+    }
+
+    public function createMeeting(Project $project, Sprint $sprint, GoogleCalendarService $calendar)
+    {
+        try {
+            $calendar->createMeetingForSprint($sprint, auth()->user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Meeting berhasil dibuat.');
+    }
+
+    public function createStandup(Project $project, Sprint $sprint, GoogleCalendarService $calendar)
+    {
+        try {
+            $calendar->createRecurringMeetingForSprint($sprint, auth()->user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat standup harian. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Standup harian berhasil dijadwalkan.');
     }
 }

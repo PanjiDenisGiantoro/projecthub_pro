@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\Task;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -40,6 +41,28 @@ class AiAssistantWebController extends Controller
     }
 
     /**
+     * Sama seperti looksLikeProjectRequest(), tapi untuk "task/tugas". Permission
+     * buat task itu per-proyek (lihat ProjectPolicy::view), bukan permission
+     * global seperti "create project" — jadi di sini cuma dicek pola kalimatnya,
+     * pengecekan akses ke proyek spesifik baru dilakukan pas eksekusi
+     * (executeCreateTask), setelah nama proyeknya diketahui.
+     */
+    private function looksLikeTaskRequest(array $messages): bool
+    {
+        $lastUser = collect($messages)->last(fn ($m) => ($m['role'] ?? null) === 'user');
+        if (!$lastUser) {
+            return false;
+        }
+
+        $text = strtolower($lastUser['content'] ?? '');
+
+        return (bool) preg_match(
+            '/\b(buat|buatkan|bikin|bikinkan|membuat|tambah|tambahkan|create|make|new|add)\w*\s+(\w+\s+){0,2}(task|tugas)\b/u',
+            $text
+        );
+    }
+
+    /**
      * Daftar aksi yang boleh diusulkan AI. Setiap aksi TIDAK langsung dieksekusi
      * di sini — cuma diusulkan ke user, dieksekusi setelah user klik konfirmasi
      * lewat executeAction() (yang mengulangi validasi & permission check sendiri,
@@ -48,7 +71,7 @@ class AiAssistantWebController extends Controller
     private function toolDefinitions(): array
     {
         return [
-            [
+            'create_project' => [
                 'type' => 'function',
                 'function' => [
                     'name'        => 'create_project',
@@ -60,6 +83,22 @@ class AiAssistantWebController extends Controller
                             'description' => ['type' => 'string', 'description' => 'Deskripsi singkat proyek (opsional)'],
                         ],
                         'required'   => ['name'],
+                    ],
+                ],
+            ],
+            'create_task' => [
+                'type' => 'function',
+                'function' => [
+                    'name'        => 'create_task',
+                    'description' => 'Menambahkan task baru ke sebuah proyek yang sudah ada. Butuh nama proyek yang sudah disebutkan/dikonfirmasi user, bukan proyek baru.',
+                    'parameters'  => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'project_name' => ['type' => 'string', 'description' => 'Nama proyek tempat task ini ditambahkan'],
+                            'title'        => ['type' => 'string', 'description' => 'Judul task'],
+                            'description'  => ['type' => 'string', 'description' => 'Deskripsi singkat task (opsional)'],
+                        ],
+                        'required'   => ['project_name', 'title'],
                     ],
                 ],
             ],
@@ -79,11 +118,16 @@ class AiAssistantWebController extends Controller
             ...$request->messages,
         ];
 
-        // Cuma tawarkan tool ke model kalau user memang punya izin buat aksinya —
-        // supaya AI tidak mengusulkan sesuatu yang bakal ditolak pas konfirmasi.
-        $tools = [];
+        // Cuma tawarkan tool ke model kalau pesan user memang kelihatan minta
+        // aksi itu — supaya AI tidak mengusulkan sesuatu yang tidak diminta
+        // (lihat komentar di looksLikeProjectRequest/looksLikeTaskRequest).
+        $available = $this->toolDefinitions();
+        $tools     = [];
         if (auth()->user()->can('create project') && $this->looksLikeProjectRequest($request->messages)) {
-            $tools = $this->toolDefinitions();
+            $tools[] = $available['create_project'];
+        }
+        if ($this->looksLikeTaskRequest($request->messages)) {
+            $tools[] = $available['create_task'];
         }
 
         try {
@@ -112,23 +156,45 @@ class AiAssistantWebController extends Controller
 
         if (!empty($toolCalls)) {
             $call = $toolCalls[0]['function'] ?? null;
-            $name = trim($call['arguments']['name'] ?? '') ?: null;
+            $args = $call['arguments'] ?? [];
+
             // Model (llama3.2:3b) kadang halu manggil tool tanpa alasan jelas (mis.
-            // buat sapaan biasa) dan ngasih nama proyek kosong — jangan tampilkan
-            // usulan aksi kalau nama proyeknya tidak ada, biar tidak nyasar ke user.
-            if ($call && $call['name'] === 'create_project' && $name) {
-                $args = $call['arguments'] ?? [];
-                return response()->json([
-                    'reply'  => '',
-                    'action' => [
-                        'tool'  => 'create_project',
-                        'label' => 'Buat proyek baru',
-                        'args'  => [
-                            'name'        => $name,
-                            'description' => $args['description'] ?? '',
+            // buat sapaan biasa) dan ngasih argumen kosong — jangan tampilkan usulan
+            // aksi kalau argumen wajibnya tidak ada, biar tidak nyasar ke user.
+            if ($call && $call['name'] === 'create_project') {
+                $name = trim($args['name'] ?? '') ?: null;
+                if ($name) {
+                    return response()->json([
+                        'reply'  => '',
+                        'action' => [
+                            'tool'  => 'create_project',
+                            'label' => 'Buat proyek baru',
+                            'args'  => [
+                                'name'        => $name,
+                                'description' => $args['description'] ?? '',
+                            ],
                         ],
-                    ],
-                ]);
+                    ]);
+                }
+            }
+
+            if ($call && $call['name'] === 'create_task') {
+                $title       = trim($args['title'] ?? '') ?: null;
+                $projectName = trim($args['project_name'] ?? '') ?: null;
+                if ($title && $projectName) {
+                    return response()->json([
+                        'reply'  => '',
+                        'action' => [
+                            'tool'  => 'create_task',
+                            'label' => "Buat task \"{$title}\" di proyek \"{$projectName}\"",
+                            'args'  => [
+                                'project_name' => $projectName,
+                                'title'        => $title,
+                                'description'  => $args['description'] ?? '',
+                            ],
+                        ],
+                    ]);
+                }
             }
         }
 
@@ -144,12 +210,13 @@ class AiAssistantWebController extends Controller
     public function executeAction(Request $request)
     {
         $request->validate([
-            'tool' => 'required|string|in:create_project',
+            'tool' => 'required|string|in:create_project,create_task',
             'args' => 'required|array',
         ]);
 
         return match ($request->tool) {
             'create_project' => $this->executeCreateProject($request),
+            'create_task'    => $this->executeCreateTask($request),
         };
     }
 
@@ -184,6 +251,67 @@ class AiAssistantWebController extends Controller
         return response()->json([
             'message' => "Proyek \"{$project->name}\" berhasil dibuat.",
             'url'     => route('projects.show', $project),
+        ]);
+    }
+
+    private function executeCreateTask(Request $request)
+    {
+        try {
+            $validated = validator($request->args, [
+                'project_name' => 'required|string|max:255',
+                'title'        => 'required|string|max:255',
+                'description'  => 'nullable|string|max:2000',
+            ])->validate();
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Data task tidak valid: ' . $e->getMessage()], 422);
+        }
+
+        // Proyek yang boleh ditembak lewat nama cuma yang memang bisa dilihat user
+        // ini (lihat ProjectPolicy::view) — bukan seluruh proyek di company, biar
+        // AI Assistant tidak jadi jalan pintas buat nambah task ke proyek orang lain.
+        $user  = auth()->user();
+        $query = Project::query();
+        if (!$user->hasRole(['admin', 'manager'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('manager_id', $user->id)
+                    ->orWhere('client_id', $user->id)
+                    ->orWhereHas('members', fn ($q2) => $q2->where('user_id', $user->id));
+            });
+        }
+
+        $projects = $query->where('name', 'like', '%' . $validated['project_name'] . '%')->get();
+
+        if ($projects->isEmpty()) {
+            return response()->json(['error' => "Proyek \"{$validated['project_name']}\" tidak ditemukan atau Anda tidak punya akses ke proyek itu."], 422);
+        }
+
+        if ($projects->count() > 1) {
+            $names = $projects->pluck('name')->join('", "');
+            return response()->json(['error' => "Ada beberapa proyek yang cocok dengan \"{$validated['project_name']}\": \"{$names}\". Sebutkan nama proyeknya lebih spesifik."], 422);
+        }
+
+        $project = $projects->first();
+        abort_unless($user->can('view', $project), 403);
+
+        $task = $project->tasks()->create([
+            'title'       => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'created_by'  => $user->id,
+        ]);
+
+        if ($project->manager_id && $project->manager_id !== $user->id) {
+            $this->notifier->send(
+                $project->manager_id,
+                'new_task',
+                'Task Baru di Proyek',
+                $user->name . " menambahkan task \"{$task->title}\" di proyek \"{$project->name}\" (lewat AI Assistant).",
+                ['task_id' => $task->id, 'project_id' => $project->id]
+            );
+        }
+
+        return response()->json([
+            'message' => "Task \"{$task->title}\" berhasil ditambahkan ke proyek \"{$project->name}\".",
+            'url'     => route('tasks.show', [$project, $task]),
         ]);
     }
 }

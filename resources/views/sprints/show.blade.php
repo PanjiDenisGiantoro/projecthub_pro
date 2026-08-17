@@ -28,6 +28,30 @@
             <div class="text-right">
                 <p class="text-2xl font-bold text-blue-600">{{ $pct }}%</p>
                 <p class="text-xs text-gray-400">{{ $sprint->completedPoints() }}/{{ $sprint->totalPoints() }} pts</p>
+                <div class="mt-2 flex items-center justify-end gap-2">
+                    @if($sprint->google_meet_link)
+                        <a href="{{ $sprint->google_meet_link }}" target="_blank" rel="noopener"
+                           class="inline-block px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                            Join Meeting
+                        </a>
+                        @if($sprint->google_meeting_is_recurring)
+                            <span class="text-xs text-gray-400">(berulang, Sen–Jum)</span>
+                        @endif
+                    @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
+                        <form method="POST" action="{{ route('sprints.meeting.create', [$project, $sprint]) }}">
+                            @csrf
+                            <button type="submit" class="px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50">
+                                Buat Meeting
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('sprints.standup.create', [$project, $sprint]) }}">
+                            @csrf
+                            <button type="submit" class="px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50">
+                                Buat Standup Harian
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
         </div>
         <div class="mt-3 bg-gray-100 rounded-full h-2">

@@ -151,6 +151,17 @@
 </a>
 @endcan
 
+{{-- Meeting --}}
+@can('access meetings')
+<a href="{{ route('meetings.index') }}"
+   class="{{ request()->routeIs('meetings.*') ? $active : $inactive }}">
+    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+    </svg>
+    Meeting
+</a>
+@endcan
+
 {{-- Global Search --}}
 @can('access search')
 <a href="{{ route('search.index') }}"
@@ -192,6 +203,17 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
     </svg>
     Analytics
+</a>
+@endcan
+
+{{-- Laporan --}}
+@can('access reports')
+<a href="{{ route('reports.index') }}"
+   class="{{ request()->routeIs('reports.*') ? $active : $inactive }}">
+    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M6 21h12a2 2 0 002-2V7l-5-5H6a2 2 0 00-2 2v15a2 2 0 002 2z"/>
+    </svg>
+    Laporan
 </a>
 @endcan
 

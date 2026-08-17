@@ -15,11 +15,16 @@ class Task extends Model
         'project_id', 'milestone_id', 'ticket_id', 'sprint_id', 'title', 'description',
         'completion_notes', 'assigned_to', 'created_by', 'status', 'priority', 'start_date', 'due_date',
         'estimated_hours', 'story_points', 'sort_order', 'recurring_definition_id',
+        'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
     ];
 
     protected function casts(): array
     {
-        return ['start_date' => 'date', 'due_date' => 'date'];
+        return [
+            'start_date' => 'date',
+            'due_date' => 'date',
+            'meeting_starts_at' => 'datetime',
+        ];
     }
 
     public function daysRemaining(): ?int
@@ -53,6 +58,11 @@ class Task extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function meetingOrganizer()
+    {
+        return $this->belongsTo(User::class, 'google_meeting_organizer_id');
     }
 
     public function milestone()

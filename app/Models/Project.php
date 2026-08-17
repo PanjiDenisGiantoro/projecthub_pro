@@ -16,6 +16,8 @@ class Project extends Model
         'company_id', 'name', 'description', 'client_id', 'manager_id',
         'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress',
         'github_repo_url', 'github_token', 'slack_webhook_url', 'discord_webhook_url',
+        'google_meet_enabled', 'meeting_auto_create', 'meeting_default_time', 'meeting_default_duration_minutes',
+        'google_event_id', 'google_meet_link', 'meeting_starts_at',
     ];
 
     protected $hidden = [
@@ -53,12 +55,21 @@ class Project extends Model
             'github_token' => 'encrypted',
             'slack_webhook_url' => 'encrypted',
             'discord_webhook_url' => 'encrypted',
+            'google_meet_enabled' => 'boolean',
+            'meeting_auto_create' => 'boolean',
+            'meeting_default_duration_minutes' => 'integer',
+            'meeting_starts_at' => 'datetime',
         ];
     }
 
     public function hasGithubIntegration(): bool
     {
         return !empty($this->github_repo_url) && !empty($this->github_token);
+    }
+
+    public function hasMeetingEnabled(): bool
+    {
+        return (bool) $this->google_meet_enabled;
     }
 
     public function hasSlackIntegration(): bool

@@ -6,11 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Milestone extends Model
 {
-    protected $fillable = ['project_id', 'title', 'description', 'start_date', 'due_date', 'status', 'assigned_to'];
+    protected $fillable = [
+        'project_id', 'title', 'description', 'start_date', 'due_date', 'status', 'assigned_to',
+        'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
+    ];
 
     protected function casts(): array
     {
-        return ['start_date' => 'date', 'due_date' => 'date'];
+        return [
+            'start_date' => 'date',
+            'due_date' => 'date',
+            'meeting_starts_at' => 'datetime',
+        ];
+    }
+
+    public function meetingOrganizer()
+    {
+        return $this->belongsTo(User::class, 'google_meeting_organizer_id');
     }
 
     public function taskProgressPercent(): int
