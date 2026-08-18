@@ -8,6 +8,7 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
+use App\Services\GoogleCalendarService;
 use Illuminate\Http\Request;
 
 class MeetingWebController extends Controller
@@ -168,5 +169,83 @@ class MeetingWebController extends Controller
             'projects'  => $projects,
             'projectId' => $projId,
         ]);
+    }
+
+    /**
+     * List item (sprint/milestone/task/ticket) di satu project yang BELUM punya
+     * meeting — dipakai buat isi dropdown di modal "Tambah Meeting".
+     */
+    public function pickables(Request $request)
+    {
+        $request->validate([
+            'type'       => 'required|in:sprint,milestone,task,ticket',
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        $project = Project::findOrFail($request->project_id);
+        $this->authorize('view', $project);
+
+        if (auth()->user()->hasRole('customer')) {
+            abort(403);
+        }
+
+        $items = match ($request->type) {
+            'sprint'    => $project->sprints()->whereNull('google_meet_link')->orderByDesc('start_date')->get()
+                ->map(fn ($s) => ['id' => $s->id, 'label' => $s->name]),
+            'milestone' => $project->milestones()->whereNull('google_meet_link')->orderByDesc('due_date')->get()
+                ->map(fn ($m) => ['id' => $m->id, 'label' => $m->title]),
+            'task'      => $project->tasks()->whereNull('google_meet_link')->whereNull('deleted_at')->orderByDesc('id')->get()
+                ->map(fn ($t) => ['id' => $t->id, 'label' => $t->title]),
+            'ticket'    => $project->tickets()->whereNull('google_meet_link')->orderByDesc('id')->get()
+                ->map(fn ($t) => ['id' => $t->id, 'label' => $t->title]),
+        };
+
+        return response()->json($items->values());
+    }
+
+    /**
+     * Buat meeting baru untuk project/sprint/milestone/task/ticket yang
+     * dipilih dari modal "Tambah Meeting" di halaman daftar meeting.
+     */
+    public function create(Request $request, GoogleCalendarService $calendar)
+    {
+        $request->validate([
+            'type'      => 'required|in:project,sprint,milestone,task,ticket',
+            'entity_id' => 'required|integer',
+            'recurring' => 'nullable|boolean',
+        ]);
+
+        if (auth()->user()->hasRole('customer')) {
+            abort(403);
+        }
+
+        $modelClass = match ($request->type) {
+            'project'   => Project::class,
+            'sprint'    => Sprint::class,
+            'milestone' => Milestone::class,
+            'task'      => Task::class,
+            'ticket'    => BugTicket::class,
+        };
+
+        $entity  = $modelClass::findOrFail($request->entity_id);
+        $project = $entity instanceof Project ? $entity : $entity->project;
+        $this->authorize('view', $project);
+
+        try {
+            match (true) {
+                $entity instanceof Project                                 => $calendar->createMeetingForProject($entity, auth()->user()),
+                $entity instanceof Sprint && $request->boolean('recurring') => $calendar->createRecurringMeetingForSprint($entity, auth()->user()),
+                $entity instanceof Sprint                                  => $calendar->createMeetingForSprint($entity, auth()->user()),
+                $entity instanceof Milestone                               => $calendar->createMeetingForMilestone($entity, auth()->user()),
+                $entity instanceof Task                                    => $calendar->createMeetingForTask($entity, auth()->user()),
+                $entity instanceof BugTicket                               => $calendar->createMeetingForBugTicket($entity, auth()->user()),
+            };
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Meeting berhasil dibuat.');
     }
 }

@@ -19,7 +19,7 @@
     <aside class="w-60 flex flex-col fixed inset-y-0 bg-slate-900 border-r border-white/5">
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 border-b border-white/5 shrink-0">
-            <img src="{{ asset('logo.png') }}" alt="Flovig" class="w-8 h-8 rounded-lg object-contain shrink-0">
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-6 w-auto object-contain shrink-0">
             <div class="min-w-0">
                 <p class="text-sm font-bold text-white leading-none">Super Admin</p>
                 <p class="text-xs text-amber-400 mt-0.5">Flovig</p>

@@ -14,13 +14,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    @if(session('just_logged_in'))
+        <script src="https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js"></script>
+    @endif
     @stack('head')
 </head>
 <body class="h-full font-sans antialiased" style="background-color:var(--fl-page)" x-data="{ sidebarOpen: false }">
 
-{{-- Page Loading Overlay --}}
-<div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center" style="background-color:var(--fl-page,#09061a)">
-    <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." class="w-64 h-64 object-contain">
+{{-- Page Loading Overlay. Right after login, the wave-wipe from the login screen continues here (Lottie, played in reverse to uncover); on every other navigation it's just the normal neutral loader. --}}
+<div id="page-loader" class="fixed inset-0 z-[9999] overflow-hidden" style="background-color:{{ session('just_logged_in') ? '#2563eb' : 'var(--fl-page,#09061a)' }}">
+    @if(session('just_logged_in'))
+        <div id="page-loader-wave" class="absolute inset-0 w-full h-full"></div>
+    @endif
+    <div id="page-loader-icon" class="absolute inset-0 flex items-center justify-center">
+        <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." class="w-64 h-64 object-contain">
+    </div>
 </div>
 
 <div class="flex h-full">
@@ -31,10 +39,7 @@
 
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-9 h-9 rounded-xl object-contain shrink-0">
-            <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
-                Flovig
-            </span>
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
         </div>
 
         {{-- Nav --}}
@@ -140,10 +145,7 @@
            class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:hidden ph-sidebar"
            style="box-shadow:4px 0 30px rgba(0,0,0,0.3)">
         <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-9 h-9 rounded-xl object-contain shrink-0">
-            <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
-                Flovig
-            </span>
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
             <button @click="sidebarOpen=false" class="ml-auto ph-close-btn shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -422,6 +424,14 @@
         </main>
     </div>
 </div>
+
+<footer class="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none px-4">
+    <div class="pointer-events-auto flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border border-gray-100 bg-white/90 backdrop-blur shadow-lg">
+        <span class="text-xs text-gray-400">Powered by</span>
+        <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-5 w-auto">
+        <span class="text-xs text-gray-400">&copy; {{ date('Y') }}</span>
+    </div>
+</footer>
 
 {{-- ═══════════════════════════════════════
      AI Assistant — floating widget
@@ -893,21 +903,45 @@ document.addEventListener('DOMContentLoaded', function () {
     font-size: 0.975rem !important;
     font-weight: 600 !important;
 }
-#page-loader {
-    transition: opacity 0.3s ease;
+#page-loader-icon {
+    transition: opacity .35s ease;
+}
+#page-loader.hidden #page-loader-icon {
+    opacity: 0;
 }
 #page-loader.hidden {
-    opacity: 0;
     pointer-events: none;
 }
 </style>
 <script>
 window.addEventListener('load', function () {
     var loader = document.getElementById('page-loader');
-    if (loader) {
-        loader.classList.add('hidden');
-        setTimeout(function () { loader.style.display = 'none'; }, 300);
+    if (!loader) return;
+
+    var waveEl = document.getElementById('page-loader-wave');
+    if (waveEl && typeof lottie !== 'undefined') {
+        var anim = lottie.loadAnimation({
+            container: waveEl,
+            renderer: 'svg',
+            loop: false,
+            autoplay: false,
+            path: '{{ asset('animations/flovig-wave.json') }}',
+            rendererSettings: { preserveAspectRatio: 'xMidYMid slice' }
+        });
+        anim.addEventListener('DOMLoaded', function () {
+            anim.goToAndStop(anim.totalFrames - 1, true);
+            loader.classList.add('hidden');
+            anim.setDirection(-1);
+            anim.play();
+        });
+        anim.addEventListener('complete', function () {
+            loader.style.display = 'none';
+        });
+        return;
     }
+
+    loader.classList.add('hidden');
+    setTimeout(function () { loader.style.display = 'none'; }, 650);
 });
 </script>
 

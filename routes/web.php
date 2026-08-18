@@ -372,6 +372,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // Meetings
     Route::get('/meetings', [MeetingWebController::class, 'index'])->name('meetings.index');
+    Route::get('/meetings/pickables', [MeetingWebController::class, 'pickables'])->name('meetings.pickables');
+    Route::post('/meetings/create', [MeetingWebController::class, 'create'])->name('meetings.create');
 
     // Global Search
     Route::get('/search', [SearchWebController::class, 'index'])->name('search.index');

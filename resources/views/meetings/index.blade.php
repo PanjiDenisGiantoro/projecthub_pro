@@ -21,7 +21,7 @@
 @endphp
 
 @section('content')
-<div class="py-4">
+<div class="py-4" x-data="addMeetingModal()">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -30,20 +30,29 @@
             <p class="text-sm text-gray-500">Semua jadwal meeting dari proyek, sprint, milestone, task, dan ticket.</p>
         </div>
 
-        <form method="GET" class="flex gap-2 flex-wrap">
-            <input type="hidden" name="category" value="{{ $category }}">
-            <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
-                <option value="">Semua Proyek</option>
-                @foreach($projects as $p)
-                    <option value="{{ $p->id }}" {{ (string) $projectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                @endforeach
-            </select>
-            <select name="when" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
-                <option value="upcoming" {{ $when === 'upcoming' ? 'selected' : '' }}>Akan Datang</option>
-                <option value="past" {{ $when === 'past' ? 'selected' : '' }}>Sudah Lewat</option>
-                <option value="all" {{ $when === 'all' ? 'selected' : '' }}>Semua</option>
-            </select>
-        </form>
+        <div class="flex gap-2 flex-wrap items-center">
+            <form method="GET" class="flex gap-2 flex-wrap">
+                <input type="hidden" name="category" value="{{ $category }}">
+                <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="">Semua Proyek</option>
+                    @foreach($projects as $p)
+                        <option value="{{ $p->id }}" {{ (string) $projectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+                <select name="when" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="upcoming" {{ $when === 'upcoming' ? 'selected' : '' }}>Akan Datang</option>
+                    <option value="past" {{ $when === 'past' ? 'selected' : '' }}>Sudah Lewat</option>
+                    <option value="all" {{ $when === 'all' ? 'selected' : '' }}>Semua</option>
+                </select>
+            </form>
+
+            @unless(auth()->user()->hasRole('customer'))
+            <button @click="open = true"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition shadow-sm">
+                + Tambah Meeting
+            </button>
+            @endunless
+        </div>
     </div>
 
     {{-- Category tabs --}}
@@ -127,5 +136,120 @@
             @endforeach
         </div>
     @endif
+
+    {{-- Modal: Tambah Meeting --}}
+    <div x-show="open" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+         @click.self="open = false">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-800 text-sm">Tambah Meeting</h3>
+                <button @click="open = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('meetings.create') }}" class="space-y-3">
+                @csrf
+                <input type="hidden" name="entity_id" :value="type === 'project' ? projectId : entityId">
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Tipe</label>
+                    <select name="type" x-model="type" @change="onTypeChange()" required
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <option value="project">Proyek (kickoff/general)</option>
+                        <option value="sprint">Sprint</option>
+                        <option value="milestone">Milestone</option>
+                        <option value="task">Task</option>
+                        <option value="ticket">Ticket</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Proyek</label>
+                    <select x-model="projectId" @change="onProjectChange()" required
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <option value="">-- Pilih Proyek --</option>
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div x-show="type !== 'project'">
+                    <label class="block text-xs font-medium text-gray-700 mb-1" x-text="itemLabel()"></label>
+                    <select x-model="entityId" :required="type !== 'project'"
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <option value="" x-text="loading ? '-- Memuat... --' : '-- Pilih --'"></option>
+                        <template x-for="item in items" :key="item.id">
+                            <option :value="item.id" x-text="item.label"></option>
+                        </template>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1" x-show="!loading && projectId && items.length === 0">
+                        Semua item di proyek ini sudah punya meeting, atau belum ada item.
+                    </p>
+                </div>
+
+                <label class="flex items-center gap-2" x-show="type === 'sprint'">
+                    <input type="checkbox" name="recurring" value="1" x-model="recurring"
+                           class="rounded border-gray-300 text-violet-600 focus:ring-violet-500">
+                    <span class="text-xs text-gray-700">Standup harian (berulang, Sen–Jum)</span>
+                </label>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="submit" :disabled="type !== 'project' && !entityId"
+                            class="flex-1 text-center text-xs font-semibold bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Buat Meeting
+                    </button>
+                    <button type="button" @click="open = false"
+                            class="px-4 py-2 text-xs text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+@push('scripts')
+<script>
+function addMeetingModal() {
+    return {
+        open: false,
+        type: 'project',
+        projectId: '',
+        entityId: '',
+        recurring: false,
+        items: [],
+        loading: false,
+
+        itemLabel() {
+            return { sprint: 'Sprint', milestone: 'Milestone', task: 'Task', ticket: 'Ticket' }[this.type] || 'Item';
+        },
+
+        onTypeChange() {
+            this.entityId = '';
+            this.recurring = false;
+            this.items = [];
+            if (this.projectId && this.type !== 'project') this.fetchItems();
+        },
+
+        onProjectChange() {
+            this.entityId = '';
+            this.items = [];
+            if (this.projectId && this.type !== 'project') this.fetchItems();
+        },
+
+        fetchItems() {
+            this.loading = true;
+            const params = new URLSearchParams({ type: this.type, project_id: this.projectId });
+            fetch('{{ route("meetings.pickables") }}?' + params.toString())
+                .then(r => r.json())
+                .then(data => { this.items = data; this.loading = false; })
+                .catch(() => { this.items = []; this.loading = false; });
+        },
+    };
+}
+</script>
+@endpush
 @endsection

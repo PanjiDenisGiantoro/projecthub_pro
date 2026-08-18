@@ -97,6 +97,8 @@ class AuthWebController extends Controller
             }
         }
 
+        $request->session()->flash('just_logged_in', true);
+
         return redirect()->intended(route('dashboard'));
     }
 

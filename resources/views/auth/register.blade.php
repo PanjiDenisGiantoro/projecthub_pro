@@ -11,9 +11,8 @@
 <div class="w-full max-w-4xl" x-data="registerForm()">
     {{-- Logo --}}
     <div class="text-center mb-8">
-        <a href="/" class="inline-flex items-center gap-2 mb-4">
-            <img src="{{ asset('logo.png') }}" alt="Flovig" class="w-10 h-10 rounded-xl object-contain">
-            <span class="font-semibold text-gray-900 text-lg">Flovig</span>
+        <a href="/" class="inline-flex items-center mb-4">
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-9 w-auto object-contain">
         </a>
         <h1 class="text-2xl font-bold text-gray-900">Buat akun baru</h1>
         <p class="text-gray-500 text-sm mt-1">Gratis selamanya, tanpa kartu kredit</p>

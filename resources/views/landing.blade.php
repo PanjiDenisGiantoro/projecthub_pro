@@ -197,8 +197,7 @@
 <header>
     <div class="container navbar">
         <a href="/" class="logo">
-            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" style="width:36px;height:36px;object-fit:contain;">
-            Flovig
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" style="height:32px;width:auto;object-fit:contain;">
         </a>
 
         <nav class="nav-links">
@@ -464,9 +463,8 @@
     <div class="container">
         <div class="footer-grid">
             <div class="footer-brand">
-                <div class="logo" style="color:white; font-size:20px;">
-                    <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" style="width:36px;height:36px;object-fit:contain;">
-                    Flovig
+                <div class="logo">
+                    <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" style="height:28px;width:auto;object-fit:contain;">
                 </div>
                 <p>Satu platform untuk manajemen project dan tim. Sederhanakan cara kerja bisnis Anda hari ini.</p>
             </div>
