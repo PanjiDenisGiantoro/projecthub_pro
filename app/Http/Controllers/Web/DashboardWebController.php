@@ -8,7 +8,9 @@ use App\Models\Campaign;
 use App\Models\Company;
 use App\Models\CustomerRequest;
 use App\Models\Invoice;
+use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\TimeLog;
 use App\Models\User;
@@ -207,6 +209,189 @@ class DashboardWebController extends Controller
         }
 
         return view('dashboard.manager', []);
+    }
+
+    /**
+     * Dashboard v2 (/dashboard2) — preview desain baru bergaya "TaskMeet":
+     * hero jadwal, metrik performa, jadwal harian, ringkasan task, dan heatmap
+     * aktivitas. Dibangun dari data nyata (task, meeting, jam kerja) yang sudah
+     * ada, di-scope dengan pola yang sama seperti dashboard admin/manager biasa.
+     */
+    public function v2(Request $request)
+    {
+        $user      = auth()->user();
+        $isManager = $user->hasRole(['admin', 'manager']);
+        $companies = collect();
+        $cid       = null;
+
+        if ($isManager) {
+            if ($user->is_super_admin) {
+                $companies = Company::orderBy('name')->get(['id', 'name']);
+                if ($request->has('company_id')) {
+                    session(['dashboard_company_id' => $request->integer('company_id') ?: null]);
+                }
+                $cid = session()->has('dashboard_company_id')
+                    ? session('dashboard_company_id')
+                    : $user->company_id;
+            } else {
+                $cid = $user->company_id;
+            }
+        }
+
+        $projectFilter = fn($q) => $cid ? $q->where('company_id', $cid) : $q;
+
+        $tasksBase = fn() => Task::query()->when(
+            $isManager,
+            fn($q) => $q->whereHas('project', $projectFilter),
+            fn($q) => $q->where('assigned_to', $user->id)
+        );
+
+        $totalTasks      = $tasksBase()->count();
+        $doneTasks       = $tasksBase()->where('status', 'done')->count();
+        $inProgressTasks = $tasksBase()->where('status', 'in_progress')->count();
+        $reviewTasks     = $tasksBase()->where('status', 'review')->count();
+        $todoTasks       = $tasksBase()->where('status', 'todo')->count();
+        $completionRate  = $totalTasks > 0 ? (int) round($doneTasks / $totalTasks * 100) : 0;
+
+        $doneThisWeek   = $tasksBase()->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $activeLast7d   = $tasksBase()->where('updated_at', '>=', now()->subDays(7))->count();
+        $engagementRate = $totalTasks > 0 ? (int) round($activeLast7d / $totalTasks * 100) : 0;
+
+        $teamCollaborations = $isManager
+            ? $tasksBase()->whereNotNull('assigned_to')->distinct('assigned_to')->count('assigned_to')
+            : $tasksBase()->distinct('project_id')->count('project_id');
+
+        $stats = [
+            'total_tasks'      => $totalTasks,
+            'done_tasks'       => $doneTasks,
+            'in_progress'      => $inProgressTasks,
+            'review'           => $reviewTasks,
+            'todo'             => $todoTasks,
+            'completion_rate'  => $completionRate,
+            'done_this_week'   => $doneThisWeek,
+            'engagement_rate'  => $engagementRate,
+            'collaborations'   => $teamCollaborations,
+        ];
+
+        // ── Task summary (kolom kanan, mirip panel "Task Summary") ──────────
+        $taskSummary = [
+            'upcoming' => $tasksBase()->with(['project', 'assignee'])->where('status', 'todo')->orderBy('due_date')->limit(4)->get(),
+            'ongoing'  => $tasksBase()->with(['project', 'assignee'])->whereIn('status', ['in_progress', 'review'])->orderBy('due_date')->limit(4)->get(),
+            'complete' => $tasksBase()->with(['project', 'assignee'])->where('status', 'done')->orderByDesc('updated_at')->limit(4)->get(),
+        ];
+
+        // ── Meeting (project/sprint/milestone/task/tiket dengan jadwal) ─────
+        $meetings = $this->collectMeetingsV2($projectFilter, $user->hasRole('customer'), $user->id);
+        $todaySchedule    = $meetings->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isToday())->values();
+        $upcomingMeetings = $meetings->filter(fn($m) => !$m['startsAt'] || $m['startsAt']->isFuture())->take(6)->values();
+
+        $meetingsThisMonth = $meetings->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isCurrentMonth());
+        $meetingStats = [
+            'total'    => $meetingsThisMonth->count(),
+            'past'     => $meetingsThisMonth->filter(fn($m) => $m['startsAt']->isPast())->count(),
+            'upcoming' => $meetingsThisMonth->filter(fn($m) => $m['startsAt']->isFuture())->count(),
+        ];
+
+        // ── Jam kerja 7 hari terakhir (pengganti "AI Summary" — data nyata dari time log) ──
+        $timeLogQuery = fn() => TimeLog::query()->when(
+            $isManager,
+            fn($q) => $q->whereHas('task.project', $projectFilter),
+            fn($q) => $q->where('user_id', $user->id)
+        );
+        $weeklyHours = collect(range(6, 0))->map(function ($daysAgo) use ($timeLogQuery) {
+            $day = now()->subDays($daysAgo);
+            $minutes = (clone $timeLogQuery())->whereDate('started_at', $day->toDateString())->sum('minutes');
+            return ['label' => $day->locale('id')->isoFormat('dd'), 'hours' => round($minutes / 60, 1)];
+        })->values();
+        $totalHoursWeek = round($weeklyHours->sum('hours'), 1);
+        $avgHoursDay    = round($totalHoursWeek / 7, 1);
+
+        // ── Heatmap aktivitas: task selesai per hari, 4 minggu terakhir ──────
+        $doneDates = $tasksBase()->where('status', 'done')
+            ->where('updated_at', '>=', now()->subWeeks(4)->startOfWeek())
+            ->get(['updated_at'])
+            ->groupBy(fn($t) => $t->updated_at->toDateString())
+            ->map->count();
+
+        $activityGrid = collect(range(3, 0))->map(function ($weeksAgo) use ($doneDates) {
+            $weekStart = now()->subWeeks($weeksAgo)->startOfWeek();
+            return collect(range(0, 6))->map(function ($d) use ($weekStart, $doneDates) {
+                $date = $weekStart->copy()->addDays($d);
+                return ['date' => $date, 'count' => $doneDates->get($date->toDateString(), 0)];
+            });
+        });
+
+        return view('dashboard.v2', [
+            'stats'              => $stats,
+            'taskSummary'        => $taskSummary,
+            'todaySchedule'      => $todaySchedule,
+            'upcomingMeetings'   => $upcomingMeetings,
+            'meetingStats'       => $meetingStats,
+            'weeklyHours'        => $weeklyHours,
+            'totalHoursWeek'     => $totalHoursWeek,
+            'avgHoursDay'        => $avgHoursDay,
+            'activityGrid'       => $activityGrid,
+            'companies'          => $companies,
+            'selectedCompanyId'  => $cid,
+            'isManager'          => $isManager,
+        ]);
+    }
+
+    /**
+     * Kumpulkan meeting lintas entitas (project/sprint/milestone/task/tiket)
+     * — versi ringkas dari MeetingWebController::index() untuk kebutuhan dashboard.
+     */
+    private function collectMeetingsV2($projectFilter, bool $isCustomer, int $userId)
+    {
+        $meetings = collect();
+        $scopeToClient = fn($q) => $isCustomer ? $q->where('client_id', $userId) : $q;
+
+        Project::query()->tap($projectFilter)->tap($scopeToClient)
+            ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
+            ->get()->each(fn($p) => $meetings->push([
+                'type' => 'project', 'title' => $p->name, 'project' => $p->name,
+                'startsAt' => $p->meeting_starts_at, 'meetLink' => $p->google_meet_link,
+                'organizer' => null, 'url' => route('projects.show', $p->id),
+            ]));
+
+        Sprint::with(['project', 'meetingOrganizer'])
+            ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
+            ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
+            ->get()->each(fn($s) => $meetings->push([
+                'type' => 'sprint', 'title' => $s->name, 'project' => $s->project?->name,
+                'startsAt' => $s->meeting_starts_at, 'meetLink' => $s->google_meet_link,
+                'organizer' => $s->meetingOrganizer?->name, 'url' => route('sprints.show', [$s->project_id, $s->id]),
+            ]));
+
+        Milestone::with(['project', 'meetingOrganizer'])
+            ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
+            ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
+            ->get()->each(fn($m) => $meetings->push([
+                'type' => 'milestone', 'title' => $m->title, 'project' => $m->project?->name,
+                'startsAt' => $m->meeting_starts_at, 'meetLink' => $m->google_meet_link,
+                'organizer' => $m->meetingOrganizer?->name, 'url' => route('projects.show', $m->project_id),
+            ]));
+
+        Task::with(['project', 'assignee', 'meetingOrganizer'])->whereNull('deleted_at')
+            ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
+            ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
+            ->get()->each(fn($t) => $meetings->push([
+                'type' => 'task', 'title' => $t->title, 'project' => $t->project?->name,
+                'startsAt' => $t->meeting_starts_at, 'meetLink' => $t->google_meet_link,
+                'organizer' => $t->meetingOrganizer?->name, 'assignee' => $t->assignee,
+                'url' => route('tasks.show', [$t->project_id, $t->id]),
+            ]));
+
+        BugTicket::with(['project'])
+            ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
+            ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
+            ->get()->each(fn($t) => $meetings->push([
+                'type' => 'ticket', 'title' => $t->title, 'project' => $t->project?->name,
+                'startsAt' => $t->meeting_starts_at, 'meetLink' => $t->google_meet_link,
+                'organizer' => null, 'url' => route('tickets.show', $t->id),
+            ]));
+
+        return $meetings->sortBy(fn($m) => $m['startsAt'] ?? now()->addCentury())->values();
     }
 
     public function workload()

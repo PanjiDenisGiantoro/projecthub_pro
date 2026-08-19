@@ -129,6 +129,7 @@ Route::post('/billing/notification', [BillingWebController::class, 'notification
 Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard2', [DashboardWebController::class, 'v2'])->name('dashboard.v2');
 
     // Package switcher
     Route::post('/switch-package', function (\Illuminate\Http\Request $request) {

@@ -15,8 +15,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
+            --primary: #1a5fe0;
+            --primary-dark: #1547b8;
+            --teal: #14d6b8;
+            --gradient-brand: linear-gradient(135deg, #1a5fe0 0%, #1a8fdb 45%, #17c9c3 75%, #14d6b8 100%);
             --secondary: #0f172a;
             --text: #111827;
             --muted: #64748b;
@@ -47,86 +49,90 @@
         }
         .navbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
         .logo { font-size: 24px; font-weight: 800; color: var(--secondary); display: flex; align-items: center; gap: 10px; }
-        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 800; }
+        .logo-icon { width: 36px; height: 36px; background: var(--gradient-brand); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 800; }
         .nav-links { display: flex; gap: 28px; color: #475569; font-weight: 500; }
         .nav-links a:hover { color: var(--secondary); }
         .nav-buttons { display: flex; align-items: center; gap: 12px; }
 
-        .btn { padding: 12px 20px; border-radius: 12px; font-weight: 600; transition: .3s ease; display: inline-block; font-size: 15px; }
+        .btn { padding: 12px 20px; border-radius: 10px; font-weight: 600; transition: background-color .15s ease, border-color .15s ease; display: inline-block; font-size: 15px; }
         .btn-outline { border: 1px solid var(--border); background: var(--white); color: var(--text); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; box-shadow: 0 12px 30px rgba(37,99,235,0.2); }
-        .btn:hover { transform: translateY(-2px); }
+        .btn-outline:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
 
         /* ── Hero ── */
         .hero { padding: 90px 0 60px; position: relative; }
         .hero-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 60px; align-items: center; }
 
         .badge {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 10px 16px; border-radius: 999px;
-            background: rgba(37,99,235,0.08); color: var(--primary);
-            font-weight: 600; margin-bottom: 24px;
+            display: inline-flex; align-items: center; gap: 9px;
+            padding: 8px 14px 8px 12px; border-radius: 999px;
+            background: #eef4ff; border: 1px solid #dce7fd; color: var(--primary-dark);
+            font-weight: 600; font-size: 13.5px; margin-bottom: 24px;
         }
+        .badge-dot { position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+        .badge-dot::after {
+            content: ""; position: absolute; inset: -4px; border-radius: 50%;
+            border: 1.5px solid var(--primary); opacity: 0; animation: fl-ping 2.2s cubic-bezier(0,0,.2,1) infinite;
+        }
+        @keyframes fl-ping { 0% { transform: scale(0.6); opacity: .6; } 100% { transform: scale(1.8); opacity: 0; } }
 
-        .hero h1 { font-size: 54px; line-height: 1.1; margin-bottom: 24px; font-weight: 800; color: #0f172a; }
+        .hero h1 { font-size: 52px; line-height: 1.12; margin-bottom: 22px; font-weight: 800; letter-spacing: -0.02em; color: #0f172a; }
         .hero h1 span { color: var(--primary); }
-        .hero p { font-size: 18px; color: var(--muted); margin-bottom: 32px; }
+        .hero p { font-size: 17px; color: var(--muted); margin-bottom: 32px; max-width: 480px; }
 
         .hero-buttons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
         .hero-note { color: var(--muted); font-size: 14px; }
 
         /* ── Dashboard Card ── */
         .dashboard-card {
-            background: var(--white); border-radius: 28px; padding: 28px;
-            box-shadow: 0 30px 80px rgba(15,23,42,0.08);
-            border: 1px solid #eef2ff; position: relative; overflow: hidden;
+            background: var(--white); border-radius: 20px; padding: 26px;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 16px 40px rgba(15,23,42,0.07);
+            border: 1px solid var(--border);
         }
-        .dashboard-card::before {
-            content: ""; position: absolute; width: 250px; height: 250px;
-            background: rgba(37,99,235,0.08); border-radius: 50%;
-            top: -100px; right: -80px;
-        }
-        .dashboard-title { font-weight: 700; font-size: 20px; margin-bottom: 20px; }
+        .dashboard-title { font-weight: 700; font-size: 15px; color: var(--muted); margin-bottom: 20px; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-        .stat-box { background: #f8fafc; border-radius: 18px; padding: 18px; text-align: center; }
-        .stat-box h3 { font-size: 28px; color: var(--primary); margin-bottom: 4px; font-weight: 800; }
-        .stat-box p { font-size: 13px; color: var(--muted); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 26px; }
+        .stat-box { background: #f8fafc; border-radius: 12px; padding: 16px; text-align: center; }
+        .stat-box h3 { font-size: 24px; color: var(--secondary); margin-bottom: 2px; font-weight: 800; }
+        .stat-box p { font-size: 12.5px; color: var(--muted); }
 
         .progress-item { margin-bottom: 16px; }
-        .progress-head { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
-        .progress-bar { height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); border-radius: inherit; }
+        .progress-item:last-child { margin-bottom: 0; }
+        .progress-head { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px; font-weight: 600; }
+        .progress-head span:last-child { color: var(--muted); font-weight: 500; }
+        .progress-bar { height: 6px; border-radius: 999px; background: #eef1f5; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); border-radius: inherit; }
 
         /* ── Brands ── */
-        .brands { padding: 50px 0; text-align: center; }
-        .brands > .container > p { color: var(--muted); margin-bottom: 30px; font-weight: 600; }
-        .brand-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
-        .brand-item { background: white; padding: 18px 14px; border-radius: 16px; border: 1px solid var(--border); font-weight: 700; color: #475569; font-size: 14px; }
+        .brands { padding: 46px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .brands > .container > p { color: var(--muted); margin-bottom: 28px; font-weight: 600; font-size: 13px; text-align: center; text-transform: uppercase; letter-spacing: .06em; }
+        .brand-grid { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+        .brand-item { font-weight: 700; color: #94a3b8; font-size: 17px; letter-spacing: -.01em; }
 
         /* ── Section ── */
         section { padding: 90px 0; }
         .section-title { text-align: center; margin-bottom: 20px; }
-        .section-title h2 { font-size: 40px; margin-bottom: 14px; color: var(--secondary); font-weight: 800; }
-        .section-title p { max-width: 720px; margin: auto; color: var(--muted); font-size: 18px; }
+        .section-title h2 { font-size: 36px; margin-bottom: 14px; color: var(--secondary); font-weight: 800; letter-spacing: -.02em; }
+        .section-title p { max-width: 620px; margin: auto; color: var(--muted); font-size: 17px; }
 
         /* ── Features ── */
-        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 60px; }
-        .feature-card { background: white; padding: 30px; border-radius: 24px; border: 1px solid var(--border); transition: .3s ease; }
-        .feature-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(15,23,42,0.08); }
-        .feature-icon { width: 60px; height: 60px; border-radius: 16px; background: rgba(37,99,235,0.1); display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 20px; }
-        .feature-card h3 { margin-bottom: 12px; font-size: 20px; }
-        .feature-card p { color: var(--muted); font-size: 15px; }
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 32px; margin-top: 56px; }
+        .feature-card { transition: transform .15s ease; }
+        .feature-icon { width: 44px; height: 44px; border-radius: 10px; background: #eef4ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+        .feature-icon svg { width: 22px; height: 22px; }
+        .feature-card h3 { margin-bottom: 8px; font-size: 17px; font-weight: 700; }
+        .feature-card p { color: var(--muted); font-size: 14.5px; line-height: 1.65; }
 
         /* ── Integration ── */
-        .integration { background: linear-gradient(180deg, #eff6ff, #ffffff); }
-        .integration-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 50px; align-items: center; margin-top: 60px; }
+        .integration { background: #f8fafc; }
+        .integration-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 50px; align-items: center; margin-top: 56px; }
 
-        .team-list { background: white; border-radius: 28px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 25px 60px rgba(15,23,42,0.08); }
-        .team-member { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid #f1f5f9; }
+        .team-list { background: white; border-radius: 18px; padding: 26px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 12px 28px rgba(15,23,42,0.06); }
+        .team-member { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #f1f5f9; }
         .team-member:last-child { border-bottom: none; }
-        .member-info { display: flex; gap: 16px; align-items: center; }
-        .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #60a5fa); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+        .member-info { display: flex; gap: 14px; align-items: center; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
         .member-role { font-size: 13px; color: var(--muted); }
         .status-badge { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(34,197,94,0.1); color: var(--success); }
         .status-cuti { background: rgba(251,191,36,0.1); color: #d97706; }
@@ -139,35 +145,34 @@
         .integration-content li::before { content: '✓'; position: absolute; left: 0; color: var(--primary); font-weight: 700; }
 
         /* ── Stats Row ── */
-        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 50px; }
-        .big-stat { text-align: center; background: white; padding: 30px; border-radius: 24px; border: 1px solid var(--border); }
-        .big-stat h3 { font-size: 40px; color: var(--primary); margin-bottom: 8px; font-weight: 800; }
-        .big-stat p { color: var(--muted); font-weight: 500; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 50px; background: var(--border); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .big-stat { text-align: center; background: white; padding: 28px 20px; }
+        .big-stat h3 { font-size: 32px; color: var(--secondary); margin-bottom: 6px; font-weight: 800; letter-spacing: -.01em; }
+        .big-stat p { color: var(--muted); font-weight: 500; font-size: 14px; }
 
         /* ── Pricing ── */
-        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 60px; align-items: start; }
-        .pricing-card { background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border); position: relative; }
-        .pricing-card.popular { border: 2px solid var(--primary); transform: scale(1.03); box-shadow: 0 25px 70px rgba(37,99,235,0.15); }
-        .popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
-        .pricing-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; align-items: start; }
+        .pricing-card { background: white; border-radius: 16px; padding: 28px; border: 1px solid var(--border); position: relative; }
+        .pricing-card.popular { border: 2px solid var(--primary); box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 16px 32px rgba(26,95,224,0.1); }
+        .popular-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 6px 16px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+        .pricing-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
         .pricing-card > p { color: var(--muted); font-size: 14px; }
-        .price { font-size: 40px; font-weight: 800; margin: 20px 0 4px; color: var(--secondary); }
+        .price { font-size: 36px; font-weight: 800; margin: 20px 0 4px; color: var(--secondary); letter-spacing: -.01em; }
         .price-note { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
         .pricing-card ul { list-style: none; margin: 24px 0; }
-        .pricing-card li { margin-bottom: 12px; color: var(--muted); font-size: 15px; }
+        .pricing-card li { margin-bottom: 12px; color: var(--muted); font-size: 14.5px; }
         .pricing-card .btn { width: 100%; text-align: center; }
 
         /* ── CTA ── */
         .cta { padding: 100px 0; }
-        .cta-box { background: linear-gradient(135deg, #2563eb, #1e40af); border-radius: 36px; padding: 70px 40px; text-align: center; color: white; position: relative; overflow: hidden; }
-        .cta-box::before { content: ""; position: absolute; width: 400px; height: 400px; background: rgba(255,255,255,0.08); border-radius: 50%; top: -180px; right: -120px; }
-        .cta-box h2 { font-size: 44px; font-weight: 800; margin-bottom: 18px; position: relative; }
-        .cta-box p { max-width: 700px; margin: auto; margin-bottom: 30px; opacity: 0.9; position: relative; font-size: 18px; }
-        .btn-white { background: white; color: var(--primary); font-weight: 700; }
-        .btn-white:hover { background: #f0f6ff; }
+        .cta-box { background: var(--secondary); border-radius: 24px; padding: 64px 40px; text-align: center; color: white; }
+        .cta-box h2 { font-size: 36px; font-weight: 800; margin-bottom: 16px; letter-spacing: -.02em; }
+        .cta-box p { max-width: 560px; margin: 0 auto 28px; color: #cbd5e1; font-size: 16px; }
+        .btn-white { background: white; color: var(--secondary); font-weight: 700; }
+        .btn-white:hover { background: #e2e8f0; }
 
         /* ── Footer ── */
-        footer { background: #0f172a; color: white; padding: 70px 0 30px; }
+        footer { background: #0f172a; color: white; padding: 60px 0 28px; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
         .footer-brand p { color: #cbd5e1; margin-top: 14px; max-width: 380px; }
         .footer-links h4 { margin-bottom: 18px; font-size: 16px; }
@@ -219,7 +224,7 @@
     <div class="container hero-grid">
 
         <div>
-            <div class="badge">🚀 Project Management & Tim dalam 1 platform</div>
+            <div class="badge"><span class="badge-dot"></span> Dipakai tim project & operasional di seluruh Indonesia</div>
 
             <h1>Satu platform untuk <span>project</span> & tim Anda.</h1>
 
@@ -308,32 +313,56 @@
 
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">📋</div>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="9.5" y="4" width="5" height="10" rx="1.5"/><rect x="16" y="4" width="5" height="13" rx="1.5"/>
+                    </svg>
+                </div>
                 <h3>Manajemen Project</h3>
                 <p>Kanban board, sprint planning, milestone tracking, dan timeline dalam satu tampilan intuitif.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">✅</div>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12.5l2.5 2.5L16 9.5"/>
+                    </svg>
+                </div>
                 <h3>Task Management</h3>
                 <p>Assign task, set deadline, track progress, dan kelola dependensi antar task dengan mudah.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">👥</div>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.3 2.5-6 5.5-6s5.5 2.7 5.5 6"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M15.5 14.2c2.4.3 4.5 2.5 4.5 5.8"/>
+                    </svg>
+                </div>
                 <h3>CRM & Leads</h3>
                 <p>Kelola kontak, pipeline penjualan, dan kampanye marketing dari satu dashboard terintegrasi.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">💬</div>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3.5" y="4.5" width="17" height="12" rx="3.5"/><path d="M8 20l2.5-3.5"/><path d="M8 9.5h8M8 12.5h5"/>
+                    </svg>
+                </div>
                 <h3>Chat Real-time</h3>
                 <p>Diskusi per project tanpa keluar dari platform. Kirim file, reaksi, dan mention anggota tim.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🧾</div>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 3.5h8l4 4v13a1 1 0 01-1 1H6a1 1 0 01-1-1v-16a1 1 0 011-1z"/><path d="M14 3.5v4h4"/><path d="M8.5 10h7M8.5 13.5h7M8.5 17h4"/>
+                    </svg>
+                </div>
                 <h3>Invoice & Budget</h3>
                 <p>Buat invoice profesional, track pembayaran, dan pantau anggaran project secara real-time.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔒</div>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3l7 3v6c0 5-3 8.5-7 9.5-4-1-7-4.5-7-9.5V6l7-3z"/><path d="M9.5 12l2 2 3.5-3.5"/>
+                    </svg>
+                </div>
                 <h3>Keamanan Enterprise</h3>
                 <p>Enkripsi data, role-based access, dan audit log lengkap untuk kepatuhan perusahaan Anda.</p>
             </div>
@@ -485,7 +514,7 @@
         </div>
 
         <div class="footer-bottom">
-            © {{ date('Y') }} Flovig. All rights reserved. &bull; Made with ❤️ in Indonesia
+            © {{ date('Y') }} Flovig. All rights reserved.
         </div>
     </div>
 </footer>

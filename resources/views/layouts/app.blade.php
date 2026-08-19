@@ -14,20 +14,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    @if(session('just_logged_in'))
-        <script src="https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js"></script>
-    @endif
     @stack('head')
 </head>
 <body class="h-full font-sans antialiased" style="background-color:var(--fl-page)" x-data="{ sidebarOpen: false }">
 
-{{-- Page Loading Overlay. Right after login, the wave-wipe from the login screen continues here (Lottie, played in reverse to uncover); on every other navigation it's just the normal neutral loader. --}}
-<div id="page-loader" class="fixed inset-0 z-[9999] overflow-hidden" style="background-color:{{ session('just_logged_in') ? '#2563eb' : 'var(--fl-page,#09061a)' }}">
-    @if(session('just_logged_in'))
-        <div id="page-loader-wave" class="absolute inset-0 w-full h-full"></div>
-    @endif
+{{-- Page Loading Overlay --}}
+<div id="page-loader" class="fixed inset-0 z-[9999] overflow-hidden" style="background-color:#ffffff">
     <div id="page-loader-icon" class="absolute inset-0 flex items-center justify-center">
-        <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." class="w-64 h-64 object-contain">
+        <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-72 sm:w-80 h-auto object-contain">
     </div>
 </div>
 
@@ -917,28 +911,6 @@ document.addEventListener('DOMContentLoaded', function () {
 window.addEventListener('load', function () {
     var loader = document.getElementById('page-loader');
     if (!loader) return;
-
-    var waveEl = document.getElementById('page-loader-wave');
-    if (waveEl && typeof lottie !== 'undefined') {
-        var anim = lottie.loadAnimation({
-            container: waveEl,
-            renderer: 'svg',
-            loop: false,
-            autoplay: false,
-            path: '{{ asset('animations/flovig-wave.json') }}',
-            rendererSettings: { preserveAspectRatio: 'xMidYMid slice' }
-        });
-        anim.addEventListener('DOMLoaded', function () {
-            anim.goToAndStop(anim.totalFrames - 1, true);
-            loader.classList.add('hidden');
-            anim.setDirection(-1);
-            anim.play();
-        });
-        anim.addEventListener('complete', function () {
-            loader.style.display = 'none';
-        });
-        return;
-    }
 
     loader.classList.add('hidden');
     setTimeout(function () { loader.style.display = 'none'; }, 650);
