@@ -10,7 +10,7 @@
                 <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50">Reset Default</button>
             </form>
             <button onclick="document.getElementById('modal-add-leave').showModal()"
-                    class="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700">+ Tambah</button>
+                    class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">+ Tambah</button>
         </div>
     </div>
     <table class="w-full text-sm">
@@ -34,7 +34,7 @@
                 @if($isSuperAdmin ?? false)
                 <td class="px-4 py-3 text-xs text-gray-500">{{ $lt->company->name ?? '—' }}</td>
                 @endif
-                <td class="px-4 py-3 font-mono font-semibold text-violet-700">{{ $lt->code }}</td>
+                <td class="px-4 py-3 font-mono font-semibold text-blue-700">{{ $lt->code }}</td>
                 <td class="px-4 py-3 text-gray-700">{{ $lt->name }}</td>
                 <td class="px-4 py-3 text-center text-gray-600">{{ $lt->default_quota ?: '∞' }}</td>
                 <td class="px-4 py-3 text-center">
@@ -73,21 +73,21 @@
         <div class="grid grid-cols-2 gap-3">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Nama *</label>
-                <input type="text" name="name" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                <input type="text" name="name" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Kode *</label>
-                <input type="text" name="code" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                <input type="text" name="code" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Kuota (0 = tak terbatas)</label>
-                <input type="number" name="default_quota" value="0" min="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                <input type="number" name="default_quota" value="0" min="0" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Gender</label>
-                <select name="gender_restriction" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                <select name="gender_restriction" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <option value="all">Semua</option>
                     <option value="male">Laki-laki</option>
                     <option value="female">Perempuan</option>
@@ -102,7 +102,7 @@
         </div>
         <div class="flex gap-2 justify-end pt-2">
             <button type="button" onclick="document.getElementById('modal-add-leave').close()" class="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-xl">Batal</button>
-            <button class="px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-xl hover:bg-violet-700">Simpan</button>
+            <button class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700">Simpan</button>
         </div>
     </form>
 </dialog>

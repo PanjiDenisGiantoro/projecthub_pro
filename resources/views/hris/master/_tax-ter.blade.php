@@ -11,16 +11,16 @@
     </div>
 
     <div class="px-4 pt-3 text-xs text-gray-500 space-y-1">
-        <p><span class="font-semibold text-violet-700">Kategori A</span> — status PTKP TK/0, TK/1, K/0</p>
-        <p><span class="font-semibold text-violet-700">Kategori B</span> — status PTKP TK/2, TK/3, K/1, K/2</p>
-        <p><span class="font-semibold text-violet-700">Kategori C</span> — status PTKP K/3</p>
+        <p><span class="font-semibold text-blue-700">Kategori A</span> — status PTKP TK/0, TK/1, K/0</p>
+        <p><span class="font-semibold text-blue-700">Kategori B</span> — status PTKP TK/2, TK/3, K/1, K/2</p>
+        <p><span class="font-semibold text-blue-700">Kategori C</span> — status PTKP K/3</p>
     </div>
 
     {{-- Kategori tabs --}}
     <div class="flex gap-1 px-4 pt-3">
         @foreach(['A','B','C'] as $c)
         <button type="button" @click="cat = '{{ $c }}'"
-                :class="cat === '{{ $c }}' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                :class="cat === '{{ $c }}' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
                 class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors">
             Kategori {{ $c }}
         </button>
@@ -48,7 +48,7 @@
                         <td class="px-4 py-2 text-gray-700">
                             {{ $rate->income_to ? 'Rp ' . number_format($rate->income_to, 0, ',', '.') : '∞ Tak terbatas' }}
                         </td>
-                        <td class="px-4 py-2 text-center font-semibold text-violet-700">{{ rtrim(rtrim(number_format($rate->rate * 100, 2, ',', '.'), '0'), ',') }}%</td>
+                        <td class="px-4 py-2 text-center font-semibold text-blue-700">{{ rtrim(rtrim(number_format($rate->rate * 100, 2, ',', '.'), '0'), ',') }}%</td>
                         <td class="px-4 py-2 text-center">
                             <form action="{{ route('hris.master.tax-ter.toggle', $rate) }}" method="POST">
                                 @csrf @method('PATCH')
@@ -58,7 +58,7 @@
                             </form>
                         </td>
                         <td class="px-4 py-2 text-center">
-                            <a href="{{ route('hris.master.tax-ter.edit', $rate) }}" class="text-xs text-violet-600 hover:underline">Edit</a>
+                            <a href="{{ route('hris.master.tax-ter.edit', $rate) }}" class="text-xs text-blue-600 hover:underline">Edit</a>
                         </td>
                     </tr>
                     @empty

@@ -187,7 +187,7 @@ class ChatWebController extends Controller
             'id'             => $m->id,
             'body'           => $m->trashed() ? '' : $m->body,
             'formatted_body' => $m->trashed() ? '' : $this->highlightMentions($m->body),
-            'created_at'     => $m->created_at->format('d M, H:i'),
+            'created_at'     => $m->created_at->toIso8601String(),
             'edited_at'      => $m->edited_at?->format('d M, H:i'),
             'deleted'        => $m->trashed(),
             'is_mine'        => $m->user_id === $userId,

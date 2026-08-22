@@ -35,7 +35,7 @@
                 <tr>
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $item->user->name }}</td>
                     <td class="px-4 py-3">
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium capitalize">{{ $item->category }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium capitalize">{{ $item->category }}</span>
                     </td>
                     <td class="px-4 py-3 text-gray-700">{{ $item->title }}</td>
                     <td class="px-4 py-3 text-gray-600 text-xs">{{ $item->expense_date->format('d/m/Y') }}</td>
@@ -70,7 +70,10 @@
                 @endforelse
             </tbody>
         </table>
-        <div class="p-4">{{ $items->links() }}</div>
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $items->links() }}
+        </div>
     </div>
 </div>
 @endsection

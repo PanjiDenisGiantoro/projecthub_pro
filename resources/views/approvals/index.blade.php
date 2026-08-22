@@ -195,9 +195,12 @@
                     @endforelse
                 </tbody>
             </table>
-            @if($pendingForMe->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100">{{ $pendingForMe->links() }}</div>
-            @endif
+            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+                <x-per-page :param-name="'pending_per_page'" />
+                @if($pendingForMe->hasPages())
+                {{ $pendingForMe->links() }}
+                @endif
+            </div>
         </div>
     </div>
 
@@ -270,9 +273,12 @@
                     @endforelse
                 </tbody>
             </table>
-            @if($myRequests->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100">{{ $myRequests->links() }}</div>
-            @endif
+            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+                <x-per-page :param-name="'my_per_page'" />
+                @if($myRequests->hasPages())
+                {{ $myRequests->links() }}
+                @endif
+            </div>
         </div>
     </div>
 

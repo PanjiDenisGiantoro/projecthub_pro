@@ -4,7 +4,6 @@ namespace App\Exports;
 
 use App\Models\Project;
 use App\Models\TimeLog;
-use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -15,18 +14,16 @@ class TimesheetExport implements FromCollection, WithHeadings, WithTitle, WithSt
 {
     public function __construct(
         private Project $project,
-        private string $month
+        private ?string $from = null,
+        private ?string $to = null,
     ) {}
 
     public function collection()
     {
-        [$year, $m] = explode('-', $this->month);
-        $start = Carbon::createFromDate($year, $m, 1)->startOfMonth();
-        $end   = $start->copy()->endOfMonth();
-
         return TimeLog::with(['user', 'task'])
             ->whereHas('task', fn($q) => $q->where('project_id', $this->project->id))
-            ->whereBetween('started_at', [$start, $end])
+            ->when($this->from, fn($q) => $q->whereDate('started_at', '>=', $this->from))
+            ->when($this->to, fn($q) => $q->whereDate('started_at', '<=', $this->to))
             ->orderBy('started_at')
             ->get()
             ->map(fn($log) => [
@@ -35,7 +32,7 @@ class TimesheetExport implements FromCollection, WithHeadings, WithTitle, WithSt
                 'Task'        => $log->task?->title,
                 'Menit'       => $log->minutes,
                 'Jam'         => round($log->minutes / 60, 2),
-                'Catatan'     => $log->note,
+                'Catatan'     => $log->notes,
             ]);
     }
 
@@ -46,7 +43,7 @@ class TimesheetExport implements FromCollection, WithHeadings, WithTitle, WithSt
 
     public function title(): string
     {
-        return 'Timesheet ' . $this->month;
+        return 'Detail Log Waktu';
     }
 
     public function styles(Worksheet $sheet): array

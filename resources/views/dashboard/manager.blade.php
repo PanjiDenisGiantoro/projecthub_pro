@@ -61,11 +61,11 @@
     <div class="grid grid-cols-2 xl:grid-cols-5 gap-4">
 
         {{-- Projects --}}
-        <div class="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-indigo-500 shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
             <div class="flex items-start justify-between mb-4">
                 <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Projects</span>
-                <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
                     </svg>
                 </div>
@@ -73,10 +73,10 @@
             <p class="text-4xl font-extrabold text-slate-900 leading-none">{{ $stats['projects']['total'] }}</p>
             <div class="mt-2.5 flex flex-wrap gap-3 text-xs font-medium">
                 <span class="flex items-center gap-1.5 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{{ $stats['projects']['active'] }} aktif</span>
-                <span class="flex items-center gap-1.5 text-indigo-500"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>{{ $stats['projects']['completed'] }} selesai</span>
+                <span class="flex items-center gap-1.5 text-blue-500"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>{{ $stats['projects']['completed'] }} selesai</span>
             </div>
             @if($stats['projects']['new_month'] > 0)
-            <span class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
+            <span class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
                 {{ $stats['projects']['new_month'] }} baru bulan ini
             </span>
             @endif
@@ -210,8 +210,8 @@
         {{-- Task Distribution Donut --}}
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="flex items-center gap-3 px-6 pt-5">
-                <div class="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
                     </svg>
@@ -249,8 +249,8 @@
         <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
                     </div>
@@ -274,7 +274,7 @@
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <span class="w-2 h-2 rounded-full shrink-0" style="background:{{ $col }}"></span>
                                 <a href="{{ route('projects.show', $project->id) }}"
-                                   class="text-sm font-semibold text-slate-700 hover:text-indigo-600 transition-colors whitespace-nowrap truncate">
+                                   class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors whitespace-nowrap truncate">
                                     {{ $project->name }}
                                 </a>
                                 @if($project->client)

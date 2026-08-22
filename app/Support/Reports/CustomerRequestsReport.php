@@ -15,12 +15,10 @@ class CustomerRequestsReport implements ReportQuery
                 'type'    => 'select',
                 'label'   => 'Status',
                 'options' => [
-                    'submitted'    => 'Submitted',
-                    'under_review' => 'Under Review',
-                    'approved'     => 'Approved',
-                    'rejected'     => 'Rejected',
-                    'in_progress'  => 'In Progress',
-                    'done'         => 'Done',
+                    'waiting_approval' => 'Waiting for Approval',
+                    'approved'         => 'Approved',
+                    'rejected'         => 'Rejected',
+                    'done'             => 'Done',
                 ],
             ],
             'type' => [

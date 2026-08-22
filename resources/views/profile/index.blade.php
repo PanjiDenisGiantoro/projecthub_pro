@@ -10,7 +10,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
         {{-- Hero / Cover --}}
-        <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-6 py-8">
+        <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-700 px-6 py-8">
             <div class="flex items-center gap-5">
                 {{-- Avatar display --}}
                 <div class="relative shrink-0">
@@ -26,7 +26,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <h2 class="text-xl font-bold text-white leading-tight">{{ $user->name }}</h2>
-                    <p class="text-blue-200 text-sm capitalize mt-0.5">{{ $user->getRoleNames()->first() }}</p>
+                    <p class="text-blue-200 text-sm capitalize mt-0.5">{{ \App\Support\RoleLabel::for($user->getRoleNames()->first()) }}</p>
                     <p class="text-blue-300/70 text-sm mt-0.5">{{ $user->email }}</p>
                 </div>
             </div>
@@ -53,7 +53,7 @@
                         <p class="text-xs text-gray-400 mt-1.5">Format: JPG, PNG, GIF, WEBP &bull; Maks. 2 MB</p>
                     </div>
                     <button type="submit"
-                            class="shrink-0 px-5 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 active:bg-blue-800 transition-colors shadow-sm">
+                            class="shrink-0 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
                         Simpan Foto
                     </button>
                 </div>
@@ -82,7 +82,7 @@
                 </div>
                 <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
                         class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
-                        :class="enabled ? 'bg-violet-600' : 'bg-gray-300'">
+                        :class="enabled ? 'bg-blue-600' : 'bg-gray-300'">
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="enabled ? 'translate-x-6' : 'translate-x-1'"></span>
                 </button>
@@ -111,7 +111,7 @@
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('google-calendar.connect') }}" class="px-3 py-1.5 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700">
+                    <a href="{{ route('google-calendar.connect') }}" class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
                         Hubungkan Google Calendar
                     </a>
                 @endif
@@ -133,25 +133,25 @@
                 <div>
                     <label class="block text-xs text-gray-500 mb-1.5 font-medium">Password saat ini</label>
                     <input type="password" name="current_password" required
-                           class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                           class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1">
                         <label class="block text-xs text-gray-500 mb-1.5 font-medium">Password baru</label>
                         <input type="password" name="password" required
-                               class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('password') border-red-400 @enderror">
+                               class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('password') border-red-400 @enderror">
                     </div>
                     <div class="flex-1">
                         <label class="block text-xs text-gray-500 mb-1.5 font-medium">Konfirmasi password baru</label>
                         <input type="password" name="password_confirmation" required
-                               class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                               class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                 </div>
 
                 <div class="flex justify-end">
                     <button type="submit"
-                            class="px-5 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 active:bg-blue-800 transition-colors shadow-sm">
+                            class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
                         Simpan Password
                     </button>
                 </div>
@@ -174,7 +174,7 @@
                     <dt class="text-sm text-gray-400 w-28 shrink-0">Role</dt>
                     <dd>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 capitalize">
-                            {{ $user->getRoleNames()->first() ?? '-' }}
+                            {{ \App\Support\RoleLabel::for($user->getRoleNames()->first()) ?: '-' }}
                         </span>
                     </dd>
                 </div>

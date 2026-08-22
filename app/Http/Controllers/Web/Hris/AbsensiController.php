@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\AttendanceSetting;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class AbsensiController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $user     = auth()->user();
@@ -137,7 +140,8 @@ class AbsensiController extends Controller
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->orderByDesc('date')
-            ->paginate(30);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('hris.absensi.rekap', compact('rekap', 'year', 'month'));
     }

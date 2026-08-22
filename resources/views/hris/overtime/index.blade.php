@@ -74,7 +74,10 @@
                 @endforelse
             </tbody>
         </table>
-        <div class="p-4">{{ $overtimes->links() }}</div>
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $overtimes->links() }}
+        </div>
     </div>
 </div>
 @endsection

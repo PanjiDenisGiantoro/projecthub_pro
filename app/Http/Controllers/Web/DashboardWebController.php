@@ -24,18 +24,15 @@ class DashboardWebController extends Controller
         $user       = auth()->user();
         $activePkg  = session('active_package', 'task_management');
 
-        // HRIS disembunyikan sementara dari UI dashboard (lihat sidebar-nav.blade.php
-        // & app.blade.php) — sesi lama yang masih menyimpan 'hris' harus tetap jatuh
-        // ke dashboard role biasa, bukan dashboard HRIS, selama flag ini aktif.
-        $hrisHidden = true;
-
         // ── HRIS Dashboard ──────────────────────────────────────────────────
-        if (!$hrisHidden && $activePkg === 'hris' && !$user->hasRole('customer') && ($user->is_super_admin || $user->hasPackage('hris'))) {
+        if ($activePkg === 'hris' && !$user->hasRole('customer') && ($user->is_super_admin || $user->hasPackage('hris'))) {
             $companyId      = $user->company_id;
             $totalKaryawan  = User::where('company_id', $companyId)->where('is_super_admin', false)->count();
             $totalDept      = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
+            $hadirHariIni   = \App\Models\Attendance::where('company_id', $companyId)->whereDate('date', now()->toDateString())->where('status', 'hadir')->count();
+            $cutiPending    = \App\Models\LeaveRequest::where('company_id', $companyId)->where('status', 'pending')->count();
 
-            return view('dashboard.hris', compact('totalKaryawan', 'totalDept'));
+            return view('dashboard.hris', compact('totalKaryawan', 'totalDept', 'hadirHariIni', 'cutiPending'));
         }
 
         if ($user->hasRole(['admin', 'manager'])) {
@@ -100,7 +97,7 @@ class DashboardWebController extends Controller
                         'review'      => Task::whereHas('project', $projectFilter)->where('status', 'review')->count(),
                     ],
                     'tickets'          => ['open' => $openTickets, 'breached' => BugTicket::whereHas('project', $projectFilter)->where('sla_breached', true)->count(), 'week_change' => $tickChange],
-                    'pending_requests' => CustomerRequest::whereHas('project', $projectFilter)->whereIn('status', ['submitted', 'under_review'])->count(),
+                    'pending_requests' => CustomerRequest::whereHas('project', $projectFilter)->where('status', 'waiting_approval')->count(),
                     'revenue'          => ['total' => Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->sum('total'), 'overdue' => Invoice::whereHas('project', $projectFilter)->where('status', 'overdue')->count(), 'change' => $revChange],
                 ];
             });
@@ -180,7 +177,7 @@ class DashboardWebController extends Controller
             $stats = Cache::remember("dashboard.marketing.stats.{$ckey}.v1", 60, function () {
                 return [
                     'active_campaigns' => Campaign::whereHas('project')->where('status', 'active')->count(),
-                    'pending_review'   => CustomerRequest::whereHas('project')->where('status', 'submitted')->count(),
+                    'pending_review'   => CustomerRequest::whereHas('project')->where('status', 'waiting_approval')->count(),
                 ];
             });
 
@@ -194,7 +191,7 @@ class DashboardWebController extends Controller
         if ($user->hasRole('customer')) {
             $stats = Cache::remember("dashboard.customer.{$user->id}.stats", 60, function () use ($user) {
                 return [
-                    'pending_requests' => CustomerRequest::where('customer_id', $user->id)->whereIn('status', ['submitted', 'under_review'])->count(),
+                    'pending_requests' => CustomerRequest::where('customer_id', $user->id)->where('status', 'waiting_approval')->count(),
                     'open_tickets'     => BugTicket::where('reporter_id', $user->id)->whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
                     'unpaid_invoices'  => Invoice::where('client_id', $user->id)->whereIn('status', ['sent', 'overdue'])->count(),
                 ];

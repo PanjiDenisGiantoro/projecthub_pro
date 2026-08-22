@@ -42,11 +42,6 @@ class PermissionSeeder extends Seeder
             'create ticket',
             'create request',
         ],
-        'tester' => [
-            'access dashboard', 'access tickets', 'access requests',
-            'access calendar', 'access meetings', 'access search', 'access kb', 'access sprints',
-            'create ticket', 'view all tickets', 'close ticket',
-        ],
     ];
 
     public function run(): void

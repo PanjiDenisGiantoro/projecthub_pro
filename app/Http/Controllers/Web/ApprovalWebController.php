@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Approval;
 use App\Models\ApprovalPolicy;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class ApprovalWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private ApprovalService $approvalService) {}
 
     public function index(Request $request)
@@ -21,12 +24,14 @@ class ApprovalWebController extends Controller
             ->where('status', 'pending')
             ->whereHas('steps', fn($q) => $q->where('status', 'pending')->whereIn('approver_role', $roles))
             ->latest()
-            ->paginate(15, ['*'], 'pending_page');
+            ->paginate($this->perPage($request, 10, 'pending_per_page'), ['*'], 'pending_page')
+            ->withQueryString();
 
         $myRequests = Approval::with(['steps.approver', 'policy', 'approvable'])
             ->where('requested_by', $user->id)
             ->latest()
-            ->paginate(15, ['*'], 'my_page');
+            ->paginate($this->perPage($request, 10, 'my_per_page'), ['*'], 'my_page')
+            ->withQueryString();
 
         $stats = [
             'pending_for_me' => Approval::where('status', 'pending')

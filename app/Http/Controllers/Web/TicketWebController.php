@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\BugTicket;
 use App\Models\Project;
@@ -17,23 +18,35 @@ use Illuminate\Http\Request;
 
 class TicketWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private SlaService $sla, private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
 
     public function allTickets(Request $request)
     {
+        $authUser  = auth()->user();
+        $companyId = $authUser->company_id;
+
+        $companyScope = function ($q) use ($authUser, $companyId) {
+            if (! $authUser->is_super_admin && $companyId) {
+                $q->whereHas('project', fn($p) => $p->where('company_id', $companyId));
+            }
+        };
+
         $query = BugTicket::with(['project', 'reporter', 'assignee'])
+            ->tap($companyScope)
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
 
-        if (auth()->user()->hasRole('customer')) {
-            $query->where('reporter_id', auth()->id());
+        if ($authUser->hasRole('customer')) {
+            $query->where('reporter_id', $authUser->id);
         }
 
-        $tickets   = $query->latest()->paginate(20);
+        $tickets   = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $slaReport = [
-            'total'    => BugTicket::count(),
-            'breached' => BugTicket::where('sla_breached', true)->count(),
-            'open'     => BugTicket::whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
+            'total'    => BugTicket::tap($companyScope)->count(),
+            'breached' => BugTicket::tap($companyScope)->where('sla_breached', true)->count(),
+            'open'     => BugTicket::tap($companyScope)->whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
         ];
         $project = null;
         return view('tickets.index', compact('project', 'tickets', 'slaReport'));
@@ -49,7 +62,7 @@ class TicketWebController extends Controller
             $query->where('reporter_id', auth()->id());
         }
 
-        $tickets    = $query->latest()->paginate(20);
+        $tickets    = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $slaReport  = [
             'total'    => $project->tickets()->count(),
             'breached' => $project->tickets()->where('sla_breached', true)->count(),

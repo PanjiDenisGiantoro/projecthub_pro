@@ -18,8 +18,8 @@
 
     {{-- Card --}}
     <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
-        <div class="mx-auto w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center mb-4">
-            <svg class="w-7 h-7 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="mx-auto w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
         </div>
@@ -39,7 +39,7 @@
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
             <button type="submit"
-                    class="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
                 Kirim Ulang Link Verifikasi
             </button>
         </form>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Risk;
@@ -9,10 +10,16 @@ use Illuminate\Http\Request;
 
 class RiskWebController extends Controller
 {
-    public function index(Project $project)
+    use HasPerPage;
+
+    public function index(Request $request, Project $project)
     {
-        $risks = $project->risks()->with('creator')->orderByDesc('id')->get();
-        return view('risks.index', compact('project', 'risks'));
+        // Matrix chart & ringkasan level butuh seluruh risiko, bukan cuma satu halaman.
+        $allRisks = $project->risks()->orderByDesc('id')->get();
+        $risks = $project->risks()->with('creator')->orderByDesc('id')
+            ->paginate($this->perPage($request))
+            ->withQueryString();
+        return view('risks.index', compact('project', 'risks', 'allRisks'));
     }
 
     public function store(Request $request, Project $project)

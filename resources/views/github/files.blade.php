@@ -35,7 +35,7 @@
             <input type="hidden" name="path" value="{{ $path }}">
             <label class="text-xs text-gray-500">Branch</label>
             <select name="branch" onchange="this.form.submit()"
-                    class="rounded-lg border-gray-300 text-sm font-mono focus:border-indigo-500 focus:ring-indigo-500">
+                    class="rounded-lg border-gray-300 text-sm font-mono focus:border-blue-500 focus:ring-blue-500">
                 @foreach($branches as $b)
                 <option value="{{ $b }}" @selected($activeBranch === $b)>{{ $b }}</option>
                 @endforeach

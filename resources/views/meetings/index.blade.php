@@ -33,13 +33,13 @@
         <div class="flex gap-2 flex-wrap items-center">
             <form method="GET" class="flex gap-2 flex-wrap">
                 <input type="hidden" name="category" value="{{ $category }}">
-                <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Proyek</option>
                     @foreach($projects as $p)
                         <option value="{{ $p->id }}" {{ (string) $projectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                     @endforeach
                 </select>
-                <select name="when" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="when" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="upcoming" {{ $when === 'upcoming' ? 'selected' : '' }}>Akan Datang</option>
                     <option value="past" {{ $when === 'past' ? 'selected' : '' }}>Sudah Lewat</option>
                     <option value="all" {{ $when === 'all' ? 'selected' : '' }}>Semua</option>
@@ -48,7 +48,7 @@
 
             @unless(auth()->user()->hasRole('customer'))
             <button @click="open = true"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition shadow-sm">
+                    class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
                 + Tambah Meeting
             </button>
             @endunless
@@ -64,7 +64,7 @@
             @endphp
             <a href="{{ route('meetings.index') }}?{{ $qs }}"
                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
-                      {{ $isActive ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+                      {{ $isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
                 {{ $label }}
                 <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-[10px] font-bold
                              {{ $isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600' }}">
@@ -83,7 +83,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($meetings as $m)
                 @php $meta = $typeMeta[$m['type']]; @endphp
-                <div class="bg-white rounded-xl border border-gray-200 p-4 hover:border-violet-200 transition-colors">
+                <div class="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-200 transition-colors">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2 mb-1">
@@ -94,7 +94,7 @@
                                     <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Recurring</span>
                                 @endif
                             </div>
-                            <a href="{{ $m['url'] }}" class="font-semibold text-gray-800 hover:text-violet-700 truncate block">
+                            <a href="{{ $m['url'] }}" class="font-semibold text-gray-800 hover:text-blue-700 truncate block">
                                 {{ $m['title'] }}
                             </a>
                             @if($m['project'])
@@ -112,7 +112,7 @@
                                 <form method="POST" action="{{ $m['createUrl'] }}">
                                     @csrf
                                     <button type="submit"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50 transition">
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
                                         Buat Meeting
                                     </button>
                                 </form>
@@ -156,7 +156,7 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Tipe</label>
                     <select name="type" x-model="type" @change="onTypeChange()" required
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="project">Proyek (kickoff/general)</option>
                         <option value="sprint">Sprint</option>
                         <option value="milestone">Milestone</option>
@@ -168,7 +168,7 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Proyek</label>
                     <select x-model="projectId" @change="onProjectChange()" required
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Pilih Proyek --</option>
                         @foreach($projects as $p)
                             <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -179,7 +179,7 @@
                 <div x-show="type !== 'project'">
                     <label class="block text-xs font-medium text-gray-700 mb-1" x-text="itemLabel()"></label>
                     <select x-model="entityId" :required="type !== 'project'"
-                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="" x-text="loading ? '-- Memuat... --' : '-- Pilih --'"></option>
                         <template x-for="item in items" :key="item.id">
                             <option :value="item.id" x-text="item.label"></option>
@@ -192,13 +192,13 @@
 
                 <label class="flex items-center gap-2" x-show="type === 'sprint'">
                     <input type="checkbox" name="recurring" value="1" x-model="recurring"
-                           class="rounded border-gray-300 text-violet-600 focus:ring-violet-500">
+                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                     <span class="text-xs text-gray-700">Standup harian (berulang, Sen–Jum)</span>
                 </label>
 
                 <div class="pt-2 flex gap-2">
                     <button type="submit" :disabled="type !== 'project' && !entityId"
-                            class="flex-1 text-center text-xs font-semibold bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="flex-1 text-center text-xs font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                         Buat Meeting
                     </button>
                     <button type="button" @click="open = false"

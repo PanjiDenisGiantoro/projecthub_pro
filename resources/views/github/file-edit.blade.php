@@ -49,12 +49,12 @@
                 <input type="hidden" name="sha" value="{{ $file['sha'] }}">
 
                 <textarea name="content" rows="24" spellcheck="false"
-                          class="w-full rounded-lg border-gray-300 font-mono text-xs leading-relaxed focus:border-indigo-500 focus:ring-indigo-500">{{ old('content', $file['content']) }}</textarea>
+                          class="w-full rounded-lg border-gray-300 font-mono text-xs leading-relaxed focus:border-blue-500 focus:ring-blue-500">{{ old('content', $file['content']) }}</textarea>
                 @error('content')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
 
                 <div class="flex items-center gap-3">
                     <input type="text" name="message" placeholder="Pesan commit (opsional)"
-                           class="flex-1 rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                           class="flex-1 rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     <button type="submit"
                             class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors shrink-0">
                         Commit Perubahan

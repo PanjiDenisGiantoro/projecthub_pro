@@ -10,7 +10,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Proyek</h1>
         @if(!auth()->user()->hasRole('customer'))
             <a href="{{ route('projects.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -27,12 +27,12 @@
                 name="search"
                 value="{{ request('search') }}"
                 placeholder="Cari nama proyek..."
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
         </div>
         <div>
             <select name="status"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Status</option>
                 <option value="draft"       {{ request('status') === 'draft'       ? 'selected' : '' }}>Draft</option>
                 <option value="active"      {{ request('status') === 'active'      ? 'selected' : '' }}>Aktif</option>
@@ -115,7 +115,7 @@
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
                                 <div class="h-2 rounded-full transition-all
-                                    {{ $progress >= 100 ? 'bg-blue-500' : ($progress >= 50 ? 'bg-indigo-500' : 'bg-indigo-400') }}"
+                                    {{ $progress >= 100 ? 'bg-blue-500' : ($progress >= 50 ? 'bg-blue-500' : 'bg-blue-400') }}"
                                      style="width: {{ min($progress, 100) }}%">
                                 </div>
                             </div>
@@ -131,7 +131,7 @@
 
                     <div class="px-5 py-3 border-t border-gray-100">
                         <a href="{{ route('projects.show', $project) }}"
-                           class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
+                           class="text-sm font-medium text-blue-600 hover:text-blue-800 transition">
                             Lihat Detail &rarr;
                         </a>
                     </div>
@@ -140,8 +140,9 @@
         </div>
 
         {{-- Pagination --}}
-        <div class="mt-8">
-            {{ $projects->withQueryString()->links() }}
+        <div class="mt-8 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $projects->links() }}
         </div>
     @endif
 

@@ -10,10 +10,10 @@
     </nav>
 
     <div class="flex justify-between items-center mb-5">
-        <p class="text-sm text-gray-500">{{ $definitions->count() }} definisi terdaftar</p>
+        <p class="text-sm text-gray-500">{{ $definitions->total() }} definisi terdaftar</p>
         @if(!auth()->user()->hasRole('customer'))
         <button @click="showForm=!showForm"
-                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span x-text="showForm ? 'Batal' : 'Tambah'"></span>
         </button>
@@ -27,16 +27,16 @@
             @csrf
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Judul Task *</label>
-                <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
-                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Frekuensi *</label>
                 <select name="frequency" required x-model="freq"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="daily">Harian</option>
                     <option value="weekly">Mingguan</option>
                     <option value="biweekly">2 Minggu sekali</option>
@@ -45,7 +45,7 @@
             </div>
             <div x-show="freq==='weekly' || freq==='biweekly'" x-cloak>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Hari (untuk Mingguan/2 Minggu sekali)</label>
-                <select name="day_of_week" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="day_of_week" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="1" selected>Senin</option>
                     <option value="2">Selasa</option>
                     <option value="3">Rabu</option>
@@ -57,12 +57,12 @@
             </div>
             <div x-show="freq==='monthly'" x-cloak>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal (untuk Bulanan)</label>
-                <input type="number" name="day_of_month" value="1" min="1" max="28" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="day_of_month" value="1" min="1" max="28" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <p class="text-[11px] text-gray-400 mt-1">Maks tanggal 28 supaya berlaku di semua bulan.</p>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Milestone (opsional)</label>
-                <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">— Tidak ada —</option>
                     @foreach($milestones as $m)
                     <option value="{{ $m->id }}">{{ $m->title }}</option>
@@ -71,7 +71,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Assignee</label>
-                <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">— Tidak ada —</option>
                     @foreach($users as $u)
                     <option value="{{ $u->id }}">{{ $u->name }}</option>
@@ -80,7 +80,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Prioritas *</label>
-                <select name="priority" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="priority" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="low">Low</option>
                     <option value="medium" selected>Medium</option>
                     <option value="high">High</option>
@@ -89,19 +89,22 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Due Offset (hari)</label>
-                <input type="number" name="due_offset_days" value="1" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="due_offset_days" value="1" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Est. Jam</label>
-                <input type="number" name="estimated_hours" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="estimated_hours" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="sm:col-span-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan</button>
             </div>
         </form>
     </div>
     @endif
 
+    <div class="flex justify-end mb-2">
+        <x-per-page />
+    </div>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         @if($definitions->isEmpty())
         <div class="text-center py-12 text-gray-400">
@@ -142,7 +145,7 @@
                             <form method="POST" action="{{ route('recurring.generateNow', [$project, $def]) }}"
                                   data-confirm-submit="Buat task dari definisi &quot;{{ $def->title }}&quot; sekarang?" data-confirm-btn="Ya, Generate">
                                 @csrf
-                                <button type="submit" class="text-xs text-violet-600 hover:text-violet-800 font-medium">Generate Sekarang</button>
+                                <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Generate Sekarang</button>
                             </form>
                             <form method="POST" action="{{ route('recurring.destroy', [$project, $def]) }}"
                                   data-confirm-delete="{{ $def->title }}">
@@ -156,6 +159,9 @@
                 @endforeach
             </tbody>
         </table>
+        @if($definitions->hasPages())
+        <div class="px-4 py-3 border-t border-gray-100">{{ $definitions->links() }}</div>
+        @endif
         @endif
     </div>
 </div>

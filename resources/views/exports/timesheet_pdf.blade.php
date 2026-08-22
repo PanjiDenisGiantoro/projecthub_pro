@@ -19,8 +19,13 @@ tr:nth-child(even) td { background: #f8fafc; }
 </style>
 </head>
 <body>
-<h1>Timesheet — {{ $project->name }}</h1>
-<p class="sub">Periode: {{ $start->format('d M Y') }} s/d {{ $end->format('d M Y') }} &nbsp;|&nbsp; Dibuat: {{ now()->format('d M Y H:i') }}</p>
+<h1>Detail Log Waktu — {{ $project->name }}</h1>
+<p class="sub">
+    @if($start && $end)
+        Periode: {{ $start->format('d M Y') }} s/d {{ $end->format('d M Y') }} &nbsp;|&nbsp;
+    @endif
+    Dibuat: {{ now()->format('d M Y H:i') }}
+</p>
 
 <div class="summary">
     <div class="summary-grid">
@@ -34,7 +39,7 @@ tr:nth-child(even) td { background: #f8fafc; }
         </div>
         <div class="summary-cell">
             <div class="summary-label">Staff Terlibat</div>
-            <div class="summary-val">{{ $summary->count() }}</div>
+            <div class="summary-val">{{ $logs->pluck('user_id')->unique()->count() }}</div>
         </div>
     </div>
 </div>
@@ -53,12 +58,12 @@ tr:nth-child(even) td { background: #f8fafc; }
     <tbody>
         @foreach($logs as $log)
         <tr>
-            <td>{{ $log->logged_at?->format('d/m/Y') }}</td>
+            <td>{{ $log->started_at?->format('d/m/Y') }}</td>
             <td>{{ $log->user?->name }}</td>
             <td>{{ $log->task?->title }}</td>
             <td>{{ $log->minutes }}</td>
             <td>{{ round($log->minutes / 60, 2) }}</td>
-            <td>{{ $log->note }}</td>
+            <td>{{ $log->notes }}</td>
         </tr>
         @endforeach
         <tr class="total-row">
@@ -69,29 +74,5 @@ tr:nth-child(even) td { background: #f8fafc; }
         </tr>
     </tbody>
 </table>
-
-@if($summary->count())
-<div style="margin-top:24px;">
-    <h2 style="font-size:13px;font-weight:bold;margin-bottom:8px;">Rekapitulasi per Staff</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Staff</th>
-                <th>Total Menit</th>
-                <th>Total Jam</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($summary as $userId => $data)
-            <tr>
-                <td>{{ $data['name'] }}</td>
-                <td>{{ $data['minutes'] }}</td>
-                <td>{{ round($data['minutes'] / 60, 2) }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endif
 </body>
 </html>

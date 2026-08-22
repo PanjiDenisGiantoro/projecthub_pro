@@ -37,7 +37,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan <span class="text-red-500">*</span></label>
                     <select name="company_id" onchange="this.form.submit()"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">— Pilih Perusahaan —</option>
                         @foreach($companies as $company)
                             <option value="{{ $company->id }}" {{ (string) $selectedCompany === (string) $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
@@ -51,10 +51,10 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Parent (opsional)</label>
                 <select name="parent_id" id="sel-parent"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 @error('parent_id') border-red-400 @enderror">
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('parent_id') border-red-400 @enderror">
                     <option value="">— Tanpa Parent (Level 1) —</option>
                     @foreach($tree as $node)
-                        <option value="{{ $node->id }}" {{ (string) request('parent_id') === (string) $node->id ? 'selected' : '' }}>
+                        <option value="{{ $node->id }}" data-level="{{ $node->level }}" {{ (string) request('parent_id') === (string) $node->id ? 'selected' : '' }}>
                             {{ str_repeat('— ', $node->level - 1) }}{{ $node->name }} (L{{ $node->code }})
                         </option>
                     @endforeach
@@ -66,7 +66,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 @error('name') border-red-400 @enderror"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-400 @enderror"
                        placeholder="Divisi IT">
                 @error('name')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
@@ -74,7 +74,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Kepala Unit (opsional)</label>
                 <select name="head_id" id="sel-head"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">— Tidak ada —</option>
                     @foreach($users as $u)
                         <option value="{{ $u->id }}" {{ (string) old('head_id') === (string) $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
@@ -84,25 +84,39 @@
 
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active"
-                       {{ old('is_active', '1') ? 'checked' : '' }} class="w-4 h-4 text-violet-600 rounded">
+                       {{ old('is_active', '1') ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Unit Aktif</label>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Kotak (Bagan Organisasi)</label>
+                <div class="flex items-center gap-1.5 mb-1">
+                    <label class="block text-sm font-medium text-gray-700">Warna Kotak (Bagan Organisasi)</label>
+                    <div class="group relative inline-flex items-center">
+                        <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="hidden group-hover:block absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-gray-800 text-white text-xs leading-relaxed rounded-lg px-3 py-2 shadow-lg z-10">
+                            Warna ini dipakai untuk kotak unit ini di Bagan Organisasi. Kalau "Otomatis sesuai level" dicentang, warnanya ikut Level Struktural unit ini — hilangkan centang untuk pilih warna sendiri lewat kotak warna di sampingnya.
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="flex items-center gap-3">
                     <label class="flex items-center gap-2 text-sm text-gray-600">
-                        <input type="checkbox" id="color-auto" onchange="toggleColorAuto(this)" {{ old('color') ? '' : 'checked' }} class="w-4 h-4 text-violet-600 rounded">
+                        <input type="checkbox" id="color-auto" onchange="toggleColorAuto(this)" {{ old('color') ? '' : 'checked' }} class="w-4 h-4 text-blue-600 rounded">
                         Otomatis sesuai level
                     </label>
                     <input type="color" name="color" id="color-input" value="{{ old('color', '#1d4ed8') }}"
-                           class="w-12 h-9 border border-gray-300 rounded-lg cursor-pointer" {{ old('color') ? '' : 'disabled' }}>
+                           class="w-12 h-9 border border-gray-300 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" {{ old('color') ? '' : 'disabled' }}>
+                </div>
+                <div id="color-preview-bar" class="w-full h-10 rounded-lg border border-gray-200 flex items-center px-3 mt-2 transition-colors">
+                    <span id="color-preview-label" class="text-xs font-semibold"></span>
                 </div>
                 @error('color')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan Unit</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan Unit</button>
                 <a href="{{ route('organization-units.index', ['company_id' => $selectedCompany]) }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -117,9 +131,48 @@
 $(function () {
     $('#sel-parent').select2({ placeholder: '— Tanpa Parent (Level 1) —', allowClear: true, width: '100%' });
     $('#sel-head').select2({ placeholder: '— Tidak ada —', allowClear: true, width: '100%' });
+    $('#sel-parent').on('change', updateColorPreview);
+    updateColorPreview();
 });
+
+const ORG_COLOR_PALETTE = ['#1d4ed8', '#7c3aed', '#db2777', '#d97706', '#0891b2', '#16a34a'];
+
 function toggleColorAuto(checkbox) {
     document.getElementById('color-input').disabled = checkbox.checked;
+    updateColorPreview();
 }
+
+function currentOrgLevel() {
+    const sel = document.getElementById('sel-parent');
+    const opt = sel.options[sel.selectedIndex];
+    const parentLevel = opt && opt.value ? parseInt(opt.dataset.level || '1', 10) : 0;
+    return parentLevel + 1;
+}
+
+function readableTextColor(hex) {
+    const c = hex.replace('#', '');
+    if (c.length !== 6) return '#ffffff';
+    const r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6 ? '#111827' : '#ffffff';
+}
+
+function updateColorPreview() {
+    const bar   = document.getElementById('color-preview-bar');
+    const label = document.getElementById('color-preview-label');
+    if (!bar || !label) return;
+
+    const auto  = document.getElementById('color-auto').checked;
+    const level = currentOrgLevel();
+    const color = auto ? ORG_COLOR_PALETTE[(level - 1) % ORG_COLOR_PALETTE.length] : document.getElementById('color-input').value;
+
+    bar.style.backgroundColor = color;
+    label.style.color = readableTextColor(color);
+    label.textContent = auto
+        ? `Otomatis — Level ${level} (${color})`
+        : `Warna custom (${color})`;
+}
+
+document.getElementById('color-input').addEventListener('input', updateColorPreview);
 </script>
 @endpush

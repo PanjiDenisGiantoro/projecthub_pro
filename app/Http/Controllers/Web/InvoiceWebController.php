@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Invoice;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -27,7 +30,7 @@ class InvoiceWebController extends Controller
             $query->where('client_id', $user->id);
         }
 
-        $invoices = $query->latest()->paginate(15);
+        $invoices = $query->latest()->paginate($this->perPage($request))->withQueryString();
         return view('invoices.index', compact('invoices'));
     }
 

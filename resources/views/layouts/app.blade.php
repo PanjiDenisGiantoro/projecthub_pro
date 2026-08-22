@@ -6,6 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
     <title>@yield('title', 'Dashboard') — Flovig</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -49,7 +53,7 @@
                     @if(auth()->user()->avatar)
                         <img src="{{ Storage::url(auth()->user()->avatar) }}"
                              alt="{{ auth()->user()->name }}"
-                             class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-indigo-400 transition-all shrink-0">
+                             class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-blue-400 transition-all shrink-0">
                     @else
                         <div class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
@@ -57,7 +61,7 @@
                     @endif
                     <div class="flex-1 min-w-0">
                         <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ auth()->user()->getRoleNames()->first() }}</p>
+                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
                     </div>
                     <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200"
                          style="color:var(--ph-user-chev)"
@@ -108,7 +112,7 @@
                             </span>
                             <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
                                     class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
-                                    :class="enabled ? 'bg-violet-600' : 'bg-gray-400/50'">
+                                    :class="enabled ? 'bg-blue-600' : 'bg-gray-400/50'">
                                 <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
                                       :class="enabled ? 'translate-x-4' : 'translate-x-0.5'"></span>
                             </button>
@@ -162,10 +166,10 @@
                 @endif
                 <div class="flex-1 min-w-0">
                     <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                    <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ auth()->user()->getRoleNames()->first() }}</p>
+                    <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
                 </div>
                 @if(auth()->user()->is_super_admin)
-                    <a href="{{ route('superadmin.dashboard') }}" class="text-slate-400 hover:text-indigo-400 p-1.5 rounded-lg hover:bg-indigo-500/10 transition-colors shrink-0" title="Superadmin">
+                    <a href="{{ route('superadmin.dashboard') }}" class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-500/10 transition-colors shrink-0" title="Superadmin">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
@@ -203,8 +207,9 @@
                 $userPackages = auth()->user()->is_super_admin
                     ? ['task_management', 'hris']
                     : auth()->user()->activePackages();
-                // HRIS disembunyikan sementara dari UI dashboard
-                $userPackages = array_values(array_diff($userPackages, ['hris']));
+                if (auth()->user()->hasRole('customer')) {
+                    $userPackages = array_values(array_diff($userPackages, ['hris']));
+                }
             @endphp
             @if(count($userPackages) > 1)
             <div class="fl-pkg-switcher hidden sm:flex items-center rounded-full p-0.5 shrink-0 ml-2">
@@ -278,10 +283,10 @@
                      style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
                     <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
                         <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifikasi</p>
-                        <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[11px] text-indigo-400 hover:text-indigo-300">Tandai semua dibaca</button>
+                        <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[11px] text-blue-400 hover:text-blue-300">Tandai semua dibaca</button>
                     </div>
                     <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak class="px-4 py-2.5 ph-drop-divider-b">
-                        <button @click="subscribePush()" class="w-full text-[11.5px] font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5">
+                        <button @click="subscribePush()" class="w-full text-[11.5px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
@@ -293,7 +298,7 @@
                             <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">Belum ada notifikasi.</p>
                         </template>
                         <template x-for="n in items" :key="n.id">
-                            <button @click="markRead(n)" class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors" :class="!n.read_at ? 'bg-indigo-500/5' : ''">
+                            <button @click="markRead(n)" class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors" :class="!n.read_at ? 'bg-blue-500/5' : ''">
                                 <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)" x-text="n.title"></p>
                                 <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message"></p>
                             </button>
@@ -416,6 +421,7 @@
             @endif
             @yield('content')
         </main>
+
     </div>
 </div>
 

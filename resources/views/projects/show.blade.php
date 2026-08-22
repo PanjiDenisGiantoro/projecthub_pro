@@ -2,6 +2,37 @@
 
 @section('title', $project->name)
 
+@push('head')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<style>
+.select2-container--default .select2-selection--multiple {
+    min-height: 42px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99,102,241,.25) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #eef2ff !important;
+    border: 1px solid #c7d2fe !important;
+    color: #4338ca !important;
+    border-radius: 0.375rem !important;
+    padding: 1px 6px !important;
+    font-size: 0.75rem !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #6366f1 !important;
+    margin-right: 4px !important;
+}
+.select2-dropdown { border: 1px solid #d1d5db !important; border-radius: 0.5rem !important; font-size: 0.875rem !important; }
+.select2-results__option--highlighted { background-color: #6366f1 !important; }
+.select2-search--dropdown .select2-search__field { border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.375rem 0.625rem !important; font-size: 0.875rem !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="py-8"
      x-data="{ tab: new URLSearchParams(location.search).get('tab') || 'overview' }">
@@ -19,9 +50,27 @@
         ];
         $sc       = $statusConfig[$project->status] ?? ['label' => ucfirst($project->status), 'class' => 'bg-gray-100 text-gray-700', 'dot' => 'bg-gray-400'];
         $progress = $project->progress ?? 0;
-        $totalTasks = $project->tasks->count();
-        $doneTasks  = $project->tasks->where('status','done')->count();
-        $daysLeft   = $project->end_date ? (int) now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($project->end_date)->startOfDay(), false) : null;
+        $totalTasks = $project->tasks()->count();
+        $doneTasks  = $project->tasks()->where('status', 'done')->count();
+
+        // Sisa hari = total hari kerja dari task, sprint, dan ticket yang belum beres
+        // (dijumlahkan, bukan cuma satu tanggal selesai proyek yang statis).
+        $today = now()->startOfDay();
+
+        $openTaskDays = $project->tasks()->where('status', '!=', 'done')->whereNotNull('due_date')->pluck('due_date')
+            ->sum(fn($d) => max(0, $today->diffInDays(\Carbon\Carbon::parse($d)->startOfDay(), false)));
+
+        $openSprintDays = $project->sprints()->where('status', '!=', 'completed')->whereNotNull('end_date')->pluck('end_date')
+            ->sum(fn($d) => max(0, $today->diffInDays(\Carbon\Carbon::parse($d)->startOfDay(), false)));
+
+        $openTicketDays = $project->tickets()->whereNotIn('status', ['resolved', 'closed'])->whereNotNull('sla_due_at')->pluck('sla_due_at')
+            ->sum(fn($d) => max(0, $today->diffInDays(\Carbon\Carbon::parse($d)->startOfDay(), false)));
+
+        $hasOpenItems = $project->tasks()->where('status', '!=', 'done')->whereNotNull('due_date')->exists()
+            || $project->sprints()->where('status', '!=', 'completed')->whereNotNull('end_date')->exists()
+            || $project->tickets()->whereNotIn('status', ['resolved', 'closed'])->whereNotNull('sla_due_at')->exists();
+
+        $daysLeft = $hasOpenItems ? (int) ($openTaskDays + $openSprintDays + $openTicketDays) : null;
 
         $tabs = [
             ['key' => 'overview',   'label' => 'Overview',   'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
@@ -34,10 +83,8 @@
             ['key' => 'kb',         'label' => 'Knowledge Base', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>'],
             ['key' => 'files',      'label' => 'File Arsip', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
             ['key' => 'budget',     'label' => 'Modal Budget', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
-            ['key' => 'risks',      'label' => 'Risiko',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"/>'],
             ['key' => 'recurring',  'label' => 'Recurring',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
             ['key' => 'portal',     'label' => 'Portal',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
-            ['key' => 'github',     'label' => 'Code',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/>'],
             ['key' => 'notif',      'label' => 'Notifikasi', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>'],
             ['key' => 'chat',       'label' => 'Chat',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
         ];
@@ -47,7 +94,7 @@
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
-        <a href="{{ route('projects.index') }}" class="hover:text-indigo-600 transition">Proyek</a>
+        <a href="{{ route('projects.index') }}" class="hover:text-blue-600 transition">Proyek</a>
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         <span class="text-gray-600 truncate max-w-[200px]">{{ $project->name }}</span>
     </div>
@@ -63,7 +110,7 @@
                 <button
                     @click="tab = '{{ $t['key'] }}'"
                     :class="tab === '{{ $t['key'] }}'
-                        ? 'bg-white border-indigo-400 text-indigo-700 shadow-sm'
+                        ? 'bg-white border-blue-400 text-blue-700 shadow-sm'
                         : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
                     class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-sm font-medium transition-all">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
@@ -83,7 +130,7 @@
                 <button
                     @click="tab = '{{ $t['key'] }}'"
                     :class="tab === '{{ $t['key'] }}'
-                        ? 'bg-white border-indigo-400 text-indigo-700 shadow-sm'
+                        ? 'bg-white border-blue-400 text-blue-700 shadow-sm'
                         : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
                     class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-sm font-medium transition-all">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
@@ -146,7 +193,7 @@
                         <form method="POST" action="{{ route('projects.meeting.create', $project) }}">
                             @csrf
                             <button type="submit"
-                                    class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50 transition">
+                                    class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
                                 Buat Meeting
                             </button>
                         </form>
@@ -154,7 +201,7 @@
 
                     @if(!auth()->user()->hasRole('customer'))
                     <a href="{{ route('projects.edit', $project) }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                       class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
                         </svg>
@@ -169,10 +216,10 @@
         <div class="px-4 sm:px-6 pb-5">
             <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
                 <span class="font-medium text-gray-700">Progress Keseluruhan</span>
-                <span class="font-semibold {{ $progress >= 100 ? 'text-green-600' : ($progress >= 70 ? 'text-indigo-600' : 'text-gray-600') }}">{{ $progress }}%</span>
+                <span class="font-semibold {{ $progress >= 100 ? 'text-green-600' : ($progress >= 70 ? 'text-blue-600' : 'text-gray-600') }}">{{ $progress }}%</span>
             </div>
             <div class="w-full bg-gray-100 rounded-full h-2">
-                <div class="h-2 rounded-full transition-all {{ $progress >= 100 ? 'bg-green-500' : 'bg-indigo-500' }}"
+                <div class="h-2 rounded-full transition-all {{ $progress >= 100 ? 'bg-green-500' : 'bg-blue-500' }}"
                      style="width: {{ min($progress, 100) }}%"></div>
             </div>
         </div>
@@ -188,22 +235,19 @@
                 <p class="text-xs text-green-600/70 mb-1">Selesai</p>
                 <p class="text-xl font-bold text-green-700">{{ $doneTasks }}</p>
             </div>
-            <div class="bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-indigo-600/70 mb-1">Anggota</p>
-                <p class="text-xl font-bold text-indigo-700">{{ $project->members->count() }}</p>
+            <div class="bg-blue-50 rounded-xl border border-blue-100 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-blue-600/70 mb-1">Anggota</p>
+                <p class="text-xl font-bold text-blue-700">{{ $project->members->count() }}</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
                 @if($daysLeft === null)
-                    <p class="text-xs text-gray-400 mb-1">Deadline</p>
+                    <p class="text-xs text-gray-400 mb-1">Sisa Hari Kerja</p>
                     <p class="text-xl font-bold text-gray-400">—</p>
-                @elseif($daysLeft < 0)
-                    <p class="text-xs text-red-400 mb-1">Terlambat</p>
-                    <p class="text-xl font-bold text-red-600">{{ abs($daysLeft) }}h</p>
                 @elseif($daysLeft === 0)
-                    <p class="text-xs text-orange-400 mb-1">Deadline</p>
-                    <p class="text-xl font-bold text-orange-600">Hari ini</p>
+                    <p class="text-xs text-orange-400 mb-1">Sisa Hari Kerja</p>
+                    <p class="text-xl font-bold text-orange-600">Jatuh tempo</p>
                 @else
-                    <p class="text-xs text-gray-400 mb-1">Sisa hari</p>
+                    <p class="text-xs text-gray-400 mb-1">Sisa Hari Kerja</p>
                     <p class="text-xl font-bold text-blue-700">{{ $daysLeft }}h</p>
                 @endif
             </div>
@@ -276,7 +320,7 @@
             </div>
             @if(!auth()->user()->hasRole('customer'))
             <button @click="showAddTask = !showAddTask"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition">
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -287,16 +331,16 @@
 
         {{-- Add Task Form --}}
         @if(!auth()->user()->hasRole('customer'))
-        <div x-show="showAddTask" x-cloak class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+        <div x-show="showAddTask" x-cloak class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
             <form action="{{ route('tasks.store', $project) }}" method="POST">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                     <div class="lg:col-span-2">
                         <input type="text" name="title" placeholder="Judul task *" required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="low">Rendah</option>
                             <option value="medium" selected>Sedang</option>
                             <option value="high">Tinggi</option>
@@ -304,7 +348,7 @@
                         </select>
                     </div>
                     <div>
-                        <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">— Assignee —</option>
                             @foreach($developers as $dev)
                                 <option value="{{ $dev->id }}">{{ $dev->name }}</option>
@@ -313,14 +357,14 @@
                     </div>
                     <div>
                         <input type="date" name="start_date" placeholder="Start date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <input type="date" name="due_date" placeholder="Due date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select name="milestone_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">— Milestone —</option>
                             @foreach($project->milestones as $ms)
                                 <option value="{{ $ms->id }}">{{ $ms->title }}</option>
@@ -329,11 +373,11 @@
                     </div>
                     <div>
                         <input type="number" name="estimated_hours" min="1" placeholder="Estimasi (jam)"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition">Simpan Task</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">Simpan Task</button>
                     <button type="button" @click="showAddTask = false"
                             class="px-4 py-2 bg-white text-gray-600 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">Batal</button>
                 </div>
@@ -354,7 +398,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
                             <a href="{{ route('tasks.show', [$project, $task]) }}"
-                               class="font-medium text-gray-800 hover:text-indigo-600 text-sm truncate">{{ $task->title }}</a>
+                               class="font-medium text-gray-800 hover:text-blue-600 text-sm truncate">{{ $task->title }}</a>
                             <span class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium {{ $tPc[$task->priority] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst($task->priority) }}</span>
                             @if($taskOverdue)
                                 <span class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600">Overdue</span>
@@ -387,7 +431,7 @@
                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $tSc[$task->status] ?? 'bg-gray-100 text-gray-600' }}">
                             {{ ucwords(str_replace('_',' ',$task->status)) }}
                         </span>
-                        <a href="{{ route('tasks.show', [$project, $task]) }}" class="text-gray-400 hover:text-indigo-600 transition-colors">
+                        <a href="{{ route('tasks.show', [$project, $task]) }}" class="text-gray-400 hover:text-blue-600 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </a>
                     </div>
@@ -397,7 +441,7 @@
                 <div class="px-4 pb-3">
                     <div class="flex items-center gap-2">
                         <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="h-1.5 rounded-full {{ $tPct >= 100 ? 'bg-red-400' : 'bg-indigo-400' }}" style="width: {{ $tPct }}%"></div>
+                            <div class="h-1.5 rounded-full {{ $tPct >= 100 ? 'bg-red-400' : 'bg-blue-400' }}" style="width: {{ $tPct }}%"></div>
                         </div>
                         <span class="text-xs text-gray-400">{{ round($task->totalMinutes()/60,1) }}j / {{ $task->estimated_hours }}j</span>
                     </div>
@@ -447,7 +491,7 @@
                              ondragstart="kbDragStart(event)"
                              ondragend="kbDragEnd(event)">
                             <a href="{{ route('tasks.show', [$project, $task]) }}"
-                               class="text-sm font-medium text-gray-800 hover:text-indigo-600 leading-snug block mb-1.5">{{ $task->title }}</a>
+                               class="text-sm font-medium text-gray-800 hover:text-blue-600 leading-snug block mb-1.5">{{ $task->title }}</a>
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="text-xs px-1.5 py-0.5 rounded {{ $tPc[$task->priority] ?? '' }}">{{ ucfirst($task->priority) }}</span>
                                 @if($kOver)
@@ -456,7 +500,7 @@
                             </div>
                             @if($task->assignee)
                             <div class="flex items-center gap-1.5 mt-2">
-                                <div class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                <div class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center shrink-0">
                                     {{ strtoupper(substr($task->assignee->name,0,1)) }}
                                 </div>
                                 <span class="text-xs text-gray-500">{{ $task->assignee->name }}</span>
@@ -510,13 +554,13 @@
                 </label>
                 <textarea id="kb-modal-notes" rows="4"
                           placeholder="Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting lainnya..."
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
             </div>
 
             <div class="flex gap-3">
                 <button id="kb-modal-submit"
                         onclick="kbModalSubmit()"
-                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
                     Simpan
                 </button>
                 <button onclick="kbModalCancel()"
@@ -544,7 +588,7 @@
             <h2 class="text-base font-semibold text-gray-900">Milestones</h2>
             @if(!auth()->user()->hasRole('customer'))
             <button @click="showAddMilestone = !showAddMilestone"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition">
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -555,27 +599,27 @@
 
         {{-- Add Milestone Form --}}
         @if(!auth()->user()->hasRole('customer'))
-        <div x-show="showAddMilestone" x-cloak class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-5">
+        <div x-show="showAddMilestone" x-cloak class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
             <form action="{{ route('milestones.store', $project) }}" method="POST">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                     <div class="lg:col-span-2">
                         <input type="text" name="title" placeholder="Nama milestone *" required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <input type="date" name="start_date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <input type="date" name="due_date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Assignee (PIC)</label>
-                        <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">— Tidak ditugaskan —</option>
                             @foreach($developers as $dev)
                                 <option value="{{ $dev->id }}">{{ $dev->name }}</option>
@@ -584,7 +628,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="pending">Pending</option>
                             <option value="in_progress">In Progress</option>
                             <option value="completed">Completed</option>
@@ -593,10 +637,10 @@
                 </div>
                 <div class="mb-3">
                     <textarea name="description" rows="2" placeholder="Deskripsi (opsional)"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition">Simpan Milestone</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">Simpan Milestone</button>
                     <button type="button" @click="showAddMilestone = false"
                             class="px-4 py-2 bg-white text-gray-600 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">Batal</button>
                 </div>
@@ -672,7 +716,7 @@
                                 @if(!auth()->user()->hasRole('customer'))
                                 <div class="flex gap-1.5 shrink-0">
                                     <button @click="editing = true"
-                                            class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit">
+                                            class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z"/></svg>
                                     </button>
                                     <form method="POST" action="{{ route('milestones.destroy', [$project, $ms]) }}"
@@ -706,7 +750,7 @@
                             {{-- Assignee --}}
                             @if($ms->assignee)
                             <div class="flex items-center gap-1.5 mt-1.5">
-                                <div class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                                <div class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
                                     {{ strtoupper(substr($ms->assignee->name, 0, 1)) }}
                                 </div>
                                 <span class="text-xs text-gray-500">{{ $ms->assignee->name }}</span>
@@ -738,7 +782,7 @@
                                 @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
                                     <form method="POST" action="{{ route('milestones.meeting.create', [$project, $ms]) }}">
                                         @csrf
-                                        <button type="submit" class="text-xs font-medium px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100">
+                                        <button type="submit" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
                                             Buat Meeting
                                         </button>
                                     </form>
@@ -770,7 +814,7 @@
                             <span class="{{ $mOverdue ? 'text-red-500 font-medium' : '' }}">{{ $ms->due_date->format('d M Y') }}</span>
                         </div>
                         <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden relative">
-                            <div class="h-2.5 rounded-full {{ $mOverdue ? 'bg-red-400' : 'bg-indigo-400' }} transition-all"
+                            <div class="h-2.5 rounded-full {{ $mOverdue ? 'bg-red-400' : 'bg-blue-400' }} transition-all"
                                  style="width: {{ $mTimelinePct }}%"></div>
                         </div>
                     </div>
@@ -794,24 +838,24 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Nama Milestone <span class="text-red-500">*</span></label>
                             <input type="text" name="title" value="{{ $ms->title }}" required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
                                 <input type="date" name="start_date" value="{{ $ms->start_date?->format('Y-m-d') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
                                 <input type="date" name="due_date" value="{{ $ms->due_date?->format('Y-m-d') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Assignee (PIC)</label>
-                                <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">— Tidak ditugaskan —</option>
                                     @foreach($developers as $dev)
                                         <option value="{{ $dev->id }}" {{ $ms->assigned_to == $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
@@ -820,7 +864,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                                <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="pending"     {{ ($ms->status ?? 'pending') === 'pending'     ? 'selected' : '' }}>Pending</option>
                                     <option value="in_progress" {{ ($ms->status ?? '') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                     <option value="completed"   {{ ($ms->status ?? '') === 'completed'   ? 'selected' : '' }}>Completed</option>
@@ -830,10 +874,10 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                             <textarea name="description" rows="2"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">{{ $ms->description }}</textarea>
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ $ms->description }}</textarea>
                         </div>
                         <div class="flex gap-2 pt-1">
-                            <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition">Simpan</button>
+                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition">Simpan</button>
                             <button type="button" @click="editing = false"
                                     class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium px-4 py-2 rounded-lg transition">Batal</button>
                         </div>
@@ -855,7 +899,7 @@
                 <h2 class="text-base font-semibold text-gray-900">Tiket Terkini</h2>
                 <div class="flex gap-2">
                     <a href="{{ route('tickets.create', $project) }}"
-                       class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition">
+                       class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -899,7 +943,7 @@
                                 onclick="window.location='{{ route('tickets.show', $ticket) }}'">
                                 <td class="px-6 py-3">
                                     <a href="{{ route('tickets.show', $ticket) }}"
-                                       class="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors">
+                                       class="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors">
                                         {{ $ticket->title }}
                                     </a>
                                 </td>
@@ -916,7 +960,7 @@
                                 </td>
                                 <td class="px-6 py-3 text-right">
                                     <a href="{{ route('tickets.show', $ticket) }}"
-                                       class="text-gray-400 hover:text-indigo-600 transition-colors">
+                                       class="text-gray-400 hover:text-blue-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </a>
                                 </td>
@@ -951,7 +995,7 @@
                     </div>
                     @if(!auth()->user()->hasRole('customer'))
                     <button @click="showAddMember = !showAddMember"
-                            :class="showAddMember ? 'bg-gray-100 text-gray-700' : 'bg-indigo-600 text-white hover:bg-indigo-700'"
+                            :class="showAddMember ? 'bg-gray-100 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -965,7 +1009,7 @@
                     @forelse($project->members as $member)
                     <li class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition group">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm uppercase shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm uppercase shrink-0">
                                 {{ strtoupper(substr($member->user->name ?? '?', 0, 2)) }}
                             </div>
                             <div>
@@ -974,17 +1018,6 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
-                            @if($member->role)
-                            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                {{ $member->role }}
-                            </span>
-                            @endif
-                            @if($member->max_hours_per_day)
-                            <span class="hidden sm:flex items-center gap-1 text-xs text-gray-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                {{ $member->max_hours_per_day }}j/hari
-                            </span>
-                            @endif
                             @if(!auth()->user()->hasRole('customer'))
                             <form method="POST" action="{{ route('projects.members.remove', [$project, $member->user]) }}"
                                   class="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1033,13 +1066,12 @@
                             <label class="block text-xs font-medium text-gray-700 mb-1.5">
                                 Anggota <span class="text-red-500">*</span>
                             </label>
-                            <select name="user_id" required
-                                    class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition
-                                           {{ $errors->has('user_id') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
-                                <option value="">— Pilih Developer —</option>
-                                @foreach($developers as $dev)
-                                    <option value="{{ $dev->id }}" {{ old('user_id') == $dev->id ? 'selected' : '' }}>
-                                        {{ $dev->name }}
+                            <select id="member-select" name="user_id[]" required multiple
+                                    class="w-full"
+                                    style="width:100%">
+                                @foreach($companyUsers as $u)
+                                    <option value="{{ $u->id }}" {{ collect(old('user_id'))->contains($u->id) ? 'selected' : '' }}>
+                                        {{ $u->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -1051,56 +1083,8 @@
                             @enderror
                         </div>
 
-                        {{-- Role / Posisi --}}
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                                Posisi dalam Tim
-                                <span class="text-gray-400 font-normal">(opsional)</span>
-                            </label>
-                            <select name="role"
-                                    class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition
-                                           {{ $errors->has('role') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
-                                <option value="">— Pilih Posisi —</option>
-                                @foreach($structuralLevels as $level)
-                                    <option value="{{ $level->name }}" {{ old('role') === $level->name ? 'selected' : '' }}>
-                                        {{ $level->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('role')
-                            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                                {{ $message }}
-                            </p>
-                            @enderror
-                        </div>
-
-                        {{-- Maks jam/hari --}}
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                                Kapasitas Kerja
-                                <span class="text-gray-400 font-normal">(opsional)</span>
-                            </label>
-                            <div class="relative">
-                                <input type="number" name="max_hours_per_day"
-                                       value="{{ old('max_hours_per_day') }}"
-                                       min="1" max="24"
-                                       placeholder="8"
-                                       class="w-full pl-3 pr-16 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition
-                                              {{ $errors->has('max_hours_per_day') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">jam/hari</span>
-                            </div>
-                            @error('max_hours_per_day')
-                            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                                {{ $message }}
-                            </p>
-                            @enderror
-                            <p class="mt-1 text-xs text-gray-400">Rentang: 1 – 24 jam per hari</p>
-                        </div>
-
                         <button type="submit"
-                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                             </svg>
@@ -1121,7 +1105,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-base font-semibold text-gray-900 mb-3">Knowledge Base</h2>
             <a href="{{ route('kb.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 Buka Knowledge Base &rarr;
             </a>
         </div>
@@ -1131,33 +1115,7 @@
          TAB: TIMESHEET
     ============================================================ --}}
     <div x-show="tab === 'timesheet'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">Timesheet</h2>
-            <div class="flex flex-wrap gap-3 mb-4">
-                <a href="{{ route('projects.timesheet', $project) }}"
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
-                    Buka Timesheet &rarr;
-                </a>
-                <a href="{{ route('export.timesheet.excel', $project) }}"
-                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    Export Excel
-                </a>
-                <a href="{{ route('export.timesheet.pdf', $project) }}"
-                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    Export PDF
-                </a>
-                <a href="{{ route('export.report.pdf', $project) }}"
-                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition">
-                    Laporan PDF
-                </a>
-                <a href="{{ route('export.report.excel', $project) }}"
-                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition">
-                    Laporan Excel
-                </a>
-            </div>
-        </div>
+        @include('projects.partials.timesheet-content')
     </div>
 
     {{-- ============================================================
@@ -1167,7 +1125,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-base font-semibold text-gray-900 mb-4">Sprint Planning</h2>
             <a href="{{ route('sprints.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 Kelola Sprints &rarr;
             </a>
         </div>
@@ -1180,7 +1138,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-base font-semibold text-gray-900 mb-4">File Manager</h2>
             <a href="{{ route('project.files.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 Buka File Manager &rarr;
             </a>
         </div>
@@ -1198,7 +1156,7 @@
             <div class="flex items-start justify-between mb-4">
                 <h2 class="text-base font-semibold text-gray-900">Budget Tracking</h2>
                 <a href="{{ route('budget.index', $project) }}"
-                   class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Kelola →</a>
+                   class="text-sm text-blue-600 hover:text-blue-800 font-medium">Kelola →</a>
             </div>
             @if($project->budget)
             <div class="grid grid-cols-3 gap-4 mb-4">
@@ -1226,39 +1184,8 @@
                 </div>
             </div>
             @else
-            <p class="text-sm text-gray-400">Budget belum diset. <a href="{{ route('budget.index', $project) }}" class="text-indigo-600 hover:underline">Kelola anggaran →</a></p>
+            <p class="text-sm text-gray-400">Budget belum diset. <a href="{{ route('budget.index', $project) }}" class="text-blue-600 hover:underline">Kelola anggaran →</a></p>
             @endif
-        </div>
-    </div>
-
-    {{-- ============================================================
-         TAB: RISKS
-    ============================================================ --}}
-    <div x-show="tab === 'risks'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div class="flex items-start justify-between mb-4">
-                <h2 class="text-base font-semibold text-gray-900">Risk Register</h2>
-                <a href="{{ route('risks.index', $project) }}"
-                   class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Lihat Semua →</a>
-            </div>
-            @php
-                $openRisks = $project->risks()->where('status','open')->count();
-                $highRisks = $project->risks()->where('status','open')->whereRaw('probability * impact >= 8')->count();
-            @endphp
-            <div class="grid grid-cols-3 gap-4">
-                <div class="bg-gray-50 rounded-lg p-3 text-center">
-                    <p class="text-2xl font-bold text-gray-800">{{ $project->risks()->count() }}</p>
-                    <p class="text-xs text-gray-400">Total Risiko</p>
-                </div>
-                <div class="bg-yellow-50 rounded-lg p-3 text-center">
-                    <p class="text-2xl font-bold text-yellow-600">{{ $openRisks }}</p>
-                    <p class="text-xs text-gray-400">Terbuka</p>
-                </div>
-                <div class="bg-red-50 rounded-lg p-3 text-center">
-                    <p class="text-2xl font-bold text-red-600">{{ $highRisks }}</p>
-                    <p class="text-xs text-gray-400">High/Critical</p>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1270,7 +1197,7 @@
             <h2 class="text-base font-semibold text-gray-900 mb-4">Recurring Tasks</h2>
             <p class="text-sm text-gray-500 mb-4">{{ $project->recurringTasks()->where('is_active', true)->count() }} recurring task aktif.</p>
             <a href="{{ route('recurring.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 Kelola Recurring Tasks &rarr;
             </a>
         </div>
@@ -1284,26 +1211,8 @@
             <h2 class="text-base font-semibold text-gray-900 mb-4">Client Portal</h2>
             <p class="text-sm text-gray-500 mb-4">{{ $project->portalTokens()->count() }} portal link dibuat. Bagikan link khusus kepada klien untuk melihat progress proyek.</p>
             <a href="{{ route('portal.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 Kelola Portal Link &rarr;
-            </a>
-        </div>
-    </div>
-
-    {{-- ============================================================
-         TAB: GITHUB (CODE)
-    ============================================================ --}}
-    <div x-show="tab === 'github'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">Integrasi GitHub</h2>
-            @if($project->hasGithubIntegration())
-                <p class="text-sm text-gray-500 mb-4 font-mono">{{ $project->githubOwnerRepo() }}</p>
-            @else
-                <p class="text-sm text-gray-500 mb-4">Belum terhubung ke repo GitHub manapun.</p>
-            @endif
-            <a href="{{ route('github.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
-                {{ $project->hasGithubIntegration() ? 'Lihat Commit & PR' : 'Hubungkan Repo GitHub' }} &rarr;
             </a>
         </div>
     </div>
@@ -1324,7 +1233,7 @@
             </div>
             <p class="text-sm text-gray-500 mb-4">Kirim notifikasi otomatis ke channel Slack/Discord saat ada task atau tiket baru.</p>
             <a href="{{ route('team-notifications.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
                 Kelola Notifikasi &rarr;
             </a>
         </div>
@@ -1378,7 +1287,7 @@
     };
 
     window.kbDragOver = function (col) {
-        col.classList.add('ring-2', 'ring-indigo-400', 'bg-indigo-50');
+        col.classList.add('ring-2', 'ring-blue-400', 'bg-blue-50');
     };
 
     window.kbDragLeave = function (col) {
@@ -1475,7 +1384,7 @@
     }
 
     function _clearDropStyle(col) {
-        col.classList.remove('ring-2', 'ring-indigo-400', 'bg-indigo-50');
+        col.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-50');
     }
 
     function _removeEmpty(col) {
@@ -1510,5 +1419,19 @@
         toast._timer = setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 })();
+</script>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(function () {
+    $('#member-select').select2({
+        placeholder: '— Pilih Anggota —',
+        allowClear: true,
+        width: '100%',
+    });
+});
 </script>
 @endpush

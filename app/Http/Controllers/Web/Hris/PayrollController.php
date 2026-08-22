@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Payroll;
 use App\Models\User;
@@ -12,6 +13,8 @@ use Illuminate\Http\Request;
 
 class PayrollController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private PayrollService $payrollService, private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -26,7 +29,8 @@ class PayrollController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->orderBy('created_at')
-            ->paginate(30);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         $employees = $user->can('view payroll')
             ? User::where('company_id', $user->company_id)->where('is_active', true)->get()

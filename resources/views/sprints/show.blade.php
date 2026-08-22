@@ -40,13 +40,13 @@
                     @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
                         <form method="POST" action="{{ route('sprints.meeting.create', [$project, $sprint]) }}">
                             @csrf
-                            <button type="submit" class="px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50">
+                            <button type="submit" class="px-3 py-1.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50">
                                 Buat Meeting
                             </button>
                         </form>
                         <form method="POST" action="{{ route('sprints.standup.create', [$project, $sprint]) }}">
                             @csrf
-                            <button type="submit" class="px-3 py-1.5 text-xs font-medium text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-50">
+                            <button type="submit" class="px-3 py-1.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50">
                                 Buat Standup Harian
                             </button>
                         </form>

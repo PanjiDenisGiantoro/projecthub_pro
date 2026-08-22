@@ -11,7 +11,7 @@
            class="group bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <p class="text-2xl font-bold text-gray-900">{{ $stats['companies'] }}</p>
             </div>
@@ -19,10 +19,10 @@
         </a>
 
         <a href="{{ route('organization-units.index') }}"
-           class="group bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition-all">
+           class="group bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all">
             <div class="flex items-center gap-3 mb-2">
-                <div class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 </div>
                 <p class="text-2xl font-bold text-gray-900">{{ $stats['organization_units'] }}</p>
             </div>
@@ -46,7 +46,7 @@
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 class="font-semibold text-gray-800 text-sm">Struktur Organisasi</h2>
-            <a href="{{ route('organization-units.index') }}" class="text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors">Kelola unit &rarr;</a>
+            <a href="{{ route('organization-units.index') }}" class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">Kelola unit &rarr;</a>
         </div>
 
         <div class="p-6 overflow-x-auto">
@@ -57,8 +57,8 @@
                     $color   = $palette[$company->id % count($palette)];
                     $colorMap = [
                         'blue'    => ['light'=>'bg-blue-50',    'text'=>'text-blue-700'],
-                        'indigo'  => ['light'=>'bg-indigo-50',  'text'=>'text-indigo-700'],
-                        'violet'  => ['light'=>'bg-violet-50',  'text'=>'text-violet-700'],
+                        'indigo'  => ['light'=>'bg-blue-50',  'text'=>'text-blue-700'],
+                        'violet'  => ['light'=>'bg-blue-50',  'text'=>'text-blue-700'],
                         'emerald' => ['light'=>'bg-emerald-50', 'text'=>'text-emerald-700'],
                         'rose'    => ['light'=>'bg-rose-50',    'text'=>'text-rose-700'],
                         'amber'   => ['light'=>'bg-amber-50',   'text'=>'text-amber-700'],
@@ -94,7 +94,7 @@
                     <div class="ml-5 pl-5 border-l-2 border-gray-100 space-y-1.5">
                         @foreach($company->orgTree as $unit)
                         <div class="flex items-center gap-2 group py-0.5" style="padding-left: {{ ($unit->level - 1) * 1.25 }}rem">
-                            <div class="w-2 h-2 rounded-full bg-indigo-300 flex-shrink-0"></div>
+                            <div class="w-2 h-2 rounded-full bg-blue-300 flex-shrink-0"></div>
                             <span class="text-sm text-gray-700 flex-1">{{ $unit->name }}</span>
                             <span class="text-xs text-gray-400 font-mono">L{{ $unit->code }}</span>
                             @if(!$unit->is_active)
@@ -114,13 +114,13 @@
                         @endforeach
                         <div class="pl-3.5 pt-1">
                             <a href="{{ route('organization-units.create', ['company_id' => $company->id]) }}"
-                               class="text-xs text-indigo-500 hover:text-indigo-700 transition-colors">+ Tambah unit</a>
+                               class="text-xs text-blue-500 hover:text-blue-700 transition-colors">+ Tambah unit</a>
                         </div>
                     </div>
                     @else
                     <div class="ml-5 pl-5">
                         <a href="{{ route('organization-units.create', ['company_id' => $company->id]) }}"
-                           class="text-xs text-indigo-500 hover:text-indigo-700 transition-colors">+ Tambah unit</a>
+                           class="text-xs text-blue-500 hover:text-blue-700 transition-colors">+ Tambah unit</a>
                     </div>
                     @endif
                 </div>
@@ -131,7 +131,7 @@
         </div>
 
         <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
-            <a href="{{ route('companies.create') }}" class="text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors">+ Tambah Perusahaan Baru</a>
+            <a href="{{ route('companies.create') }}" class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">+ Tambah Perusahaan Baru</a>
         </div>
     </div>
     @else
@@ -141,7 +141,7 @@
         </div>
         <p class="text-gray-700 font-medium mb-1">Mulai dengan menambahkan perusahaan</p>
         <p class="text-gray-400 text-sm mb-4">Kemudian tambahkan unit organisasi (divisi, departemen, dst) sesuai kebutuhan.</p>
-        <a href="{{ route('companies.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+        <a href="{{ route('companies.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Perusahaan
         </a>

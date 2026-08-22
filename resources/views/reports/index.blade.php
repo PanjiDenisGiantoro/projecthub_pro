@@ -12,7 +12,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($items as $key => $report)
             <a href="{{ route('reports.show', $key) }}"
-               class="block bg-white rounded-xl border border-gray-200 p-5 hover:border-violet-300 hover:shadow-sm transition">
+               class="block bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition">
                 <p class="font-semibold text-gray-800 mb-1">{{ $report['label'] }}</p>
                 <p class="text-xs text-gray-500">{{ $report['description'] }}</p>
             </a>

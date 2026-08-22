@@ -6,7 +6,7 @@
 <div class="space-y-6 pt-5">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900">Kasbon</h1>
-        <a href="{{ route('hris.payroll.index') }}" class="text-sm text-violet-600 hover:text-violet-800 font-medium">
+        <a href="{{ route('hris.payroll.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
             &larr; Kembali ke Penggajian
         </a>
     </div>
@@ -26,7 +26,7 @@
     {{-- Add Form --}}
     @can('create payroll')
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4" x-data="{ open: false }">
-        <button @click="open = !open" class="text-sm font-medium text-violet-700 hover:text-violet-900">
+        <button @click="open = !open" class="text-sm font-medium text-blue-700 hover:text-blue-900">
             + Tambah Kasbon
         </button>
         <div x-show="open" class="mt-4">
@@ -46,12 +46,15 @@
                        class="border border-gray-200 rounded-xl px-3 py-2 text-sm w-40">
                 <input type="text" name="keterangan" placeholder="Keterangan (opsional)"
                        class="border border-gray-200 rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px]">
-                <button class="px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700">Simpan</button>
+                <button class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Simpan</button>
             </form>
         </div>
     </div>
     @endcan
 
+    <div class="flex justify-end mb-2">
+        <x-per-page />
+    </div>
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50">
@@ -99,6 +102,9 @@
                 @endforelse
             </tbody>
         </table>
+        @if($kasbons->hasPages())
+        <div class="p-4">{{ $kasbons->links() }}</div>
+        @endif
     </div>
 </div>
 @endsection

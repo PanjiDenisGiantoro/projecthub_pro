@@ -31,7 +31,7 @@ class AnalyticsWebController extends Controller
         $openTickets   = BugTicket::whereNotIn('status', ['resolved', 'closed'])->count();
         $slaBreached   = BugTicket::where('sla_breached', true)
             ->whereNotIn('status', ['resolved', 'closed'])->count();
-        $newRequests   = CustomerRequest::where('status', 'pending')
+        $newRequests   = CustomerRequest::where('status', 'waiting_approval')
             ->where('created_at', '>=', $since)->count();
 
         // ── Task status breakdown ─────────────────────────────────────────────

@@ -45,13 +45,13 @@
         </div>
 
         <a href="mailto:sales@projecthubpro.id?subject={{ urlencode('Perpanjangan Akun Flovig' . ($email ? ' - '.$email : '')) }}"
-           class="w-full inline-flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+           class="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
             Hubungi Kami untuk Pembayaran
         </a>
 
         <p class="text-center text-sm text-gray-500 mt-5">
             Sudah melakukan pembayaran?
-            <a href="{{ route('login') }}" class="text-violet-600 hover:underline font-medium">Coba masuk lagi</a>
+            <a href="{{ route('login') }}" class="text-blue-600 hover:underline font-medium">Coba masuk lagi</a>
         </p>
     </div>
 </div>

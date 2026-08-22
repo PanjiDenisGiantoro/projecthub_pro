@@ -25,7 +25,7 @@
     {{-- ── Header ────────────────────────────────────────────────────── --}}
     <div class="flex items-center justify-between gap-3">
         <div>
-            <p class="text-xs font-bold uppercase tracking-widest" style="color:var(--lav-600,#8b5cf6)">HRIS</p>
+            <p class="text-xs font-bold uppercase tracking-widest" style="color:var(--lav-600,#2563eb)">HRIS</p>
             <h1 class="font-display text-2xl font-extrabold" style="color:var(--fl-text-h,#1a0a3d)">Absensi</h1>
             <p class="text-sm mt-0.5" style="color:var(--fl-text-muted,#6b7280)">
                 {{ $today->locale('id')->isoFormat('dddd, D MMMM Y') }}

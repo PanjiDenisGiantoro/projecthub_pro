@@ -1,4 +1,9 @@
 @import 'tailwindcss';
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -8,14 +13,14 @@
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
-    --color-primary-50:  #eef2ff;
-    --color-primary-100: #e0e7ff;
-    --color-primary-200: #c7d2fe;
-    --color-primary-400: #818cf8;
-    --color-primary-500: #6366f1;
-    --color-primary-600: #4f46e5;
-    --color-primary-700: #4338ca;
-    --color-primary-800: #3730a3;
+    --color-primary-50:  #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
 }
 
 /* ── Card ───────────────────────────────────────────────────────────────── */
@@ -36,14 +41,14 @@
 }
 
 /* ── Gradient stat card top strip ───────────────────────────────────────── */
-.card-stripe-indigo  { background: linear-gradient(90deg, #4f46e5, #7c3aed); }
+.card-stripe-indigo  { background: linear-gradient(90deg, #2563eb, #0891b2); }
 .card-stripe-blue    { background: linear-gradient(90deg, #2563eb, #0891b2); }
 .card-stripe-red     { background: linear-gradient(90deg, #dc2626, #ea580c); }
 .card-stripe-amber   { background: linear-gradient(90deg, #d97706, #ca8a04); }
 .card-stripe-emerald { background: linear-gradient(90deg, #059669, #0d9488); }
 
 /* ── Icon gradient backgrounds ──────────────────────────────────────────── */
-.icon-bg-indigo  { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+.icon-bg-indigo  { background: linear-gradient(135deg, #2563eb, #0891b2); }
 .icon-bg-blue    { background: linear-gradient(135deg, #2563eb, #0891b2); }
 .icon-bg-red     { background: linear-gradient(135deg, #dc2626, #ea580c); }
 .icon-bg-amber   { background: linear-gradient(135deg, #d97706, #ca8a04); }
@@ -92,6 +97,38 @@
     --ph-section-label: rgba(255,255,255,.4);
     --ph-close-fg:      rgba(255,255,255,.6);
     --ph-close-hover:   rgba(255,255,255,.08);
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
 }
 
 [data-theme="aurora"] {
@@ -323,11 +360,11 @@
     transition: all .15s;
     white-space: nowrap;
 }
-.theme-btn:hover { border-color: #c7d2fe; color: #4f46e5; }
+.theme-btn:hover { border-color: #bfdbfe; color: #2563eb; }
 .theme-btn.active {
-    border-color: #6366f1;
-    color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    border-color: #3b82f6;
+    color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.12);
 }
 .theme-swatch {
     width: 16px;
@@ -347,35 +384,35 @@
 
 /* ── Flovig Brand Tokens (always available) ───────────────────────────── */
 :root {
-    --lav-50:  #faf5ff; --lav-100: #f3e8ff; --lav-200: #e9d5ff;
-    --lav-300: #d8b4fe; --lav-400: #c4b5fd; --lav-500: #a78bfa;
-    --lav-600: #8b5cf6; --lav-700: #7c3aed; --lav-800: #6d28d9;
-    --lav-900: #5b21b6; --lav-950: #2e1065;
+    --lav-50:  #eff6ff; --lav-100: #dbeafe; --lav-200: #bfdbfe;
+    --lav-300: #93c5fd; --lav-400: #60a5fa; --lav-500: #3b82f6;
+    --lav-600: #2563eb; --lav-700: #1d4ed8; --lav-800: #1e40af;
+    --lav-900: #1e3a8a; --lav-950: #172554;
     --fl-success: #10b981; --fl-warning: #f59e0b;
     --fl-danger: #ef4444;  --fl-info: #3b82f6;
 
     /* ── Surface & UI tokens — DARK (default) ── */
-    --fl-page:              #09061a;
-    --fl-topbar-bg:         rgba(13,10,31,0.97);
-    --fl-topbar-border:     rgba(167,139,250,0.10);
-    --fl-topbar-title:      #f0ebff;
+    --fl-page:              #060814;
+    --fl-topbar-bg:         rgba(8,12,24,0.97);
+    --fl-topbar-border:     rgba(96,165,250,0.10);
+    --fl-topbar-title:      #eaf3ff;
     --fl-search-bg:         rgba(255,255,255,0.05);
-    --fl-search-border:     rgba(167,139,250,0.15);
-    --fl-search-text:       #e2d9f3;
-    --fl-search-ph:         rgba(167,139,250,0.35);
-    --fl-toggle-bg:         rgba(167,139,250,0.08);
-    --fl-toggle-border:     rgba(167,139,250,0.15);
-    --fl-toggle-icon:       rgba(196,181,253,0.65);
-    --fl-toggle-hov:        rgba(124,58,237,0.15);
-    --fl-bell-icon:         rgba(167,139,250,0.6);
-    --fl-bell-hov:          rgba(124,58,237,0.12);
-    --fl-bell-icon-hov:     #a78bfa;
+    --fl-search-border:     rgba(96,165,250,0.15);
+    --fl-search-text:       #dce8f7;
+    --fl-search-ph:         rgba(96,165,250,0.35);
+    --fl-toggle-bg:         rgba(96,165,250,0.08);
+    --fl-toggle-border:     rgba(96,165,250,0.15);
+    --fl-toggle-icon:       rgba(147,197,253,0.65);
+    --fl-toggle-hov:        rgba(37,99,235,0.15);
+    --fl-bell-icon:         rgba(96,165,250,0.6);
+    --fl-bell-hov:          rgba(37,99,235,0.12);
+    --fl-bell-icon-hov:     #22d3ee;
     --fl-pkg-bg:            rgba(255,255,255,0.06);
-    --fl-pkg-text:          rgba(196,181,253,0.5);
-    --fl-pkg-active-bg:     rgba(124,58,237,0.2);
-    --fl-pkg-active-text:   #c4b5fd;
-    --fl-pkg-active-shadow: 0 2px 8px rgba(109,40,217,0.25);
-    --fl-hamburger:         rgba(196,181,253,0.55);
+    --fl-pkg-text:          rgba(147,197,253,0.5);
+    --fl-pkg-active-bg:     rgba(37,99,235,0.2);
+    --fl-pkg-active-text:   #93c5fd;
+    --fl-pkg-active-shadow: 0 2px 8px rgba(29,78,216,0.25);
+    --fl-hamburger:         rgba(147,197,253,0.55);
     --fl-banner-warn-bg:    rgba(245,158,11,0.1);
     --fl-banner-warn-border:rgba(245,158,11,0.2);
     --fl-banner-warn-text:  #fcd34d;
@@ -383,62 +420,62 @@
     --fl-banner-err-border: rgba(239,68,68,0.2);
     --fl-banner-err-text:   #fca5a5;
 
-    /* Sidebar — Flovig Dark Lavender */
-    --ph-side-bg:       #0d0a1f;
-    --ph-side-border:   rgba(167,139,250,0.10);
+    /* Sidebar — Flovig Dark Blue */
+    --ph-side-bg:       #070c1a;
+    --ph-side-border:   rgba(96,165,250,0.10);
     --ph-side-shadow:   none;
-    --ph-logo-color:    #f0ebff;
-    --ph-logo-accent:   #a78bfa;
+    --ph-logo-color:    #eaf3ff;
+    --ph-logo-accent:   #22d3ee;
     --ph-logo-btn-bg:   rgba(255,255,255,.9);
-    --ph-logo-btn-fg:   #7c3aed;
-    --ph-nav-fg:        rgba(196,181,253,0.55);
-    --ph-nav-hover-bg:  rgba(167,139,250,0.07);
-    --ph-nav-hover-fg:  rgba(221,214,254,0.9);
-    --ph-nav-act-bg:    rgba(124,58,237,0.12);
-    --ph-nav-act-fg:    #c4b5fd;
+    --ph-logo-btn-fg:   #1d4ed8;
+    --ph-nav-fg:        rgba(147,197,253,0.55);
+    --ph-nav-hover-bg:  rgba(96,165,250,0.07);
+    --ph-nav-hover-fg:  rgba(191,219,254,0.9);
+    --ph-nav-act-bg:    rgba(37,99,235,0.12);
+    --ph-nav-act-fg:    #93c5fd;
     --ph-nav-act-sh:    none;
-    --ph-badge-bg:      rgba(124,58,237,0.2);
-    --ph-badge-fg:      #a78bfa;
-    --ph-abadge-bg:     rgba(221,214,254,0.2);
-    --ph-abadge-fg:     #c4b5fd;
-    --ph-user-name:     #f0ebff;
-    --ph-user-role:     #a78bfa;
-    --ph-user-hover:    rgba(167,139,250,0.08);
-    --ph-user-chev:     rgba(196,181,253,0.4);
-    --ph-drop-bg:       #120a28;
-    --ph-drop-border:   rgba(167,139,250,0.12);
-    --ph-drop-divider:  rgba(167,139,250,0.08);
-    --ph-drop-email:    rgba(167,139,250,0.5);
-    --ph-drop-link-fg:  #c4b5fd;
-    --ph-drop-link-hov: rgba(124,58,237,0.1);
-    --ph-section-label: rgba(167,139,250,0.35);
-    --ph-close-fg:      rgba(196,181,253,0.5);
-    --ph-close-hover:   rgba(167,139,250,0.08);
+    --ph-badge-bg:      rgba(37,99,235,0.2);
+    --ph-badge-fg:      #60a5fa;
+    --ph-abadge-bg:     rgba(191,219,254,0.2);
+    --ph-abadge-fg:     #93c5fd;
+    --ph-user-name:     #eaf3ff;
+    --ph-user-role:     #22d3ee;
+    --ph-user-hover:    rgba(96,165,250,0.08);
+    --ph-user-chev:     rgba(147,197,253,0.4);
+    --ph-drop-bg:       #0a1120;
+    --ph-drop-border:   rgba(96,165,250,0.12);
+    --ph-drop-divider:  rgba(96,165,250,0.08);
+    --ph-drop-email:    rgba(96,165,250,0.5);
+    --ph-drop-link-fg:  #93c5fd;
+    --ph-drop-link-hov: rgba(37,99,235,0.1);
+    --ph-section-label: rgba(96,165,250,0.35);
+    --ph-close-fg:      rgba(147,197,253,0.5);
+    --ph-close-hover:   rgba(96,165,250,0.08);
 }
 
 /* ── Light Mode overrides ─────────────────────────────────────────────── */
 [data-mode="light"] {
-    --fl-page:              #f4f2fb;
+    --fl-page:              #f2f6fc;
     --fl-topbar-bg:         rgba(255,255,255,0.97);
-    --fl-topbar-border:     #ede9fe;
-    --fl-topbar-title:      #1a0a3d;
-    --fl-search-bg:         #f5f3ff;
-    --fl-search-border:     #ddd6fe;
-    --fl-search-text:       #1a0a3d;
+    --fl-topbar-border:     #dbeafe;
+    --fl-topbar-title:      #0b1220;
+    --fl-search-bg:         #eff6ff;
+    --fl-search-border:     #bfdbfe;
+    --fl-search-text:       #0b1220;
     --fl-search-ph:         #9ca3af;
-    --fl-toggle-bg:         #f5f3ff;
-    --fl-toggle-border:     #ddd6fe;
-    --fl-toggle-icon:       #7c3aed;
-    --fl-toggle-hov:        #ede9fe;
+    --fl-toggle-bg:         #eff6ff;
+    --fl-toggle-border:     #bfdbfe;
+    --fl-toggle-icon:       #1d4ed8;
+    --fl-toggle-hov:        #dbeafe;
     --fl-bell-icon:         #9ca3af;
-    --fl-bell-hov:          #f5f3ff;
-    --fl-bell-icon-hov:     #7c3aed;
-    --fl-pkg-bg:            #f0ebff;
+    --fl-bell-hov:          #eff6ff;
+    --fl-bell-icon-hov:     #0e7490;
+    --fl-pkg-bg:            #eaf3ff;
     --fl-pkg-text:          #6b7280;
     --fl-pkg-active-bg:     #ffffff;
-    --fl-pkg-active-text:   #6d28d9;
-    --fl-pkg-active-shadow: 0 2px 8px rgba(109,40,217,0.12);
-    --fl-hamburger:         #7c3aed;
+    --fl-pkg-active-text:   #1e40af;
+    --fl-pkg-active-shadow: 0 2px 8px rgba(30,64,175,0.12);
+    --fl-hamburger:         #1d4ed8;
     --fl-banner-warn-bg:    #fffbeb;
     --fl-banner-warn-border:#fde68a;
     --fl-banner-warn-text:  #92400e;
@@ -448,35 +485,35 @@
 
     /* Sidebar — Flovig Light */
     --ph-side-bg:       #ffffff;
-    --ph-side-border:   #ede9fe;
-    --ph-side-shadow:   4px 0 20px rgba(109,40,217,0.06);
-    --ph-logo-color:    #1a0a3d;
-    --ph-logo-accent:   #7c3aed;
-    --ph-logo-btn-bg:   linear-gradient(135deg,#7c3aed,#6d28d9);
+    --ph-side-border:   #dbeafe;
+    --ph-side-shadow:   4px 0 20px rgba(30,64,175,0.06);
+    --ph-logo-color:    #0b1220;
+    --ph-logo-accent:   #0e7490;
+    --ph-logo-btn-bg:   linear-gradient(135deg,#2563eb,#0891b2);
     --ph-logo-btn-fg:   #ffffff;
     --ph-nav-fg:        #6b7280;
-    --ph-nav-hover-bg:  #f5f3ff;
-    --ph-nav-hover-fg:  #1a0a3d;
-    --ph-nav-act-bg:    #f3e8ff;
-    --ph-nav-act-fg:    #6d28d9;
+    --ph-nav-hover-bg:  #eff6ff;
+    --ph-nav-hover-fg:  #0b1220;
+    --ph-nav-act-bg:    #dbeafe;
+    --ph-nav-act-fg:    #1e40af;
     --ph-nav-act-sh:    none;
-    --ph-badge-bg:      #f3e8ff;
-    --ph-badge-fg:      #6d28d9;
-    --ph-abadge-bg:     rgba(109,40,217,0.15);
-    --ph-abadge-fg:     #6d28d9;
-    --ph-user-name:     #1a0a3d;
-    --ph-user-role:     #7c3aed;
-    --ph-user-hover:    #f5f3ff;
+    --ph-badge-bg:      #dbeafe;
+    --ph-badge-fg:      #1e40af;
+    --ph-abadge-bg:     rgba(30,64,175,0.15);
+    --ph-abadge-fg:     #1e40af;
+    --ph-user-name:     #0b1220;
+    --ph-user-role:     #0e7490;
+    --ph-user-hover:    #eff6ff;
     --ph-user-chev:     #9ca3af;
     --ph-drop-bg:       #ffffff;
-    --ph-drop-border:   #ede9fe;
-    --ph-drop-divider:  #f5f3ff;
+    --ph-drop-border:   #dbeafe;
+    --ph-drop-divider:  #eff6ff;
     --ph-drop-email:    #6b7280;
     --ph-drop-link-fg:  #374151;
-    --ph-drop-link-hov: #f5f3ff;
+    --ph-drop-link-hov: #eff6ff;
     --ph-section-label: #9ca3af;
     --ph-close-fg:      #9ca3af;
-    --ph-close-hover:   #f5f3ff;
+    --ph-close-hover:   #eff6ff;
 }
 
 /* ── Layout shell utilities ───────────────────────────────────────────── */
@@ -501,8 +538,8 @@
 }
 .fl-search-input::placeholder { color: var(--fl-search-ph) !important; }
 .fl-search-input:focus {
-    border-color: rgba(124,58,237,0.5) !important;
-    box-shadow: 0 0 0 3px rgba(124,58,237,0.12) !important;
+    border-color: rgba(37,99,235,0.5) !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
     outline: none !important;
 }
 .fl-mode-toggle {
@@ -608,8 +645,8 @@ html:not([data-mode="light"]) .fl-err-banner {
 
 /* ── Avatar gradient — Flovig Lavender ─────────────────────────────────── */
 .fl-avatar {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-    box-shadow: 0 2px 8px rgba(109,40,217,0.35);
+    background: linear-gradient(135deg, #2563eb, #0891b2) !important;
+    box-shadow: 0 2px 8px rgba(29,78,216,0.35);
 }
 
 /* ── Flovig heading font (Plus Jakarta Sans) ────────────────────────────── */
@@ -620,4 +657,90 @@ html:not([data-mode="light"]) .fl-err-banner {
 /* ── Transition on mode switch ──────────────────────────────────────────── */
 body {
     transition: background-color .3s ease;
+}
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Scoped to React (shadcn) mount points so it doesn't override the existing Blade/Alpine design system. */
+@layer base {
+  .shadcn-scope, .shadcn-scope * {
+    @apply border-border outline-ring/50;
+    }
+  .shadcn-scope {
+    @apply bg-background text-foreground;
+    }
 }

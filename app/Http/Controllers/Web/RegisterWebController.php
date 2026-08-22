@@ -45,15 +45,20 @@ class RegisterWebController extends Controller
             'company_name' => 'required|string|max:255',
             'password'     => 'required|string|min:8|confirmed',
             'plan'         => ['required', \Illuminate\Validation\Rule::in($selectablePlans)],
+            'modules'      => ['required', 'array', 'min:1'],
+            'modules.*'    => [\Illuminate\Validation\Rule::in(['task_management', 'hris'])],
         ], [
             'email.unique'       => 'Email ini sudah terdaftar.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'modules.required'   => 'Pilih minimal satu modul aplikasi.',
+            'modules.min'        => 'Pilih minimal satu modul aplikasi.',
         ]);
 
         $selectedPackage = $selectableTiers->firstWhere('slug', $request->plan);
+        $selectedModules = $request->input('modules', []);
 
-        $user = DB::transaction(function () use ($request, $selectedPackage) {
+        $user = DB::transaction(function () use ($request, $selectedPackage, $selectedModules) {
             $company = Company::create([
                 'name'      => $request->company_name,
                 'code'      => Company::uniqueCodeFor($request->company_name),
@@ -83,22 +88,23 @@ class RegisterWebController extends Controller
                 'active_until'         => $selectedPackage->price > 0 ? now()->subMinute() : null,
             ]);
 
-            // Semua paket mendaftar dengan modul Task Management & HRIS aktif.
-            $pkgIds = Package::whereIn('slug', ['task_management', 'hris'])->pluck('id');
+            $pkgIds = Package::whereIn('slug', $selectedModules)->pluck('id');
             $user->packages()->sync($pkgIds);
 
-            // Clone HRIS master templates for this company
-            LeaveType::whereNull('company_id')->get()->each(function ($t) use ($company) {
-                $data = collect($t->toArray())->except(['id', 'company_id', 'created_at', 'updated_at'])->toArray();
-                LeaveType::updateOrCreate(['company_id' => $company->id, 'code' => $t->code], $data);
-            });
-            OvertimeRule::whereNull('company_id')->get()->each(function ($r) use ($company) {
-                $data = collect($r->toArray())->except(['id', 'company_id', 'created_at', 'updated_at'])->toArray();
-                OvertimeRule::updateOrCreate(
-                    ['company_id' => $company->id, 'day_type' => $r->day_type, 'hour_from' => $r->hour_from, 'hour_to' => $r->hour_to],
-                    $data
-                );
-            });
+            // Clone HRIS master templates for this company (hanya kalau modul HRIS dipilih)
+            if (in_array('hris', $selectedModules, true)) {
+                LeaveType::whereNull('company_id')->get()->each(function ($t) use ($company) {
+                    $data = collect($t->toArray())->except(['id', 'company_id', 'created_at', 'updated_at'])->toArray();
+                    LeaveType::updateOrCreate(['company_id' => $company->id, 'code' => $t->code], $data);
+                });
+                OvertimeRule::whereNull('company_id')->get()->each(function ($r) use ($company) {
+                    $data = collect($r->toArray())->except(['id', 'company_id', 'created_at', 'updated_at'])->toArray();
+                    OvertimeRule::updateOrCreate(
+                        ['company_id' => $company->id, 'day_type' => $r->day_type, 'hour_from' => $r->hour_from, 'hour_to' => $r->hour_to],
+                        $data
+                    );
+                });
+            }
 
             Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
             $user->assignRole('admin');

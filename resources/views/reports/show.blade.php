@@ -5,7 +5,7 @@
 @section('content')
 <div class="py-4 space-y-5">
     <nav class="text-sm text-gray-500">
-        <a href="{{ route('reports.index') }}" class="hover:text-violet-600">Laporan</a>
+        <a href="{{ route('reports.index') }}" class="hover:text-blue-600">Laporan</a>
         <span class="mx-2">/</span><span class="text-gray-700">{{ $meta['label'] }}</span>
     </nav>
 
@@ -17,7 +17,7 @@
                 @if($def['type'] === 'select')
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ $def['label'] }}</label>
-                    <select name="{{ $field }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+                    <select name="{{ $field }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                         <option value="">Semua</option>
                         @foreach($def['options'] as $value => $label)
                         <option value="{{ $value }}" {{ (string) ($filters[$field] ?? '') === (string) $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -28,18 +28,18 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ $def['label'] }} (dari)</label>
                     <input type="date" name="{{ $field }}_from" value="{{ $filters[$field.'_from'] ?? '' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ $def['label'] }} (sampai)</label>
                     <input type="date" name="{{ $field }}_to" value="{{ $filters[$field.'_to'] ?? '' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 @endif
             @endforeach
         </div>
         <div class="mt-4 flex items-center gap-2">
-            <button type="submit" class="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg">
+            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
                 Tampilkan
             </button>
             @if($submitted)

@@ -103,15 +103,15 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
             @if($companies->count() > 1)
-                <select name="company_id" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="company_id" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach($companies as $comp)
                         <option value="{{ $comp->id }}" {{ (string) $selectedCompany === (string) $comp->id ? 'selected' : '' }}>{{ $comp->name }}</option>
                     @endforeach
                 </select>
             @endif
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / kode..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-44">
-            <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-44">
+            <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Status</option>
                 <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
                 <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
@@ -120,7 +120,7 @@
                 <a href="{{ route('organization-units.index', ['company_id' => $selectedCompany]) }}" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2">Reset</a>
             @endif
         </form>
-        <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
+        <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Unit
         </a>
@@ -129,11 +129,11 @@
     @php $viewMode = request('view', 'table'); @endphp
     <div class="flex items-center gap-1.5 mb-4">
         <a href="{{ route('organization-units.index', array_merge(request()->except('view'), ['view' => 'table'])) }}"
-           class="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors {{ $viewMode === 'table' ? 'bg-violet-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+           class="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors {{ $viewMode === 'table' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
             Tabel
         </a>
         <a href="{{ route('organization-units.index', array_merge(request()->except('view'), ['view' => 'chart'])) }}"
-           class="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors {{ $viewMode === 'chart' ? 'bg-violet-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+           class="text-sm font-medium px-3 py-1.5 rounded-lg transition-colors {{ $viewMode === 'chart' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
             Bagan Organisasi
         </a>
     </div>
@@ -146,7 +146,7 @@
                         Belum ada perusahaan.
                     @else
                         Belum ada unit organisasi.
-                        <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="text-violet-600 hover:underline ml-1">Tambah sekarang</a>
+                        <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="text-blue-600 hover:underline ml-1">Tambah sekarang</a>
                     @endif
                 </p>
             @else
@@ -177,7 +177,7 @@
                                 Belum ada perusahaan.
                             @else
                                 Belum ada unit organisasi.
-                                <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="text-violet-600 hover:underline ml-1">Tambah sekarang</a>
+                                <a href="{{ route('organization-units.create', ['company_id' => $selectedCompany]) }}" class="text-blue-600 hover:underline ml-1">Tambah sekarang</a>
                             @endif
                         </td>
                     </tr>

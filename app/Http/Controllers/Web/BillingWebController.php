@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Package;
 use App\Models\SubscriptionOrder;
@@ -14,6 +15,8 @@ use Illuminate\Support\Str;
 
 class BillingWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(protected MidtransService $midtrans)
     {
     }
@@ -49,7 +52,8 @@ class BillingWebController extends Controller
         $orders = SubscriptionOrder::with('package')
             ->where('company_id', Auth::user()->company_id)
             ->latest()
-            ->paginate(15);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('billing.history', compact('orders'));
     }

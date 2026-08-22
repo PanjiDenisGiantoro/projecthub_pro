@@ -40,9 +40,9 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($packages as $package)
             @php $owned = in_array($package->slug, $ownedSlugs); @endphp
-            <div class="rounded-2xl border border-violet-200 bg-white p-6 flex flex-col shadow-sm relative">
+            <div class="rounded-2xl border border-blue-200 bg-white p-6 flex flex-col shadow-sm relative">
                 @if($package->is_popular)
-                    <span class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-[11px] font-semibold">Paling Populer</span>
+                    <span class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[11px] font-semibold">Paling Populer</span>
                 @endif
                 <div class="flex items-start justify-between gap-2 {{ $package->is_popular ? 'mt-1' : '' }}">
                     <h3 class="text-base font-bold text-gray-900">{{ $package->name }}</h3>
@@ -61,7 +61,7 @@
                     <form method="POST" action="{{ route('billing.checkout', $package) }}" class="mt-5">
                         @csrf
                         <button type="submit"
-                                class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-colors">
+                                class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
                             {{ $owned ? 'Perpanjang dengan Midtrans' : 'Berlangganan dengan Midtrans' }}
                         </button>
                     </form>

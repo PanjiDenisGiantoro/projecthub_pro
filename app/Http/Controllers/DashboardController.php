@@ -59,7 +59,7 @@ class DashboardController extends Controller
                 'resolved_today' => BugTicket::whereDate('resolved_at', today())->count(),
             ],
             'requests' => [
-                'pending_approval' => CustomerRequest::whereIn('status', ['submitted', 'under_review'])->count(),
+                'pending_approval' => CustomerRequest::where('status', 'waiting_approval')->count(),
                 'approved_today' => CustomerRequest::whereDate('approved_at', today())->count(),
             ],
             'revenue' => [
@@ -112,7 +112,7 @@ class DashboardController extends Controller
                 'total' => Campaign::count(),
                 'active' => Campaign::where('status', 'active')->count(),
             ],
-            'requests_pending_review' => CustomerRequest::where('status', 'submitted')->count(),
+            'requests_pending_review' => CustomerRequest::where('status', 'waiting_approval')->count(),
             'recent_campaigns' => Campaign::with('project')->latest()->limit(5)->get(),
         ]);
     }
@@ -126,7 +126,7 @@ class DashboardController extends Controller
             'requests' => [
                 'total' => CustomerRequest::where('customer_id', $user->id)->count(),
                 'pending' => CustomerRequest::where('customer_id', $user->id)
-                    ->whereIn('status', ['submitted', 'under_review'])->count(),
+                    ->where('status', 'waiting_approval')->count(),
                 'approved' => CustomerRequest::where('customer_id', $user->id)
                     ->where('status', 'approved')->count(),
             ],

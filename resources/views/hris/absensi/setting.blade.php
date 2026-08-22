@@ -82,7 +82,7 @@
                                    value="{{ $setting->max_distance_meters }}"
                                    x-model="maxDistance"
                                    class="flex-1 accent-[#7c3aed]">
-                            <span class="text-sm font-bold w-20 shrink-0" style="color:var(--lav-700,#7c3aed)">
+                            <span class="text-sm font-bold w-20 shrink-0" style="color:var(--lav-700,#1d4ed8)">
                                 <span x-text="maxDistance"></span>m
                             </span>
                         </div>
@@ -183,7 +183,7 @@
                                    value="{{ $setting->face_recognition_threshold }}"
                                    x-model="threshold"
                                    class="flex-1 accent-[#7c3aed]">
-                            <span class="text-sm font-bold w-12 shrink-0" style="color:var(--lav-700,#7c3aed)" x-text="threshold"></span>
+                            <span class="text-sm font-bold w-12 shrink-0" style="color:var(--lav-700,#1d4ed8)" x-text="threshold"></span>
                         </div>
                         <div class="flex justify-between text-[10px] mt-1" style="color:var(--fl-text-subtle,#9ca3af)">
                             <span>0.3 = Ketat</span>

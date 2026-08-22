@@ -29,6 +29,28 @@
 .select2-dropdown { border: 1px solid #d1d5db !important; border-radius: 0.5rem !important; font-size: 0.875rem !important; }
 .select2-results__option--highlighted { background-color: #2563eb !important; }
 .select2-search--dropdown .select2-search__field { border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.375rem 0.625rem !important; font-size: 0.875rem !important; }
+.select2-container--default .select2-selection--multiple {
+    min-height: 42px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59,130,246,.25) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    color: #1d4ed8 !important;
+    border-radius: 0.375rem !important;
+    padding: 1px 6px !important;
+    font-size: 0.75rem !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #3b82f6 !important;
+    margin-right: 4px !important;
+}
 </style>
 @endpush
 
@@ -42,25 +64,25 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
                 <input type="email" name="email" value="{{ old('email') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
                 <input type="password" name="password" required minlength="8"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password <span class="text-red-500">*</span></label>
                 <input type="password" name="password_confirmation" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
@@ -68,7 +90,7 @@
                 <select name="role" id="select-role" required class="w-full">
                     <option value="">— Pilih Role —</option>
                     @foreach($roles as $role)
-                        <option value="{{ $role->name }}" {{ old('role') === $role->name ? 'selected' : '' }}>{{ ucfirst($role->name) }}</option>
+                        <option value="{{ $role->name }}" {{ old('role') === $role->name ? 'selected' : '' }}>{{ \App\Support\RoleLabel::for($role->name) }}</option>
                     @endforeach
                 </select>
             </div>
@@ -83,6 +105,18 @@
                         </option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Proyek</label>
+                <select name="project_ids[]" id="select-projects" multiple style="width:100%">
+                    @foreach($projects as $project)
+                        <option value="{{ $project->id }}" {{ collect(old('project_ids'))->contains($project->id) ? 'selected' : '' }}>
+                            {{ $project->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-gray-400">Opsional. User langsung ditambahkan sebagai anggota tim di proyek yang dipilih.</p>
             </div>
 
             <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
@@ -102,12 +136,12 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <input type="checkbox" name="is_active" value="1" id="is_active" checked class="w-4 h-4 text-violet-600 rounded">
+                <input type="checkbox" name="is_active" value="1" id="is_active" checked class="w-4 h-4 text-blue-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Buat User</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Buat User</button>
                 <a href="{{ route('users.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -123,6 +157,10 @@ $(function () {
     $('#select-role, #select-level, #sel-org-unit').select2({
         placeholder: '— Pilih —',
         allowClear: true,
+        width: '100%',
+    });
+    $('#select-projects').select2({
+        placeholder: '— Pilih Proyek —',
         width: '100%',
     });
 });

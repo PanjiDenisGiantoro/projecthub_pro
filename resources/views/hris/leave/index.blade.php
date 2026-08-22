@@ -80,7 +80,7 @@
                     <form action="{{ route('hris.leave.reject', $req) }}" method="POST">
                         @csrf @method('PATCH')
                         <h3 class="font-bold text-gray-900 mb-3">Tolak Cuti</h3>
-                        <textarea name="rejection_reason" rows="3" required placeholder="Alasan penolakan..." class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:ring-2 focus:ring-violet-500 focus:outline-none"></textarea>
+                        <textarea name="rejection_reason" rows="3" required placeholder="Alasan penolakan..." class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                         <div class="flex gap-2 justify-end">
                             <button type="button" onclick="document.getElementById('reject-{{ $req->id }}').close()" class="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-xl">Batal</button>
                             <button class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700">Tolak</button>
@@ -93,7 +93,10 @@
                 @endforelse
             </tbody>
         </table>
-        <div class="p-4">{{ $requests->links() }}</div>
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $requests->links() }}
+        </div>
     </div>
 </div>
 @endsection
