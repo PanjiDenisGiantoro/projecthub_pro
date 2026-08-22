@@ -635,17 +635,45 @@ function aiAssistantWidget() {
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
                     body: JSON.stringify({ messages: history }),
                 });
-                const data = await res.json();
-                if (res.ok && data.action) {
-                    this.messages.push({
-                        role: 'assistant',
-                        content: '(mengusulkan aksi: ' + data.action.label + ')',
-                        action: { ...data.action, status: 'pending', executing: false },
-                    });
-                } else if (res.ok) {
-                    this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
+
+                // Balasan biasa di-stream sebagai plain text (Content-Type: text/plain) —
+                // baca bertahap biar teks muncul seiring model generate, bukan nunggu
+                // semuanya selesai. Balasan yang mengusulkan aksi (create_project/task)
+                // tetap JSON biasa karena butuh dicek utuh dulu sebelum tahu mau
+                // ditampilkan sebagai teks atau tombol konfirmasi aksi.
+                const contentType = res.headers.get('Content-Type') || '';
+
+                if (contentType.includes('application/json')) {
+                    const data = await res.json();
+                    if (res.ok && data.action) {
+                        this.messages.push({
+                            role: 'assistant',
+                            content: '(mengusulkan aksi: ' + data.action.label + ')',
+                            action: { ...data.action, status: 'pending', executing: false },
+                        });
+                    } else if (res.ok) {
+                        this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
+                    } else {
+                        this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
+                    }
+                } else if (res.ok && res.body) {
+                    const msg = { role: 'assistant', content: '' };
+                    this.messages.push(msg);
+                    const idx = this.messages.length - 1;
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    this.thinking = false; // token pertama akan langsung tampil, indikator "mengetik" tidak perlu lagi
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        this.messages[idx].content += decoder.decode(value, { stream: true });
+                        this.$nextTick(() => this.scrollBottom());
+                    }
+                    if (!this.messages[idx].content) {
+                        this.messages[idx].content = '(tidak ada jawaban)';
+                    }
                 } else {
-                    this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
+                    this.messages.push({ role: 'assistant', content: 'Terjadi kesalahan.' });
                 }
             } catch (e) {
                 this.messages.push({ role: 'assistant', content: 'Gagal terhubung ke AI Assistant.' });
