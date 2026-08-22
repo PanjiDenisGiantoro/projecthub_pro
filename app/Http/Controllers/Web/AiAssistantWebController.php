@@ -130,18 +130,98 @@ class AiAssistantWebController extends Controller
             $tools[] = $available['create_task'];
         }
 
+        // Kalau ada tool yang mungkin dipanggil, kita butuh isi pesan LENGKAP dulu
+        // buat deteksi tool_calls sebelum tahu mau kirim teks biasa atau usulan
+        // aksi ke user — jadi jalur ini tetap non-streaming (dan jarang kepakai,
+        // cuma saat pesan user kelihatan minta buat proyek/task).
+        if (!empty($tools)) {
+            return $this->chatWithTools($messages, $tools);
+        }
+
+        // Jalur normal (mayoritas pesan): streaming token-per-token supaya user
+        // mulai lihat balasan muncul begitu model mulai generate, bukan nunggu
+        // seluruh balasan selesai (bisa puluhan detik di CPU tanpa GPU).
+        return $this->chatStreaming($messages);
+    }
+
+    /**
+     * Streaming reply lewat Ollama /api/chat (stream:true) — tiap baris respons
+     * Ollama adalah satu objek JSON berisi potongan teks (message.content), di-
+     * forward apa adanya (plain text, bukan dibungkus JSON) ke browser begitu
+     * diterima lewat response()->stream(). keep_alive dilonggarkan supaya model
+     * tidak ke-unload dari memory tiap idle >5 menit (default Ollama), yang
+     * kalau kejadian bikin request berikutnya kena cold-start >90 detik.
+     */
+    private function chatStreaming(array $messages)
+    {
+        return response()->stream(function () use ($messages) {
+            try {
+                $client = new \GuzzleHttp\Client();
+                $res = $client->post('http://127.0.0.1:11434/api/chat', [
+                    'json' => [
+                        'model'      => 'llama3.2:3b',
+                        'messages'   => $messages,
+                        'stream'     => true,
+                        'keep_alive' => '30m',
+                    ],
+                    'stream'  => true,
+                    'timeout' => 110,
+                ]);
+
+                $body   = $res->getBody();
+                $buffer = '';
+                while (!$body->eof()) {
+                    $buffer .= $body->read(1024);
+                    while (($pos = strpos($buffer, "\n")) !== false) {
+                        $line   = trim(substr($buffer, 0, $pos));
+                        $buffer = substr($buffer, $pos + 1);
+                        if ($line === '') {
+                            continue;
+                        }
+
+                        $chunk = json_decode($line, true);
+                        $piece = $chunk['message']['content'] ?? '';
+                        if ($piece !== '') {
+                            echo $piece;
+                            if (ob_get_level() > 0) {
+                                ob_flush();
+                            }
+                            flush();
+                        }
+                        if (!empty($chunk['done'])) {
+                            return;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                report($e);
+                echo 'AI Assistant sedang sibuk/lambat merespons. Coba lagi sesaat lagi.';
+                flush();
+            }
+        }, 200, [
+            'Content-Type'      => 'text/plain; charset=utf-8',
+            'X-Accel-Buffering' => 'no',
+            'Cache-Control'     => 'no-cache',
+        ]);
+    }
+
+    /**
+     * Jalur tool-calling (non-streaming) — sama seperti sebelumnya, ditambah
+     * keep_alive supaya konsisten dengan jalur streaming (lihat chatStreaming()).
+     */
+    private function chatWithTools(array $messages, array $tools)
+    {
         try {
-            // Ollama jalan di CPU (tanpa GPU) — cold start (model belum ke-load
-            // di memory) bisa makan >90 detik, makanya timeout dilonggarkan.
             // Http::post melempar ConnectionException (bukan response gagal biasa)
             // kalau timeout/koneksi putus, jadi WAJIB ditangkap di sini — kalau tidak,
             // request berakhir sebagai 500 mentah (bukan JSON) dan bikin frontend
             // nampilin "Gagal terhubung ke AI Assistant" tanpa alasan yang jelas.
             $response = Http::timeout(110)->post('http://127.0.0.1:11434/api/chat', [
-                'model'    => 'llama3.2:3b',
-                'messages' => $messages,
-                'tools'    => $tools,
-                'stream'   => false,
+                'model'      => 'llama3.2:3b',
+                'messages'   => $messages,
+                'tools'      => $tools,
+                'stream'     => false,
+                'keep_alive' => '30m',
             ]);
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             report($e);
