@@ -40,13 +40,13 @@
                     <div class="flex flex-wrap gap-1">
                         <span class="bg-white/10 text-white text-xs px-2 py-0.5 rounded-full">{{ $company?->name ?? '—' }}</span>
                         @foreach($user->additionalCompanies as $extra)
-                        <span class="bg-indigo-500/15 text-indigo-400 text-xs px-2 py-0.5 rounded-full">+ {{ $extra->name }}</span>
+                        <span class="bg-blue-500/15 text-blue-400 text-xs px-2 py-0.5 rounded-full">+ {{ $extra->name }}</span>
                         @endforeach
                     </div>
                 </td>
                 <td class="px-6 py-4">
                     @foreach($user->getRoleNames() as $role)
-                    <span class="bg-indigo-500/15 text-indigo-400 text-xs font-medium px-2 py-0.5 rounded-full capitalize">{{ $role }}</span>
+                    <span class="bg-blue-500/15 text-blue-400 text-xs font-medium px-2 py-0.5 rounded-full">{{ \App\Support\RoleLabel::for($role) }}</span>
                     @endforeach
                 </td>
                 <td class="px-6 py-4 text-slate-400 text-xs">{{ $user->created_at->format('d M Y') }}</td>
@@ -60,7 +60,7 @@
                 <td class="px-6 py-4 text-right">
                     <button type="button"
                             onclick='openCompanyModal(@json($user->id), @json($user->name), @json($user->company_id), @json($user->additionalCompanies->pluck("id")))'
-                            class="text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 rounded-lg px-3 py-1.5 transition-all">
+                            class="text-xs font-medium text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500/60 rounded-lg px-3 py-1.5 transition-all">
                         Kelola Company
                     </button>
                 </td>
@@ -73,11 +73,12 @@
         </tbody>
     </table>
 
-    @if($users->hasPages())
-    <div class="px-6 py-4 border-t border-white/5 text-slate-400">
+    <div class="px-6 py-4 border-t border-white/5 text-slate-400 flex items-center justify-between gap-3 flex-wrap">
+        <x-per-page />
+        @if($users->hasPages())
         {{ $users->links() }}
+        @endif
     </div>
-    @endif
 </div>
 
 {{-- Modal Kelola Akses Company --}}
@@ -107,8 +108,8 @@
 
             <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
                 @foreach($companies as $c)
-                <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/10 cursor-pointer hover:border-indigo-500/40 transition-all has-[:checked]:border-indigo-500/60 has-[:checked]:bg-indigo-500/10 has-[:disabled]:opacity-60 has-[:disabled]:cursor-not-allowed">
-                    <input type="checkbox" name="companies[]" value="{{ $c->id }}" class="cm-company-checkbox accent-indigo-500" data-company-id="{{ $c->id }}">
+                <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/10 cursor-pointer hover:border-blue-500/40 transition-all has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10 has-[:disabled]:opacity-60 has-[:disabled]:cursor-not-allowed">
+                    <input type="checkbox" name="companies[]" value="{{ $c->id }}" class="cm-company-checkbox accent-blue-500" data-company-id="{{ $c->id }}">
                     <span class="text-sm text-white">{{ $c->name }}</span>
                     <span class="cm-primary-badge hidden ml-auto text-[10px] font-semibold text-amber-400 uppercase tracking-wide">Utama</span>
                 </label>
@@ -121,7 +122,7 @@
                     Batal
                 </button>
                 <button type="submit"
-                        class="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all">
+                        class="px-5 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all">
                     Simpan
                 </button>
             </div>

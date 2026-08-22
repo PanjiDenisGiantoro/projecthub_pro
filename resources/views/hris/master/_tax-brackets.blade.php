@@ -26,10 +26,10 @@
                 <td class="px-4 py-3 text-gray-700">
                     {{ $bracket->income_to ? 'Rp ' . number_format($bracket->income_to, 0, ',', '.') : '∞ Tak terbatas' }}
                 </td>
-                <td class="px-4 py-3 text-center font-bold text-lg text-violet-700">{{ ($bracket->rate * 100) }}%</td>
+                <td class="px-4 py-3 text-center font-bold text-lg text-blue-700">{{ ($bracket->rate * 100) }}%</td>
                 <td class="px-4 py-3 text-gray-500 text-xs">{{ $bracket->label }}</td>
                 <td class="px-4 py-3 text-center">
-                    <a href="{{ route('hris.master.tax-brackets.edit', $bracket) }}" class="text-xs text-violet-600 hover:underline">Edit</a>
+                    <a href="{{ route('hris.master.tax-brackets.edit', $bracket) }}" class="text-xs text-blue-600 hover:underline">Edit</a>
                 </td>
             </tr>
             @empty

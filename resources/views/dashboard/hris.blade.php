@@ -33,8 +33,8 @@
         {{-- Total Karyawan --}}
         <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-100">
-                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                 </div>
@@ -47,7 +47,7 @@
         <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100">
-                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
@@ -57,32 +57,30 @@
         </div>
 
         {{-- Absensi Hari Ini --}}
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm opacity-60">
+        <a href="{{ route('hris.absensi.rekap') }}" class="block bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100">
                     <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <span class="text-[10px] font-semibold bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full">Soon</span>
             </div>
-            <p class="text-2xl font-bold text-gray-400">—</p>
-            <p class="text-xs text-gray-400 mt-0.5">Hadir Hari Ini</p>
-        </div>
+            <p class="text-2xl font-bold text-gray-900">{{ number_format($hadirHariIni) }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Hadir Hari Ini</p>
+        </a>
 
         {{-- Cuti Pending --}}
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm opacity-60">
+        <a href="{{ route('hris.leave.index') }}" class="block bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-3">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-100">
                     <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <span class="text-[10px] font-semibold bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full">Soon</span>
             </div>
-            <p class="text-2xl font-bold text-gray-400">—</p>
-            <p class="text-xs text-gray-400 mt-0.5">Pengajuan Cuti</p>
-        </div>
+            <p class="text-2xl font-bold text-gray-900">{{ number_format($cutiPending) }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Pengajuan Cuti</p>
+        </a>
     </div>
 
     {{-- Modul Core HRIS --}}
@@ -91,12 +89,12 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             @php
             $modules = [
-                ['label' => 'Absensi',       'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'emerald'],
-                ['label' => 'Penggajian',    'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'blue'],
-                ['label' => 'Pajak PPh 21',  'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',                                                        'color' => 'orange'],
-                ['label' => 'Cuti & Izin',   'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',                                                                 'color' => 'amber'],
-                ['label' => 'Lembur',        'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'red'],
-                ['label' => 'Reimburse',     'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',         'color' => 'teal'],
+                ['label' => 'Absensi',       'route' => 'hris.absensi.index',  'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'emerald'],
+                ['label' => 'Penggajian',    'route' => 'hris.payroll.index',  'perm' => 'view payroll',   'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'blue'],
+                ['label' => 'Pajak PPh 21',  'route' => 'hris.payroll.setting', 'perm' => 'update payroll', 'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',                                                        'color' => 'orange'],
+                ['label' => 'Cuti & Izin',   'route' => 'hris.leave.index',    'perm' => null,             'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',                                                                 'color' => 'amber'],
+                ['label' => 'Lembur',        'route' => 'hris.overtime.index', 'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'red'],
+                ['label' => 'Reimburse',     'route' => 'hris.reimburse.index','perm' => null,             'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',         'color' => 'teal'],
             ];
             $colorMap = [
                 'emerald' => ['bg' => 'bg-emerald-50', 'icon' => 'text-emerald-500', 'border' => 'border-emerald-100'],
@@ -109,16 +107,16 @@
             @endphp
 
             @foreach($modules as $mod)
+            @continue($mod['perm'] && !auth()->user()->can($mod['perm']))
             @php $c = $colorMap[$mod['color']]; @endphp
-            <div class="bg-white rounded-2xl border {{ $c['border'] }} p-4 flex flex-col items-center gap-2 text-center opacity-70 cursor-not-allowed select-none">
+            <a href="{{ route($mod['route']) }}" class="group bg-white rounded-2xl border {{ $c['border'] }} p-4 flex flex-col items-center gap-2 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
                 <div class="w-11 h-11 rounded-xl {{ $c['bg'] }} flex items-center justify-center">
                     <svg class="w-5 h-5 {{ $c['icon'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $mod['icon'] }}"/>
                     </svg>
                 </div>
-                <p class="text-xs font-semibold text-gray-700 leading-tight">{{ $mod['label'] }}</p>
-                <span class="text-[10px] font-bold bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full">Coming Soon</span>
-            </div>
+                <p class="text-xs font-semibold text-gray-700 leading-tight group-hover:text-gray-900">{{ $mod['label'] }}</p>
+            </a>
             @endforeach
         </div>
     </div>
@@ -131,17 +129,17 @@
             {{-- Data Karyawan --}}
             @can('access users')
             <a href="{{ route('users.index') }}"
-               class="group bg-white rounded-2xl border border-violet-100 p-5 flex items-center gap-4 hover:border-violet-300 hover:shadow-md transition-all">
-                <div class="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center shrink-0 group-hover:bg-violet-200 transition-colors">
-                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="group bg-white rounded-2xl border border-blue-100 p-5 flex items-center gap-4 hover:border-blue-300 hover:shadow-md transition-all">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0 group-hover:bg-blue-200 transition-colors">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-900 group-hover:text-violet-700 transition-colors">Data Karyawan</p>
+                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Data Karyawan</p>
                     <p class="text-xs text-gray-500 mt-0.5">Kelola data, role, dan akses karyawan</p>
                 </div>
-                <svg class="w-4 h-4 text-gray-300 group-hover:text-violet-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </a>
@@ -169,17 +167,17 @@
             {{-- Level Struktural --}}
             @can('access master data')
             <a href="{{ route('structural-levels.index') }}"
-               class="group bg-white rounded-2xl border border-indigo-100 p-5 flex items-center gap-4 hover:border-indigo-300 hover:shadow-md transition-all">
-                <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 group-hover:bg-indigo-200 transition-colors">
-                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="group bg-white rounded-2xl border border-blue-100 p-5 flex items-center gap-4 hover:border-blue-300 hover:shadow-md transition-all">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0 group-hover:bg-blue-200 transition-colors">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">Level Struktural</p>
+                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Level Struktural</p>
                     <p class="text-xs text-gray-500 mt-0.5">Jabatan dan hierarki organisasi</p>
                 </div>
-                <svg class="w-4 h-4 text-gray-300 group-hover:text-indigo-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </a>

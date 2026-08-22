@@ -89,7 +89,7 @@
                             @endif
                             <div class="min-w-0">
                                 <p class="text-sm font-bold text-slate-900 truncate">{{ auth()->user()->name }}</p>
-                                <p class="text-xs text-orange-600 font-medium capitalize truncate">{{ auth()->user()->getRoleNames()->first() }}</p>
+                                <p class="text-xs text-orange-600 font-medium capitalize truncate">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
                             </div>
                         </div>
                     </div>

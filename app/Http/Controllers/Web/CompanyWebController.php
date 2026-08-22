@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class CompanyWebController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -20,7 +23,8 @@ class CompanyWebController extends Controller
                 ->orWhere('code', 'like', "%{$request->search}%"))
             ->when($request->has('is_active') && $request->is_active !== '', fn($q) =>
                 $q->where('is_active', $request->boolean('is_active')))
-            ->paginate(12);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('master.companies.index', compact('companies'));
     }

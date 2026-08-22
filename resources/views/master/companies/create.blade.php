@@ -29,7 +29,7 @@
                         </div>
                         <input type="file" name="logo" accept="image/*"
                                @change="preview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
-                               class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 @error('logo') border-red-400 @enderror">
+                               class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 @error('logo') border-red-400 @enderror">
                     </div>
                     <p class="text-xs text-gray-400 mt-1">Opsional. Format JPG/PNG, maks 2MB.</p>
                     @error('logo')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
@@ -38,7 +38,7 @@
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Perusahaan <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name') }}" required
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 @error('name') border-red-400 @enderror"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-400 @enderror"
                            placeholder="PT. Contoh Indonesia">
                     @error('name')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
@@ -46,7 +46,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kode</label>
                     <input type="text" name="code" value="{{ old('code') }}" maxlength="50"
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 font-mono uppercase @error('code') border-red-400 @enderror"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase @error('code') border-red-400 @enderror"
                            placeholder="PTCI">
                     @error('code')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
@@ -54,14 +54,14 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Telepon</label>
                     <input type="text" name="phone" value="{{ old('phone') }}"
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                            placeholder="021-12345678">
                 </div>
 
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" name="email" value="{{ old('email') }}"
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 @error('email') border-red-400 @enderror"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-400 @enderror"
                            placeholder="info@perusahaan.com">
                     @error('email')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
@@ -69,7 +69,7 @@
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
                     <input type="url" name="website" value="{{ old('website') }}"
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 @error('website') border-red-400 @enderror"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('website') border-red-400 @enderror"
                            placeholder="https://www.perusahaan.com">
                     @error('website')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
@@ -77,19 +77,19 @@
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
                     <textarea name="address" rows="3"
-                              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                               placeholder="Jl. Sudirman No. 1, Jakarta...">{{ old('address') }}</textarea>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active"
-                       {{ old('is_active', '1') ? 'checked' : '' }} class="w-4 h-4 text-violet-600 rounded">
+                       {{ old('is_active', '1') ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Perusahaan Aktif</label>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
                     Simpan Perusahaan
                 </button>
                 <a href="{{ route('companies.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">

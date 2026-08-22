@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\RoleCompany;
 use Illuminate\Http\Request;
@@ -9,9 +10,11 @@ use Spatie\Permission\Models\Role;
 
 class RoleWebController extends Controller
 {
+    use HasPerPage;
+
     private array $protected = ['admin', 'manager', 'developer', 'marketing', 'customer'];
 
-    public function index()
+    public function index(Request $request)
     {
         $cid = $this->tenantId();
 
@@ -27,7 +30,7 @@ class RoleWebController extends Controller
             $query->whereNotIn('id', $ownedByOthers);
         }
 
-        $roles = $query->get();
+        $roles = $query->paginate($this->perPage($request))->withQueryString();
         return view('roles.index', compact('roles'));
     }
 

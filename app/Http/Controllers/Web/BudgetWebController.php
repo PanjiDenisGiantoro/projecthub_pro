@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\BudgetEntry;
 use App\Models\Project;
@@ -9,9 +10,15 @@ use Illuminate\Http\Request;
 
 class BudgetWebController extends Controller
 {
-    public function index(Project $project)
+    use HasPerPage;
+
+    public function index(Request $request, Project $project)
     {
-        $entries = $project->budgetEntries()->with('creator')->orderByDesc('entry_date')->orderByDesc('id')->get();
+        // Breakdown per kategori butuh seluruh entri, bukan cuma satu halaman.
+        $allEntries = $project->budgetEntries()->orderByDesc('entry_date')->orderByDesc('id')->get();
+        $entries = $project->budgetEntries()->with('creator')->orderByDesc('entry_date')->orderByDesc('id')
+            ->paginate($this->perPage($request))
+            ->withQueryString();
         $summary = [
             'budget'   => (float) $project->budget,
             'expenses' => $project->totalExpenses(),
@@ -19,7 +26,7 @@ class BudgetWebController extends Controller
             'balance'  => (float) $project->budget - $project->totalExpenses() + $project->totalIncome(),
             'percent'  => $project->budgetUsedPercent(),
         ];
-        $byCategory = $entries->where('type', 'expense')
+        $byCategory = $allEntries->where('type', 'expense')
             ->groupBy('category')
             ->map(fn($g) => $g->sum('amount'))
             ->sortByDesc(fn($v) => $v);

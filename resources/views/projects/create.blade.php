@@ -45,7 +45,7 @@
                        value="{{ old('name') }}"
                        required
                        placeholder="Masukkan nama proyek"
-                       class="w-full px-3 py-2 border @error('name') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="w-full px-3 py-2 border @error('name') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 @error('name')
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -56,7 +56,7 @@
                 <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
                 <textarea id="description" name="description" rows="4"
                           placeholder="Deskripsikan proyek ini..."
-                          class="w-full px-3 py-2 border @error('description') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">{{ old('description') }}</textarea>
+                          class="w-full px-3 py-2 border @error('description') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('description') }}</textarea>
                 @error('description')
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -69,7 +69,7 @@
                         Client
                     </label>
                     <select id="client_id" name="client_id"
-                            class="w-full px-3 py-2 border @error('client_id') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="w-full px-3 py-2 border @error('client_id') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Pilih Client --</option>
                         @foreach($clients as $client)
                             <option value="{{ $client->id }}" {{ old('client_id') == $client->id ? 'selected' : '' }}>
@@ -87,7 +87,7 @@
                         Manager
                     </label>
                     <select id="manager_id" name="manager_id"
-                            class="w-full px-3 py-2 border @error('manager_id') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="w-full px-3 py-2 border @error('manager_id') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Pilih Manager --</option>
                         @foreach($managers as $manager)
                             <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
@@ -106,8 +106,8 @@
                 <div>
                     <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
                     <input type="date" id="start_date" name="start_date"
-                           value="{{ old('start_date') }}"
-                           class="w-full px-3 py-2 border @error('start_date') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           value="{{ old('start_date', now()->format('Y-m-d')) }}"
+                           class="w-full px-3 py-2 border @error('start_date') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @error('start_date')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -116,8 +116,8 @@
                 <div>
                     <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
                     <input type="date" id="end_date" name="end_date"
-                           value="{{ old('end_date') }}"
-                           class="w-full px-3 py-2 border @error('end_date') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           value="{{ old('end_date', now()->addMonth()->format('Y-m-d')) }}"
+                           class="w-full px-3 py-2 border @error('end_date') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @error('end_date')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -132,7 +132,7 @@
                            value="{{ old('budget') }}"
                            min="0" step="1000"
                            placeholder="0"
-                           class="w-full px-3 py-2 border @error('budget') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           class="w-full px-3 py-2 border @error('budget') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @error('budget')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -141,9 +141,9 @@
                 <div>
                     <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     <select id="status" name="status"
-                            class="w-full px-3 py-2 border @error('status') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="draft"     {{ old('status', 'draft') === 'draft'     ? 'selected' : '' }}>Draft</option>
-                        <option value="active"    {{ old('status') === 'active'    ? 'selected' : '' }}>Aktif</option>
+                            class="w-full px-3 py-2 border @error('status') border-red-400 @else border-gray-300 @enderror rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="draft"     {{ old('status', 'active') === 'draft'     ? 'selected' : '' }}>Draft</option>
+                        <option value="active"    {{ old('status', 'active') === 'active'    ? 'selected' : '' }}>Aktif</option>
                         <option value="on_hold"   {{ old('status') === 'on_hold'   ? 'selected' : '' }}>On Hold</option>
                         <option value="completed" {{ old('status') === 'completed' ? 'selected' : '' }}>Selesai</option>
                         <option value="cancelled" {{ old('status') === 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
@@ -163,7 +163,7 @@
                 &larr; Kembali
             </a>
             <button type="submit" :disabled="submitting"
-                    class="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
                 <span x-show="!submitting">Simpan Proyek</span>
                 <span x-show="submitting" x-cloak>Menyimpan...</span>
             </button>

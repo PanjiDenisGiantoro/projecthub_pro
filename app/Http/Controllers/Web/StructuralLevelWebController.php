@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\StructuralLevel;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use Illuminate\Validation\Rule;
 
 class StructuralLevelWebController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $cid = $this->tenantId();
@@ -17,7 +20,8 @@ class StructuralLevelWebController extends Controller
             ->when($cid, fn($q) => $q->where('company_id', $cid))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%"))
             ->orderBy('sort_order')
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         // Ada template default (company_id null) yang belum diisi untuk company ini
         $hasDefaults = $cid ? StructuralLevel::whereNull('company_id')->exists() : false;

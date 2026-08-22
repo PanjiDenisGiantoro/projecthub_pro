@@ -92,7 +92,7 @@
             @if($invoice->attachment)
                 <div class="mt-3 text-sm">
                     <span class="text-gray-500">Lampiran:</span>
-                    <a href="{{ $invoice->attachmentUrl() }}" target="_blank" class="text-violet-600 hover:text-violet-800 font-medium ml-1">
+                    <a href="{{ $invoice->attachmentUrl() }}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium ml-1">
                         📎 {{ basename($invoice->attachment) }}
                     </a>
                 </div>
@@ -105,7 +105,7 @@
             @if($invoice->status === 'draft')
             <form method="POST" action="{{ route('invoices.send', $invoice) }}">
                 @csrf @method('PUT')
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim ke Client</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim ke Client</button>
             </form>
             @endif
             @if(in_array($invoice->status, ['sent','overdue']))

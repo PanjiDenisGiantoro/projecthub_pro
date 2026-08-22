@@ -14,9 +14,9 @@
             'blue'   => ['bg' => 'bg-blue-500/15',    'text' => 'text-blue-400',    'ring' => 'ring-1 ring-inset ring-blue-500/30'],
             'green'  => ['bg' => 'bg-emerald-500/15', 'text' => 'text-emerald-400', 'ring' => 'ring-1 ring-inset ring-emerald-500/30'],
             'sky'    => ['bg' => 'bg-sky-500/15',     'text' => 'text-sky-400',     'ring' => 'ring-1 ring-inset ring-sky-500/30'],
-            'purple' => ['bg' => 'bg-violet-500/15',  'text' => 'text-violet-400',  'ring' => 'ring-1 ring-inset ring-violet-500/30'],
+            'purple' => ['bg' => 'bg-blue-500/15',  'text' => 'text-blue-400',  'ring' => 'ring-1 ring-inset ring-blue-500/30'],
             'orange' => ['bg' => 'bg-orange-500/15',  'text' => 'text-orange-400',  'ring' => 'ring-1 ring-inset ring-orange-500/30'],
-            'navy'   => ['bg' => 'bg-indigo-500/15',  'text' => 'text-indigo-300',  'ring' => 'ring-1 ring-inset ring-indigo-500/30'],
+            'navy'   => ['bg' => 'bg-blue-500/15',  'text' => 'text-blue-300',  'ring' => 'ring-1 ring-inset ring-blue-500/30'],
         ];
         $fallbackTheme = ['bg' => 'bg-slate-500/15', 'text' => 'text-slate-300', 'ring' => 'ring-1 ring-inset ring-slate-500/30'];
 
@@ -62,7 +62,7 @@
     <div class="flex items-center justify-between mb-5">
         <p class="text-sm text-slate-400">Total: <span class="text-white font-semibold">{{ $packages->count() }}</span> paket</p>
         <button type="button" @click="openCreate()"
-                class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all">
+                class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -293,7 +293,7 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Tipe</label>
                         <select name="type" x-model="form.type"
-                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                             <option value="tier">Kartu Harga (tampil di landing/daftar)</option>
                             <option value="module">Modul add-on</option>
                         </select>
@@ -304,7 +304,7 @@
                                :readonly="mode === 'edit'"
                                :class="mode === 'edit' ? 'opacity-60 cursor-not-allowed' : ''"
                                placeholder="mis. basic, standard, premium"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 font-mono">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60 font-mono">
                         <p class="text-[11px] text-slate-600" x-show="mode === 'edit'">Slug dipakai kode aplikasi (mis. alur daftar & billing), tidak bisa diubah setelah dibuat.</p>
                     </div>
                 </div>
@@ -314,12 +314,12 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Nama Paket</label>
                         <input type="text" name="name" x-model="form.name" required placeholder="Pro"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Tagline</label>
                         <input type="text" name="tagline" x-model="form.tagline" placeholder="Untuk tim yang sedang berkembang."
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                     </div>
                 </div>
 
@@ -327,7 +327,7 @@
                 <div class="space-y-1.5">
                     <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Deskripsi</label>
                     <textarea name="description" x-model="form.description" rows="2" placeholder="Deskripsi singkat paket ini"
-                              class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60"></textarea>
+                              class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60"></textarea>
                 </div>
 
                 {{-- Ikon & Warna --}}
@@ -335,7 +335,7 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Ikon Kolom</label>
                         <select name="icon" x-model="form.icon"
-                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                             <option value="paper-plane">Paper Plane</option>
                             <option value="rocket">Rocket</option>
                             <option value="bar-chart">Bar Chart</option>
@@ -347,7 +347,7 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Warna Kolom</label>
                         <select name="color" x-model="form.color"
-                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                             <option value="blue">Biru</option>
                             <option value="green">Hijau</option>
                             <option value="sky">Biru Muda</option>
@@ -361,7 +361,7 @@
                 {{-- Harga --}}
                 <div class="space-y-2 p-3 bg-slate-800/60 rounded-xl border border-white/5">
                     <label class="flex items-center gap-2 text-xs font-medium text-slate-300">
-                        <input type="checkbox" name="is_custom_price" value="1" x-model="form.is_custom_price" class="accent-indigo-500">
+                        <input type="checkbox" name="is_custom_price" value="1" x-model="form.is_custom_price" class="accent-blue-500">
                         Harga custom (tanpa angka tetap, mis. Enterprise → "Contact Sales")
                     </label>
                     <div class="grid grid-cols-3 gap-3">
@@ -369,17 +369,17 @@
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Harga (Rp)</label>
                             <input type="number" name="price" x-model.number="form.price" min="0" :disabled="form.is_custom_price"
                                    :class="form.is_custom_price ? 'opacity-40 cursor-not-allowed' : ''"
-                                   class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                                   class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Teks Harga (opsional)</label>
                             <input type="text" name="price_display" x-model="form.price_display" placeholder="mis. Rp 149,999 / Contact Sales"
-                                   class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                                   class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Periode</label>
                             <input type="text" name="price_period" x-model="form.price_period" placeholder="/ package"
-                                   class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                                   class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                         </div>
                     </div>
                 </div>
@@ -387,14 +387,14 @@
                 {{-- Pengguna --}}
                 <div class="space-y-2 p-3 bg-slate-800/60 rounded-xl border border-white/5">
                     <label class="flex items-center gap-2 text-xs font-medium text-slate-300">
-                        <input type="checkbox" name="is_custom_users" value="1" x-model="form.is_custom_users" class="accent-indigo-500">
+                        <input type="checkbox" name="is_custom_users" value="1" x-model="form.is_custom_users" class="accent-blue-500">
                         Pengguna custom (tanpa batas angka tetap, mis. Enterprise → "Custom")
                     </label>
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Maks. Pengguna</label>
                         <input type="number" name="max_users" x-model.number="form.max_users" min="0" :disabled="form.is_custom_users"
                                :class="form.is_custom_users ? 'opacity-40 cursor-not-allowed' : ''"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                     </div>
                 </div>
 
@@ -403,12 +403,12 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Teks Baris "Fitur"</label>
                         <input type="text" name="fitur_text" x-model="form.fitur_text" placeholder="mis. Akses semua fitur Pro"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Teks Baris "Fitur HRIS"</label>
                         <input type="text" name="hris_feature" x-model="form.hris_feature" placeholder="mis. HRIS Pro Plus"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                     </div>
                 </div>
 
@@ -417,12 +417,12 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Durasi Langganan (hari)</label>
                         <input type="number" name="duration_days" x-model.number="form.duration_days" min="1" placeholder="30, kosongkan jika tidak berlaku"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Urutan Tampil</label>
                         <input type="number" name="sort_order" x-model.number="form.sort_order" min="0"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                     </div>
                 </div>
 
@@ -431,12 +431,12 @@
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Teks Tombol</label>
                         <input type="text" name="cta_label" x-model="form.cta_label" placeholder="Mulai Gratis"
-                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Aksi Tombol</label>
                         <select name="cta_type" x-model="form.cta_type"
-                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/60">
+                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
                             <option value="register">Arahkan ke halaman daftar (bisa dipilih user)</option>
                             <option value="contact">Hubungi sales (mailto, tidak bisa dipilih langsung)</option>
                         </select>
@@ -446,7 +446,7 @@
                 {{-- Toggles --}}
                 <div class="flex items-center gap-6">
                     <label class="flex items-center gap-2 text-xs font-medium text-slate-300">
-                        <input type="checkbox" name="is_active" value="1" x-model="form.is_active" class="accent-indigo-500">
+                        <input type="checkbox" name="is_active" value="1" x-model="form.is_active" class="accent-blue-500">
                         Aktif (tampil di landing/daftar)
                     </label>
                     <label class="flex items-center gap-2 text-xs font-medium text-slate-300">
@@ -463,7 +463,7 @@
                             <div class="flex items-center gap-2">
                                 <input type="text" :name="`features[${i}]`" x-model="form.features[i]"
                                        placeholder="mis. Project unlimited"
-                                       class="flex-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60">
+                                       class="flex-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
                                 <button type="button" @click="form.features.splice(i, 1)"
                                         class="text-slate-500 hover:text-red-400 transition-colors p-1.5">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -474,7 +474,7 @@
                         </template>
                     </div>
                     <button type="button" @click="form.features.push('')"
-                            class="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                            class="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -488,7 +488,7 @@
                         Batal
                     </button>
                     <button type="submit"
-                            class="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all">
+                            class="px-5 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all">
                         Simpan Paket
                     </button>
                 </div>

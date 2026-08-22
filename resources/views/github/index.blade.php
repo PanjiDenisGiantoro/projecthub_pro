@@ -34,13 +34,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">URL Repository</label>
                     <input type="url" name="github_repo_url" required placeholder="https://github.com/owner/repo"
                            value="{{ old('github_repo_url') }}"
-                           class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                           class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     @error('github_repo_url')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Personal Access Token</label>
                     <input type="password" name="github_token" required placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                           class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                           class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     <p class="text-xs text-gray-400 mt-1">
                         Buat token di GitHub → Settings → Developer settings → Personal access tokens, scope <code class="bg-gray-100 px-1 rounded">repo</code> (read-only cukup untuk repo publik).
                         Token disimpan terenkripsi.
@@ -65,7 +65,7 @@
                 <form method="GET" action="{{ route('github.index', $project) }}" class="flex items-center gap-1.5">
                     <label class="text-xs text-gray-500">Branch</label>
                     <select name="branch" onchange="this.form.submit()"
-                            class="rounded-lg border-gray-300 text-sm font-mono focus:border-indigo-500 focus:ring-indigo-500">
+                            class="rounded-lg border-gray-300 text-sm font-mono focus:border-blue-500 focus:ring-blue-500">
                         @foreach($branches as $b)
                         <option value="{{ $b }}" @selected(($summary['branch'] ?? null) === $b)>{{ $b }}</option>
                         @endforeach

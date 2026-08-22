@@ -2,27 +2,36 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class ClientWebController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         abort_unless(auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager'), 403);
 
+        $companyId = auth()->user()->company_id;
+
         $clients = User::role('customer')
-            ->with('roles')
-            ->where('company_id', auth()->user()->company_id)
+            ->with('roles', 'clientProjects:id,name,client_id,status')
+            ->where('company_id', $companyId)
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"))
             ->when($request->status !== null && $request->status !== '', fn($q) => $q->where('is_active', $request->status))
             ->latest()
-            ->paginate(20)
+            ->paginate($this->perPage($request))
             ->withQueryString();
 
-        return view('clients.index', compact('clients'));
+        $totalClients    = User::role('customer')->where('company_id', $companyId)->count();
+        $activeClients   = User::role('customer')->where('company_id', $companyId)->where('is_active', true)->count();
+        $inactiveClients = User::role('customer')->where('company_id', $companyId)->where('is_active', false)->count();
+
+        return view('clients.index', compact('clients', 'totalClients', 'activeClients', 'inactiveClients'));
     }
 
     public function create()
@@ -41,6 +50,8 @@ class ClientWebController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
+        $sendVerification = $request->boolean('send_verification');
+
         $client = User::create([
             'name'              => $request->name,
             'email'             => $request->email,
@@ -48,11 +59,16 @@ class ClientWebController extends Controller
             'company_id'        => auth()->user()->company_id,
             'is_active'         => $request->boolean('is_active', true),
             'timezone'          => 'Asia/Jakarta',
-            // Admin yang buat & memberi tahu kredensialnya langsung ke client,
-            // jadi tidak perlu klik link verifikasi email lagi.
-            'email_verified_at' => now(),
+            // Default: admin yang buat & memberi tahu kredensialnya langsung ke client,
+            // jadi tidak perlu klik link verifikasi email lagi. Bisa diminta verifikasi
+            // asli lewat checkbox "send_verification" di form.
+            'email_verified_at' => $sendVerification ? null : now(),
         ]);
         $client->assignRole('customer');
+
+        if ($sendVerification) {
+            $client->sendEmailVerificationNotification();
+        }
 
         return redirect()->route('clients.index')->with('success', 'Client berhasil ditambahkan.');
     }

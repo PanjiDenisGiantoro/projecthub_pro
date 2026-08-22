@@ -39,7 +39,7 @@
                 <td class="px-4 py-3 text-center text-gray-600">
                     {{ $rule->hour_from }}{{ $rule->hour_to > 0 ? ' — ' . $rule->hour_to : ' dst' }}
                 </td>
-                <td class="px-4 py-3 text-center font-bold text-violet-700">{{ $rule->multiplier }}×</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-700">{{ $rule->multiplier }}×</td>
                 <td class="px-4 py-3 text-gray-500 text-xs">{{ $rule->label }}</td>
                 <td class="px-4 py-3 text-center">
                     <form action="{{ route('hris.master.overtime-rules.toggle', $rule) }}" method="POST" class="inline">

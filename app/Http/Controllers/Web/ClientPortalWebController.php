@@ -76,7 +76,7 @@ class ClientPortalWebController extends Controller
         $pt->project->customerRequests()->create([
             'title'       => '[Portal Feedback] ' . str($request->message)->limit(80),
             'description' => $request->message,
-            'status'      => 'submitted',
+            'status'      => 'waiting_approval',
             'type'        => 'general_inquiry',
             'priority'    => 'medium',
             'customer_id' => $pt->client_user_id ?? $pt->project->client_id,

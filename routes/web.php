@@ -262,9 +262,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::resource('requests', RequestWebController::class)->only(['index', 'show']);
     });
     Route::middleware('can:approve request')->group(function () {
-        Route::put('/requests/{request}/review', [RequestWebController::class, 'review'])->name('requests.review');
         Route::put('/requests/{request}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
         Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
+        Route::put('/requests/{request}/complete', [RequestWebController::class, 'complete'])->name('requests.complete');
     });
 
     // Campaigns & Leads — grup 'create'/'update' (punya route literal /create) harus
@@ -499,6 +499,10 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Exports
     Route::get('/projects/{project}/export/timesheet/excel', [ExportWebController::class, 'timesheetExcel'])->name('export.timesheet.excel');
     Route::get('/projects/{project}/export/timesheet/pdf', [ExportWebController::class, 'timesheetPdf'])->name('export.timesheet.pdf');
+    Route::get('/projects/{project}/export/timesheet/summary/excel', [ExportWebController::class, 'timesheetSummaryExcel'])->name('export.timesheet.summary.excel');
+    Route::get('/projects/{project}/export/timesheet/summary/pdf', [ExportWebController::class, 'timesheetSummaryPdf'])->name('export.timesheet.summary.pdf');
+    Route::get('/projects/{project}/export/timesheet/gantt/excel', [ExportWebController::class, 'ganttExcel'])->name('export.timesheet.gantt.excel');
+    Route::get('/projects/{project}/export/timesheet/gantt/pdf', [ExportWebController::class, 'ganttPdf'])->name('export.timesheet.gantt.pdf');
     Route::get('/projects/{project}/export/report/pdf', [ExportWebController::class, 'projectReportPdf'])->name('export.report.pdf');
     Route::get('/projects/{project}/export/report/excel', [ExportWebController::class, 'projectReportExcel'])->name('export.report.excel');
 

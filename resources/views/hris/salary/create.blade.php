@@ -29,7 +29,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Berlaku Sejak (Tanggal Efektif) *</label>
                 <input type="date" name="effective_date" value="{{ old('effective_date', today()->format('Y-m-d')) }}" required
-                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 @error('effective_date')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
@@ -40,23 +40,23 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Gaji Pokok (Rp) *</label>
                     <input type="number" name="gaji_pokok" value="{{ old('gaji_pokok', $latest?->gaji_pokok) }}" required min="0" step="50000"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     @error('gaji_pokok')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tunjangan Jabatan (Rp)</label>
                     <input type="number" name="tunjangan_jabatan" value="{{ old('tunjangan_jabatan', $latest?->tunjangan_jabatan ?? 0) }}" min="0" step="50000"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tunjangan Transport (Rp)</label>
                     <input type="number" name="tunjangan_transport" value="{{ old('tunjangan_transport', $latest?->tunjangan_transport ?? 0) }}" min="0" step="50000"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tunjangan Makan (Rp)</label>
                     <input type="number" name="tunjangan_makan" value="{{ old('tunjangan_makan', $latest?->tunjangan_makan ?? 0) }}" min="0" step="50000"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
             </div>
 
@@ -66,7 +66,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status Pajak (PTKP) *</label>
-                    <select name="status_pajak" required class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                    <select name="status_pajak" required class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                         @foreach($statusOptions as $code => $label)
                         <option value="{{ $code }}" @selected(old('status_pajak', $latest?->status_pajak ?? 'TK/0') === $code)>
                             {{ $code }} — {{ $label }}
@@ -77,7 +77,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">NPWP</label>
                     <input type="text" name="npwp" value="{{ old('npwp', $latest?->npwp) }}" maxlength="20" placeholder="XX.XXX.XXX.X-XXX.XXX"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <p class="text-xs text-gray-400 mt-1">Kosongkan jika tidak punya (akan dikenakan tarif +20%)</p>
                 </div>
             </div>
@@ -86,13 +86,13 @@
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="bpjs_kesehatan" value="1"
                            {{ old('bpjs_kesehatan', $latest?->bpjs_kesehatan ?? true) ? 'checked' : '' }}
-                           class="w-4 h-4 text-violet-600 rounded">
+                           class="w-4 h-4 text-blue-600 rounded">
                     <span class="text-sm text-gray-700">BPJS Kesehatan (1%)</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="bpjs_ketenagakerjaan" value="1"
                            {{ old('bpjs_ketenagakerjaan', $latest?->bpjs_ketenagakerjaan ?? true) ? 'checked' : '' }}
-                           class="w-4 h-4 text-violet-600 rounded">
+                           class="w-4 h-4 text-blue-600 rounded">
                     <span class="text-sm text-gray-700">BPJS Ketenagakerjaan (JHT 2% + JP 1%)</span>
                 </label>
             </div>

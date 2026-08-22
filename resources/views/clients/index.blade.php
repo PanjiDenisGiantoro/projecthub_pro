@@ -10,9 +10,9 @@
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Cari nama / email..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-56">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
             <select name="status" onchange="this.form.submit()"
-                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Status</option>
                 <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Aktif</option>
                 <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Nonaktif</option>
@@ -27,7 +27,7 @@
 
         @can('create user')
         <a href="{{ route('clients.create') }}"
-           class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
+           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
             </svg>
@@ -40,13 +40,13 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
         <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
             <div>
                 <p class="text-xs text-gray-500">Total Client</p>
-                <p class="text-xl font-bold text-gray-800">{{ $clients->total() }}</p>
+                <p class="text-xl font-bold text-gray-800">{{ $totalClients }}</p>
             </div>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3">
@@ -57,7 +57,7 @@
             </div>
             <div>
                 <p class="text-xs text-gray-500">Aktif</p>
-                <p class="text-xl font-bold text-gray-800">{{ \App\Models\User::role('customer')->where('is_active', true)->count() }}</p>
+                <p class="text-xl font-bold text-gray-800">{{ $activeClients }}</p>
             </div>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center gap-3">
@@ -68,7 +68,7 @@
             </div>
             <div>
                 <p class="text-xs text-gray-500">Nonaktif</p>
-                <p class="text-xl font-bold text-gray-800">{{ \App\Models\User::role('customer')->where('is_active', false)->count() }}</p>
+                <p class="text-xl font-bold text-gray-800">{{ $inactiveClients }}</p>
             </div>
         </div>
     </div>
@@ -78,8 +78,9 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">Client</th>
+                    <th class="px-4 py-3 text-left">Perusahaan</th>
                     <th class="px-4 py-3 text-left">Email</th>
+                    <th class="px-4 py-3 text-left">Proyek</th>
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Bergabung</th>
                     @canany(['update user', 'delete user'])
@@ -103,11 +104,20 @@
                             @endif
                             <div>
                                 <p class="font-medium text-gray-800">{{ $client->name }}</p>
-                                <p class="text-xs text-gray-400">Client</p>
                             </div>
                         </div>
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $client->email }}</td>
+                    <td class="px-4 py-3">
+                        @forelse($client->clientProjects as $proj)
+                            <a href="{{ route('projects.show', $proj) }}"
+                               class="inline-block px-2 py-0.5 mb-1 mr-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                                {{ $proj->name }}
+                            </a>
+                        @empty
+                            <span class="text-xs text-gray-400">—</span>
+                        @endforelse
+                    </td>
                     <td class="px-4 py-3">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
                             {{ $client->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
@@ -121,7 +131,7 @@
                         <div class="flex items-center gap-3 justify-end">
                             @can('update user')
                             <a href="{{ route('clients.edit', $client) }}"
-                               class="text-violet-600 hover:text-violet-800 text-sm font-medium">Edit</a>
+                               class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</a>
                             @endcan
                             @can('delete user')
                             <form method="POST" action="{{ route('clients.destroy', $client) }}"
@@ -136,7 +146,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-4 py-12 text-center">
+                    <td colspan="6" class="px-4 py-12 text-center">
                         <div class="flex flex-col items-center gap-2 text-gray-400">
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -149,11 +159,12 @@
             </tbody>
         </table>
 
-        @if($clients->hasPages())
-        <div class="px-4 py-3 border-t border-gray-100">
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            @if($clients->hasPages())
             {{ $clients->links() }}
+            @endif
         </div>
-        @endif
     </div>
 </div>
 @endsection

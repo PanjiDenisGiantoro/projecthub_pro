@@ -17,7 +17,7 @@
                     <p class="text-xs font-semibold text-gray-500 uppercase">Folder</p>
                     @if(!auth()->user()->hasRole('customer'))
                     <button type="button" @click="showNewFolder=!showNewFolder" title="Buat folder baru"
-                            class="text-gray-400 hover:text-violet-600 transition-colors">
+                            class="text-gray-400 hover:text-blue-600 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     </button>
                     @endif
@@ -29,8 +29,8 @@
                         @csrf
                         <input type="hidden" name="parent" :value="activeFolder === 'All' ? '' : activeFolder">
                         <input type="text" name="name" x-model="newFolderName" required placeholder="Nama folder"
-                               class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
-                        <button type="submit" class="shrink-0 bg-violet-600 hover:bg-violet-700 text-white text-xs font-medium px-2.5 rounded-lg transition-colors">Buat</button>
+                               class="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-2.5 rounded-lg transition-colors">Buat</button>
                     </form>
                     <p class="text-[11px] text-gray-400 mt-1" x-show="activeFolder !== 'All'">
                         Di dalam: <span x-text="activeFolder"></span>
@@ -58,7 +58,7 @@
                 <h3 class="text-sm font-semibold text-gray-700" x-text="activeFolder === 'All' ? 'Semua File' : activeFolder"></h3>
                 @if(!auth()->user()->hasRole('customer'))
                 <button @click="showUpload=!showUpload; if(showUpload && activeFolder!=='All') newFolder=activeFolder"
-                        class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     <span x-text="showUpload ? 'Batal' : 'Upload File'"></span>
                 </button>
@@ -75,7 +75,7 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Folder</label>
                             <input type="text" name="folder" x-model="newFolder" placeholder="General atau Docs/Kontrak" list="folder-list"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <datalist id="folder-list">
                                 @foreach($folders as $f)<option value="{{ $f }}">@endforeach
                             </datalist>
@@ -84,7 +84,7 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                             <input type="text" name="description" placeholder="Opsional"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
@@ -95,7 +95,7 @@
                             <p class="text-xs text-blue-600 mt-1" x-text="files.length + ' file dipilih'"></p>
                         </template>
                     </div>
-                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Upload</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Upload</button>
                 </form>
             </div>
             @endif
@@ -118,9 +118,9 @@
                     <p class="text-xs text-gray-400 text-center">{{ $file->uploader?->name }}</p>
                     <div class="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <a href="{{ $file->url() }}" target="_blank"
-                           class="text-xs text-violet-600 hover:text-violet-800 font-medium">Buka</a>
+                           class="text-xs text-blue-600 hover:text-blue-800 font-medium">Buka</a>
                         <a href="{{ $file->url() }}" download
-                           class="text-xs text-violet-600 hover:text-violet-800 font-medium">Unduh</a>
+                           class="text-xs text-blue-600 hover:text-blue-800 font-medium">Unduh</a>
                         @if(!auth()->user()->hasRole('customer'))
                         <form method="POST" action="{{ route('project.files.destroy', [$project, $file]) }}"
                               data-confirm-delete="{{ $file->original_name }}">

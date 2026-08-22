@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\RecurringTaskDefinition;
@@ -11,9 +12,13 @@ use Illuminate\Http\Request;
 
 class RecurringTaskWebController extends Controller
 {
-    public function index(Project $project)
+    use HasPerPage;
+
+    public function index(Request $request, Project $project)
     {
-        $definitions = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')->get();
+        $definitions = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')
+            ->paginate($this->perPage($request))
+            ->withQueryString();
         $milestones = $project->milestones()->orderBy('title')->get(['id', 'title']);
         $users = User::orderBy('name')->get(['id', 'name']);
         return view('recurring.index', compact('project', 'definitions', 'milestones', 'users'));

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Bonus;
 use App\Models\User;
@@ -9,6 +10,8 @@ use Illuminate\Http\Request;
 
 class BonusController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $this->authorize('view payroll');
@@ -22,7 +25,8 @@ class BonusController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         $employees = User::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get();
 

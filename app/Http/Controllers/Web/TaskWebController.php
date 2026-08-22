@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Task;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 class TaskWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
 
     public function index(Request $request, Project $project)
@@ -26,7 +29,7 @@ class TaskWebController extends Controller
             $query->where('assigned_to', $user->id);
         }
 
-        $tasks      = $query->latest()->paginate(20);
+        $tasks      = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $milestones = $project->milestones()->get();
         $developers = User::role('developer')->where('is_active', true)->get();
         return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers'));

@@ -39,14 +39,14 @@ class CustomerRequestController extends Controller
         $customerRequest = CustomerRequest::create([
             ...$request->only('project_id', 'title', 'description', 'type', 'priority', 'attachment_path'),
             'customer_id' => $request->user()->id,
-            'status' => 'submitted',
+            'status' => 'waiting_approval',
         ]);
 
-        // Notify marketing team
+        // Notify managers directly — no separate marketing review step
         $this->notifier->notifyByRole(
-            'marketing',
-            'new_customer_request',
-            'New Customer Request',
+            'manager',
+            'request_needs_approval',
+            'Request Needs Approval',
             "Customer submitted: {$customerRequest->title}",
             ['request_id' => $customerRequest->id],
             companyId: $customerRequest->project->company_id
@@ -57,35 +57,12 @@ class CustomerRequestController extends Controller
 
     public function show(CustomerRequest $customerRequest)
     {
-        return response()->json($customerRequest->load(['project', 'customer', 'reviewer', 'approver']));
-    }
-
-    public function review(Request $request, CustomerRequest $customerRequest)
-    {
-        $request->validate(['marketing_notes' => 'nullable|string']);
-
-        $customerRequest->update([
-            'status' => 'under_review',
-            'marketing_notes' => $request->marketing_notes,
-            'reviewed_by' => $request->user()->id,
-        ]);
-
-        // Notify managers
-        $this->notifier->notifyByRole(
-            'manager',
-            'request_needs_approval',
-            'Request Needs Approval',
-            "Customer request ready for your approval: {$customerRequest->title}",
-            ['request_id' => $customerRequest->id],
-            companyId: $customerRequest->project->company_id
-        );
-
-        return response()->json($customerRequest->fresh()->load(['reviewer']));
+        return response()->json($customerRequest->load(['project', 'customer', 'reviewer', 'approver', 'completer']));
     }
 
     public function approve(Request $request, CustomerRequest $customerRequest)
     {
-        if ($customerRequest->status !== 'under_review' && $customerRequest->status !== 'submitted') {
+        if ($customerRequest->status !== 'waiting_approval') {
             return response()->json(['message' => 'Request cannot be approved in its current state.'], 422);
         }
 
@@ -108,6 +85,10 @@ class CustomerRequestController extends Controller
 
     public function reject(Request $request, CustomerRequest $customerRequest)
     {
+        if ($customerRequest->status !== 'waiting_approval') {
+            return response()->json(['message' => 'Request cannot be rejected in its current state.'], 422);
+        }
+
         $request->validate(['rejection_reason' => 'required|string']);
 
         $customerRequest->update([
@@ -125,5 +106,28 @@ class CustomerRequestController extends Controller
         );
 
         return response()->json($customerRequest->fresh());
+    }
+
+    public function complete(Request $request, CustomerRequest $customerRequest)
+    {
+        if ($customerRequest->status !== 'approved') {
+            return response()->json(['message' => 'Request must be approved before it can be marked done.'], 422);
+        }
+
+        $customerRequest->update([
+            'status' => 'done',
+            'completed_by' => $request->user()->id,
+            'completed_at' => now(),
+        ]);
+
+        $this->notifier->send(
+            $customerRequest->customer_id,
+            'request_done',
+            'Your Request Is Done',
+            "Your request \"{$customerRequest->title}\" has been completed.",
+            ['request_id' => $customerRequest->id]
+        );
+
+        return response()->json($customerRequest->fresh()->load(['completer']));
     }
 }

@@ -21,23 +21,23 @@
         <tbody class="divide-y divide-gray-100">
             @foreach($ptkpList as $ptkp)
             <tr x-data="{ edit: false }">
-                <td class="px-4 py-3 font-mono font-semibold text-violet-700">{{ $ptkp->status_code }}</td>
+                <td class="px-4 py-3 font-mono font-semibold text-blue-700">{{ $ptkp->status_code }}</td>
                 <td class="px-4 py-3 text-gray-700">{{ $ptkp->label }}</td>
                 <td class="px-4 py-3 text-right font-semibold text-gray-900">
                     Rp {{ number_format($ptkp->amount, 0, ',', '.') }}
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <button @click="edit = !edit" class="text-xs text-violet-600 hover:underline">Edit</button>
+                    <button @click="edit = !edit" class="text-xs text-blue-600 hover:underline">Edit</button>
                 </td>
             </tr>
             <tr x-show="edit" x-cloak class="bg-blue-50">
                 <td colspan="4" class="px-4 py-3">
                     <form action="{{ route('hris.master.tax-ptkp.update', $ptkp) }}" method="POST" class="flex items-center gap-3">
                         @csrf @method('PATCH')
-                        <span class="font-mono font-bold text-violet-700 text-sm">{{ $ptkp->status_code }}</span>
+                        <span class="font-mono font-bold text-blue-700 text-sm">{{ $ptkp->status_code }}</span>
                         <input type="number" name="amount" value="{{ $ptkp->amount }}" step="500000" min="0"
-                               class="border border-gray-300 rounded-xl px-3 py-1.5 text-sm w-48 focus:ring-2 focus:ring-violet-500 focus:outline-none">
-                        <button class="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg hover:bg-violet-700">Simpan</button>
+                               class="border border-gray-300 rounded-xl px-3 py-1.5 text-sm w-48 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <button class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">Simpan</button>
                         <button type="button" @click="edit = false" class="text-xs text-gray-500">Batal</button>
                     </form>
                 </td>

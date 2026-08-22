@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Kasbon;
 use App\Models\User;
@@ -9,6 +10,8 @@ use Illuminate\Http\Request;
 
 class KasbonController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $this->authorize('view payroll');
@@ -18,7 +21,8 @@ class KasbonController extends Controller
             ->where('company_id', $companyId)
             ->orderByRaw("status = 'berjalan' desc")
             ->orderByDesc('tanggal')
-            ->get();
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         $employees = User::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get();
 

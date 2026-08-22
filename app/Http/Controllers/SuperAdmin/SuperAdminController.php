@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\OrganizationUnit;
@@ -16,7 +17,9 @@ use Spatie\Permission\Models\Role;
 
 class SuperAdminController extends Controller
 {
-    public function dashboard()
+    use HasPerPage;
+
+    public function dashboard(Request $request)
     {
         $stats = [
             'total_companies' => Company::count(),
@@ -30,26 +33,29 @@ class SuperAdminController extends Controller
         $companies = Company::withCount(['rootOrganizationUnits'])
             ->with(['organizationUnits.users' => fn($q) => $q->limit(1)])
             ->latest()
-            ->paginate(15);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('superadmin.dashboard', compact('stats', 'companies'));
     }
 
-    public function companies()
+    public function companies(Request $request)
     {
         $companies = Company::withCount(['rootOrganizationUnits'])
             ->latest()
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('superadmin.companies', compact('companies'));
     }
 
-    public function users()
+    public function users(Request $request)
     {
         $users = User::with(['organizationUnit.company', 'company', 'additionalCompanies'])
             ->where('is_super_admin', false)
             ->latest()
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         $companies = Company::orderBy('name')->get();
 
@@ -174,7 +180,7 @@ class SuperAdminController extends Controller
             $query->whereNotNull('active_until')->where('active_until', '<=', now());
         }
 
-        $users = $query->paginate(20)->withQueryString();
+        $users = $query->paginate($this->perPage($request))->withQueryString();
 
         $counts = [
             'all'      => User::where('is_registered', true)->count(),

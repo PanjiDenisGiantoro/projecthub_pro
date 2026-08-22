@@ -3,7 +3,7 @@
 
     {{-- Loading --}}
     <div x-show="loading" class="flex items-center justify-center py-16">
-        <svg class="animate-spin w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
@@ -14,7 +14,7 @@
 
         {{-- Header --}}
         <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-gray-50/70 shrink-0">
-            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
             <span class="text-sm font-semibold text-gray-700">Chat Proyek</span>
@@ -26,8 +26,8 @@
 
             {{-- Empty state --}}
             <div x-show="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-8">
-                <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                    <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                 </div>
@@ -77,9 +77,9 @@
 
                                 {{-- Reply reference --}}
                                 <template x-if="msg.parent">
-                                    <div class="flex items-start gap-1.5 mb-1.5 pl-2 border-l-2 border-indigo-200">
+                                    <div class="flex items-start gap-1.5 mb-1.5 pl-2 border-l-2 border-blue-200">
                                         <div>
-                                            <span class="text-xs font-semibold text-indigo-500" x-text="msg.parent.user"></span>
+                                            <span class="text-xs font-semibold text-blue-500" x-text="msg.parent.user"></span>
                                             <p class="text-xs text-gray-400 truncate max-w-xs" x-text="msg.parent.body"></p>
                                         </div>
                                     </div>
@@ -95,11 +95,11 @@
                                         <textarea x-model="editBody"
                                                   @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); editSave(msg); }"
                                                   @keydown.escape="cancelEdit()"
-                                                  class="w-full border border-indigo-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none"
+                                                  class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none resize-none"
                                                   rows="2"></textarea>
                                         <div class="flex gap-2 mt-1">
                                             <button @click="editSave(msg)"
-                                                    class="text-xs px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Simpan</button>
+                                                    class="text-xs px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Simpan</button>
                                             <button @click="cancelEdit()"
                                                     class="text-xs px-3 py-1 text-gray-500 hover:text-gray-700 transition">Batal</button>
                                         </div>
@@ -115,7 +115,7 @@
                                                     <img :src="att.url" class="max-w-[220px] max-h-[160px] rounded-lg border border-gray-200 object-cover hover:opacity-90 transition cursor-pointer">
                                                 </a>
                                                 <a x-show="!att.is_image" :href="att.url" target="_blank"
-                                                   class="inline-flex items-center gap-2 text-xs bg-gray-100 hover:bg-indigo-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:text-indigo-600 transition max-w-[240px]">
+                                                   class="inline-flex items-center gap-2 text-xs bg-gray-100 hover:bg-blue-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:text-blue-600 transition max-w-[240px]">
                                                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                     <span class="truncate" x-text="att.name"></span>
                                                     <span class="text-gray-400 shrink-0" x-text="att.size"></span>
@@ -130,7 +130,7 @@
                                     <div class="mt-1.5 flex flex-wrap gap-1">
                                         <template x-for="r in msg.reactions" :key="r.emoji">
                                             <button @click="react(msg, r.emoji)"
-                                                    :class="r.reacted ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'"
+                                                    :class="r.reacted ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'"
                                                     class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full border transition"
                                                     :title="r.users.join(', ')">
                                                 <span x-text="r.emoji"></span>
@@ -163,7 +163,7 @@
 
                                 {{-- Reply --}}
                                 <button @click="setReply(msg)"
-                                        class="p-1.5 rounded-lg text-gray-300 hover:text-indigo-500 hover:bg-gray-100 transition"
+                                        class="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-gray-100 transition"
                                         title="Balas">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
@@ -173,7 +173,7 @@
                                 {{-- Edit (own message) --}}
                                 <button x-show="msg.is_mine && editingId !== msg.id"
                                         @click="startEdit(msg)"
-                                        class="p-1.5 rounded-lg text-gray-300 hover:text-indigo-500 hover:bg-gray-100 transition"
+                                        class="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-gray-100 transition"
                                         title="Edit">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
@@ -199,12 +199,12 @@
         {{-- Reply indicator --}}
         <div x-show="replyTo"
              x-cloak
-             class="px-4 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center gap-3 shrink-0">
-            <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             class="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center gap-3 shrink-0">
+            <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
             </svg>
             <div class="flex-1 min-w-0">
-                <span class="text-xs text-indigo-600 font-semibold" x-text="'Membalas ' + (replyTo?.user?.name ?? '')"></span>
+                <span class="text-xs text-blue-600 font-semibold" x-text="'Membalas ' + (replyTo?.user?.name ?? '')"></span>
                 <p class="text-xs text-gray-500 truncate" x-text="replyTo?.body || '[file]'"></p>
             </div>
             <button @click="replyTo = null" class="text-gray-400 hover:text-red-500 transition ml-2 text-lg leading-none">&times;</button>
@@ -233,9 +233,9 @@
                      class="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 w-56 overflow-hidden">
                     <template x-for="(m, i) in mentionResults" :key="m.id">
                         <button @click="selectMention(m)"
-                                :class="i === mentionIndex ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'"
+                                :class="i === mentionIndex ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'"
                                 class="w-full text-left px-3 py-2 text-sm flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-[10px] font-bold shrink-0"
+                            <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-bold shrink-0"
                                  x-text="m.name.substring(0,2).toUpperCase()"></div>
                             <span x-text="m.name"></span>
                         </button>
@@ -245,7 +245,7 @@
 
             <div class="flex gap-2 items-end">
                 {{-- Attach file --}}
-                <label class="cursor-pointer shrink-0 p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition mb-0.5"
+                <label class="cursor-pointer shrink-0 p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition mb-0.5"
                        title="Lampiran">
                     <input type="file" multiple class="hidden" @change="addFiles($event)">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,14 +262,14 @@
                               @keydown.escape="showMentions = false; replyTo = null"
                               rows="1"
                               placeholder="Tulis pesan… (Enter kirim, Shift+Enter baris baru, @nama untuk mention)"
-                              class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 focus:border-transparent outline-none resize-none leading-relaxed transition"
+                              class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none resize-none leading-relaxed transition"
                               style="max-height: 120px; overflow-y: auto"></textarea>
                 </div>
 
                 {{-- Send --}}
                 <button @click="send()"
                         :disabled="sending || (!newBody.trim() && files.length === 0)"
-                        class="shrink-0 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 mb-0.5">
+                        class="shrink-0 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 mb-0.5">
                     <svg x-show="!sending" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
@@ -348,9 +348,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         addLabels(msg) {
-            const d = new Date(msg.created_at.replace(',', ''));
-            msg.date_label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            msg.time_label = msg.created_at.split(',')[1]?.trim() ?? msg.created_at;
+            const d = new Date(msg.created_at);
+            msg.date_label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+            msg.time_label = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
             return msg;
         },
 

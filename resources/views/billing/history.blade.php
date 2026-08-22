@@ -6,7 +6,7 @@
 <div class="py-4">
     <div class="flex items-center justify-between mb-4">
         <p class="text-sm text-gray-500">Riwayat transaksi langganan perusahaan Anda.</p>
-        <a href="{{ route('billing.renew') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+        <a href="{{ route('billing.renew') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             Perpanjang / Upgrade Paket
         </a>
     </div>
@@ -58,9 +58,12 @@
                 @endforelse
             </tbody>
         </table>
-        @if($orders->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100">{{ $orders->links() }}</div>
-        @endif
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            @if($orders->hasPages())
+            {{ $orders->links() }}
+            @endif
+        </div>
     </div>
 </div>
 @endsection

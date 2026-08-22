@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Lead;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class CampaignWebController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $query = Campaign::with(['creator', 'owner', 'project'])
@@ -18,7 +21,7 @@ class CampaignWebController extends Controller
             ->when($request->channel, fn($q) => $q->where('channel', $request->channel))
             ->when($request->search,  fn($q) => $q->where('name', 'like', '%'.$request->search.'%'));
 
-        $campaigns = $query->latest()->paginate(15)->withQueryString();
+        $campaigns = $query->latest()->paginate($this->perPage($request))->withQueryString();
 
         $stats = [
             'total'       => Campaign::count(),

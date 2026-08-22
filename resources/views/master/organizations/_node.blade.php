@@ -1,8 +1,8 @@
 @php
     $levelBadges = [
         ['bg' => 'bg-blue-50',    'text' => 'text-blue-700'],
-        ['bg' => 'bg-violet-50',  'text' => 'text-violet-700'],
-        ['bg' => 'bg-indigo-50',  'text' => 'text-indigo-700'],
+        ['bg' => 'bg-blue-50',  'text' => 'text-blue-700'],
+        ['bg' => 'bg-blue-50',  'text' => 'text-blue-700'],
         ['bg' => 'bg-teal-50',    'text' => 'text-teal-700'],
         ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700'],
         ['bg' => 'bg-amber-50',   'text' => 'text-amber-700'],

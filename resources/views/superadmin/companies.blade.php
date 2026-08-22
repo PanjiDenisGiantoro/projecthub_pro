@@ -75,11 +75,12 @@
         </tbody>
     </table>
 
-    @if($companies->hasPages())
-    <div class="px-6 py-4 border-t border-white/5 text-slate-400">
+    <div class="px-6 py-4 border-t border-white/5 text-slate-400 flex items-center justify-between gap-3 flex-wrap">
+        <x-per-page />
+        @if($companies->hasPages())
         {{ $companies->links() }}
+        @endif
     </div>
-    @endif
 </div>
 
 {{-- Modal konfirmasi hapus perusahaan --}}

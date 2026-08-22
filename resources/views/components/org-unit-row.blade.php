@@ -6,7 +6,7 @@
             @if($unit->level > 1)
                 <span class="text-gray-300">└</span>
             @endif
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
                 {{ strtoupper(substr($unit->name, 0, 2)) }}
             </div>
             <div>
@@ -34,7 +34,7 @@
     <td class="px-4 py-3">
         <div class="flex items-center gap-3 justify-end">
             <a href="{{ route('organization-units.create', ['company_id' => $unit->company_id, 'parent_id' => $unit->id]) }}"
-               class="text-gray-500 hover:text-violet-600 transition-colors" title="Tambah sub-unit">
+               class="text-gray-500 hover:text-blue-600 transition-colors" title="Tambah sub-unit">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             </a>
             <a href="{{ route('organization-units.edit', $unit) }}" class="text-gray-500 hover:text-blue-600 transition-colors" title="Edit">

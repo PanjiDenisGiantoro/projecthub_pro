@@ -11,11 +11,11 @@
 
     <div class="flex justify-between items-center mb-4">
         <div class="flex gap-3">
-            <span class="text-sm text-gray-500">{{ $risks->count() }} risiko terdaftar</span>
+            <span class="text-sm text-gray-500">{{ $allRisks->count() }} risiko terdaftar</span>
         </div>
         @if(!auth()->user()->hasRole('customer'))
         <button @click="showForm=!showForm"
-                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span x-text="showForm ? 'Batal' : 'Tambah Risiko'"></span>
         </button>
@@ -31,7 +31,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-3">Ringkasan</h3>
             @php
-                $byLevel = $risks->groupBy(fn($r) => $r->level());
+                $byLevel = $allRisks->groupBy(fn($r) => $r->level());
                 $levels = ['critical'=>'Kritis','high'=>'Tinggi','medium'=>'Sedang','low'=>'Rendah'];
                 $levelColors = ['critical'=>'text-red-600','high'=>'text-orange-600','medium'=>'text-yellow-600','low'=>'text-green-600'];
             @endphp
@@ -52,15 +52,15 @@
             @csrf
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Judul *</label>
-                <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
-                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Kategori *</label>
-                <select name="category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach(['technical','schedule','resource','budget','external','other'] as $c)
                     <option value="{{ $c }}">{{ ucfirst($c) }}</option>
                     @endforeach
@@ -68,7 +68,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Status *</label>
-                <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach(['open','mitigated','accepted','closed'] as $s)
                     <option value="{{ $s }}">{{ ucfirst($s) }}</option>
                     @endforeach
@@ -76,28 +76,31 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Probabilitas (1-5) *</label>
-                <input type="number" name="probability" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="probability" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Dampak (1-5) *</label>
-                <input type="number" name="impact" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="impact" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Owner</label>
-                <input type="text" name="owner" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="text" name="owner" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Rencana Mitigasi</label>
-                <textarea name="mitigation_plan" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+                <textarea name="mitigation_plan" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div class="sm:col-span-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan</button>
             </div>
         </form>
     </div>
     @endif
 
     {{-- Risk Table --}}
+    <div class="flex justify-end mb-2">
+        <x-per-page />
+    </div>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         @if($risks->isEmpty())
         <div class="text-center py-10 text-gray-400">
@@ -156,13 +159,16 @@
                 @endforeach
             </tbody>
         </table>
+        @if($risks->hasPages())
+        <div class="px-4 py-3 border-t border-gray-100">{{ $risks->links() }}</div>
+        @endif
         @endif
     </div>
 </div>
 
 @push('scripts')
 @php
-    $matrixData = $risks->map(fn($r) => [
+    $matrixData = $allRisks->map(fn($r) => [
         'x'     => $r->probability,
         'y'     => $r->impact,
         'label' => $r->title,

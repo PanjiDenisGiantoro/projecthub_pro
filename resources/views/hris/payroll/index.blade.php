@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Penggajian (Payroll)</h1>
         @can('update payroll')
         <a href="{{ route('hris.payroll.setting') }}"
-           class="inline-flex items-center gap-2 text-sm text-violet-600 hover:text-violet-800 font-medium">
+           class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -37,13 +37,13 @@
             <option value="{{ $m }}" @selected($m == $month)>{{ \Carbon\Carbon::create(null, $m)->locale('id')->isoFormat('MMMM') }}</option>
             @endforeach
         </select>
-        <button type="submit" class="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-xl hover:bg-violet-700">Filter</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700">Filter</button>
     </form>
 
     {{-- Generate Form (only for HR) --}}
     @can('generate payroll')
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4" x-data="{ open: false }">
-        <button @click="open = !open" class="text-sm font-medium text-violet-700 hover:text-violet-900">
+        <button @click="open = !open" class="text-sm font-medium text-blue-700 hover:text-blue-900">
             + Generate Payroll untuk Karyawan
         </button>
         <div x-show="open" class="mt-4">
@@ -57,7 +57,7 @@
                 </select>
                 <input type="hidden" name="year" value="{{ $year }}">
                 <input type="hidden" name="month" value="{{ $month }}">
-                <button class="px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700">Generate</button>
+                <button class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Generate</button>
             </form>
         </div>
     </div>
@@ -91,8 +91,8 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-center flex items-center justify-center gap-2">
-                        <a href="{{ route('hris.payroll.show', $p) }}" class="text-xs text-violet-600 hover:text-violet-800">Detail</a>
-                        <a href="{{ route('hris.payroll.slip', $p) }}" class="text-xs text-violet-600 hover:text-violet-800">Slip PDF</a>
+                        <a href="{{ route('hris.payroll.show', $p) }}" class="text-xs text-blue-600 hover:text-blue-800">Detail</a>
+                        <a href="{{ route('hris.payroll.slip', $p) }}" class="text-xs text-blue-600 hover:text-blue-800">Slip PDF</a>
                         @can('update payroll')
                         @if($p->status === 'draft')
                         <form action="{{ route('hris.payroll.finalize', $p) }}" method="POST" class="inline">
@@ -108,7 +108,10 @@
                 @endforelse
             </tbody>
         </table>
-        <div class="p-4">{{ $payrolls->withQueryString()->links() }}</div>
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $payrolls->links() }}
+        </div>
     </div>
 </div>
 @endsection

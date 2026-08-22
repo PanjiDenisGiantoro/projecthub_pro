@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Overtime;
 use App\Services\NotificationService;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class OvertimeController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private OvertimeService $overtimeService, private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -21,7 +24,8 @@ class OvertimeController extends Controller
             ->where('company_id', $user->company_id)
             ->when(!$user->can('view overtime'), fn($q) => $q->where('user_id', $user->id))
             ->orderByDesc('date')
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('hris.overtime.index', compact('overtimes'));
     }

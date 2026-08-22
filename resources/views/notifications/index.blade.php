@@ -34,7 +34,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Incoming Webhook URL</label>
                         <input type="url" name="webhook_url" required placeholder="https://hooks.slack.com/services/..."
-                               class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         <p class="text-xs text-gray-400 mt-1">
                             Buat di Slack → App Directory → cari "Incoming Webhooks" → Add to Slack → pilih channel → copy Webhook URL.
                         </p>
@@ -82,7 +82,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Webhook URL</label>
                         <input type="url" name="webhook_url" required placeholder="https://discord.com/api/webhooks/..."
-                               class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         <p class="text-xs text-gray-400 mt-1">
                             Buat di Discord → Server Settings → Integrations → Webhooks → New Webhook → pilih channel → Copy Webhook URL.
                         </p>

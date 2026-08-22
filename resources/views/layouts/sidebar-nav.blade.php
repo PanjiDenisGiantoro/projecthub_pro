@@ -4,8 +4,9 @@
     $inactive     = 'ph-nav-link';
     $isSuperAdmin = auth()->user()->is_super_admin;
     $userPkgs     = $isSuperAdmin ? ['task_management', 'hris'] : auth()->user()->activePackages();
-    // HRIS disembunyikan sementara dari UI dashboard
-    $userPkgs     = array_values(array_diff($userPkgs, ['hris']));
+    if (auth()->user()->hasRole('customer')) {
+        $userPkgs = array_values(array_diff($userPkgs, ['hris']));
+    }
     $activePkg    = session('active_package', $userPkgs[0] ?? 'task_management');
     $activePkg    = is_string($activePkg) ? $activePkg : 'task_management'; // guard: jangan sampai object masuk session
     if (!empty($userPkgs) && !in_array($activePkg, $userPkgs)) {
@@ -119,6 +120,7 @@
 @endcan
 
 {{-- Campaigns --}}
+@if(false)
 @can('access campaigns')
 <a href="{{ route('campaigns.index') }}"
    class="{{ request()->routeIs('campaigns.*') ? $active : $inactive }}">
@@ -128,6 +130,7 @@
     Campaigns
 </a>
 @endcan
+@endif
 
 {{-- Invoices --}}
 @can('access invoices')
@@ -163,6 +166,7 @@
 @endcan
 
 {{-- Global Search --}}
+@if(false)
 @can('access search')
 <a href="{{ route('search.index') }}"
    class="{{ request()->routeIs('search.*') ? $active : $inactive }}">
@@ -172,8 +176,10 @@
     Global Search
 </a>
 @endcan
+@endif
 
 {{-- Templates --}}
+@if(false)
 @can('access templates')
 <a href="{{ route('templates.index') }}"
    class="{{ request()->routeIs('templates.*') ? $active : $inactive }}">
@@ -183,6 +189,7 @@
     Templates
 </a>
 @endcan
+@endif
 
 {{-- Workload --}}
 @can('access workload')
@@ -406,6 +413,7 @@
     <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Master Data</p>
 
     @can('access master data')
+    @if($showHris)
     <a href="{{ route('master.index') }}"
        class="{{ request()->routeIs('master.index') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,6 +421,7 @@
         </svg>
         Struktur Org.
     </a>
+    @endif
     <a href="{{ route('companies.index') }}"
        class="{{ request()->routeIs('companies.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,6 +429,7 @@
         </svg>
         Perusahaan
     </a>
+    @if($showHris)
     <a href="{{ route('organization-units.index') }}"
        class="{{ request()->routeIs('organization-units.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -434,6 +444,7 @@
         </svg>
         Level Struktural
     </a>
+    @endif
     @endcan
 
     @can('manage permissions')
@@ -451,6 +462,7 @@
         </svg>
         Permission Management
     </a>
+    @if($showHris)
     <a href="{{ route('activity-log.index') }}"
        class="{{ request()->routeIs('activity-log.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -458,6 +470,7 @@
         </svg>
         Activity Log
     </a>
+    @endif
     @endcan
 </div>
 @endif

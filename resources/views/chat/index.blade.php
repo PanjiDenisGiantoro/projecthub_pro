@@ -24,7 +24,7 @@
             <div class="flex items-center justify-between mb-3">
                 <h1 class="text-base font-bold text-gray-900">Chat</h1>
                 <button x-show="tab === 'forum'" @click="openCreateForum()"
-                        class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                        class="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Forum
                 </button>
@@ -33,22 +33,22 @@
             {{-- Tabs --}}
             <div class="flex gap-1 mb-3 bg-gray-100 rounded-xl p-1">
                 <button @click="tab = 'project'"
-                        :class="tab === 'project' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'"
+                        :class="tab === 'project' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'"
                         class="flex-1 text-xs font-semibold py-1.5 rounded-lg transition relative">
                     Proyek
-                    <span x-show="unreadByTab.project > 0" class="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5" x-text="unreadByTab.project"></span>
+                    <span x-show="unreadByTab.project > 0" class="ml-1 text-[10px] bg-blue-600 text-white rounded-full px-1.5" x-text="unreadByTab.project"></span>
                 </button>
                 <button @click="tab = 'dm'"
-                        :class="tab === 'dm' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'"
+                        :class="tab === 'dm' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'"
                         class="flex-1 text-xs font-semibold py-1.5 rounded-lg transition relative">
                     Pesan
-                    <span x-show="unreadByTab.dm > 0" class="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5" x-text="unreadByTab.dm"></span>
+                    <span x-show="unreadByTab.dm > 0" class="ml-1 text-[10px] bg-blue-600 text-white rounded-full px-1.5" x-text="unreadByTab.dm"></span>
                 </button>
                 <button @click="tab = 'forum'"
-                        :class="tab === 'forum' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'"
+                        :class="tab === 'forum' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'"
                         class="flex-1 text-xs font-semibold py-1.5 rounded-lg transition relative">
                     Forum
-                    <span x-show="unreadByTab.forum > 0" class="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5" x-text="unreadByTab.forum"></span>
+                    <span x-show="unreadByTab.forum > 0" class="ml-1 text-[10px] bg-blue-600 text-white rounded-full px-1.5" x-text="unreadByTab.forum"></span>
                 </button>
             </div>
 
@@ -57,7 +57,7 @@
                 <input type="text"
                        x-model="search"
                        :placeholder="tab === 'project' ? 'Cari proyek…' : (tab === 'dm' ? 'Cari orang…' : 'Cari forum…')"
-                       class="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-300 focus:border-transparent outline-none transition">
+                       class="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none transition">
                 <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
@@ -72,7 +72,7 @@
                 <template x-if="tab === 'forum'">
                     <div>
                         <p class="text-sm text-gray-400 mb-2">Belum ada forum.</p>
-                        <button @click="openCreateForum()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Buat forum baru</button>
+                        <button @click="openCreateForum()" class="text-xs font-semibold text-blue-600 hover:text-blue-700">+ Buat forum baru</button>
                     </div>
                 </template>
             </div>
@@ -80,7 +80,7 @@
             <template x-for="item in filteredList" :key="item.type + '-' + item.id">
                 <button @click="selectItem(item)"
                         :class="isActive(item)
-                            ? 'bg-indigo-50 border-r-[3px] border-indigo-500'
+                            ? 'bg-blue-50 border-r-[3px] border-blue-500'
                             : 'hover:bg-gray-50 border-r-[3px] border-transparent'"
                         class="w-full text-left px-4 py-3.5 flex items-center gap-3 transition-colors group">
 
@@ -96,7 +96,7 @@
                         <div class="flex items-center justify-between gap-1 mb-0.5">
                             <span class="text-sm font-semibold text-gray-800 truncate" x-text="item.name"></span>
                             <template x-if="item.unread_count > 0">
-                                <span class="shrink-0 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
+                                <span class="shrink-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
                                       x-text="item.unread_count > 99 ? '99+' : item.unread_count"></span>
                             </template>
                         </div>
@@ -126,7 +126,7 @@
         <div x-show="!activeItem" class="flex-1 flex items-center justify-center">
             <div class="text-center px-6">
                 <div class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-gray-200 flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                 </div>
@@ -141,7 +141,7 @@
             {{-- Thread header --}}
             <div class="px-5 py-3.5 bg-white border-b border-gray-200 flex items-center gap-3 shrink-0">
                 <button @click="mobileChat = false; activeItem = null"
-                        class="lg:hidden p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition mr-1">
+                        class="lg:hidden p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition mr-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -159,7 +159,7 @@
                 </div>
 
                 <button x-show="activeItem?.type === 'forum'" @click="openMembers()"
-                        class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Anggota">
+                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Anggota">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </button>
 
@@ -168,7 +168,7 @@
 
             {{-- Loading --}}
             <div x-show="loading" class="flex-1 flex items-center justify-center">
-                <svg class="animate-spin w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                 </svg>
@@ -181,7 +181,7 @@
 
                 <div x-show="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center py-10">
                     <div class="w-12 h-12 bg-white rounded-2xl shadow-sm border border-gray-200 flex items-center justify-center mb-3">
-                        <svg class="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
                     </div>
@@ -223,9 +223,9 @@
                                     </div>
 
                                     <template x-if="msg.parent">
-                                        <div class="flex items-start gap-1.5 mb-1.5 pl-2 border-l-2 border-indigo-200">
+                                        <div class="flex items-start gap-1.5 mb-1.5 pl-2 border-l-2 border-blue-200">
                                             <div>
-                                                <span class="text-xs font-semibold text-indigo-500" x-text="msg.parent.user"></span>
+                                                <span class="text-xs font-semibold text-blue-500" x-text="msg.parent.user"></span>
                                                 <p class="text-xs text-gray-400 truncate max-w-xs" x-text="msg.parent.body"></p>
                                             </div>
                                         </div>
@@ -239,10 +239,10 @@
                                             <textarea x-model="editBody"
                                                       @keydown.enter="if(!$event.shiftKey){$event.preventDefault();editSave(msg);}"
                                                       @keydown.escape="cancelEdit()"
-                                                      class="w-full border border-indigo-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none"
+                                                      class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none resize-none"
                                                       rows="2"></textarea>
                                             <div class="flex gap-2 mt-1">
-                                                <button @click="editSave(msg)" class="text-xs px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Simpan</button>
+                                                <button @click="editSave(msg)" class="text-xs px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Simpan</button>
                                                 <button @click="cancelEdit()" class="text-xs px-3 py-1 text-gray-500 hover:text-gray-700 transition">Batal</button>
                                             </div>
                                         </div>
@@ -250,10 +250,10 @@
                                 </div>
 
                                 <div class="invisible group-hover:visible shrink-0 flex items-start gap-0.5 pt-0.5">
-                                    <button @click="setReply(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-indigo-500 hover:bg-gray-100 transition" title="Balas">
+                                    <button @click="setReply(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-gray-100 transition" title="Balas">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                     </button>
-                                    <button x-show="msg.is_mine && editingId !== msg.id" @click="startEdit(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-indigo-500 hover:bg-gray-100 transition" title="Edit">
+                                    <button x-show="msg.is_mine && editingId !== msg.id" @click="startEdit(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-gray-100 transition" title="Edit">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </button>
                                     <button x-show="msg.is_mine || (activeItem?.type !== 'dm')" @click="deleteMessage(msg)" class="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition" title="Hapus">
@@ -267,12 +267,12 @@
             </div>
 
             {{-- Reply indicator --}}
-            <div x-show="replyTo" x-cloak class="px-5 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center gap-3 shrink-0">
-                <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div x-show="replyTo" x-cloak class="px-5 py-2 bg-blue-50 border-t border-blue-100 flex items-center gap-3 shrink-0">
+                <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                 </svg>
                 <div class="flex-1 min-w-0">
-                    <span class="text-xs text-indigo-600 font-semibold" x-text="'Membalas ' + (replyTo?.user?.name ?? '')"></span>
+                    <span class="text-xs text-blue-600 font-semibold" x-text="'Membalas ' + (replyTo?.user?.name ?? '')"></span>
                     <p class="text-xs text-gray-500 truncate" x-text="replyTo?.body || '[pesan dihapus]'"></p>
                 </div>
                 <button @click="replyTo = null" class="text-gray-400 hover:text-red-500 transition text-lg leading-none ml-2">&times;</button>
@@ -289,13 +289,13 @@
                                   @keydown.escape="replyTo = null"
                                   rows="1"
                                   placeholder="Tulis pesan… (Enter kirim, Shift+Enter baris baru)"
-                                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 focus:border-transparent outline-none resize-none leading-relaxed transition"
+                                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 focus:border-transparent outline-none resize-none leading-relaxed transition"
                                   style="max-height:120px; overflow-y:auto"></textarea>
                     </div>
 
                     <button @click="send()"
                             :disabled="sending || !newBody.trim()"
-                            class="shrink-0 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 mb-0.5">
+                            class="shrink-0 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 mb-0.5">
                         <svg x-show="!sending" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                         </svg>
@@ -327,19 +327,19 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">Nama Forum</label>
                     <input type="text" x-model="newForumName" placeholder="cth: Diskusi Umum"
-                           class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none transition">
+                           class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-300 outline-none transition">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">Deskripsi (opsional)</label>
                     <textarea x-model="newForumDesc" rows="2" placeholder="Tentang apa forum ini…"
-                              class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-300 outline-none transition resize-none"></textarea>
+                              class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-300 outline-none transition resize-none"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">Undang Anggota</label>
                     <div class="border border-gray-200 rounded-xl max-h-48 overflow-y-auto divide-y divide-gray-100">
                         <template x-for="p in allPeers" :key="p.id">
                             <label class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-gray-50">
-                                <input type="checkbox" :value="p.id" x-model="newForumMembers" class="rounded accent-indigo-600">
+                                <input type="checkbox" :value="p.id" x-model="newForumMembers" class="rounded accent-blue-600">
                                 <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 overflow-hidden" style="background:linear-gradient(135deg,#64748b,#475569)">
                                     <img x-show="p.avatar" :src="p.avatar" class="w-full h-full object-cover">
                                     <span x-show="!p.avatar" x-text="p.name.substring(0,2).toUpperCase()"></span>
@@ -353,7 +353,7 @@
             <div class="px-6 py-4 border-t border-gray-100 flex gap-2 justify-end">
                 <button @click="createForumOpen = false" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition">Batal</button>
                 <button @click="createForum()" :disabled="!newForumName.trim() || creatingForum"
-                        class="px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-40 transition">
+                        class="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-40 transition">
                     <span x-show="!creatingForum">Buat Forum</span>
                     <span x-show="creatingForum">Membuat…</span>
                 </button>
@@ -562,9 +562,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         addLabels(msg) {
-            const d = new Date(msg.created_at.replace(',',''));
-            msg.date_label = isNaN(d) ? msg.created_at : d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
-            msg.time_label = msg.created_at.includes(',') ? msg.created_at.split(',')[1]?.trim() : msg.created_at;
+            const d = new Date(msg.created_at);
+            msg.date_label = isNaN(d) ? msg.created_at : d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', timeZone: 'Asia/Jakarta' });
+            msg.time_label = isNaN(d) ? msg.created_at : d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone: 'Asia/Jakarta' });
             return msg;
         },
 

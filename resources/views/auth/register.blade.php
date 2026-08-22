@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar — Flovig</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -102,6 +106,7 @@
                 <input type="text" id="name" name="name" value="{{ old('name', $prefillName) }}" required autofocus
                        placeholder="Budi Santoso"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-400 @enderror">
+                @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -109,6 +114,7 @@
                 <input type="email" id="email" name="email" value="{{ old('email', $prefillEmail) }}" required
                        placeholder="budi@perusahaan.com"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('email') border-red-400 @enderror">
+                @error('email') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -116,6 +122,7 @@
                 <input type="text" id="company_name" name="company_name" value="{{ old('company_name') }}" required
                        placeholder="PT Maju Bersama"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('company_name') border-red-400 @enderror">
+                @error('company_name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -123,6 +130,7 @@
                 <input type="password" id="password" name="password" required
                        placeholder="Minimal 8 karakter"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('password') border-red-400 @enderror">
+                @error('password') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -132,12 +140,30 @@
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
 
-            <p class="text-xs text-gray-500 flex items-center gap-1.5 pt-1">
-                <svg class="w-3.5 h-3.5 flex-shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
-                Akun Anda otomatis mendapat modul Task Management: proyek, tugas, bug ticket, dan laporan.
-            </p>
+            <div class="pt-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Modul Aplikasi</label>
+                <p class="text-xs text-gray-500 mb-2">Pilih modul yang ingin Anda aktifkan. Bisa diubah lagi nanti.</p>
+
+                <div class="space-y-2">
+                    <label class="flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-gray-300 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <input type="checkbox" name="modules[]" value="task_management" x-model="modules"
+                               class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span>
+                            <span class="block text-sm font-medium text-gray-900">Task Management</span>
+                            <span class="block text-xs text-gray-500">Proyek, tugas, bug ticket, dan laporan.</span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-gray-300 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                        <input type="checkbox" name="modules[]" value="hris" x-model="modules"
+                               class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span>
+                            <span class="block text-sm font-medium text-gray-900">HRIS</span>
+                            <span class="block text-xs text-gray-500">Data karyawan, absensi, penggajian, dan cuti.</span>
+                        </span>
+                    </label>
+                </div>
+                @error('modules') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
 
             <button type="submit"
                     class="w-full font-medium py-2.5 rounded-lg transition-colors text-sm mt-2 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
@@ -161,6 +187,7 @@
 function registerForm() {
     return {
         plan: @json(old('plan', $prefillPlan)),
+        modules: @json(old('modules', ['task_management', 'hris'])),
     }
 }
 </script>

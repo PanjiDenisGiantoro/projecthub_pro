@@ -141,7 +141,7 @@
                     Join Meeting
                 </a>
                 <a :href="modal.url" target="_blank"
-                   class="flex-1 text-center text-xs font-semibold bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700">
+                   class="flex-1 text-center text-xs font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     Lihat Detail →
                 </a>
                 <button @click="modal.open = false"

@@ -157,6 +157,11 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(ProjectMember::class);
     }
 
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_members');
+    }
+
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assigned_to');

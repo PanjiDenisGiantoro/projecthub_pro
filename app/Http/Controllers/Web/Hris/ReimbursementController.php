@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Reimbursement;
 use App\Services\NotificationService;
@@ -9,6 +10,8 @@ use Illuminate\Http\Request;
 
 class ReimbursementController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -19,7 +22,8 @@ class ReimbursementController extends Controller
             ->where('company_id', $user->company_id)
             ->when(!$user->can('view reimbursement'), fn($q) => $q->where('user_id', $user->id))
             ->orderByDesc('expense_date')
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('hris.reimburse.index', compact('items'));
     }

@@ -19,25 +19,25 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">PKP Dari (Rp) *</label>
                     <input type="number" name="income_from" value="{{ old('income_from', $taxBracket->income_from) }}" required min="0"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">PKP Sampai (Rp, 0 = tak terbatas)</label>
                     <input type="number" name="income_to" value="{{ old('income_to', $taxBracket->income_to) }}" min="0"
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tarif (desimal, contoh: 0.05 untuk 5%) *</label>
                 <input type="number" name="rate" value="{{ old('rate', $taxBracket->rate) }}" required step="0.01" min="0" max="1"
-                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Label</label>
                 <input type="text" name="label" value="{{ old('label', $taxBracket->label) }}"
-                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                       class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
 
             <div class="flex gap-3 pt-2">

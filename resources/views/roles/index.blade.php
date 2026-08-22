@@ -7,13 +7,16 @@
 
     {{-- Toolbar --}}
     <div class="flex items-center justify-between mb-6">
-        <p class="text-sm text-gray-500">Total <span class="font-semibold text-gray-800">{{ $roles->count() }}</span> role terdaftar</p>
-        <a href="{{ route('roles.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+        <p class="text-sm text-gray-500">Total <span class="font-semibold text-gray-800">{{ $roles->total() }}</span> role terdaftar</p>
+        <a href="{{ route('roles.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Role
         </a>
     </div>
 
+    <div class="flex justify-end mb-2">
+        <x-per-page />
+    </div>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         @php
             $protected = ['admin','manager','developer','marketing','customer'];
@@ -41,7 +44,7 @@
                     <td class="px-5 py-3.5">
                         <div class="flex items-center gap-3">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold {{ $roleColors[$role->name] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ ucfirst($role->name) }}
+                                {{ \App\Support\RoleLabel::for($role->name) }}
                             </span>
                             @if(in_array($role->name, $protected))
                                 <span class="text-xs text-gray-400 flex items-center gap-1">
@@ -67,7 +70,7 @@
                             @if(!in_array($role->name, $protected))
                                 <a href="{{ route('roles.edit', $role) }}" class="text-xs text-gray-500 hover:text-blue-600 font-medium transition-colors">Edit</a>
                             @endif
-                            <a href="{{ route('permissions.index') }}#{{ $role->name }}" class="text-xs text-gray-500 hover:text-indigo-600 font-medium transition-colors">Permission</a>
+                            <a href="{{ route('permissions.index') }}#{{ $role->name }}" class="text-xs text-gray-500 hover:text-blue-600 font-medium transition-colors">Permission</a>
                             @if(!in_array($role->name, $protected))
                                 <form method="POST" action="{{ route('roles.destroy', $role) }}"
                                       data-confirm-delete="{{ $role->name }}" data-confirm-label="Hapus Role">
@@ -83,6 +86,9 @@
                 @endforelse
             </tbody>
         </table>
+        @if($roles->hasPages())
+        <div class="px-4 py-3 border-t border-gray-100">{{ $roles->links() }}</div>
+        @endif
     </div>
 
     <p class="text-xs text-gray-400 mt-3">

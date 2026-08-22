@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectMember;
@@ -15,6 +16,8 @@ use Illuminate\Http\Request;
 
 class ProjectWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -31,7 +34,7 @@ class ProjectWebController extends Controller
                 ->orWhere('manager_id', $user->id);
         }
 
-        $projects = $query->latest()->paginate(12);
+        $projects = $query->latest()->paginate($this->perPage($request))->withQueryString();
         return view('projects.index', compact('projects'));
     }
 
@@ -52,11 +55,12 @@ class ProjectWebController extends Controller
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
             'budget'     => 'nullable|numeric|min:0',
+            'status'     => 'nullable|in:draft,active,on_hold,completed,cancelled',
         ]);
 
         $project = Project::create([
             ...$request->only('name', 'description', 'client_id', 'manager_id', 'start_date', 'end_date', 'budget'),
-            'status' => 'draft',
+            'status' => $request->input('status', 'active'),
         ]);
 
         $this->notifier->notifyManagers(
@@ -71,7 +75,7 @@ class ProjectWebController extends Controller
         return redirect()->route('projects.show', $project)->with('success', 'Proyek berhasil dibuat.');
     }
 
-    public function show(Project $project)
+    public function show(Project $project, Request $request)
     {
         $project->load([
             'client', 'manager',
@@ -81,6 +85,9 @@ class ProjectWebController extends Controller
         ]);
         $slaPolicies      = app(SlaService::class);
         $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->where('company_id', $project->company_id)->get();
+        $companyUsers     = User::where('is_active', true)->where('company_id', $project->company_id)
+            ->whereNotIn('id', $project->members()->pluck('user_id'))
+            ->orderBy('name')->get();
         $structuralLevels = StructuralLevel::active()->where('company_id', $project->company_id)->get();
         $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
 
@@ -110,7 +117,12 @@ class ProjectWebController extends Controller
                 ->unique()
         )->select('id', 'name')->get();
 
-        return view('projects.show', compact('project', 'developers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers'));
+        $timesheetData = $this->buildTimesheetData($project, $request);
+
+        return view('projects.show', array_merge(
+            compact('project', 'developers', 'companyUsers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers'),
+            $timesheetData
+        ));
     }
 
     public function edit(Project $project)
@@ -163,24 +175,24 @@ class ProjectWebController extends Controller
     public function addMember(Request $request, Project $project)
     {
         $request->validate([
-            'user_id'           => 'required|exists:users,id',
-            'role'              => 'nullable|string|max:100',
-            'max_hours_per_day' => 'nullable|integer|min:1|max:24',
+            'user_id'   => 'required|array|min:1',
+            'user_id.*' => 'exists:users,id',
         ]);
 
-        ProjectMember::updateOrCreate(
-            ['project_id' => $project->id, 'user_id' => $request->user_id],
-            ['role' => $request->role ?? 'developer', 'max_hours_per_day' => $request->max_hours_per_day ?? 8]
-        );
-
-        if ((int) $request->user_id !== auth()->id()) {
-            $this->notifier->send(
-                $request->user_id,
-                'project_member_added',
-                'Ditambahkan ke Tim Proyek',
-                auth()->user()->name . " menambahkan Anda ke tim proyek \"{$project->name}\".",
-                ['project_id' => $project->id]
+        foreach ($request->user_id as $userId) {
+            ProjectMember::firstOrCreate(
+                ['project_id' => $project->id, 'user_id' => $userId]
             );
+
+            if ((int) $userId !== auth()->id()) {
+                $this->notifier->send(
+                    $userId,
+                    'project_member_added',
+                    'Ditambahkan ke Tim Proyek',
+                    auth()->user()->name . " menambahkan Anda ke tim proyek \"{$project->name}\".",
+                    ['project_id' => $project->id]
+                );
+            }
         }
 
         return back()->with('success', 'Anggota tim ditambahkan.');
@@ -193,6 +205,14 @@ class ProjectWebController extends Controller
     }
 
     public function timesheet(Request $request, Project $project)
+    {
+        return view('projects.timesheet', array_merge(
+            compact('project'),
+            $this->buildTimesheetData($project, $request)
+        ));
+    }
+
+    private function buildTimesheetData(Project $project, Request $request): array
     {
         $logs = TimeLog::with(['user', 'task'])
             ->whereHas('task', fn($q) => $q->where('project_id', $project->id))
@@ -207,23 +227,29 @@ class ProjectWebController extends Controller
             'logs_count'  => $ul->count(),
         ])->values();
 
-        // Gantt: tasks with start/due dates and their time logs
+        $sprints = $project->sprints()->orderBy('start_date')->get();
+
+        // Gantt: tasks with start/due dates, or belonging to a sprint (uses sprint's dates as fallback), + their time logs
         $ganttTasks = $project->tasks()
-            ->with(['milestone', 'assignee', 'timeLogs' => fn($q) => $q->where('is_running', false)->orderBy('started_at')])
-            ->where(fn($q) => $q->whereNotNull('start_date')->orWhereNotNull('due_date'))
+            ->with(['milestone', 'assignee', 'sprint', 'timeLogs' => fn($q) => $q->where('is_running', false)->orderBy('started_at')])
+            ->where(fn($q) => $q->whereNotNull('start_date')->orWhereNotNull('due_date')->orWhereNotNull('sprint_id'))
             ->orderBy('milestone_id')
             ->orderBy('start_date')
             ->get();
 
-        // Determine Gantt date range
-        $allStarts = $ganttTasks->filter(fn($t) => $t->start_date)->pluck('start_date');
-        $allEnds   = $ganttTasks->filter(fn($t) => $t->due_date)->pluck('due_date');
+        // Effective start/end per task: own dates, else its sprint's dates
+        $effStart = fn($t) => $t->start_date ?? $t->due_date ?? $t->sprint?->start_date;
+        $effEnd   = fn($t) => $t->due_date ?? $t->start_date ?? $t->sprint?->end_date;
+
+        // Determine Gantt date range (also cover sprint date ranges, even sprints with no tasks yet)
+        $allStarts = $ganttTasks->map($effStart)->filter()->merge($sprints->pluck('start_date')->filter());
+        $allEnds   = $ganttTasks->map($effEnd)->filter()->merge($sprints->pluck('end_date')->filter());
         $ganttStart = $allStarts->min() ?? now()->startOfWeek();
         $ganttEnd   = $allEnds->max()   ?? now()->addDays(30);
         // Always show at least today + 7 days
         if ($ganttEnd->lt(now()->addDays(7))) $ganttEnd = now()->addDays(7);
         $ganttDays = max(1, (int) $ganttStart->diffInDays($ganttEnd) + 1);
 
-        return view('projects.timesheet', compact('project', 'logs', 'summary', 'ganttTasks', 'ganttStart', 'ganttEnd', 'ganttDays'));
+        return compact('logs', 'summary', 'sprints', 'ganttTasks', 'ganttStart', 'ganttEnd', 'ganttDays');
     }
 }

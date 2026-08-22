@@ -103,9 +103,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Tickets: assign
         Route::put('/tickets/{ticket}/assign', [BugTicketController::class, 'assign']);
 
-        // Requests: approve/reject
+        // Requests: approve/reject/complete
         Route::put('/requests/{customerRequest}/approve', [CustomerRequestController::class, 'approve']);
         Route::put('/requests/{customerRequest}/reject', [CustomerRequestController::class, 'reject']);
+        Route::put('/requests/{customerRequest}/complete', [CustomerRequestController::class, 'complete']);
 
         // Invoices
         Route::post('/invoices', [InvoiceController::class, 'store']);
@@ -185,7 +186,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/requests', [CustomerRequestController::class, 'index']);
     Route::post('/requests', [CustomerRequestController::class, 'store']);
     Route::get('/requests/{customerRequest}', [CustomerRequestController::class, 'show']);
-    Route::put('/requests/{customerRequest}/review', [CustomerRequestController::class, 'review']);
 
     // ─── Marketing ───────────────────────────────────────────────────────────
     Route::get('/campaigns', [CampaignController::class, 'index']);
