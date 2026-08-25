@@ -80,7 +80,7 @@
                     @foreach($group as $policy)
                     @php
                         $flowColors = ['sequential'=>'bg-purple-100 text-purple-700','parallel_all'=>'bg-blue-100 text-blue-700','any_of'=>'bg-teal-100 text-teal-700','single'=>'bg-gray-100 text-gray-600'];
-                        $roleColors = ['admin'=>'bg-red-100 text-red-700','manager'=>'bg-orange-100 text-orange-700','developer'=>'bg-blue-100 text-blue-700','marketing'=>'bg-pink-100 text-pink-700','customer'=>'bg-green-100 text-green-700'];
+                        $roleColors = ['admin'=>'bg-red-100 text-red-700','member'=>'bg-orange-100 text-orange-700','client'=>'bg-green-100 text-green-700'];
                     @endphp
                     <tr class="hover:bg-gray-50 {{ !$policy->is_active ? 'opacity-50' : '' }}">
                         <td class="px-4 py-3 font-semibold text-gray-800">{{ str_replace('_', ' ', ucfirst($policy->action)) }}</td>
@@ -149,7 +149,7 @@
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-700 mb-1">Approver Roles <span class="text-gray-400">(urutan = urutan approval untuk sequential)</span></label>
                                                 <div class="space-y-2">
-                                                    @foreach(['admin','manager','developer','marketing','customer'] as $role)
+                                                    @foreach(\App\Support\SystemRoles::ALL as $role)
                                                     <label class="flex items-center gap-2 cursor-pointer">
                                                         <input type="checkbox" name="approver_roles[]" value="{{ $role }}"
                                                                {{ in_array($role, $policy->approver_roles) ? 'checked' : '' }}
@@ -217,9 +217,9 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-2">Approver Roles <span class="text-red-500">*</span></label>
-                        @php $roleColors = ['admin'=>'bg-red-100 text-red-700','manager'=>'bg-orange-100 text-orange-700','developer'=>'bg-blue-100 text-blue-700','marketing'=>'bg-pink-100 text-pink-700','customer'=>'bg-green-100 text-green-700']; @endphp
+                        @php $roleColors = ['admin'=>'bg-red-100 text-red-700','member'=>'bg-orange-100 text-orange-700','client'=>'bg-green-100 text-green-700']; @endphp
                         <div class="flex flex-wrap gap-3">
-                            @foreach(['admin','manager','developer','marketing','customer'] as $role)
+                            @foreach(\App\Support\SystemRoles::ALL as $role)
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" name="approver_roles[]" value="{{ $role }}"
                                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">

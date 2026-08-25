@@ -13,7 +13,7 @@
         <div class="flex gap-3">
             <span class="text-sm text-gray-500">{{ $allRisks->count() }} risiko terdaftar</span>
         </div>
-        @if(!auth()->user()->hasRole('customer'))
+        @if(!auth()->user()->hasRole('client'))
         <button @click="showForm=!showForm"
                 class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -45,7 +45,7 @@
     </div>
 
     {{-- Add Form --}}
-    @if(!auth()->user()->hasRole('customer'))
+    @if(!auth()->user()->hasRole('client'))
     <div x-show="showForm" x-cloak class="bg-white rounded-xl border border-blue-200 p-5 mb-5">
         <h4 class="text-sm font-semibold text-gray-700 mb-4">Tambah Risiko Baru</h4>
         <form method="POST" action="{{ route('risks.store', $project) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -117,7 +117,7 @@
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Level</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Owner</th>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <th class="px-4 py-3"></th>
                     @endif
                 </tr>
@@ -146,7 +146,7 @@
                     </td>
                     <td class="px-4 py-3 capitalize text-gray-600">{{ $risk->status }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $risk->owner ?? '—' }}</td>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <td class="px-4 py-3 text-right">
                         <form method="POST" action="{{ route('risks.destroy', [$project, $risk]) }}"
                               data-confirm-delete="{{ $risk->title }}">

@@ -15,7 +15,7 @@
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <div class="flex items-center justify-between mb-3">
                     <p class="text-xs font-semibold text-gray-500 uppercase">Folder</p>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <button type="button" @click="showNewFolder=!showNewFolder" title="Buat folder baru"
                             class="text-gray-400 hover:text-blue-600 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -23,7 +23,7 @@
                     @endif
                 </div>
 
-                @if(!auth()->user()->hasRole('customer'))
+                @if(!auth()->user()->hasRole('client'))
                 <div x-show="showNewFolder" x-cloak class="mb-3">
                     <form method="POST" action="{{ route('project.files.folders.store', $project) }}" class="flex gap-1.5">
                         @csrf
@@ -56,7 +56,7 @@
         <div class="lg:col-span-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-semibold text-gray-700" x-text="activeFolder === 'All' ? 'Semua File' : activeFolder"></h3>
-                @if(!auth()->user()->hasRole('customer'))
+                @if(!auth()->user()->hasRole('client'))
                 <button @click="showUpload=!showUpload; if(showUpload && activeFolder!=='All') newFolder=activeFolder"
                         class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
@@ -66,7 +66,7 @@
             </div>
 
             {{-- Upload form --}}
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <div x-show="showUpload" x-cloak class="bg-white rounded-xl border border-blue-200 p-5 mb-4"
                  x-data="fileUpload()">
                 <form method="POST" action="{{ route('project.files.store', $project) }}" enctype="multipart/form-data" class="space-y-3">
@@ -121,7 +121,7 @@
                            class="text-xs text-blue-600 hover:text-blue-800 font-medium">Buka</a>
                         <a href="{{ $file->url() }}" download
                            class="text-xs text-blue-600 hover:text-blue-800 font-medium">Unduh</a>
-                        @if(!auth()->user()->hasRole('customer'))
+                        @if(!auth()->user()->hasRole('client'))
                         <form method="POST" action="{{ route('project.files.destroy', [$project, $file]) }}"
                               data-confirm-delete="{{ $file->original_name }}">
                             @csrf @method('DELETE')

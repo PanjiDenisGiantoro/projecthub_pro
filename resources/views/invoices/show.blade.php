@@ -100,7 +100,7 @@
         </div>
 
         {{-- Actions --}}
-        @if($user->hasRole(['admin','manager']))
+        @if($user->hasRole(['admin','member']))
         <div class="px-6 py-4 border-t border-gray-100 flex gap-3 no-print">
             @if($invoice->status === 'draft')
             <form method="POST" action="{{ route('invoices.send', $invoice) }}">

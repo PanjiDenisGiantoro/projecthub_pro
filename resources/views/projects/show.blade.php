@@ -35,7 +35,12 @@
 
 @section('content')
 <div class="py-8"
-     x-data="{ tab: new URLSearchParams(location.search).get('tab') || 'overview' }">
+     x-data="{ tab: new URLSearchParams(location.search).get('tab') || 'overview' }"
+     x-init="$watch('tab', value => {
+         const url = new URL(location.href);
+         url.searchParams.set('tab', value);
+         history.replaceState(history.state, '', url);
+     })">
 
     {{-- ============================================================
          PROJECT HEADER
@@ -189,7 +194,7 @@
                            class="inline-flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition shadow-sm">
                             Join Meeting
                         </a>
-                    @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
+                    @elseif(!auth()->user()->hasRole('client') && $project->google_meet_enabled)
                         <form method="POST" action="{{ route('projects.meeting.create', $project) }}">
                             @csrf
                             <button type="submit"
@@ -199,7 +204,7 @@
                         </form>
                     @endif
 
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <a href="{{ route('projects.edit', $project) }}"
                        class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -318,7 +323,7 @@
                     List
                 </button>
             </div>
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <button @click="showAddTask = !showAddTask"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -330,7 +335,7 @@
         </div>
 
         {{-- Add Task Form --}}
-        @if(!auth()->user()->hasRole('customer'))
+        @if(!auth()->user()->hasRole('client'))
         <div x-show="showAddTask" x-cloak class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
             <form action="{{ route('tasks.store', $project) }}" method="POST">
                 @csrf
@@ -586,7 +591,7 @@
 
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-base font-semibold text-gray-900">Milestones</h2>
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <button @click="showAddMilestone = !showAddMilestone"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -598,7 +603,7 @@
         </div>
 
         {{-- Add Milestone Form --}}
-        @if(!auth()->user()->hasRole('customer'))
+        @if(!auth()->user()->hasRole('client'))
         <div x-show="showAddMilestone" x-cloak class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
             <form action="{{ route('milestones.store', $project) }}" method="POST">
                 @csrf
@@ -713,7 +718,7 @@
                                         <span class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600">Overdue</span>
                                     @endif
                                 </div>
-                                @if(!auth()->user()->hasRole('customer'))
+                                @if(!auth()->user()->hasRole('client'))
                                 <div class="flex gap-1.5 shrink-0">
                                     <button @click="editing = true"
                                             class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
@@ -779,7 +784,7 @@
                                        class="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200">
                                         Join Meeting
                                     </a>
-                                @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
+                                @elseif(!auth()->user()->hasRole('client') && $project->google_meet_enabled)
                                     <form method="POST" action="{{ route('milestones.meeting.create', [$project, $ms]) }}">
                                         @csrf
                                         <button type="submit" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
@@ -993,7 +998,7 @@
                         <h2 class="text-base font-semibold text-gray-900">Anggota Tim</h2>
                         <p class="text-xs text-gray-400 mt-0.5">{{ $project->members->count() }} anggota aktif</p>
                     </div>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <button @click="showAddMember = !showAddMember"
                             :class="showAddMember ? 'bg-gray-100 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition">
@@ -1018,7 +1023,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
-                            @if(!auth()->user()->hasRole('customer'))
+                            @if(!auth()->user()->hasRole('client'))
                             <form method="POST" action="{{ route('projects.members.remove', [$project, $member->user]) }}"
                                   class="opacity-0 group-hover:opacity-100 transition-opacity">
                                 @csrf @method('DELETE')
@@ -1042,7 +1047,7 @@
             </div>
 
             {{-- ── Add Member Form (sidebar) ── --}}
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <div x-show="showAddMember" x-cloak
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 translate-y-1"

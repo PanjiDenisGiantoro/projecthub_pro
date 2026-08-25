@@ -37,7 +37,7 @@
                         @if($sprint->google_meeting_is_recurring)
                             <span class="text-xs text-gray-400">(berulang, Sen–Jum)</span>
                         @endif
-                    @elseif(!auth()->user()->hasRole('customer') && $project->google_meet_enabled)
+                    @elseif(!auth()->user()->hasRole('client') && $project->google_meet_enabled)
                         <form method="POST" action="{{ route('sprints.meeting.create', [$project, $sprint]) }}">
                             @csrf
                             <button type="submit" class="px-3 py-1.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50">

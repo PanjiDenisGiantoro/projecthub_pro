@@ -16,6 +16,7 @@ use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\SystemRoles;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -49,7 +50,7 @@ class TestingSeeder extends Seeder
         $levelAdmin   = StructuralLevel::firstOrCreate(['name' => 'Admin'],   ['sort_order' => 1]);
 
         // ── 2. Roles ──────────────────────────────────────────────────────────
-        foreach (['admin', 'manager', 'developer', 'marketing', 'customer'] as $r) {
+        foreach (SystemRoles::ALL as $r) {
             Role::firstOrCreate(['name' => $r, 'guard_name' => 'web']);
         }
 
@@ -78,7 +79,7 @@ class TestingSeeder extends Seeder
                 'structural_level_id' => $levelManager->id,
             ]
         );
-        $manager->syncRoles(['manager']);
+        $manager->syncRoles(['member']);
 
         $dev = User::updateOrCreate(
             ['email' => 'dev@projecthub.pro'],
@@ -91,7 +92,7 @@ class TestingSeeder extends Seeder
                 'structural_level_id' => $levelStaff->id,
             ]
         );
-        $dev->syncRoles(['developer']);
+        $dev->syncRoles(['member']);
 
         $customer = User::updateOrCreate(
             ['email' => 'client@projecthub.pro'],
@@ -104,7 +105,7 @@ class TestingSeeder extends Seeder
                 'structural_level_id' => $levelStaff->id,
             ]
         );
-        $customer->syncRoles(['customer']);
+        $customer->syncRoles(['client']);
 
         // ── 4. Projects ───────────────────────────────────────────────────────
         $project1 = Project::updateOrCreate(
@@ -280,10 +281,10 @@ class TestingSeeder extends Seeder
         $this->command->table(
             ['Role', 'Email', 'Password', 'Akses'],
             [
-                ['admin',     'admin@projecthub.pro',   'password', '/dashboard → semua menu'],
-                ['manager',   'manager@projecthub.pro', 'password', '/dashboard → project, task, ticket, invoice'],
-                ['developer', 'dev@projecthub.pro',     'password', '/dashboard → task, ticket, sprint, KB'],
-                ['customer',  'client@projecthub.pro',  'password', '/dashboard → ticket, request, invoice'],
+                ['admin',  'admin@projecthub.pro',   'password', '/dashboard → semua menu'],
+                ['member', 'manager@projecthub.pro', 'password', '/dashboard → project, task, ticket, campaign'],
+                ['member', 'dev@projecthub.pro',     'password', '/dashboard → project, task, ticket, campaign'],
+                ['client', 'client@projecthub.pro',  'password', '/dashboard → ticket, request, invoice'],
             ]
         );
         $this->command->info('');

@@ -19,14 +19,14 @@ class ForumWebController extends Controller
     private function canAccess(Forum $forum): bool
     {
         $user = Auth::user();
-        if ($user->hasRole(['admin', 'manager'])) return true;
+        if ($user->hasRole(['admin', 'member'])) return true;
         return $forum->members()->where('user_id', $user->id)->exists();
     }
 
     private function canManage(Forum $forum): bool
     {
         $user = Auth::user();
-        return $user->hasRole(['admin', 'manager']) || $forum->created_by === $user->id;
+        return $user->hasRole(['admin', 'member']) || $forum->created_by === $user->id;
     }
 
     public function store(Request $request)

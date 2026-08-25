@@ -24,7 +24,7 @@ tr:nth-child(even) td { background: #f8fafc; }
 <body>
 <h1>Laporan Proyek — {{ $project->name }}</h1>
 <p class="sub">
-    Manager: {{ $project->manager?->name }} &nbsp;|&nbsp;
+    Lead Project: {{ $project->manager?->name }} &nbsp;|&nbsp;
     Status: {{ ucfirst($project->status) }} &nbsp;|&nbsp;
     Periode: {{ $project->start_date?->format('d M Y') }} — {{ $project->end_date?->format('d M Y') }} &nbsp;|&nbsp;
     Dibuat: {{ now()->format('d M Y H:i') }}

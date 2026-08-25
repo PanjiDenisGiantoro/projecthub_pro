@@ -18,26 +18,29 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasRole(['admin', 'manager'])) {
-            return $this->managerDashboard();
+        if ($user->hasRole('admin')) {
+            return $this->adminDashboard();
         }
 
-        if ($user->hasRole('developer')) {
-            return $this->developerDashboard($user);
+        if ($user->hasRole('member')) {
+            return $this->memberDashboard($user);
         }
 
-        if ($user->hasRole('marketing')) {
-            return $this->marketingDashboard($user);
+        if ($user->hasRole('client')) {
+            return $this->clientDashboard($user);
         }
 
-        if ($user->hasRole('customer')) {
-            return $this->customerDashboard($user);
+        // Custom role (created via /roles) without one of the 3 system roles:
+        // fall back to the member dashboard as long as it can access the
+        // dashboard at all, instead of a hard 403.
+        if ($user->can('access dashboard')) {
+            return $this->memberDashboard($user);
         }
 
         return response()->json(['message' => 'No dashboard available for your role.'], 403);
     }
 
-    private function managerDashboard(): \Illuminate\Http\JsonResponse
+    private function adminDashboard(): \Illuminate\Http\JsonResponse
     {
         return response()->json([
             'projects' => [
@@ -69,7 +72,7 @@ class DashboardController extends Controller
             ],
             'team' => [
                 'total_users' => User::where('is_active', true)->count(),
-                'developers' => User::role('developer')->count(),
+                'members' => User::role('member')->count(),
             ],
             'recent_projects' => Project::with(['client', 'manager'])
                 ->latest()->limit(5)->get(),
@@ -78,7 +81,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function developerDashboard(User $user): \Illuminate\Http\JsonResponse
+    private function memberDashboard(User $user): \Illuminate\Http\JsonResponse
     {
         $myTasks = Task::where('assigned_to', $user->id);
 
@@ -102,22 +105,19 @@ class DashboardController extends Controller
                 ->orderBy('due_date')
                 ->limit(10)
                 ->get(),
-        ]);
-    }
-
-    private function marketingDashboard(User $user): \Illuminate\Http\JsonResponse
-    {
-        return response()->json([
+            'team' => [
+                'open_tickets' => BugTicket::whereIn('status', ['open', 'assigned'])->count(),
+                'pending_requests' => CustomerRequest::where('status', 'waiting_approval')->count(),
+            ],
             'campaigns' => [
                 'total' => Campaign::count(),
                 'active' => Campaign::where('status', 'active')->count(),
             ],
-            'requests_pending_review' => CustomerRequest::where('status', 'waiting_approval')->count(),
             'recent_campaigns' => Campaign::with('project')->latest()->limit(5)->get(),
         ]);
     }
 
-    private function customerDashboard(User $user): \Illuminate\Http\JsonResponse
+    private function clientDashboard(User $user): \Illuminate\Http\JsonResponse
     {
         return response()->json([
             'projects' => Project::where('client_id', $user->id)
@@ -145,22 +145,22 @@ class DashboardController extends Controller
 
     public function workload(Request $request)
     {
-        $developers = User::role('developer')
+        $members = User::role('member')
             ->with(['assignedTasks' => function ($q) {
                 $q->whereIn('status', ['todo', 'in_progress'])->with('project');
             }])
             ->get()
-            ->map(function ($dev) {
-                $taskCount = $dev->assignedTasks->count();
-                $estimatedHours = $dev->assignedTasks->sum('estimated_hours');
+            ->map(function ($member) {
+                $taskCount = $member->assignedTasks->count();
+                $estimatedHours = $member->assignedTasks->sum('estimated_hours');
                 return [
-                    'user' => $dev->only(['id', 'name', 'email', 'avatar']),
+                    'user' => $member->only(['id', 'name', 'email', 'avatar']),
                     'active_tasks' => $taskCount,
                     'estimated_hours' => $estimatedHours,
-                    'tasks' => $dev->assignedTasks,
+                    'tasks' => $member->assignedTasks,
                 ];
             });
 
-        return response()->json($developers);
+        return response()->json($members);
     }
 }

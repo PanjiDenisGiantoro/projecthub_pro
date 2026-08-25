@@ -71,8 +71,10 @@
                     <th class="px-4 py-3 text-left">Email</th>
                     <th class="px-4 py-3 text-left">Role</th>
                     <th class="px-4 py-3 text-left">Proyek</th>
+                    @if(session('active_package') === 'hris')
                     <th class="px-4 py-3 text-left">Level Struktural</th>
                     <th class="px-4 py-3 text-left">Departemen</th>
+                    @endif
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Bergabung</th>
                     <th class="px-4 py-3"></th>
@@ -81,7 +83,7 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse($users as $u)
                 @php
-                    $rc = ['admin'=>'bg-red-100 text-red-700','manager'=>'bg-purple-100 text-purple-700','developer'=>'bg-blue-100 text-blue-700','marketing'=>'bg-orange-100 text-orange-700','customer'=>'bg-green-100 text-green-700'];
+                    $rc = ['admin'=>'bg-red-100 text-red-700','member'=>'bg-purple-100 text-purple-700','client'=>'bg-green-100 text-green-700'];
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3">
@@ -111,6 +113,7 @@
                             <span class="text-gray-300 text-xs">—</span>
                         @endforelse
                     </td>
+                    @if(session('active_package') === 'hris')
                     <td class="px-4 py-3">
                         @if($u->structuralLevel)
                             <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-medium">
@@ -127,6 +130,7 @@
                             <span class="text-gray-300 text-xs">—</span>
                         @endif
                     </td>
+                    @endif
                     <td class="px-4 py-3">
                         <span class="badge {{ $u->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
                             {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -156,7 +160,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">Tidak ada user ditemukan.</td></tr>
+                <tr><td colspan="{{ session('active_package') === 'hris' ? 9 : 7 }}" class="px-4 py-8 text-center text-gray-400">Tidak ada user ditemukan.</td></tr>
                 @endforelse
             </tbody>
         </table>

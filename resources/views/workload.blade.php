@@ -4,12 +4,12 @@
 
 @section('content')
 <div class="py-4">
-    <p class="text-sm text-gray-500 mb-6">Distribusi task aktif per developer (status: Todo & In Progress)</p>
+    <p class="text-sm text-gray-500 mb-6">Distribusi task aktif per anggota tim (status: Todo & In Progress)</p>
 
     @forelse($developers as $dev)
     @php
         $taskCount = $dev->assignedTasks->count();
-        $capacity = 8; // max tasks per developer
+        $capacity = 8; // max tasks per anggota tim
         $pct = $capacity > 0 ? min(100, round($taskCount / $capacity * 100)) : 0;
         $barColor = $pct >= 100 ? 'bg-red-500' : ($pct >= 75 ? 'bg-orange-400' : ($pct >= 50 ? 'bg-yellow-400' : 'bg-green-500'));
         $labelColor = $pct >= 100 ? 'text-red-600' : ($pct >= 75 ? 'text-orange-500' : ($pct >= 50 ? 'text-yellow-600' : 'text-green-600'));
@@ -72,7 +72,7 @@
     @empty
     <div class="text-center py-16 text-gray-400">
         <p class="text-4xl mb-3">👥</p>
-        <p class="text-lg font-medium">Belum ada developer terdaftar.</p>
+        <p class="text-lg font-medium">Belum ada anggota tim terdaftar.</p>
     </div>
     @endforelse
 </div>

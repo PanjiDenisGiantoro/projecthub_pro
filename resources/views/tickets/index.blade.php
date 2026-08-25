@@ -1,9 +1,13 @@
 @extends('layouts.app')
-@section('title', $project ? 'Bug Tickets — ' . $project->name : 'Semua Bug Tickets')
-@section('page-title', $project ? 'Bug Tickets: ' . $project->name : 'Semua Bug Tickets')
+@section('title', $project ? 'Ticket — ' . $project->name : 'Aktivitas Kerja — Ticket')
+@section('page-title', $project ? 'Ticket: ' . $project->name : 'Aktivitas Kerja')
 
 @section('content')
 <div class="py-4">
+    @unless($project)
+        @include('partials.work-activity-tabs')
+    @endunless
+
     {{-- Breadcrumb --}}
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('projects.index') }}" class="hover:text-blue-600">Proyek</a>

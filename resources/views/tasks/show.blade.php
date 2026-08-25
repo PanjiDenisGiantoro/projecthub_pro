@@ -136,7 +136,7 @@
                 </div>
                 @endif
 
-                @if($user->hasRole(['developer','admin','manager']))
+                @if($user->hasRole(['admin','member']))
                 <div class="flex gap-2 mb-4">
                     @if($runningLog)
                     <form method="POST" action="{{ route('tasks.timelog.store', $task) }}">
@@ -254,7 +254,7 @@
             </div>
 
             {{-- Google Meet --}}
-            @if($task->google_meet_link || (!$user->hasRole('customer') && $project->google_meet_enabled))
+            @if($task->google_meet_link || (!$user->hasRole('client') && $project->google_meet_enabled))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Google Meet</h4>
                 @if($task->google_meet_link)
@@ -274,7 +274,7 @@
             @endif
 
             {{-- Update Status --}}
-            @if(!$user->hasRole('customer'))
+            @if(!$user->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3">
@@ -300,14 +300,14 @@
             @endif
 
             {{-- Re-assign --}}
-            @if($user->hasRole(['admin','manager']) && $task->status !== 'done')
+            @if($user->hasRole(['admin','member']) && $task->status !== 'done')
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Re-assign</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="flex gap-2">
                     @csrf @method('PUT')
                     <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">— Tidak ada —</option>
-                        @foreach(\App\Models\User::role('developer')->get() as $dev)
+                        @foreach(\App\Models\User::role('member')->get() as $dev)
                             <option value="{{ $dev->id }}" {{ $task->assigned_to === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                         @endforeach
                     </select>

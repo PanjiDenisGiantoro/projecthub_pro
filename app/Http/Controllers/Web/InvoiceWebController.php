@@ -26,7 +26,7 @@ class InvoiceWebController extends Controller
         $query = Invoice::with(['project', 'client'])
             ->when($request->status, fn($q) => $q->where('status', $request->status));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
         }
 
@@ -49,7 +49,7 @@ class InvoiceWebController extends Controller
             ->with('client')
             ->get();
 
-        $clients = User::role('customer')
+        $clients = User::role('client')
             ->where('is_active', true)
             ->when(! $user->is_super_admin, fn($q) => $q->whereIn('company_id', $companyIds))
             ->get();
@@ -127,7 +127,7 @@ class InvoiceWebController extends Controller
 
     public function show(Invoice $invoice)
     {
-        abort_if(auth()->user()->hasRole('customer') && $invoice->client_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $invoice->client_id !== auth()->id(), 403);
 
         $invoice->load(['project', 'client', 'items']);
         return view('invoices.show', compact('invoice'));
@@ -148,7 +148,7 @@ class InvoiceWebController extends Controller
 
     public function downloadPdf(Invoice $invoice)
     {
-        abort_if(auth()->user()->hasRole('customer') && $invoice->client_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $invoice->client_id !== auth()->id(), 403);
 
         $invoice->load(['project', 'client', 'items']);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));

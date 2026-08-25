@@ -27,11 +27,8 @@ class ProjectWebController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%"));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
-        } elseif ($user->hasRole(['developer', 'marketing'])) {
-            $query->whereHas('members', fn($q) => $q->where('user_id', $user->id))
-                ->orWhere('manager_id', $user->id);
         }
 
         $projects = $query->latest()->paginate($this->perPage($request))->withQueryString();
@@ -41,8 +38,9 @@ class ProjectWebController extends Controller
     public function create()
     {
         $companyId = auth()->user()->company_id;
-        $clients   = User::role('customer')->where('is_active', true)->where('company_id', $companyId)->get();
-        $managers  = User::role('manager')->where('is_active', true)->where('company_id', $companyId)->get();
+        $clients   = User::role('client')->where('is_active', true)->where('company_id', $companyId)->get();
+        $managers  = User::whereDoesntHave('roles', fn($q) => $q->where('name', 'client'))
+            ->where('is_active', true)->where('company_id', $companyId)->get();
         return view('projects.create', compact('clients', 'managers'));
     }
 
@@ -84,7 +82,7 @@ class ProjectWebController extends Controller
             'tasks' => fn($q) => $q->with('assignee')->limit(10),
         ]);
         $slaPolicies      = app(SlaService::class);
-        $developers       = User::role(['developer', 'marketing'])->where('is_active', true)->where('company_id', $project->company_id)->get();
+        $developers       = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
         $companyUsers     = User::where('is_active', true)->where('company_id', $project->company_id)
             ->whereNotIn('id', $project->members()->pluck('user_id'))
             ->orderBy('name')->get();
@@ -127,8 +125,9 @@ class ProjectWebController extends Controller
 
     public function edit(Project $project)
     {
-        $clients  = User::role('customer')->where('is_active', true)->get();
-        $managers = User::role('manager')->where('is_active', true)->get();
+        $clients  = User::role('client')->where('is_active', true)->get();
+        $managers = User::whereDoesntHave('roles', fn($q) => $q->where('name', 'client'))
+            ->where('is_active', true)->get();
         return view('projects.edit', compact('project', 'clients', 'managers'));
     }
 

@@ -38,7 +38,7 @@
                     </div>
                 @endif
             </div>
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <div class="flex items-center gap-3 flex-shrink-0">
                 <button @click="editing=!editing"
                         class="text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -145,7 +145,7 @@
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <a href="{{ $att->url() }}" download
                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">Unduh</a>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <form method="POST" action="{{ route('kb.attachment.destroy', $att) }}">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-xs text-red-500 hover:text-red-700"

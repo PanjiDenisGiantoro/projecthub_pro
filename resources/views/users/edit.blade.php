@@ -81,6 +81,7 @@
                 </select>
             </div>
 
+            @if(session('active_package') === 'hris')
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Level Struktural</label>
                 <select name="structural_level_id" id="select-level" class="w-full">
@@ -92,6 +93,7 @@
                     @endforeach
                 </select>
             </div>
+            @endif
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Proyek</label>
@@ -105,6 +107,7 @@
                 <p class="mt-1 text-xs text-gray-400">Opsional. Anggota tim proyek akan disesuaikan dengan pilihan ini.</p>
             </div>
 
+            @if(session('active_package') === 'hris')
             <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Penempatan Organisasi</p>
 
@@ -120,6 +123,7 @@
                     </select>
                 </div>
             </div>
+            @endif
 
             <input type="hidden" name="timezone" value="{{ $user->timezone ?? 'Asia/Jakarta' }}">
 

@@ -207,7 +207,7 @@
                 $userPackages = auth()->user()->is_super_admin
                     ? ['task_management', 'hris']
                     : auth()->user()->activePackages();
-                if (auth()->user()->hasRole('customer')) {
+                if (auth()->user()->hasRole('client')) {
                     $userPackages = array_values(array_diff($userPackages, ['hris']));
                 }
             @endphp

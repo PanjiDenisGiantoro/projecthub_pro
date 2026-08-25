@@ -78,7 +78,7 @@
                                     {{ $sprint->start_date?->format('d M') ?? '—' }} → {{ $sprint->end_date?->format('d M Y') ?? '—' }}
                                 </p>
                             </div>
-                            @if(!auth()->user()->hasRole('customer'))
+                            @if(!auth()->user()->hasRole('client'))
                             <button type="button" @click="edit = !edit" @click.outside="edit = false"
                                     class="text-gray-400 hover:text-blue-600 p-1 rounded shrink-0" title="Edit tanggal sprint">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

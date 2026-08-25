@@ -1,18 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'Developer Dashboard')
+@section('title', 'Dashboard')
 
-@section('page-title', 'Developer Dashboard')
+@section('page-title', 'Dashboard')
 
 @section('content')
 <div class="space-y-6 pt-4">
 
     {{-- ============================================================
-         STAT CARDS
+         PERSONAL WORK SNAPSHOT
     ============================================================ --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {{-- Todo --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Todo</span>
@@ -27,7 +26,6 @@
             <p class="mt-2 text-xs text-gray-500">Tasks belum dimulai</p>
         </div>
 
-        {{-- In Progress --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">In Progress</span>
@@ -42,7 +40,6 @@
             <p class="mt-2 text-xs text-gray-500">Sedang dikerjakan</p>
         </div>
 
-        {{-- Done Minggu Ini --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Done Minggu Ini</span>
@@ -57,7 +54,6 @@
             <p class="mt-2 text-xs text-gray-500">Diselesaikan 7 hari terakhir</p>
         </div>
 
-        {{-- Jam Minggu Ini --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Jam Minggu Ini</span>
@@ -75,13 +71,34 @@
     </div>
 
     {{-- ============================================================
+         TEAM OPS PULSE
+    ============================================================ --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Open Tickets</span>
+            <p class="mt-1 text-2xl font-bold text-gray-800">{{ $stats['open_tickets'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pending Requests</span>
+            <p class="mt-1 text-2xl font-bold text-yellow-600">{{ $stats['pending_requests'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Active Campaigns</span>
+            <p class="mt-1 text-2xl font-bold text-blue-600">{{ $stats['active_campaigns'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pending Campaign Review</span>
+            <p class="mt-1 text-2xl font-bold text-yellow-600">{{ $stats['pending_review'] }}</p>
+        </div>
+    </div>
+
+    {{-- ============================================================
          MY TASKS TABLE
     ============================================================ --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm" x-data="{ filter: 'all' }">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b border-gray-100 gap-3">
             <h2 class="font-semibold text-gray-800">My Tasks</h2>
             <div class="flex items-center gap-2">
-                {{-- Filter buttons --}}
                 <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
                     <button @click="filter = 'all'"
                             :class="filter === 'all' ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'"
@@ -210,6 +227,117 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {{-- ============================================================
+             RECENT CAMPAIGNS
+        ============================================================ --}}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h2 class="font-semibold text-gray-800">Recent Campaigns</h2>
+                <a href="{{ route('campaigns.index') }}"
+                   class="text-xs font-medium text-blue-600 hover:text-blue-800">Semua Kampanye</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nama</th>
+                            <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Channel</th>
+                            <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @forelse($campaigns as $campaign)
+                            @php
+                                $statusClasses = [
+                                    'draft'     => 'bg-gray-100 text-gray-600',
+                                    'active'    => 'bg-green-100 text-green-700',
+                                    'paused'    => 'bg-yellow-100 text-yellow-700',
+                                    'completed' => 'bg-blue-100 text-blue-700',
+                                    'review'    => 'bg-purple-100 text-purple-700',
+                                    'cancelled' => 'bg-red-100 text-red-700',
+                                ];
+                                $sc = $statusClasses[$campaign->status] ?? 'bg-gray-100 text-gray-600';
+                            @endphp
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-5 py-3">
+                                    <a href="{{ route('campaigns.show', $campaign->id) }}"
+                                       class="font-medium text-gray-800 hover:text-blue-600 line-clamp-1">
+                                        {{ $campaign->name }}
+                                    </a>
+                                </td>
+                                <td class="px-3 py-3 text-xs text-gray-600">{{ ucfirst($campaign->channel ?? '-') }}</td>
+                                <td class="px-3 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $sc }}">
+                                        {{ ucfirst($campaign->status ?? 'draft') }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="px-5 py-8 text-center text-sm text-gray-400">Belum ada kampanye</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- ============================================================
+             RECENT TICKETS
+        ============================================================ --}}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h2 class="font-semibold text-gray-800">Recent Tickets</h2>
+                <a href="{{ route('tickets.index') }}"
+                   class="text-xs font-medium text-blue-600 hover:text-blue-800">Semua Tiket</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Tiket</th>
+                            <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Proyek</th>
+                            <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @forelse($recent_tickets as $ticket)
+                            @php
+                                $statusClasses = [
+                                    'open'        => 'bg-yellow-100 text-yellow-700',
+                                    'assigned'    => 'bg-blue-100 text-blue-700',
+                                    'in_progress' => 'bg-purple-100 text-purple-700',
+                                ];
+                                $sc = $statusClasses[$ticket->status] ?? 'bg-gray-100 text-gray-600';
+                            @endphp
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-5 py-3">
+                                    <a href="{{ route('tickets.show', $ticket->id) }}"
+                                       class="font-medium text-gray-800 hover:text-blue-600 line-clamp-1">
+                                        #{{ $ticket->id }} {{ Str::limit($ticket->title, 30) }}
+                                    </a>
+                                </td>
+                                <td class="px-3 py-3 text-xs text-gray-500">{{ $ticket->project->name ?? '-' }}</td>
+                                <td class="px-3 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $sc }}">
+                                        {{ str_replace('_', ' ', ucfirst($ticket->status)) }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="px-5 py-8 text-center text-sm text-gray-400">Tidak ada tiket open saat ini</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 </div>

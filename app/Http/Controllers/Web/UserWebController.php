@@ -27,7 +27,7 @@ class UserWebController extends Controller
         $isAdmin   = $canCreate || $canUpdate || $canDelete;
 
         $baseScope = function ($q) use ($authUser, $isAdmin) {
-            $q->whereDoesntHave('roles', fn($r) => $r->where('name', 'customer'));
+            $q->whereDoesntHave('roles', fn($r) => $r->where('name', 'client'));
 
             if ($authUser->company_id) {
                 $q->where('company_id', $authUser->company_id);
@@ -43,7 +43,7 @@ class UserWebController extends Controller
                 ->orWhere('email', 'like', "%{$request->search}%"));
 
         $users = $query->paginate($this->perPage($request))->withQueryString();
-        $roles = $isAdmin ? Role::whereNotIn('name', ['customer', 'tester'])->get() : collect();
+        $roles = $isAdmin ? Role::whereNotIn('name', ['client', 'tester'])->get() : collect();
 
         $totalUsers    = User::tap($baseScope)->count();
         $activeUsers   = User::tap($baseScope)->where('is_active', true)->count();
@@ -77,7 +77,7 @@ class UserWebController extends Controller
 
     public function create()
     {
-        $roles             = Role::whereNotIn('name', ['tester', 'customer'])->get();
+        $roles             = Role::whereNotIn('name', ['tester', 'client'])->get();
         $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
@@ -90,7 +90,7 @@ class UserWebController extends Controller
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users',
             'password'              => 'required|min:8|confirmed',
-            'role'                  => 'required|exists:roles,name|not_in:customer',
+            'role'                  => 'required|exists:roles,name|not_in:client',
             'structural_level_id'   => 'nullable|exists:structural_levels,id',
             'organization_unit_id'  => 'nullable|exists:organization_units,id',
             'project_ids'           => 'nullable|array',

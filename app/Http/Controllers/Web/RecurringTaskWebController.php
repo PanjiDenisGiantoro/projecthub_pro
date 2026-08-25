@@ -24,6 +24,31 @@ class RecurringTaskWebController extends Controller
         return view('recurring.index', compact('project', 'definitions', 'milestones', 'users'));
     }
 
+    public function allRecurring(Request $request)
+    {
+        $authUser  = auth()->user();
+        $companyId = $authUser->company_id;
+
+        $companyScope = function ($q) use ($authUser, $companyId) {
+            if (! $authUser->is_super_admin && $companyId) {
+                $q->whereHas('project', fn($p) => $p->where('company_id', $companyId));
+            }
+        };
+
+        $query = RecurringTaskDefinition::with(['project', 'assignee'])->withCount('tasks')
+            ->tap($companyScope)
+            ->when($request->status === 'active', fn($q) => $q->where('is_active', true))
+            ->when($request->status === 'inactive', fn($q) => $q->where('is_active', false));
+
+        if ($authUser->hasRole('client')) {
+            $query->whereHas('project', fn($p) => $p->where('client_id', $authUser->id));
+        }
+
+        $definitions = $query->orderByDesc('id')->paginate($this->perPage($request))->withQueryString();
+
+        return view('recurring.all', compact('definitions'));
+    }
+
     public function store(Request $request, Project $project)
     {
         $data = $request->validate([

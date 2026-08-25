@@ -38,7 +38,7 @@ class TicketWebController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
 
-        if ($authUser->hasRole('customer')) {
+        if ($authUser->hasRole('client')) {
             $query->where('reporter_id', $authUser->id);
         }
 
@@ -58,7 +58,7 @@ class TicketWebController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
 
-        if (auth()->user()->hasRole('customer')) {
+        if (auth()->user()->hasRole('client')) {
             $query->where('reporter_id', auth()->id());
         }
 
@@ -144,14 +144,14 @@ class TicketWebController extends Controller
             'project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
             'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
         ]);
-        $developers = User::role('developer')->where('is_active', true)->get();
+        $developers = User::role('member')->where('is_active', true)->get();
         $relatableTickets = $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']);
         return view('tickets.show', compact('ticket', 'developers', 'relatableTickets'));
     }
 
     public function updateDetails(Request $request, BugTicket $ticket)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
 
         $request->validate([
             'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
@@ -180,7 +180,7 @@ class TicketWebController extends Controller
 
     public function linkTicket(Request $request, BugTicket $ticket)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
 
         $request->validate([
             'target_ticket_id' => 'required|exists:bug_tickets,id',
@@ -225,7 +225,7 @@ class TicketWebController extends Controller
 
     public function unlinkTicket(BugTicket $ticket, TicketLink $link)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
         abort_unless($link->source_ticket_id === $ticket->id, 404);
 
         $inverseMap = [
@@ -250,7 +250,7 @@ class TicketWebController extends Controller
 
     public function deleteAttachment(BugTicket $ticket, TicketAttachment $attachment)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
         abort_unless($attachment->ticket_id === $ticket->id, 404);
 
         \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment->file_path);

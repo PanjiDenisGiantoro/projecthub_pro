@@ -76,7 +76,7 @@
         </div>
 
         {{-- Actions --}}
-        @if($user->hasRole(['admin','manager']) && $customerRequest->status === 'waiting_approval')
+        @if($user->hasRole(['admin','member']) && $customerRequest->status === 'waiting_approval')
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <h4 class="text-sm font-semibold text-gray-700 mb-3">Keputusan Manager</h4>
             <div class="flex gap-3">
@@ -97,7 +97,7 @@
         </div>
         @endif
 
-        @if($user->hasRole(['admin','manager']) && $customerRequest->status === 'approved')
+        @if($user->hasRole(['admin','member']) && $customerRequest->status === 'approved')
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <h4 class="text-sm font-semibold text-gray-700 mb-3">Tandai Selesai</h4>
             <form method="POST" action="{{ route('requests.complete', $customerRequest) }}">

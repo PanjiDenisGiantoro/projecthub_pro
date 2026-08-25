@@ -25,7 +25,7 @@ class DashboardWebController extends Controller
         $activePkg  = session('active_package', 'task_management');
 
         // ── HRIS Dashboard ──────────────────────────────────────────────────
-        if ($activePkg === 'hris' && !$user->hasRole('customer') && ($user->is_super_admin || $user->hasPackage('hris'))) {
+        if ($activePkg === 'hris' && !$user->hasRole('client') && ($user->is_super_admin || $user->hasPackage('hris'))) {
             $companyId      = $user->company_id;
             $totalKaryawan  = User::where('company_id', $companyId)->where('is_super_admin', false)->count();
             $totalDept      = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
@@ -35,7 +35,7 @@ class DashboardWebController extends Controller
             return view('dashboard.hris', compact('totalKaryawan', 'totalDept', 'hadirHariIni', 'cutiPending'));
         }
 
-        if ($user->hasRole(['admin', 'manager'])) {
+        if ($user->hasRole('admin')) {
             $companies = collect();
             $cid       = $user->company_id;
 
@@ -143,7 +143,7 @@ class DashboardWebController extends Controller
                 ->limit(5)
                 ->get();
 
-            return view('dashboard.manager', [
+            return view('dashboard.admin', [
                 'stats'               => $stats,
                 'revenue_monthly'     => $revenueMonthly,
                 'top_projects'        => $topProjects,
@@ -155,41 +155,12 @@ class DashboardWebController extends Controller
             ]);
         }
 
-        if ($user->hasRole('developer')) {
-            $stats = Cache::remember("dashboard.developer.{$user->id}.stats", 60, function () use ($user) {
-                return [
-                    'todo'        => Task::where('assigned_to', $user->id)->where('status', 'todo')->count(),
-                    'in_progress' => Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
-                    'done_week'   => Task::where('assigned_to', $user->id)->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                    'hours_week'  => round(TimeLog::where('user_id', $user->id)->whereBetween('started_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('minutes') / 60, 1),
-                ];
-            });
-
-            $data = [
-                'my_tasks' => Task::where('assigned_to', $user->id)->whereIn('status', ['todo', 'in_progress'])->with(['project', 'milestone'])->orderBy('due_date')->limit(10)->get(),
-                'stats'    => $stats,
-            ];
-            return view('dashboard.developer', $data);
+        if ($user->hasRole('member')) {
+            return view('dashboard.member', $this->memberDashboardData($user));
         }
 
-        if ($user->hasRole('marketing')) {
-            $ckey = $user->company_id ?? 'superadmin';
-            $stats = Cache::remember("dashboard.marketing.stats.{$ckey}.v1", 60, function () {
-                return [
-                    'active_campaigns' => Campaign::whereHas('project')->where('status', 'active')->count(),
-                    'pending_review'   => CustomerRequest::whereHas('project')->where('status', 'waiting_approval')->count(),
-                ];
-            });
-
-            $data = [
-                'campaigns' => Campaign::with('project')->whereHas('project')->latest()->limit(5)->get(),
-                'stats'     => $stats,
-            ];
-            return view('dashboard.marketing', $data);
-        }
-
-        if ($user->hasRole('customer')) {
-            $stats = Cache::remember("dashboard.customer.{$user->id}.stats", 60, function () use ($user) {
+        if ($user->hasRole('client')) {
+            $stats = Cache::remember("dashboard.client.{$user->id}.stats", 60, function () use ($user) {
                 return [
                     'pending_requests' => CustomerRequest::where('customer_id', $user->id)->where('status', 'waiting_approval')->count(),
                     'open_tickets'     => BugTicket::where('reporter_id', $user->id)->whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
@@ -202,10 +173,35 @@ class DashboardWebController extends Controller
                 'stats'           => $stats,
                 'recent_requests' => CustomerRequest::where('customer_id', $user->id)->latest()->limit(5)->get(),
             ];
-            return view('dashboard.customer', $data);
+            return view('dashboard.client', $data);
         }
 
-        return view('dashboard.manager', []);
+        // Custom role (created via /roles) without one of the 3 system roles:
+        // fall back to the member dashboard instead of a blank/broken view.
+        return view('dashboard.member', $this->memberDashboardData($user));
+    }
+
+    private function memberDashboardData($user): array
+    {
+        $stats = Cache::remember("dashboard.member.{$user->id}.stats", 60, function () use ($user) {
+            return [
+                'todo'             => Task::where('assigned_to', $user->id)->where('status', 'todo')->count(),
+                'in_progress'      => Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
+                'done_week'        => Task::where('assigned_to', $user->id)->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'hours_week'       => round(TimeLog::where('user_id', $user->id)->whereBetween('started_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('minutes') / 60, 1),
+                'open_tickets'     => BugTicket::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->whereIn('status', ['open', 'assigned'])->count(),
+                'pending_requests' => CustomerRequest::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->where('status', 'waiting_approval')->count(),
+                'active_campaigns' => Campaign::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->where('status', 'active')->count(),
+                'pending_review'   => CustomerRequest::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->where('status', 'waiting_approval')->count(),
+            ];
+        });
+
+        return [
+            'my_tasks'       => Task::where('assigned_to', $user->id)->whereIn('status', ['todo', 'in_progress'])->with(['project', 'milestone'])->orderBy('due_date')->limit(10)->get(),
+            'campaigns'      => Campaign::with('project')->whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->latest()->limit(5)->get(),
+            'recent_tickets' => BugTicket::with(['project'])->whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->whereIn('status', ['open', 'assigned', 'in_progress'])->orderByDesc('created_at')->limit(6)->get(),
+            'stats'          => $stats,
+        ];
     }
 
     /**
@@ -217,7 +213,7 @@ class DashboardWebController extends Controller
     public function v2(Request $request)
     {
         $user      = auth()->user();
-        $isManager = $user->hasRole(['admin', 'manager']);
+        $isManager = $user->hasRole(['admin', 'member']);
         $companies = collect();
         $cid       = null;
 
@@ -278,7 +274,7 @@ class DashboardWebController extends Controller
         ];
 
         // ── Meeting (project/sprint/milestone/task/tiket dengan jadwal) ─────
-        $meetings = $this->collectMeetingsV2($projectFilter, $user->hasRole('customer'), $user->id);
+        $meetings = $this->collectMeetingsV2($projectFilter, $user->hasRole('client'), $user->id);
         $todaySchedule    = $meetings->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isToday())->values();
         $upcomingMeetings = $meetings->filter(fn($m) => !$m['startsAt'] || $m['startsAt']->isFuture())->take(6)->values();
 
@@ -393,7 +389,7 @@ class DashboardWebController extends Controller
 
     public function workload()
     {
-        $developers = User::role('developer')
+        $developers = User::role('member')
             ->where('company_id', auth()->user()->company_id)
             ->with(['assignedTasks' => fn($q) => $q->whereIn('status', ['todo', 'in_progress'])->with('project')])
             ->get();

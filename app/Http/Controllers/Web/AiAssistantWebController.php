@@ -351,7 +351,7 @@ class AiAssistantWebController extends Controller
         // AI Assistant tidak jadi jalan pintas buat nambah task ke proyek orang lain.
         $user  = auth()->user();
         $query = Project::query();
-        if (!$user->hasRole(['admin', 'manager'])) {
+        if (!$user->hasRole(['admin', 'member'])) {
             $query->where(function ($q) use ($user) {
                 $q->where('manager_id', $user->id)
                     ->orWhere('client_id', $user->id)

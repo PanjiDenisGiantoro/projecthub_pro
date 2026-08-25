@@ -44,10 +44,10 @@ class BillingWebController extends Controller
         ]);
     }
 
-    /** GET /billing/history — riwayat pembayaran perusahaan (admin only). */
+    /** GET /billing/history — riwayat pembayaran perusahaan. */
     public function history(Request $request)
     {
-        abort_unless(Auth::user()->hasRole('admin'), 403);
+        abort_unless(Auth::user()->can('access billing'), 403);
 
         $orders = SubscriptionOrder::with('package')
             ->where('company_id', Auth::user()->company_id)

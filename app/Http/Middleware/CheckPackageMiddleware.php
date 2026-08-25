@@ -12,7 +12,7 @@ class CheckPackageMiddleware
     {
         $user = $request->user();
 
-        if ($user && $package === 'hris' && $user->hasRole('customer')) {
+        if ($user && $package === 'hris' && $user->hasRole('client')) {
             abort(403, "Paket '{$package}' tidak tersedia untuk akun Anda.");
         }
 

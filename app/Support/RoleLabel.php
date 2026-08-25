@@ -5,12 +5,10 @@ namespace App\Support;
 class RoleLabel
 {
     /**
-     * Role slug di DB tetap 'customer' (dipakai luas di hasRole/role/assignRole),
-     * ini cuma override label yang ditampilkan ke user.
+     * Override label tampilan per role slug, kalau ucfirst() saja tidak cukup
+     * (mis. role custom masa depan yang butuh nama tampilan khusus).
      */
-    private static array $overrides = [
-        'customer' => 'Client',
-    ];
+    private static array $overrides = [];
 
     public static function for(?string $roleName): string
     {

@@ -25,18 +25,28 @@ class CalendarWebController extends Controller
         $projId = $request->input('project');
 
         $user       = auth()->user();
-        $isCustomer = $user->hasRole('customer');
+        $isCustomer = $user->hasRole('client');
         $events     = collect();
+
+        // Tenant scope: batasi ke company user (super admin melihat semua company).
+        $companyScope = function ($q) use ($user, $isCustomer) {
+            if (! $user->is_super_admin && $user->company_id) {
+                $q->where('company_id', $user->company_id);
+            }
+            if ($isCustomer) {
+                $q->where('client_id', $user->id);
+            }
+        };
 
         // ── Tasks ─────────────────────────────────────────────────────────────
         if (in_array('task', $types)) {
             $q = Task::with(['project', 'assignee'])
                 ->whereNotNull('due_date')
                 ->whereBetween('due_date', [$start, $end])
-                ->whereNull('deleted_at');
+                ->whereNull('deleted_at')
+                ->whereHas('project', $companyScope);
 
-            if ($isCustomer) $q->whereHas('project', fn($q) => $q->where('client_id', $user->id));
-            if ($projId)     $q->where('project_id', $projId);
+            if ($projId) $q->where('project_id', $projId);
 
             $priorityColor = ['critical'=>'#EF4444','high'=>'#F97316','medium'=>'#3B82F6','low'=>'#22C55E'];
 
@@ -65,10 +75,10 @@ class CalendarWebController extends Controller
                 ->where(fn($q) => $q
                     ->whereBetween('start_date', [$start, $end])
                     ->orWhereBetween('due_date', [$start, $end])
-                );
+                )
+                ->whereHas('project', $companyScope);
 
-            if ($isCustomer) $q->whereHas('project', fn($q) => $q->where('client_id', $user->id));
-            if ($projId)     $q->where('project_id', $projId);
+            if ($projId) $q->where('project_id', $projId);
 
             $q->get()->each(fn($m) => $events->push([
                 'id'    => 'milestone-' . $m->id,
@@ -95,7 +105,8 @@ class CalendarWebController extends Controller
                     ->whereBetween('start_date', [$start, $end])
                     ->orWhereBetween('end_date', [$start, $end])
                     ->orWhere(fn($q) => $q->where('start_date', '<=', $start)->where('end_date', '>=', $end))
-                );
+                )
+                ->whereHas('project', $companyScope);
 
             if ($projId) $q->where('project_id', $projId);
 
@@ -123,10 +134,10 @@ class CalendarWebController extends Controller
             $q = BugTicket::with(['project', 'assignee'])
                 ->whereNotNull('sla_due_at')
                 ->whereBetween('sla_due_at', [$start, $end])
-                ->whereNotIn('status', ['resolved', 'closed']);
+                ->whereNotIn('status', ['resolved', 'closed'])
+                ->whereHas('project', $companyScope);
 
-            if ($isCustomer) $q->whereHas('project', fn($q) => $q->where('client_id', $user->id));
-            if ($projId)     $q->where('project_id', $projId);
+            if ($projId) $q->where('project_id', $projId);
 
             $q->get()->each(fn($t) => $events->push([
                 'id'    => 'ticket-' . $t->id,
@@ -156,15 +167,25 @@ class CalendarWebController extends Controller
         $start  = now()->startOfDay();
         $end    = now()->addDays($days)->endOfDay();
         $user   = auth()->user();
-        $isCustomer = $user->hasRole('customer');
+        $isCustomer = $user->hasRole('client');
+
+        // Tenant scope: batasi ke company user (super admin melihat semua company).
+        $companyScope = function ($q) use ($user, $isCustomer) {
+            if (! $user->is_super_admin && $user->company_id) {
+                $q->where('company_id', $user->company_id);
+            }
+            if ($isCustomer) {
+                $q->where('client_id', $user->id);
+            }
+        };
 
         $items = collect();
 
         // Upcoming tasks
         $tq = Task::with(['project'])->whereNotNull('due_date')
             ->whereBetween('due_date', [$start, $end])
-            ->whereNotIn('status', ['done'])->whereNull('deleted_at');
-        if ($isCustomer) $tq->whereHas('project', fn($q) => $q->where('client_id', $user->id));
+            ->whereNotIn('status', ['done'])->whereNull('deleted_at')
+            ->whereHas('project', $companyScope);
         $tq->get()->each(fn($t) => $items->push([
             'type' => 'task', 'title' => $t->title,
             'date' => $t->due_date->toDateString(),
@@ -176,8 +197,8 @@ class CalendarWebController extends Controller
         // Upcoming milestones
         $mq = Milestone::with(['project'])
             ->whereBetween('due_date', [$start, $end])
-            ->where('status', '!=', 'completed');
-        if ($isCustomer) $mq->whereHas('project', fn($q) => $q->where('client_id', $user->id));
+            ->where('status', '!=', 'completed')
+            ->whereHas('project', $companyScope);
         $mq->get()->each(fn($m) => $items->push([
             'type' => 'milestone', 'title' => $m->title,
             'date' => $m->due_date?->toDateString(),
@@ -188,8 +209,8 @@ class CalendarWebController extends Controller
         // SLA due tickets
         $tiq = BugTicket::with(['project'])->whereNotNull('sla_due_at')
             ->whereBetween('sla_due_at', [$start, $end])
-            ->whereNotIn('status', ['resolved', 'closed']);
-        if ($isCustomer) $tiq->whereHas('project', fn($q) => $q->where('client_id', $user->id));
+            ->whereNotIn('status', ['resolved', 'closed'])
+            ->whereHas('project', $companyScope);
         $tiq->get()->each(fn($t) => $items->push([
             'type' => 'ticket', 'title' => $t->title,
             'date' => $t->sla_due_at->toDateString(),

@@ -46,12 +46,64 @@
                     <td class="px-4 py-3 text-gray-600">{{ ucfirst($activity->event ?? '-') }}</td>
                     <td class="px-4 py-3 text-gray-700 max-w-sm truncate">{{ $activity->description }}</td>
                     <td class="px-4 py-3">
-                        @if($activity->properties && $activity->properties->isNotEmpty())
+                        @php
+                            $old   = $activity->properties['old'] ?? null;
+                            $new   = $activity->properties['attributes'] ?? null;
+                            $isDeleted = $activity->event === 'deleted';
+                            $rows  = [];
+                            if ($isDeleted && $old) {
+                                // Event 'deleted': hanya ada 'old', tidak ada 'attributes'.
+                                foreach ($old as $field => $oldVal) {
+                                    $rows[] = ['field' => $field, 'old' => $oldVal, 'new' => null];
+                                }
+                            } elseif ($new) {
+                                foreach ($new as $field => $newVal) {
+                                    $oldVal = $old[$field] ?? null;
+                                    // Untuk 'created' tidak ada 'old', jadi tampilkan semua field.
+                                    // Untuk 'updated' hanya tampilkan field yang benar-benar berubah.
+                                    if ($old !== null && $oldVal === $newVal) {
+                                        continue;
+                                    }
+                                    $rows[] = ['field' => $field, 'old' => $oldVal, 'new' => $newVal];
+                                }
+                            }
+                            $fmt = fn($v) => is_array($v) ? json_encode($v) : (is_bool($v) ? ($v ? 'true' : 'false') : ($v === null ? '—' : (string) $v));
+                            $showOldCol = $old !== null;
+                            $showNewCol = !$isDeleted;
+                        @endphp
+                        @if(count($rows))
                         <div x-data="{ open: false }">
                             <button type="button" @click="open = !open" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
-                                <span x-text="open ? 'Sembunyikan' : 'Lihat detail'"></span>
+                                <span x-text="open ? 'Sembunyikan' : 'Lihat perubahan (' + {{ count($rows) }} + ')'"></span>
                             </button>
-                            <pre x-show="open" x-cloak class="mt-2 text-[11px] bg-gray-50 rounded-lg p-2 max-w-md overflow-x-auto">{{ json_encode($activity->properties, JSON_PRETTY_PRINT) }}</pre>
+                            <div x-show="open" x-cloak class="mt-2 max-w-md overflow-x-auto">
+                                <table class="text-[11px] border border-gray-200 rounded-lg overflow-hidden w-full">
+                                    <thead class="bg-gray-50 text-gray-500 uppercase">
+                                        <tr>
+                                            <th class="px-2 py-1 text-left">Field</th>
+                                            @if($showOldCol)
+                                            <th class="px-2 py-1 text-left">Sebelum</th>
+                                            @endif
+                                            @if($showNewCol)
+                                            <th class="px-2 py-1 text-left">Sesudah</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        @foreach($rows as $row)
+                                        <tr>
+                                            <td class="px-2 py-1 font-medium text-gray-600 align-top whitespace-nowrap">{{ $row['field'] }}</td>
+                                            @if($showOldCol)
+                                            <td class="px-2 py-1 text-red-600 align-top break-all">{{ $fmt($row['old']) }}</td>
+                                            @endif
+                                            @if($showNewCol)
+                                            <td class="px-2 py-1 text-green-700 align-top break-all">{{ $fmt($row['new']) }}</td>
+                                            @endif
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         @else
                         <span class="text-gray-300">—</span>

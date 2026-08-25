@@ -34,7 +34,7 @@ class NotificationService
 
     public function notifyManagers(string $type, string $title, string $message, array $data = [], bool $push = true, ?int $companyId = null): void
     {
-        $this->notifyByRole('manager', $type, $title, $message, $data, $push, $companyId);
+        $this->notifyByRole('member', $type, $title, $message, $data, $push, $companyId);
         $this->notifyByRole('admin', $type, $title, $message, $data, $push, $companyId);
     }
 

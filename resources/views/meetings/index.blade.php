@@ -46,7 +46,7 @@
                 </select>
             </form>
 
-            @unless(auth()->user()->hasRole('customer'))
+            @unless(auth()->user()->hasRole('client'))
             <button @click="open = true"
                     class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
                 + Tambah Meeting

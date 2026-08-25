@@ -201,7 +201,10 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // {task} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::post('/tasks/{task}/time-logs', [TaskWebController::class, 'storeTimeLog'])->name('tasks.timelog.store');
 
-    // Bug Tickets
+    // Aktivitas Kerja (list lintas proyek: Task / Sprint / Recurring / Ticket)
+    Route::get('/tasks', [TaskWebController::class, 'allTasks'])->name('tasks.all');
+    Route::get('/sprints', [SprintWebController::class, 'allSprints'])->name('sprints.all');
+    Route::get('/recurring', [RecurringTaskWebController::class, 'allRecurring'])->name('recurring.all');
     Route::get('/tickets', [TicketWebController::class, 'allTickets'])->name('tickets.all');
     Route::get('/projects/{project}/tickets', [TicketWebController::class, 'index'])->name('tickets.index');
     Route::get('/projects/{project}/tickets/create', [TicketWebController::class, 'create'])->name('tickets.create');
@@ -223,18 +226,21 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/approvals/{approval}/reject', [ApprovalWebController::class, 'reject'])->name('approvals.reject');
     Route::delete('/approvals/{approval}', [ApprovalWebController::class, 'cancel'])->name('approvals.cancel');
 
-    // Role Management (admin only)
-    Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    // Role Management (permission-gated, not hardcoded to admin — admin always
+    // passes via Gate::before regardless)
+    Route::middleware('can:manage permissions')->group(function () {
+        Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    });
 
-    // Permission Management (admin only)
-    Route::middleware('role:admin')->group(function () {
+    // Permission Management (permission-gated)
+    Route::middleware('can:manage permissions')->group(function () {
         Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
         Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
         Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
     });
 
-    // Activity Log (admin only)
-    Route::middleware('role:admin')->group(function () {
+    // Activity Log (permission-gated)
+    Route::middleware('can:manage permissions')->group(function () {
         Route::get('/activity-log', [\App\Http\Controllers\Web\ActivityLogWebController::class, 'index'])->name('activity-log.index');
     });
 

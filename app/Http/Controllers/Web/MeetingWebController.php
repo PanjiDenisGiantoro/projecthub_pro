@@ -20,7 +20,7 @@ class MeetingWebController extends Controller
         $projId   = $request->input('project');
 
         $user       = auth()->user();
-        $isCustomer = $user->hasRole('customer');
+        $isCustomer = $user->hasRole('client');
 
         $scopeToClient = function ($q) use ($isCustomer, $user) {
             if ($isCustomer) $q->where('client_id', $user->id);
@@ -185,7 +185,7 @@ class MeetingWebController extends Controller
         $project = Project::findOrFail($request->project_id);
         $this->authorize('view', $project);
 
-        if (auth()->user()->hasRole('customer')) {
+        if (auth()->user()->hasRole('client')) {
             abort(403);
         }
 
@@ -215,7 +215,7 @@ class MeetingWebController extends Controller
             'recurring' => 'nullable|boolean',
         ]);
 
-        if (auth()->user()->hasRole('customer')) {
+        if (auth()->user()->hasRole('client')) {
             abort(403);
         }
 

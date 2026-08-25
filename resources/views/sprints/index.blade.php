@@ -11,7 +11,7 @@
 
     <div class="flex justify-between items-center mb-5">
         <h2 class="font-semibold text-gray-800">Sprints ({{ $sprints->count() }})</h2>
-        @if(!auth()->user()->hasRole('customer'))
+        @if(!auth()->user()->hasRole('client'))
         <button @click="showForm=!showForm"
                 class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -21,7 +21,7 @@
     </div>
 
     {{-- New Sprint Form --}}
-    @if(!auth()->user()->hasRole('customer'))
+    @if(!auth()->user()->hasRole('client'))
     <div x-show="showForm" x-cloak class="bg-white rounded-xl border border-blue-200 p-5 mb-5">
         <form method="POST" action="{{ route('sprints.store', $project) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @csrf
@@ -77,7 +77,7 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    @if($sprint->status !== 'active' && !auth()->user()->hasRole('customer'))
+                    @if($sprint->status !== 'active' && !auth()->user()->hasRole('client'))
                     <form method="POST" action="{{ route('sprints.update', [$project, $sprint]) }}">
                         @csrf @method('PUT')
                         <input type="hidden" name="name" value="{{ $sprint->name }}">
@@ -128,7 +128,7 @@
                     <p class="text-xs text-gray-400">{{ $task->milestone?->title ?? 'No Milestone' }} · {{ $task->assignee?->name ?? 'Unassigned' }}</p>
                 </div>
                 <span class="text-xs text-gray-500">{{ $task->story_points ?? '?' }} pts</span>
-                @if(!auth()->user()->hasRole('customer') && $sprints->where('status','active')->first())
+                @if(!auth()->user()->hasRole('client') && $sprints->where('status','active')->first())
                 <form method="POST" action="{{ route('sprints.tasks.add', [$project, $sprints->where('status','active')->first()]) }}">
                     @csrf
                     <input type="hidden" name="task_id" value="{{ $task->id }}">

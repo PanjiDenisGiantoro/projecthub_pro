@@ -21,18 +21,38 @@ class TaskWebController extends Controller
 
     public function index(Request $request, Project $project)
     {
-        $user  = auth()->user();
         $query = $project->tasks()->with(['assignee', 'milestone'])
             ->when($request->status, fn($q) => $q->where('status', $request->status));
 
-        if ($user->hasRole('developer')) {
-            $query->where('assigned_to', $user->id);
-        }
-
         $tasks      = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $milestones = $project->milestones()->get();
-        $developers = User::role('developer')->where('is_active', true)->get();
+        $developers = User::role('member')->where('is_active', true)->get();
         return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers'));
+    }
+
+    public function allTasks(Request $request)
+    {
+        $authUser  = auth()->user();
+        $companyId = $authUser->company_id;
+
+        $companyScope = function ($q) use ($authUser, $companyId) {
+            if (! $authUser->is_super_admin && $companyId) {
+                $q->whereHas('project', fn($p) => $p->where('company_id', $companyId));
+            }
+        };
+
+        $query = Task::with(['project', 'assignee', 'sprint'])
+            ->tap($companyScope)
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
+
+        if ($authUser->hasRole('client')) {
+            $query->whereHas('project', fn($p) => $p->where('client_id', $authUser->id));
+        }
+
+        $tasks = $query->latest()->paginate($this->perPage($request))->withQueryString();
+
+        return view('tasks.all', compact('tasks'));
     }
 
     public function store(Request $request, Project $project, GoogleCalendarService $calendar)

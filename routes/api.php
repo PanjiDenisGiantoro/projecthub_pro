@@ -52,8 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('organization-units', OrganizationUnitController::class)->except(['index', 'show']);
     });
 
-    // ─── Admin / Manager only ────────────────────────────────────────────────
-    Route::middleware('role:admin|manager')->group(function () {
+    // ─── Admin / Member only ─────────────────────────────────────────────────
+    Route::middleware('role:admin|member')->group(function () {
 
         // Organization units (read: admin + manager, for user form dropdown)
         Route::get('/organization-units', [OrganizationUnitController::class, 'index']);

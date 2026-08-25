@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Sprint;
@@ -11,11 +12,37 @@ use Illuminate\Http\Request;
 
 class SprintWebController extends Controller
 {
+    use HasPerPage;
+
     public function index(Project $project)
     {
         $sprints = $project->sprints()->with(['tasks.assignee'])->orderByDesc('start_date')->get();
         $backlog = $project->tasks()->whereNull('sprint_id')->with('assignee', 'milestone')->orderBy('sort_order')->get();
         return view('sprints.index', compact('project', 'sprints', 'backlog'));
+    }
+
+    public function allSprints(Request $request)
+    {
+        $authUser  = auth()->user();
+        $companyId = $authUser->company_id;
+
+        $companyScope = function ($q) use ($authUser, $companyId) {
+            if (! $authUser->is_super_admin && $companyId) {
+                $q->whereHas('project', fn($p) => $p->where('company_id', $companyId));
+            }
+        };
+
+        $query = Sprint::with(['project'])
+            ->tap($companyScope)
+            ->when($request->status, fn($q) => $q->where('status', $request->status));
+
+        if ($authUser->hasRole('client')) {
+            $query->whereHas('project', fn($p) => $p->where('client_id', $authUser->id));
+        }
+
+        $sprints = $query->orderByDesc('start_date')->paginate($this->perPage($request))->withQueryString();
+
+        return view('sprints.all', compact('sprints'));
     }
 
     public function store(Request $request, Project $project, GoogleCalendarService $calendar)

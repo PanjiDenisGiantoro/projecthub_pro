@@ -12,12 +12,12 @@ class ProjectPolicy
      * sub-resource-nya (task, milestone, sprint, budget, risk, kb, file, dll).
      * Global scope company_id di model Project sudah menutup akses lintas
      * perusahaan; policy ini menutup akses lintas proyek DALAM satu
-     * perusahaan yang sama (mis. customer/developer yang bukan anggota
+     * perusahaan yang sama (mis. client/member yang bukan anggota
      * proyek tersebut).
      */
     public function view(User $user, Project $project): bool
     {
-        if ($user->hasRole(['admin', 'manager'])) {
+        if ($user->hasRole(['admin', 'member'])) {
             return true;
         }
 

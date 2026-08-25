@@ -16,7 +16,7 @@
                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
             <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg transition-colors">Cari</button>
         </form>
-        @if(!auth()->user()->hasRole('customer'))
+        @if(!auth()->user()->hasRole('client'))
         <button @click="showForm=!showForm"
                 class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -26,7 +26,7 @@
     </div>
 
     {{-- New Article Form --}}
-    @if(!auth()->user()->hasRole('customer'))
+    @if(!auth()->user()->hasRole('client'))
     <div x-show="showForm" x-cloak class="bg-white rounded-xl border border-blue-200 p-5 mb-5">
         <h4 class="text-sm font-semibold text-gray-700 mb-4">Artikel Baru</h4>
         <form method="POST" action="{{ route('kb.store', $project) }}" enctype="multipart/form-data" class="space-y-4">

@@ -30,7 +30,7 @@
             <p class="font-semibold text-gray-800 capitalize">{{ $project->status }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-4">
-            <p class="text-xs text-gray-400 mb-1">Manager</p>
+            <p class="text-xs text-gray-400 mb-1">Lead Project</p>
             <p class="font-semibold text-gray-800">{{ $project->manager?->name }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-4">

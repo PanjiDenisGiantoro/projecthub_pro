@@ -13,11 +13,11 @@ class ClientWebController extends Controller
 
     public function index(Request $request)
     {
-        abort_unless(auth()->user()->hasRole('admin') || auth()->user()->hasRole('manager'), 403);
+        abort_unless(auth()->user()->can('access clients'), 403);
 
         $companyId = auth()->user()->company_id;
 
-        $clients = User::role('customer')
+        $clients = User::role('client')
             ->with('roles', 'clientProjects:id,name,client_id,status')
             ->where('company_id', $companyId)
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
@@ -27,9 +27,9 @@ class ClientWebController extends Controller
             ->paginate($this->perPage($request))
             ->withQueryString();
 
-        $totalClients    = User::role('customer')->where('company_id', $companyId)->count();
-        $activeClients   = User::role('customer')->where('company_id', $companyId)->where('is_active', true)->count();
-        $inactiveClients = User::role('customer')->where('company_id', $companyId)->where('is_active', false)->count();
+        $totalClients    = User::role('client')->where('company_id', $companyId)->count();
+        $activeClients   = User::role('client')->where('company_id', $companyId)->where('is_active', true)->count();
+        $inactiveClients = User::role('client')->where('company_id', $companyId)->where('is_active', false)->count();
 
         return view('clients.index', compact('clients', 'totalClients', 'activeClients', 'inactiveClients'));
     }
@@ -64,7 +64,7 @@ class ClientWebController extends Controller
             // asli lewat checkbox "send_verification" di form.
             'email_verified_at' => $sendVerification ? null : now(),
         ]);
-        $client->assignRole('customer');
+        $client->assignRole('client');
 
         if ($sendVerification) {
             $client->sendEmailVerificationNotification();
@@ -76,14 +76,14 @@ class ClientWebController extends Controller
     public function edit(User $client)
     {
         abort_unless(auth()->user()->hasRole('admin'), 403);
-        abort_unless($client->hasRole('customer'), 404);
+        abort_unless($client->hasRole('client'), 404);
         return view('clients.edit', compact('client'));
     }
 
     public function update(Request $request, User $client)
     {
         abort_unless(auth()->user()->hasRole('admin'), 403);
-        abort_unless($client->hasRole('customer'), 404);
+        abort_unless($client->hasRole('client'), 404);
 
         $request->validate([
             'name'     => 'required|string|max:255',
@@ -104,7 +104,7 @@ class ClientWebController extends Controller
     public function destroy(User $client)
     {
         abort_unless(auth()->user()->hasRole('admin'), 403);
-        abort_unless($client->hasRole('customer'), 404);
+        abort_unless($client->hasRole('client'), 404);
 
         $client->delete();
         return redirect()->route('clients.index')->with('success', 'Client dihapus.');

@@ -19,13 +19,11 @@
     </div>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         @php
-            $protected = ['admin','manager','developer','marketing','customer'];
+            $protected = \App\Support\SystemRoles::ALL;
             $roleColors = [
-                'admin'     => 'bg-red-100 text-red-700',
-                'manager'   => 'bg-purple-100 text-purple-700',
-                'developer' => 'bg-blue-100 text-blue-700',
-                'marketing' => 'bg-orange-100 text-orange-700',
-                'customer'  => 'bg-green-100 text-green-700',
+                'admin'  => 'bg-red-100 text-red-700',
+                'member' => 'bg-purple-100 text-purple-700',
+                'client' => 'bg-green-100 text-green-700',
             ];
         @endphp
 

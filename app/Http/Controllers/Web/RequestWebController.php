@@ -22,12 +22,12 @@ class RequestWebController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('customer_id', $user->id);
         }
 
         $requests = $query->latest()->paginate($this->perPage($request))->withQueryString();
-        $projects = $user->hasRole('customer')
+        $projects = $user->hasRole('client')
             ? Project::where('client_id', $user->id)->get()
             : Project::get(['id', 'name']);
 
@@ -56,14 +56,14 @@ class RequestWebController extends Controller
             'status'      => 'waiting_approval',
         ]);
 
-        $this->notifier->notifyByRole('manager', 'request_needs_approval', 'Request Perlu Approval', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
+        $this->notifier->notifyByRole('member', 'request_needs_approval', 'Request Perlu Approval', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
 
         return redirect()->route('requests.show', $cr)->with('success', 'Request berhasil dikirim.');
     }
 
     public function show(CustomerRequest $request)
     {
-        abort_if(auth()->user()->hasRole('customer') && $request->customer_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $request->customer_id !== auth()->id(), 403);
 
         $request->load(['project', 'customer', 'reviewer', 'approver']);
         return view('requests.show', ['customerRequest' => $request]);

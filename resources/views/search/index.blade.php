@@ -70,7 +70,7 @@
                class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800">{{ $proj->name }}</p>
-                    <p class="text-xs text-gray-400 mt-0.5">Manager: {{ $proj->manager?->name }} · {{ $proj->status }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Lead Project: {{ $proj->manager?->name }} · {{ $proj->status }}</p>
                 </div>
             </a>
             @endforeach

@@ -58,7 +58,7 @@
 
         {{-- Add entry form --}}
         <div class="lg:col-span-2">
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">Tambah Entri</h3>
                 <form method="POST" action="{{ route('budget.store', $project) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -118,7 +118,7 @@
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Kategori</th>
                     <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Jumlah</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Oleh</th>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <th class="px-4 py-3"></th>
                     @endif
                 </tr>
@@ -136,7 +136,7 @@
                         {{ $entry->type === 'income' ? '+' : '-' }} Rp {{ number_format($entry->amount, 0, ',', '.') }}
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $entry->creator?->name }}</td>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <td class="px-4 py-3 text-right">
                         <form method="POST" action="{{ route('budget.destroy', [$project, $entry]) }}"
                               data-confirm-delete="{{ $entry->description }}">

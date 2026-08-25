@@ -19,7 +19,7 @@ class CustomerRequestController extends Controller
             ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id))
             ->when($request->status, fn($q) => $q->where('status', $request->status));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('customer_id', $user->id);
         }
 
@@ -42,9 +42,9 @@ class CustomerRequestController extends Controller
             'status' => 'waiting_approval',
         ]);
 
-        // Notify managers directly — no separate marketing review step
+        // Notify members directly — no separate marketing review step
         $this->notifier->notifyByRole(
-            'manager',
+            'member',
             'request_needs_approval',
             'Request Needs Approval',
             "Customer submitted: {$customerRequest->title}",

@@ -13,15 +13,9 @@ class TaskController extends Controller
 
     public function index(Request $request, Project $project)
     {
-        $user = $request->user();
-
         $query = $project->tasks()->with(['assignee', 'milestone', 'creator'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->assigned_to, fn($q) => $q->where('assigned_to', $request->assigned_to));
-
-        if ($user->hasRole('developer')) {
-            $query->where('assigned_to', $user->id);
-        }
 
         return response()->json($query->latest()->paginate(20));
     }

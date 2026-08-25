@@ -38,7 +38,7 @@
             {{-- Kategori Error & Solusi --}}
             <div class="bg-white rounded-xl border border-gray-200 p-6">
                 <h4 class="text-sm font-semibold text-gray-700 mb-4">Kategori Error & Solusi</h4>
-                @if($user->hasRole(['admin','manager','developer']))
+                @if($user->hasRole(['admin','member']))
                 <form method="POST" action="{{ route('tickets.details', $ticket) }}" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <div>
@@ -78,7 +78,7 @@
                             <a href="{{ $att->url() }}" target="_blank" class="text-blue-600 hover:underline truncate">{{ $att->file_name }}</a>
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <span class="text-xs text-gray-400">{{ $att->uploader->name }}</span>
-                                @if($user->hasRole(['admin','manager','developer']))
+                                @if($user->hasRole(['admin','member']))
                                 <form method="POST" action="{{ route('tickets.attachments.delete', [$ticket, $att]) }}" onsubmit="return confirm('Hapus lampiran ini?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Hapus</button>
@@ -112,7 +112,7 @@
                             <span class="text-gray-500">{{ $linkLabels[$link->link_type] ?? $link->link_type }}:</span>
                             <a href="{{ route('tickets.show', $link->targetTicket) }}" class="text-blue-600 hover:underline">#{{ $link->targetTicket->id }} {{ $link->targetTicket->title }}</a>
                         </span>
-                        @if($user->hasRole(['admin','manager','developer']))
+                        @if($user->hasRole(['admin','member']))
                         <form method="POST" action="{{ route('tickets.links.delete', [$ticket, $link]) }}" onsubmit="return confirm('Hapus referensi ini?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-red-500 hover:text-red-700 text-xs flex-shrink-0">Hapus</button>
@@ -133,7 +133,7 @@
                 <p class="text-sm text-gray-400 mb-4">Belum ada tiket referensi.</p>
                 @endif
 
-                @if($user->hasRole(['admin','manager','developer']))
+                @if($user->hasRole(['admin','member']))
                 <form method="POST" action="{{ route('tickets.links.store', $ticket) }}" class="flex gap-2">
                     @csrf
                     <select name="link_type" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -234,7 +234,7 @@
             </div>
 
             {{-- Google Meet --}}
-            @if($ticket->google_meet_link || (!$user->hasRole('customer') && $ticket->project->google_meet_enabled))
+            @if($ticket->google_meet_link || (!$user->hasRole('client') && $ticket->project->google_meet_enabled))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Google Meet</h4>
                 @if($ticket->google_meet_link)
@@ -254,7 +254,7 @@
             @endif
 
             {{-- Update Status --}}
-            @if($user->hasRole(['admin','manager','developer']))
+            @if($user->hasRole(['admin','member']))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
                 <form method="POST" action="{{ route('tickets.status', $ticket) }}" class="flex gap-2">
@@ -270,7 +270,7 @@
             @endif
 
             {{-- Assign --}}
-            @if($user->hasRole(['admin','manager']))
+            @if($user->hasRole(['admin','member']))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Assign User</h4>
                 <form method="POST" action="{{ route('tickets.assign', $ticket) }}" class="flex gap-2">
@@ -287,7 +287,7 @@
             @endif
 
             {{-- Reopen --}}
-            @if($ticket->status === 'closed' && $user->hasRole('customer'))
+            @if($ticket->status === 'closed' && $user->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5" x-data="{open:false}">
                 <button @click="open=!open" class="w-full text-sm font-medium text-red-600 hover:text-red-800">Buka Kembali Tiket</button>
                 <div x-show="open" x-cloak class="mt-3">

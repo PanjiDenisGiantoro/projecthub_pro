@@ -35,6 +35,8 @@ return [
         'access sprints'           => 'Sprint',
         'access budget'            => 'Budget',
         'access risks'             => 'Risiko & Issues',
+        'access clients'           => 'Manajemen Klien',
+        'access billing'           => 'Billing & Langganan',
     ],
 
     'Proyek' => [

@@ -35,7 +35,7 @@ class ProjectsReport implements ReportQuery
             'id'         => 'ID',
             'name'       => 'Nama Proyek',
             'client'     => 'Klien',
-            'manager'    => 'Manager',
+            'manager'    => 'Lead Project',
             'status'     => 'Status',
             'progress'   => 'Progress',
             'budget'     => 'Anggaran',

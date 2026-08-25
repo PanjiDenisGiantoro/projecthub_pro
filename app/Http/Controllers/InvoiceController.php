@@ -21,7 +21,7 @@ class InvoiceController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
         }
 
