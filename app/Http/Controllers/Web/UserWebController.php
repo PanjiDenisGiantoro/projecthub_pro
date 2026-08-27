@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Models\CustomFieldDefinition;
 use App\Models\OrganizationUnit;
 use App\Models\Package;
 use App\Models\Project;
@@ -13,6 +14,7 @@ use App\Models\User;
 use App\Support\EmploymentType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 class UserWebController extends Controller
@@ -40,8 +42,18 @@ class UserWebController extends Controller
         $query = User::with(['roles', 'structuralLevel', 'organizationUnit', 'projects:id,name'])
             ->tap($baseScope)
             ->when($request->role, fn($q) => $q->role($request->role))
-            ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
-                ->orWhere('email', 'like', "%{$request->search}%"));
+            // Dibungkus di dalam satu grup where() supaya OR-nya cuma berlaku di antara
+            // name/email/custom_fields, bukan meng-OR seluruh scope company & role di atas
+            // (kalau tidak dibungkus, "orWhere" bakal jadi top-level clause yang bisa
+            // membocorkan user dari company lain begitu email-nya cocok).
+            ->when($request->search, function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhereRaw('JSON_SEARCH(custom_fields, "one", ?) IS NOT NULL', ["%{$search}%"]);
+                });
+            });
 
         $users = $query->paginate($this->perPage($request))->withQueryString();
         $roles = $isAdmin ? Role::whereNotIn('name', ['client', 'tester'])->get() : collect();
@@ -49,11 +61,35 @@ class UserWebController extends Controller
         $totalUsers    = User::tap($baseScope)->count();
         $activeUsers   = User::tap($baseScope)->where('is_active', true)->count();
         $inactiveUsers = User::tap($baseScope)->where('is_active', false)->count();
+        $customFields  = $this->activeCustomFields();
+        // Cuma hitung jumlah di sini (buat badge) — daftar log lengkap baru di-load
+        // lewat logs() saat panel riwayat dibuka user (lazy load).
+        $logsCount = $this->userLogsQuery()->count();
 
         return view('users.index', compact(
             'users', 'roles', 'isAdmin', 'canCreate', 'canUpdate', 'canDelete',
-            'totalUsers', 'activeUsers', 'inactiveUsers'
+            'totalUsers', 'activeUsers', 'inactiveUsers', 'customFields', 'logsCount'
         ));
+    }
+
+    public function logs()
+    {
+        $logs = $this->userLogsQuery()->with('causer')->latest()->limit(50)->get();
+
+        return view('users._logs', compact('logs'));
+    }
+
+    /**
+     * Log create/update/delete user, dibatasi ke company admin yang login (via
+     * causer, bukan subject — subject user yang sudah dihapus tidak lagi ada
+     * baris company_id-nya buat di-join).
+     */
+    private function userLogsQuery()
+    {
+        $companyId = auth()->user()->company_id;
+
+        return Activity::where('log_name', 'user')
+            ->when($companyId, fn ($q) => $q->whereHasMorph('causer', [User::class], fn ($q2) => $q2->where('company_id', $companyId)));
     }
 
     /**
@@ -82,11 +118,14 @@ class UserWebController extends Controller
         $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
-        return view('users.create', compact('roles', 'structuralLevels', 'organizationUnits', 'projects'));
+        $customFields      = $this->activeCustomFields();
+        return view('users.create', compact('roles', 'structuralLevels', 'organizationUnits', 'projects', 'customFields'));
     }
 
     public function store(Request $request)
     {
+        $customFields = $this->activeCustomFields();
+
         $request->validate([
             'name'                      => 'required|string|max:255',
             'email'                     => 'required|email|unique:users',
@@ -101,6 +140,7 @@ class UserWebController extends Controller
             'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
             'project_ids'               => 'nullable|array',
             'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
+            ...$this->customFieldValidationRules($customFields),
         ]);
 
         $user = User::create([
@@ -116,6 +156,7 @@ class UserWebController extends Controller
             'outsourcing_company_name'  => EmploymentType::requiresSourceCompany($request->employment_type) ? $request->outsourcing_company_name : null,
             'hire_date'                 => $request->hire_date,
             'contract_end_date'         => EmploymentType::allowsContractEndDate($request->employment_type) ? $request->contract_end_date : null,
+            'custom_fields'             => $this->collectCustomFieldValues($request, $customFields),
         ]);
         $user->assignRole($request->role);
 
@@ -140,12 +181,15 @@ class UserWebController extends Controller
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
         $selectedProjectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id')->toArray();
+        $customFields      = $this->activeCustomFields();
 
-        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'organizationUnits', 'projects', 'selectedProjectIds'));
+        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'organizationUnits', 'projects', 'selectedProjectIds', 'customFields'));
     }
 
     public function update(Request $request, User $user)
     {
+        $customFields = $this->activeCustomFields();
+
         $request->validate([
             'name'                      => 'required|string|max:255',
             'email'                     => 'required|email|unique:users,email,' . $user->id,
@@ -159,12 +203,20 @@ class UserWebController extends Controller
             'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
             'project_ids'               => 'nullable|array',
             'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
+            ...$this->customFieldValidationRules($customFields),
         ]);
 
         $data = [
             ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id'),
             'is_active' => $request->boolean('is_active'),
         ];
+
+        // Kalau tidak ada field kustom aktif, form tidak menampilkan blok ini sama
+        // sekali — jangan timpa custom_fields yang sudah ada (mis. dari saat field-nya
+        // masih aktif) dengan null.
+        if ($customFields->isNotEmpty()) {
+            $data['custom_fields'] = $this->collectCustomFieldValues($request, $customFields);
+        }
 
         // Field HRIS ini tidak dikirim sama sekali kalau paket HRIS company tidak aktif
         // (form tidak menampilkannya) — jangan timpa data yang sudah ada dengan default.
@@ -207,5 +259,47 @@ class UserWebController extends Controller
         }
         $user->delete();
         return redirect()->route('users.index')->with('success', 'User dihapus.');
+    }
+
+    /** Field kustom aktif milik company user yang login, urut sesuai sort_order. */
+    private function activeCustomFields()
+    {
+        $companyId = auth()->user()->company_id;
+        if (! $companyId) {
+            return collect();
+        }
+
+        return CustomFieldDefinition::forCompany($companyId)->active()->get();
+    }
+
+    /** Rule validasi dinamis, satu per field kustom aktif (custom_fields.{key}). */
+    private function customFieldValidationRules($customFields): array
+    {
+        $rules = [];
+        foreach ($customFields as $field) {
+            $fieldRules = [$field->is_required ? 'required' : 'nullable'];
+            if ($field->type === 'number') $fieldRules[] = 'numeric';
+            if ($field->type === 'date') $fieldRules[] = 'date';
+            $rules["custom_fields.{$field->key}"] = implode('|', $fieldRules);
+        }
+
+        return $rules;
+    }
+
+    /** Kumpulkan nilai custom_fields[...] dari request sesuai definisi field aktif saja. */
+    private function collectCustomFieldValues(Request $request, $customFields): ?array
+    {
+        if ($customFields->isEmpty()) {
+            return null;
+        }
+
+        $values = [];
+        foreach ($customFields as $field) {
+            $values[$field->key] = $field->type === 'checkbox'
+                ? $request->boolean("custom_fields.{$field->key}")
+                : $request->input("custom_fields.{$field->key}");
+        }
+
+        return $values;
     }
 }

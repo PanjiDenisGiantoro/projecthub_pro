@@ -35,6 +35,24 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('approvals:expire')->everyFifteenMinutes();
         $schedule->command('companies:check-expiring')->dailyAt('08:00');
         $schedule->command('meetings:send-reminders')->everyFifteenMinutes();
+
+        // Jaga model AI Assistant (Ollama, CPU-only) tetap di RAM. keep_alive di
+        // AiAssistantWebController::KEEP_ALIVE diset 60m, tapi kalau tidak ada
+        // yang chat sama sekali dalam rentang itu modelnya ke-unload dan chat
+        // berikutnya kena cold-start (lihat komentar di
+        // AiAssistantWebController::MODEL). Ping tiap 15 menit — jauh di bawah
+        // jendela 60m — supaya nyaris selalu sudah warm saat user chat.
+        // /api/generate tanpa "prompt" cuma memuat model, tidak generate token.
+        $schedule->call(function () {
+            try {
+                \Illuminate\Support\Facades\Http::timeout(60)->post('http://127.0.0.1:11434/api/generate', [
+                    'model'      => \App\Http\Controllers\Web\AiAssistantWebController::MODEL,
+                    'keep_alive' => \App\Http\Controllers\Web\AiAssistantWebController::KEEP_ALIVE,
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        })->everyFifteenMinutes()->name('ai-assistant-warmup')->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

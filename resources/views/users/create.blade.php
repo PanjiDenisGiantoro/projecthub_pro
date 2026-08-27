@@ -184,6 +184,8 @@
             </div>
             @endif
 
+            @include('users._custom-fields', ['values' => []])
+
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active" checked class="w-4 h-4 text-blue-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>

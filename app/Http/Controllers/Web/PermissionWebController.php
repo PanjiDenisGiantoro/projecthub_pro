@@ -16,6 +16,14 @@ class PermissionWebController extends Controller
         $groups = config('permissions');
         $roles  = Role::whereNotIn('name', ['admin'])->orderBy('name')->get();
 
+        // Sembunyikan seksi paket yang tidak dibeli perusahaan ini — sama seperti
+        // logika $showTm/$showHris di layouts/sidebar-nav.blade.php. Super admin
+        // mengelola template default global (cid null) jadi tetap lihat semua paket.
+        $user     = auth()->user();
+        $userPkgs = $user->is_super_admin ? ['task_management', 'hris'] : $user->activePackages();
+        $showTm   = $cid === null || empty($userPkgs) || in_array('task_management', $userPkgs);
+        $showHris = $cid === null || in_array('hris', $userPkgs);
+
         $customizedRoleNames = [];
 
         if ($cid) {
@@ -47,7 +55,7 @@ class PermissionWebController extends Controller
             'total_roles'       => Role::count(),
         ];
 
-        return view('permissions.index', compact('groups', 'roles', 'rolePermissions', 'stats', 'customizedRoleNames', 'cid'));
+        return view('permissions.index', compact('groups', 'roles', 'rolePermissions', 'stats', 'customizedRoleNames', 'cid', 'showTm', 'showHris'));
     }
 
     public function update(Request $request, string $roleName)

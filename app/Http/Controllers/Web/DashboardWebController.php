@@ -32,7 +32,74 @@ class DashboardWebController extends Controller
             $hadirHariIni   = \App\Models\Attendance::where('company_id', $companyId)->whereDate('date', now()->toDateString())->where('status', 'hadir')->count();
             $cutiPending    = \App\Models\LeaveRequest::where('company_id', $companyId)->where('status', 'pending')->count();
 
-            return view('dashboard.hris', compact('totalKaryawan', 'totalDept', 'hadirHariIni', 'cutiPending'));
+            $hrisCharts = Cache::remember("dashboard.hris.charts.{$companyId}.v1", 60, function () use ($companyId) {
+                // Tren kehadiran 14 hari terakhir, per status
+                $attendanceRows = \App\Models\Attendance::where('company_id', $companyId)
+                    ->whereDate('date', '>=', now()->subDays(13)->toDateString())
+                    ->selectRaw('date, status, count(*) as c')
+                    ->groupBy('date', 'status')
+                    ->get()
+                    ->groupBy(fn($r) => $r->date->toDateString());
+
+                $attendanceTrend = collect(range(13, 0))->map(function ($daysAgo) use ($attendanceRows) {
+                    $date = now()->subDays($daysAgo);
+                    $counts = $attendanceRows->get($date->toDateString(), collect())->pluck('c', 'status');
+                    return [
+                        'label' => $date->locale('id')->isoFormat('D/M'),
+                        'hadir' => (int) ($counts['hadir'] ?? 0),
+                        'izin'  => (int) ($counts['izin'] ?? 0),
+                        'sakit' => (int) ($counts['sakit'] ?? 0),
+                        'alpha' => (int) ($counts['alpha'] ?? 0),
+                    ];
+                })->values();
+
+                // Distribusi status kehadiran bulan ini
+                $attendanceStatusMonth = \App\Models\Attendance::where('company_id', $companyId)
+                    ->whereYear('date', now()->year)->whereMonth('date', now()->month)
+                    ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+
+                // Distribusi status pengajuan cuti tahun ini
+                $leaveStatusYear = \App\Models\LeaveRequest::where('company_id', $companyId)
+                    ->whereYear('start_date', now()->year)
+                    ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+
+                // Jam lembur (disetujui/diproses) per bulan, 6 bulan terakhir
+                $overtimeMonthly = collect(range(5, 0))->map(function ($monthsAgo) use ($companyId) {
+                    $month = now()->subMonths($monthsAgo);
+                    $hours = \App\Models\Overtime::where('company_id', $companyId)
+                        ->whereIn('status', ['approved', 'processed'])
+                        ->whereYear('date', $month->year)->whereMonth('date', $month->month)
+                        ->sum('total_hours');
+                    return ['month' => $month->locale('id')->isoFormat('MMM'), 'hours' => round((float) $hours, 1)];
+                })->values();
+
+                // Reimburse per kategori, bulan ini
+                $reimburseLabels = [
+                    'transport'  => 'Transport',
+                    'makan'      => 'Makan',
+                    'akomodasi'  => 'Akomodasi',
+                    'medis'      => 'Medis',
+                    'pulsa'      => 'Pulsa',
+                    'lainnya'    => 'Lainnya',
+                ];
+                $reimburseRaw = \App\Models\Reimbursement::where('company_id', $companyId)
+                    ->whereYear('expense_date', now()->year)->whereMonth('expense_date', now()->month)
+                    ->selectRaw('category, sum(amount) as total')->groupBy('category')->pluck('total', 'category');
+                $reimburseByCategory = collect($reimburseLabels)->map(fn($label, $key) => [
+                    'label' => $label,
+                    'total' => (float) ($reimburseRaw[$key] ?? 0),
+                ])->values();
+
+                return [
+                    'attendance_trend'        => $attendanceTrend,
+                    'attendance_status_month' => $attendanceStatusMonth,
+                    'leave_status_year'       => $leaveStatusYear,
+                    'overtime_monthly'        => $overtimeMonthly,
+                    'reimburse_by_category'   => $reimburseByCategory,
+                ];
+            });
+
+            return view('dashboard.hris', compact('totalKaryawan', 'totalDept', 'hadirHariIni', 'cutiPending') + $hrisCharts);
         }
 
         if ($user->hasRole('admin')) {

@@ -19,6 +19,7 @@ use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\ClientPortalWebController;
 use App\Http\Controllers\Web\ClientWebController;
 use App\Http\Controllers\Web\CompanyWebController;
+use App\Http\Controllers\Web\CustomFieldDefinitionWebController;
 use App\Http\Controllers\Web\DashboardWebController;
 use App\Http\Controllers\Web\DirectMessageWebController;
 use App\Http\Controllers\Web\ExportWebController;
@@ -213,6 +214,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/tasks/{task}', [TaskWebController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/projects/{project}/tasks/{task}/move', [TaskWebController::class, 'moveStatus'])->name('tasks.move');
         Route::post('/projects/{project}/tasks/{task}/meeting', [TaskWebController::class, 'createMeeting'])->name('tasks.meeting.create');
+        Route::post('/projects/{project}/tasks/{task}/comments', [TaskWebController::class, 'addComment'])->name('tasks.comment');
+        Route::get('/projects/{project}/tasks/{task}/logs', [TaskWebController::class, 'logs'])->name('tasks.logs');
     });
     // {task} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::post('/tasks/{task}/time-logs', [TaskWebController::class, 'storeTimeLog'])->name('tasks.timelog.store');
@@ -344,6 +347,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('can:access users')->group(function () {
         Route::resource('users', UserWebController::class)->only(['index']);
         Route::get('/admin-team', [UserWebController::class, 'adminTeam'])->name('admin-team.index');
+        Route::get('/users-logs', [UserWebController::class, 'logs'])->name('users.logs');
     });
     Route::middleware('can:create user')->group(function () {
         Route::resource('users', UserWebController::class)->only(['create', 'store']);
@@ -353,6 +357,14 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     });
     Route::middleware('can:delete user')->group(function () {
         Route::resource('users', UserWebController::class)->only(['destroy']);
+    });
+
+    // Field Kustom Karyawan (per company, admin only — authorize di controller)
+    Route::prefix('custom-fields')->name('custom-fields.')->group(function () {
+        Route::get('/', [CustomFieldDefinitionWebController::class, 'index'])->name('index');
+        Route::post('/', [CustomFieldDefinitionWebController::class, 'store'])->name('store');
+        Route::patch('/{customField}/toggle', [CustomFieldDefinitionWebController::class, 'toggle'])->name('toggle');
+        Route::delete('/{customField}', [CustomFieldDefinitionWebController::class, 'destroy'])->name('destroy');
     });
 
     // Client Management
@@ -547,7 +559,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('absensi/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
         Route::get('absensi/setting', [AbsensiController::class, 'setting'])->name('absensi.setting');
         Route::post('absensi/setting', [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
+        Route::get('absensi/setting/logs', [AbsensiController::class, 'settingLogs'])->name('absensi.setting.logs');
         Route::get('absensi/face-enrollment', [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
+        Route::get('absensi/face-enrollment/logs', [AbsensiController::class, 'faceEnrollmentLogs'])->name('absensi.face-enrollment.logs');
         Route::post('absensi/enroll-face/{employee}', [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
         Route::delete('absensi/delete-face/{employee}', [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
 
@@ -555,6 +569,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
         Route::get('leave/create', [LeaveController::class, 'create'])->name('leave.create');
         Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
+        Route::put('leave/{leave}', [LeaveController::class, 'update'])->name('leave.update');
         Route::delete('leave/{leave}', [LeaveController::class, 'destroy'])->name('leave.destroy');
         Route::patch('leave/{leave}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
         Route::patch('leave/{leave}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
@@ -563,6 +578,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('overtime', [OvertimeController::class, 'index'])->name('overtime.index');
         Route::get('overtime/create', [OvertimeController::class, 'create'])->name('overtime.create');
         Route::post('overtime', [OvertimeController::class, 'store'])->name('overtime.store');
+        Route::put('overtime/{overtime}', [OvertimeController::class, 'update'])->name('overtime.update');
         Route::delete('overtime/{overtime}', [OvertimeController::class, 'destroy'])->name('overtime.destroy');
         Route::patch('overtime/{overtime}/approve', [OvertimeController::class, 'approve'])->name('overtime.approve');
 
@@ -570,6 +586,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('reimburse', [ReimbursementController::class, 'index'])->name('reimburse.index');
         Route::get('reimburse/create', [ReimbursementController::class, 'create'])->name('reimburse.create');
         Route::post('reimburse', [ReimbursementController::class, 'store'])->name('reimburse.store');
+        Route::put('reimburse/{reimburse}', [ReimbursementController::class, 'update'])->name('reimburse.update');
         Route::delete('reimburse/{reimburse}', [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
         Route::patch('reimburse/{reimburse}/approve', [ReimbursementController::class, 'approve'])->name('reimburse.approve');
 

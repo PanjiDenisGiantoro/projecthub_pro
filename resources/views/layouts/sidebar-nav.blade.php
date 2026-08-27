@@ -22,8 +22,8 @@
 @if($showTm)
 
 {{-- ── WORKSPACE ──────────────────────────────────────────────────────── --}}
-<div class="pt-1 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Workspace</p>
+<x-nav-section title="Workspace" class="pt-1 pb-1"
+    :default-open="request()->routeIs('dashboard', 'chat.*', 'calendar.*', 'meetings.*', 'search.*', 'projects.*', 'tasks.all', 'sprints.all', 'recurring.all', 'tickets.*', 'requests.*', 'approvals.*', 'approval-policies.*', 'invoices.*')">
 
     {{-- Dashboard --}}
     @can('access dashboard')
@@ -166,7 +166,7 @@
         Invoices
     </a>
     @endcan
-</div>
+</x-nav-section>
 
 {{-- Campaigns — retired from sidebar for now --}}
 @if(false)
@@ -196,8 +196,8 @@
 
 {{-- ── ANALYTICS & REPORTING ──────────────────────────────────────────── --}}
 @canany(['access workload', 'access analytics', 'access reports'])
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Analytics & Reporting</p>
+<x-nav-section title="Analytics & Reporting"
+    :default-open="request()->routeIs('workload', 'analytics.*', 'reports.*')">
 
     {{-- Workload --}}
     @can('access workload')
@@ -231,13 +231,13 @@
         Reports
     </a>
     @endcan
-</div>
+</x-nav-section>
 @endcanany
 
 {{-- ── MEMBERS ─────────────────────────────────────────────────────────── --}}
 @canany(['access users', 'access clients'])
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Members</p>
+<x-nav-section title="Members"
+    :default-open="request()->routeIs('users.*', 'clients.*')">
 
     {{-- Employee (User Management) --}}
     @can('access users')
@@ -260,13 +260,13 @@
         Clients
     </a>
     @endcan
-</div>
+</x-nav-section>
 @endcanany
 
 {{-- ── ORGANIZATION & ACCESS ──────────────────────────────────────────── --}}
 @canany(['manage permissions', 'access master data'])
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Organization & Access</p>
+<x-nav-section title="Organization & Access"
+    :default-open="request()->routeIs('companies.*', 'roles.*', 'permissions.*')">
 
     {{-- Perusahaan (Companies) --}}
     @can('access master data')
@@ -298,13 +298,13 @@
         Permissions
     </a>
     @endcan
-</div>
+</x-nav-section>
 @endcanany
 
 {{-- ── SUBSCRIPTION & BILLING ─────────────────────────────────────────── --}}
 @can('access billing')
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Subscription & Billing</p>
+<x-nav-section title="Subscription & Billing"
+    :default-open="request()->routeIs('billing.history')">
 
     {{-- Payment History --}}
     <a href="{{ route('billing.history') }}"
@@ -314,13 +314,13 @@
         </svg>
         Payment History
     </a>
-</div>
+</x-nav-section>
 @endcan
 
 {{-- ── SYSTEM ──────────────────────────────────────────────────────────── --}}
 @can('manage permissions')
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">System</p>
+<x-nav-section title="System"
+    :default-open="request()->routeIs('activity-log.*')">
 
     {{-- Activity Logs --}}
     <a href="{{ route('activity-log.index') }}"
@@ -330,7 +330,7 @@
         </svg>
         Activity Logs
     </a>
-</div>
+</x-nav-section>
 @endcan
 
 @endif {{-- /showTm --}}
@@ -388,9 +388,20 @@
     @endif
 </a>
 
-{{-- Karyawan --}}
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Karyawan</p>
+{{-- Laporan (hub laporan gabungan — kartu HRIS-nya kefilter permission masing-masing) --}}
+@can('access reports')
+<a href="{{ route('reports.index') }}"
+   class="{{ request()->routeIs('reports.*') ? $active : $inactive }}">
+    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M6 21h12a2 2 0 002-2V7l-5-5H6a2 2 0 00-2 2v15a2 2 0 002 2z"/>
+    </svg>
+    Laporan
+</a>
+@endcan
+
+{{-- Karyawan & Absensi --}}
+<x-nav-section title="Karyawan & Absensi"
+    :default-open="request()->routeIs('users.*', 'hris.absensi.*')">
 
     @can('access users')
     <a href="{{ route('users.index') }}"
@@ -410,11 +421,11 @@
         </svg>
         Absensi
     </a>
-</div>
+</x-nav-section>
 
 {{-- Pengajuan --}}
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Pengajuan</p>
+<x-nav-section title="Pengajuan"
+    :default-open="request()->routeIs('hris.leave.*', 'hris.overtime.*', 'hris.reimburse.*')">
 
     {{-- Cuti & Izin --}}
     <a href="{{ route('hris.leave.index') }}"
@@ -442,12 +453,12 @@
         </svg>
         Reimburse
     </a>
-</div>
+</x-nav-section>
 
-{{-- Penggajian & Konfigurasi — admin only --}}
-@canany(['view payroll', 'create payroll', 'update payroll', 'delete payroll', 'view hris master', 'create hris master', 'update hris master', 'delete hris master', 'update absensi', 'manage face enrollment'])
-<div class="pt-2 pb-1">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Administrasi</p>
+{{-- Payroll & Kompensasi --}}
+@canany(['view payroll', 'create payroll', 'update payroll', 'delete payroll'])
+<x-nav-section title="Payroll & Kompensasi"
+    :default-open="request()->routeIs('hris.payroll.index', 'hris.payroll.show', 'hris.payroll.setting', 'hris.bonus.*', 'hris.kasbon.*')">
 
     @can('view payroll')
     <a href="{{ route('hris.payroll.index') }}"
@@ -489,6 +500,13 @@
         Kasbon
     </a>
     @endcan
+</x-nav-section>
+@endcanany
+
+{{-- Konfigurasi — admin only --}}
+@canany(['update absensi', 'manage face enrollment', 'view hris master', 'create hris master', 'update hris master', 'delete hris master'])
+<x-nav-section title="Konfigurasi"
+    :default-open="request()->routeIs('hris.absensi.setting', 'hris.absensi.face-enrollment', 'hris.master.*')">
 
     @can('update absensi')
     <a href="{{ route('hris.absensi.setting') }}"
@@ -520,13 +538,13 @@
         Konfigurasi HRIS
     </a>
     @endcan
-</div>
+</x-nav-section>
 @endcanany
 
-{{-- ══ Master Data section (HRIS) ══════════════════════════════════════════ --}}
+{{-- ══ Organisasi & Akses (HRIS) ══════════════════════════════════════════ --}}
 @if(auth()->user()->canAny(['access master data', 'create master data', 'update master data', 'delete master data', 'manage permissions']))
-<div class="pt-3">
-    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">Master Data</p>
+<x-nav-section title="Organisasi & Akses" class="pt-3"
+    :default-open="request()->routeIs('master.index', 'companies.*', 'organization-units.*', 'structural-levels.*', 'roles.*', 'permissions.*')">
 
     @can('access master data')
     <a href="{{ route('master.index') }}"
@@ -574,6 +592,15 @@
         </svg>
         Permission Management
     </a>
+    @endcan
+</x-nav-section>
+@endif
+
+{{-- ── SYSTEM (HRIS) ──────────────────────────────────────────────────── --}}
+@can('manage permissions')
+<x-nav-section title="System"
+    :default-open="request()->routeIs('activity-log.*')">
+
     <a href="{{ route('activity-log.index') }}"
        class="{{ request()->routeIs('activity-log.*') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -581,8 +608,7 @@
         </svg>
         Activity Log
     </a>
-    @endcan
-</div>
-@endif
+</x-nav-section>
+@endcan
 
 @endif {{-- /showHris --}}

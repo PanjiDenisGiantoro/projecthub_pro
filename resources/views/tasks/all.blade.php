@@ -67,6 +67,7 @@
                     <th class="px-4 py-3 text-left">Judul</th>
                     <th class="px-4 py-3 text-left">Proyek</th>
                     <th class="px-4 py-3 text-left">Sprint</th>
+                    <th class="px-4 py-3 text-left">Tipe</th>
                     <th class="px-4 py-3 text-left">Prioritas</th>
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Assignee</th>
@@ -80,6 +81,13 @@
                     <td class="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{{ $task->title }}</td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $task->project->name ?? '-' }}</td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $task->sprint->name ?? '—' }}</td>
+                    <td class="px-4 py-3">
+                        @if($task->recurring_definition_id)
+                        <span class="badge bg-indigo-100 text-indigo-700">Recurring</span>
+                        @else
+                        <span class="text-gray-300 text-xs">—</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3">
                         <span class="badge {{ $pc[$task->priority] ?? '' }}">{{ ucfirst($task->priority) }}</span>
                     </td>
@@ -97,7 +105,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">
+                <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">
                     {{ request('status') || request('priority') ? 'Tidak ada task sesuai filter.' : 'Belum ada task.' }}
                 </td></tr>
                 @endforelse

@@ -6,10 +6,13 @@
  * Key = permission name (stored in DB), Value = human-readable label.
  *
  * Pola granular per modul: view/access (lihat), create (buat), update (ubah),
- * delete (hapus). Modul HRIS yang aksinya self-service (karyawan selalu boleh
- * ajukan/batalkan cuti/lembur/reimburse miliknya sendiri tanpa izin khusus)
- * cuma punya "view X" (lihat punya semua orang) + "approve X" (setuju/tolak),
- * bukan create/update/delete penuh.
+ * delete (hapus). Karyawan selalu boleh ajukan/batalkan cuti/lembur/reimburse
+ * miliknya sendiri tanpa izin khusus (self-service). "update X"/"delete X" di
+ * modul Cuti & Izin, Lembur, dan Reimburse adalah kapasitas ADMIN/HR untuk
+ * mengelola data milik siapapun: "update X" hanya berlaku selagi status masih
+ * Pending (lihat LeaveController/OvertimeController/ReimbursementController),
+ * "delete X" berlaku di semua status dan membalikkan efek samping bila
+ * datanya sudah approved (saldo cuti, absensi otomatis).
  */
 return [
 
@@ -99,16 +102,22 @@ return [
 
     'HRIS — Cuti & Izin' => [
         'view leave'    => 'Lihat Cuti & Izin Semua Karyawan',
+        'update leave'  => 'Edit Cuti & Izin Semua Karyawan (selama masih Pending)',
+        'delete leave'  => 'Hapus Data Cuti & Izin Semua Karyawan (semua status)',
         'approve leave' => 'Approve / Reject Cuti',
     ],
 
     'HRIS — Lembur' => [
         'view overtime'    => 'Lihat Lembur Semua Karyawan',
+        'update overtime'  => 'Edit Lembur Semua Karyawan (selama masih Pending)',
+        'delete overtime'  => 'Hapus Data Lembur Semua Karyawan (semua status)',
         'approve overtime' => 'Approve / Reject Lembur',
     ],
 
     'HRIS — Reimburse' => [
         'view reimbursement'    => 'Lihat Reimburse Semua Karyawan',
+        'update reimbursement'  => 'Edit Reimburse Semua Karyawan (selama masih Pending)',
+        'delete reimbursement'  => 'Hapus Data Reimburse Semua Karyawan (semua status)',
         'approve reimbursement' => 'Approve / Reject Reimburse',
     ],
 

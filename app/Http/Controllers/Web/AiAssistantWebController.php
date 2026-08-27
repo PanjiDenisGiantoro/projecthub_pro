@@ -13,6 +13,18 @@ use Illuminate\Validation\ValidationException;
 
 class AiAssistantWebController extends Controller
 {
+    /**
+     * llama3.2:1b, bukan 3b — di server CPU-only ini cold-load 1b cuma ~3
+     * detik vs ~30-46 detik untuk 3b (2GB vs 1.3GB, tapi gap-nya jauh lebih
+     * dari sekadar rasio ukuran), dan eval ~37% lebih cepat token/detik.
+     * Kualitas jawaban & tool-calling untuk chat asisten umum masih cukup baik
+     * (diuji langsung), jadi worth trade-off dibanding nuansa 3b yang sedikit
+     * lebih detail. Ganti balik ke '3b' di sini + di WarmupAiAssistant (lihat
+     * bootstrap/app.php) kalau kualitasnya ternyata kurang cocok.
+     */
+    public const MODEL = 'llama3.2:1b';
+    public const KEEP_ALIVE = '60m';
+
     public function __construct(private NotificationService $notifier) {}
 
     /**
@@ -160,10 +172,10 @@ class AiAssistantWebController extends Controller
                 $client = new \GuzzleHttp\Client();
                 $res = $client->post('http://127.0.0.1:11434/api/chat', [
                     'json' => [
-                        'model'      => 'llama3.2:3b',
+                        'model'      => self::MODEL,
                         'messages'   => $messages,
                         'stream'     => true,
-                        'keep_alive' => '30m',
+                        'keep_alive' => self::KEEP_ALIVE,
                     ],
                     'stream'  => true,
                     'timeout' => 110,
@@ -218,11 +230,11 @@ class AiAssistantWebController extends Controller
             // request berakhir sebagai 500 mentah (bukan JSON) dan bikin frontend
             // nampilin "Gagal terhubung ke AI Assistant" tanpa alasan yang jelas.
             $response = Http::timeout(110)->post('http://127.0.0.1:11434/api/chat', [
-                'model'      => 'llama3.2:3b',
+                'model'      => self::MODEL,
                 'messages'   => $messages,
                 'tools'      => $tools,
                 'stream'     => false,
-                'keep_alive' => '30m',
+                'keep_alive' => self::KEEP_ALIVE,
             ]);
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             report($e);

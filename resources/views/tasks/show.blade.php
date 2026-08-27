@@ -2,6 +2,11 @@
 @section('title', $task->title)
 @section('page-title', 'Detail Task')
 
+@push('head')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/filepond@4/dist/filepond.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/filepond-plugin-image-preview@4/dist/filepond-plugin-image-preview.min.css">
+@endpush
+
 @section('content')
 @php
     $pc   = ['low'=>'bg-green-100 text-green-700','medium'=>'bg-yellow-100 text-yellow-700','high'=>'bg-orange-100 text-orange-700','urgent'=>'bg-red-100 text-red-700'];
@@ -193,6 +198,61 @@
                     @endforelse
                 </div>
             </div>
+
+            {{-- Comments --}}
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <h4 class="font-semibold text-gray-800 text-sm mb-4">Komentar & Diskusi</h4>
+                <div class="space-y-4 mb-5">
+                    @forelse($task->comments->sortBy('created_at') as $comment)
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {{ strtoupper(substr($comment->user->name, 0, 2)) }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-medium text-gray-700">{{ $comment->user->name }}</span>
+                                <span class="text-xs text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 whitespace-pre-line">{{ $comment->body }}</p>
+
+                            @if($comment->attachments->count())
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach($comment->attachments as $att)
+                                    @if($att->isImage())
+                                    <a href="{{ $att->url() }}" target="_blank" title="{{ $att->file_name }}"
+                                       class="block w-20 h-20 rounded-lg border border-gray-200 overflow-hidden hover:opacity-80 transition-opacity">
+                                        <img src="{{ $att->url() }}" alt="{{ $att->file_name }}" class="w-full h-full object-cover">
+                                    </a>
+                                    @else
+                                    <a href="{{ $att->url() }}" target="_blank"
+                                       class="flex items-center gap-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-blue-600 hover:underline">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                        <span class="truncate max-w-[160px]">{{ $att->file_name }}</span>
+                                        <span class="text-gray-400">({{ $att->humanSize() }})</span>
+                                    </a>
+                                    @endif
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @empty
+                    <p class="text-sm text-gray-400">Belum ada komentar.</p>
+                    @endforelse
+                </div>
+                <form method="POST" action="{{ route('tasks.comment', [$project, $task]) }}" enctype="multipart/form-data" class="space-y-3"
+                      x-data="{ submitting: false }" @submit="submitting = true">
+                    @csrf
+                    <textarea name="body" rows="2" placeholder="Tulis komentar..." required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                    <input type="file" name="attachments[]" multiple class="filepond-comment-input">
+                    <button type="submit" :disabled="submitting"
+                            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!submitting">Kirim</span>
+                        <span x-show="submitting" x-cloak>Mengirim...</span>
+                    </button>
+                </form>
+            </div>
         </div>
 
         {{-- ===== SIDEBAR ===== --}}
@@ -317,7 +377,60 @@
             </div>
             @endif
 
+            {{-- Riwayat perubahan task — bisa dibuka/tutup, isinya di-lazy load lewat
+                 fetch() cuma pas panel ini dibuka (lihat logs() di TaskWebController),
+                 bukan ikut di-query tiap kali halaman detail task dibuka. --}}
+            <aside class="rounded-xl border border-gray-200 bg-white overflow-hidden lg:sticky lg:top-5"
+                   x-data="{ open: false, loading: false, loaded: false }"
+                   x-init="$watch('open', value => {
+                       if (!value || loaded) return;
+                       loading = true;
+                       fetch('{{ route('tasks.logs', [$project, $task]) }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                           .then(r => r.text())
+                           .then(html => { $refs.logList.innerHTML = html; loaded = true; })
+                           .catch(() => { $refs.logList.innerHTML = '<p class=&quot;px-4 py-6 text-center text-xs text-red-400&quot;>Gagal memuat riwayat.</p>'; })
+                           .finally(() => { loading = false; });
+                   })">
+                <button type="button" @click="open = !open"
+                        class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="font-semibold text-gray-800 text-sm">Riwayat Perubahan</span>
+                        @if($logsCount)
+                        <span class="badge bg-gray-100 text-gray-600">{{ $logsCount }}</span>
+                        @endif
+                    </span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+
+                <div x-show="open" x-cloak x-transition class="border-t border-gray-100 max-h-[70vh] overflow-y-auto">
+                    <p x-show="loading" class="px-4 py-6 text-center text-xs text-gray-400">Memuat riwayat...</p>
+                    <div x-show="!loading" x-ref="logList" class="divide-y divide-gray-100"></div>
+                </div>
+            </aside>
+
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/filepond-plugin-file-validate-size@2/dist/filepond-plugin-file-validate-size.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/filepond-plugin-image-preview@4/dist/filepond-plugin-image-preview.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/filepond@4/dist/filepond.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginImagePreview);
+
+    document.querySelectorAll('.filepond-comment-input').forEach(function (input) {
+        FilePond.create(input, {
+            allowMultiple: true,
+            maxFiles: 5,
+            maxFileSize: '10MB',
+            instantUpload: false,
+            labelIdle: 'Seret file ke sini atau <span class="filepond--label-action">Pilih File</span> <span style="color:#9ca3af">(opsional, maks 5 file, 10MB/file)</span>',
+        });
+    });
+});
+</script>
+@endpush
 @endsection

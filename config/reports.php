@@ -57,4 +57,60 @@ return [
         'query'       => \App\Support\Reports\BudgetReport::class,
     ],
 
+    'hris_attendance' => [
+        'label'       => 'Absensi',
+        'description' => 'Rekap kehadiran karyawan — jam masuk, jam keluar, dan status.',
+        'category'    => 'HRIS',
+        'permission'  => 'view absensi',
+        'query'       => \App\Support\Reports\HrisAttendanceReport::class,
+    ],
+
+    'hris_leave' => [
+        'label'       => 'Cuti & Izin',
+        'description' => 'Riwayat pengajuan cuti/izin, jenis, dan status persetujuan.',
+        'category'    => 'HRIS',
+        'permission'  => 'view leave',
+        'query'       => \App\Support\Reports\HrisLeaveReport::class,
+    ],
+
+    'hris_overtime' => [
+        'label'       => 'Lembur',
+        'description' => 'Riwayat pengajuan lembur, total jam, dan nominal upah.',
+        'category'    => 'HRIS',
+        'permission'  => 'view overtime',
+        'query'       => \App\Support\Reports\HrisOvertimeReport::class,
+    ],
+
+    'hris_reimbursement' => [
+        'label'       => 'Reimburse',
+        'description' => 'Riwayat pengajuan reimburse, kategori, dan status.',
+        'category'    => 'HRIS',
+        'permission'  => 'view reimbursement',
+        'query'       => \App\Support\Reports\HrisReimbursementReport::class,
+    ],
+
+    'hris_bonus' => [
+        'label'       => 'Bonus / THR',
+        'description' => 'Riwayat bonus, THR, dan komponen non-gaji pokok lainnya.',
+        'category'    => 'HRIS',
+        'permission'  => 'view payroll',
+        'query'       => \App\Support\Reports\HrisBonusReport::class,
+    ],
+
+    'hris_kasbon' => [
+        'label'       => 'Kasbon',
+        'description' => 'Riwayat pinjaman karyawan, cicilan, dan sisa tanggungan.',
+        'category'    => 'HRIS',
+        'permission'  => 'view payroll',
+        'query'       => \App\Support\Reports\HrisKasbonReport::class,
+    ],
+
+    'hris_payroll' => [
+        'label'       => 'Payroll',
+        'description' => 'Rekap gaji bulanan karyawan — bruto, potongan, dan gaji bersih.',
+        'category'    => 'HRIS',
+        'permission'  => 'view payroll',
+        'query'       => \App\Support\Reports\HrisPayrollReport::class,
+    ],
+
 ];

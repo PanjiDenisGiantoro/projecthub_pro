@@ -75,6 +75,10 @@
                                 <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>
                             </form>
                             @endcan
+                            @can('update overtime')
+                            <button onclick="document.getElementById('edit-overtime-{{ $ot->id }}').showModal()"
+                                    class="text-xs text-blue-500 hover:text-blue-700 mr-2">Edit</button>
+                            @endcan
                             @if($ot->user_id === auth()->id())
                             <form action="{{ route('hris.overtime.destroy', $ot) }}" method="POST" class="inline"
                                   data-confirm-delete="pengajuan lembur ini">
@@ -83,8 +87,55 @@
                             </form>
                             @endif
                         @endif
+                        @can('delete overtime')
+                        <form action="{{ route('hris.overtime.destroy', $ot) }}" method="POST" class="inline"
+                              data-confirm-submit="Hapus data lembur {{ $ot->user->name }} ini?"
+                              data-confirm-text="{{ $ot->date->locale('id')->isoFormat('ddd, D MMM Y') }} · {{ $ot->total_hours }} jam, status {{ ucfirst($ot->status) }}. Tindakan ini tidak bisa dibatalkan."
+                              data-confirm-btn="Ya, Hapus">
+                            @csrf @method('DELETE')
+                            <button class="text-xs text-red-600 hover:text-red-800 ml-2">Hapus</button>
+                        </form>
+                        @endcan
                     </td>
                 </tr>
+                {{-- Edit Modal --}}
+                @can('update overtime')
+                @if($ot->status === 'pending')
+                <dialog id="edit-overtime-{{ $ot->id }}" class="rounded-2xl p-6 shadow-xl w-full max-w-md">
+                    <form action="{{ route('hris.overtime.update', $ot) }}" method="POST">
+                        @csrf @method('PUT')
+                        <h3 class="font-bold text-gray-900 mb-3">Edit Lembur — {{ $ot->user->name }}</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
+                                <input type="date" name="date" value="{{ $ot->date->toDateString() }}" required
+                                       class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Jam Mulai</label>
+                                    <input type="time" name="start_time" value="{{ $ot->start_time }}" required
+                                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Jam Selesai</label>
+                                    <input type="time" name="end_time" value="{{ $ot->end_time }}" required
+                                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                                <textarea name="description" rows="3" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none">{{ $ot->description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 justify-end mt-4">
+                            <button type="button" onclick="document.getElementById('edit-overtime-{{ $ot->id }}').close()" class="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-xl">Batal</button>
+                            <button class="px-4 py-2 text-sm font-medium text-white rounded-xl" style="background:var(--hris-gradient)">Simpan</button>
+                        </div>
+                    </form>
+                </dialog>
+                @endif
+                @endcan
                 @empty
                 <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">
                     {{ request('status') ? 'Tidak ada data dengan status ini.' : 'Belum ada data lembur.' }}

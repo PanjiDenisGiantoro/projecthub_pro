@@ -84,16 +84,41 @@ class ReimbursementController extends Controller
         return redirect()->route('hris.reimburse.index')->with('success', 'Pengajuan reimburse berhasil dikirim.');
     }
 
+    public function update(Request $request, Reimbursement $reimburse)
+    {
+        $this->authorize('update reimbursement');
+        abort_if($reimburse->company_id !== auth()->user()->company_id, 403);
+        abort_if($reimburse->status !== 'pending', 422, 'Hanya pengajuan berstatus Pending yang bisa diedit.');
+
+        $request->validate([
+            'category'     => 'required|in:transport,makan,akomodasi,medis,pulsa,lainnya',
+            'title'        => 'required|string|max:255',
+            'expense_date' => 'required|date',
+            'amount'       => 'required|numeric|min:1',
+            'description'  => 'nullable|string|max:500',
+        ]);
+
+        $reimburse->update($request->only(['category', 'title', 'expense_date', 'amount', 'description']));
+
+        return back()->with('success', 'Pengajuan reimburse berhasil diperbarui.');
+    }
+
     public function destroy(Reimbursement $reimburse)
     {
-        abort_if($reimburse->user_id !== auth()->id() || $reimburse->status !== 'pending', 403);
+        $user           = auth()->user();
+        $isOwnerPending = $reimburse->user_id === $user->id && $reimburse->status === 'pending';
+        $canForceDelete = $user->can('delete reimbursement') && $reimburse->company_id === $user->company_id;
+
+        abort_unless($isOwnerPending || $canForceDelete, 403);
+
         $reimburse->delete();
-        return back()->with('success', 'Pengajuan dihapus.');
+        return back()->with('success', $canForceDelete && !$isOwnerPending ? 'Data reimburse dihapus.' : 'Pengajuan dihapus.');
     }
 
     public function approve(Reimbursement $reimburse)
     {
         $this->authorize('approve reimbursement');
+        abort_if($reimburse->company_id !== auth()->user()->company_id, 403);
         abort_if($reimburse->status !== 'pending', 422, 'Status tidak valid.');
         $reimburse->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
 
