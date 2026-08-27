@@ -7,11 +7,11 @@ body { font-family: Arial, sans-serif; color: #374151; background: #f9fafb; marg
 .creds p { margin: 0 0 6px; font-size: 14px; }
 .creds span { color: #6B7280; }
 .creds strong { color: #111827; font-family: 'Courier New', monospace; }
-.btn { display: inline-block; background: #7C3AED; color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; margin-top: 20px; }
+.btn { display: inline-block; background: #2563EB; color: white; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; margin-top: 20px; }
 </style></head>
 <body>
 <div class="card">
-    <div style="color:#7C3AED;font-weight:700;font-size:18px;margin-bottom:16px;">Flovig</div>
+    <div style="color:#2563EB;font-weight:700;font-size:18px;margin-bottom:16px;">Flovig</div>
     <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Akun Anda Sudah Siap</h2>
     <p style="color:#6B7280;margin-bottom:8px;">Halo {{ $name }}, terima kasih sudah mendaftar. Berikut detail login akun Anda:</p>
 
@@ -24,7 +24,7 @@ body { font-family: Arial, sans-serif; color: #374151; background: #f9fafb; marg
 
     <p style="font-size:13px;color:#6B7280;margin-top:20px;">Satu langkah lagi: verifikasi email Anda supaya akun aktif sepenuhnya.</p>
     <a href="{{ $verificationUrl }}" class="btn">Verifikasi Email Saya</a>
-    <p style="font-size:12px;color:#9CA3AF;margin-top:16px;">Sudah login? <a href="{{ $loginUrl }}" style="color:#7C3AED;">Masuk ke Flovig</a></p>
+    <p style="font-size:12px;color:#9CA3AF;margin-top:16px;">Sudah login? <a href="{{ $loginUrl }}" style="color:#2563EB;">Masuk ke Flovig</a></p>
 </div>
 </body>
 </html>

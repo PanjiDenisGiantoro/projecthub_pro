@@ -14,7 +14,18 @@ class ReportWebController extends Controller
 {
     public function index()
     {
-        $reports = collect(config('reports'))->groupBy('category', preserveKeys: true);
+        $user      = auth()->user();
+        $activePkg = session('active_package', 'task_management');
+
+        // Beberapa laporan (mis. Payroll HRIS) berisi data sensitif yang tidak
+        // semua pemegang 'access reports' boleh lihat — entry config bisa nambah
+        // 'permission' opsional buat dibatasi lebih ketat dari itu.
+        $reports = collect(config('reports'))
+            ->filter(fn ($meta) => empty($meta['permission']) || $user->can($meta['permission']))
+            // Package HRIS & Task Management punya menu laporan yang terpisah,
+            // sama seperti sidebar nav — jangan campur laporan HRIS ke paket lain.
+            ->filter(fn ($meta) => $activePkg === 'hris' ? $meta['category'] === 'HRIS' : $meta['category'] !== 'HRIS')
+            ->groupBy('category', preserveKeys: true);
 
         return view('reports.index', compact('reports'));
     }
@@ -70,7 +81,9 @@ class ReportWebController extends Controller
         $registry = config('reports');
         abort_unless(isset($registry[$key]), 404);
 
-        $meta  = $registry[$key];
+        $meta = $registry[$key];
+        abort_unless(empty($meta['permission']) || auth()->user()->can($meta['permission']), 403);
+
         $query = app($meta['query']);
         abort_unless($query instanceof ReportQuery, 500);
 

@@ -89,16 +89,51 @@ class OvertimeController extends Controller
         return redirect()->route('hris.overtime.index')->with('success', 'Pengajuan lembur berhasil dikirim.');
     }
 
+    public function update(Request $request, Overtime $overtime)
+    {
+        $this->authorize('update overtime');
+        abort_if($overtime->company_id !== auth()->user()->company_id, 403);
+        abort_if($overtime->status !== 'pending', 422, 'Hanya pengajuan berstatus Pending yang bisa diedit.');
+
+        $request->validate([
+            'date'        => 'required|date',
+            'start_time'  => 'required',
+            'end_time'    => 'required|after:start_time',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $date  = Carbon::parse($request->date);
+        $start = Carbon::parse($request->start_time);
+        $end   = Carbon::parse($request->end_time);
+
+        $overtime->update([
+            'date'        => $request->date,
+            'day_type'    => OvertimeService::dayType($date),
+            'start_time'  => $request->start_time,
+            'end_time'    => $request->end_time,
+            'total_hours' => round($start->diffInMinutes($end) / 60, 2),
+            'description' => $request->description,
+        ]);
+
+        return back()->with('success', 'Pengajuan lembur berhasil diperbarui.');
+    }
+
     public function destroy(Overtime $overtime)
     {
-        abort_if($overtime->user_id !== auth()->id() || $overtime->status !== 'pending', 403);
+        $user           = auth()->user();
+        $isOwnerPending = $overtime->user_id === $user->id && $overtime->status === 'pending';
+        $canForceDelete = $user->can('delete overtime') && $overtime->company_id === $user->company_id;
+
+        abort_unless($isOwnerPending || $canForceDelete, 403);
+
         $overtime->delete();
-        return back()->with('success', 'Pengajuan lembur dihapus.');
+        return back()->with('success', $canForceDelete && !$isOwnerPending ? 'Data lembur dihapus.' : 'Pengajuan lembur dihapus.');
     }
 
     public function approve(Overtime $overtime)
     {
         $this->authorize('approve overtime');
+        abort_if($overtime->company_id !== auth()->user()->company_id, 403);
         abort_if($overtime->status !== 'pending', 422, 'Status tidak valid.');
 
         try {

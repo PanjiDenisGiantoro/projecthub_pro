@@ -248,8 +248,12 @@
                     {{-- Face detection status --}}
                     <div class="absolute top-3 left-3 right-3">
                         <div class="px-3 py-1.5 rounded-full text-xs font-semibold text-center transition-all"
-                             :style="faceDetected ? 'background:rgba(16,185,129,0.9);color:#fff' : 'background:rgba(0,0,0,0.5);color:rgba(255,255,255,0.8)'"
-                             x-text="faceDetected ? (faceMatch ? '✓ Wajah cocok — ' + Math.round(faceConf*100) + '% yakin' : (faceConf > 0 ? 'Mencocokkan... ' + Math.round(faceConf*100) + '%' : 'Posisikan wajah di tengah')) : 'Wajah tidak terdeteksi'">
+                             :style="faceMultiWarning
+                                ? 'background:rgba(220,38,38,0.9);color:#fff'
+                                : (faceDetected ? 'background:rgba(16,185,129,0.9);color:#fff' : 'background:rgba(0,0,0,0.5);color:rgba(255,255,255,0.8)')"
+                             x-text="faceMultiWarning
+                                ? '✗ Lebih dari 1 wajah terdeteksi — pastikan cuma Anda sendiri'
+                                : (faceDetected ? (faceMatch ? '✓ Wajah cocok — ' + Math.round(faceConf*100) + '% yakin' : (faceConf > 0 ? 'Mencocokkan... ' + Math.round(faceConf*100) + '%' : 'Posisikan wajah di tengah')) : 'Wajah tidak terdeteksi')">
                         </div>
                     </div>
                 </div>
@@ -514,18 +518,19 @@
 
                     <div x-show="enrollStatus === 'ready'"
                          class="absolute bottom-3 left-0 right-0 text-center">
-                        <span class="text-xs px-3 py-1 rounded-full text-white" style="background:rgba(0,0,0,0.5)"
-                              x-text="captureCount > 0 ? captureCount + '/3 frame diambil...' : 'Hadapkan wajah ke kamera'"></span>
+                        <span class="text-xs px-3 py-1 rounded-full text-white"
+                              :style="enrollMultiWarning ? 'background:rgba(220,38,38,0.85)' : 'background:rgba(0,0,0,0.5)'"
+                              x-text="enrollMultiWarning ? 'Terdeteksi lebih dari 1 wajah — pastikan cuma 1 orang' : (captureCount > 0 ? captureCount + '/3 frame diambil...' : 'Hadapkan wajah ke kamera')"></span>
                     </div>
                 </div>
 
                 <div class="text-xs p-3 rounded-xl" style="background:rgba(124,58,237,0.06);color:var(--fl-text-muted,#6b7280)">
-                    <strong style="color:#7c3aed">Cara pendaftaran:</strong> Hadapkan wajah ke kamera dengan pencahayaan yang baik. Sistem akan mengambil 3 frame dan menghitung descriptor wajah rata-rata.
+                    <strong style="color:#7c3aed">Cara pendaftaran:</strong> Hadapkan wajah ke kamera dengan pencahayaan yang baik, pastikan cuma 1 orang di depan kamera. Sistem akan mengambil 3 frame dan menghitung descriptor wajah rata-rata.
                 </div>
 
                 <div class="flex gap-3">
                     <button type="button" @click="captureEnroll()"
-                            :disabled="enrollStatus !== 'ready' || captureCount >= 3"
+                            :disabled="enrollStatus !== 'ready' || captureCount >= 3 || enrollMultiWarning"
                             class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
                             style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                         <span x-text="captureCount < 3 ? 'Ambil Frame (' + captureCount + '/3)' : 'Menyimpan...'"></span>
@@ -562,6 +567,7 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
         faceDetected: false,
         faceMatch: false,
         faceConf: 0,
+        faceMultiWarning: false,
         faceStream: null,
         faceLoop: null,
         faceApiLoaded: false,
@@ -576,6 +582,7 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
         capturedDescs: [],
         enrollStream:  null,
         enrollLoop:    null,
+        enrollMultiWarning: false,
 
         get canCheckIn() {
             const locOk  = !this.locEnabled  || this.locStatus === 'valid';
@@ -705,15 +712,37 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
                 const canvas = document.getElementById('checkin-overlay');
                 if (!video || video.readyState < 2 || !canvas) return;
 
-                const det = await faceapi
-                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 }))
+                const results = await faceapi
+                    .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 }))
                     .withFaceLandmarks(true)
-                    .withFaceDescriptor();
+                    .withFaceDescriptors();
 
                 const ctx = canvas.getContext('2d');
                 canvas.width  = video.videoWidth;
                 canvas.height = video.videoHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Lebih dari 1 wajah kedeteksi (mis. ada orang lain di belakang/samping)
+                // — tolak verifikasi sama sekali, jangan sampai wajah orang lain
+                // ketebak cocok gara-gara ada beberapa wajah dalam satu frame.
+                if (results.length > 1) {
+                    this.faceMultiWarning = true;
+                    this.faceDetected = false;
+                    this.faceMatch = false;
+                    this.faceConf = 0;
+                    results.forEach(r => {
+                        const box = r.detection.box;
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.lineWidth   = 3;
+                        ctx.shadowColor = '#ef4444';
+                        ctx.shadowBlur  = 8;
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+                    });
+                    return;
+                }
+                this.faceMultiWarning = false;
+
+                const det = results[0] ?? null;
 
                 if (det) {
                     this.faceDetected = true;
@@ -751,6 +780,7 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
             this.faceDetected = false;
             this.faceMatch = false;
             this.faceConf = 0;
+            this.faceMultiWarning = false;
         },
 
         // ── Self face enrollment ─────────────────────────────────────────
@@ -759,6 +789,7 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
             this.enrollStatus = 'loading';
             this.captureCount = 0;
             this.capturedDescs= [];
+            this.enrollMultiWarning = false;
 
             await this.$nextTick();
             await this.loadFaceModels();
@@ -796,40 +827,49 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
             clearInterval(this.enrollLoop);
             this.enrollLoop = setInterval(async () => {
                 if (!video || video.readyState < 2) return;
-                const det = await faceapi
-                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 }))
+                const dets = await faceapi
+                    .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 }))
                     .withFaceLandmarks(true);
                 const ctx = canvas.getContext('2d');
                 canvas.width  = video.videoWidth;
                 canvas.height = video.videoHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (det) {
+                this.enrollMultiWarning = dets.length > 1;
+                dets.forEach(det => {
                     const box = det.detection.box;
-                    ctx.strokeStyle = '#10b981';
+                    ctx.strokeStyle = this.enrollMultiWarning ? '#ef4444' : '#10b981';
                     ctx.lineWidth = 3;
                     ctx.strokeRect(box.x, box.y, box.width, box.height);
-                    ctx.fillStyle = 'rgba(16,185,129,0.2)';
+                    ctx.fillStyle = this.enrollMultiWarning ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)';
                     ctx.fillRect(box.x, box.y, box.width, box.height);
-                }
+                });
             }, 150);
         },
 
         async captureEnroll() {
             if (this.enrollStatus !== 'ready' || this.captureCount >= 3) return;
-            const video = document.getElementById('enroll-video');
-            const det   = await faceapi
-                .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
+            const video   = document.getElementById('enroll-video');
+            const results = await faceapi
+                .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
                 .withFaceLandmarks(true)
-                .withFaceDescriptor();
+                .withFaceDescriptors();
 
-            if (!det) {
+            if (results.length === 0) {
                 Swal.fire({ toast: true, position: 'top-end', icon: 'warning',
                     title: 'Wajah tidak terdeteksi. Pastikan wajah terlihat jelas.',
                     showConfirmButton: false, timer: 2500,
                     background: '#d97706', color: '#fff', iconColor: '#fff' });
                 return;
             }
+            if (results.length > 1) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error',
+                    title: 'Terdeteksi ' + results.length + ' wajah. Pastikan cuma 1 orang di depan kamera.',
+                    showConfirmButton: false, timer: 3000,
+                    background: '#dc2626', color: '#fff', iconColor: '#fff' });
+                return;
+            }
 
+            const det = results[0];
             this.capturedDescs.push(Array.from(det.descriptor));
             this.captureCount++;
 

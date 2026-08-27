@@ -71,6 +71,10 @@
                                 <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>
                             </form>
                             @endcan
+                            @can('update reimbursement')
+                            <button onclick="document.getElementById('edit-reimburse-{{ $item->id }}').showModal()"
+                                    class="text-xs text-blue-500 hover:text-blue-700 mr-2">Edit</button>
+                            @endcan
                             @if($item->user_id === auth()->id())
                             <form action="{{ route('hris.reimburse.destroy', $item) }}" method="POST" class="inline"
                                   data-confirm-delete="pengajuan reimbursement ini">
@@ -79,8 +83,63 @@
                             </form>
                             @endif
                         @endif
+                        @can('delete reimbursement')
+                        <form action="{{ route('hris.reimburse.destroy', $item) }}" method="POST" class="inline"
+                              data-confirm-submit="Hapus data reimburse {{ $item->user->name }} ini?"
+                              data-confirm-text="{{ $item->title }} · Rp {{ number_format($item->amount, 0, ',', '.') }}, status {{ ucfirst($item->status) }}. Tindakan ini tidak bisa dibatalkan."
+                              data-confirm-btn="Ya, Hapus">
+                            @csrf @method('DELETE')
+                            <button class="text-xs text-red-600 hover:text-red-800 ml-2">Hapus</button>
+                        </form>
+                        @endcan
                     </td>
                 </tr>
+                {{-- Edit Modal --}}
+                @can('update reimbursement')
+                @if($item->status === 'pending')
+                <dialog id="edit-reimburse-{{ $item->id }}" class="rounded-2xl p-6 shadow-xl w-full max-w-md">
+                    <form action="{{ route('hris.reimburse.update', $item) }}" method="POST">
+                        @csrf @method('PUT')
+                        <h3 class="font-bold text-gray-900 mb-3">Edit Reimburse — {{ $item->user->name }}</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+                                <select name="category" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    @foreach(['transport' => 'Transport', 'makan' => 'Makan', 'akomodasi' => 'Akomodasi', 'medis' => 'Medis', 'pulsa' => 'Pulsa', 'lainnya' => 'Lainnya'] as $val => $label)
+                                    <option value="{{ $val }}" @selected($item->category === $val)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Judul</label>
+                                <input type="text" name="title" value="{{ $item->title }}" required
+                                       class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
+                                    <input type="date" name="expense_date" value="{{ $item->expense_date->toDateString() }}" required
+                                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah (Rp)</label>
+                                    <input type="number" name="amount" value="{{ $item->amount }}" required min="1"
+                                           class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                                <textarea name="description" rows="2" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none">{{ $item->description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 justify-end mt-4">
+                            <button type="button" onclick="document.getElementById('edit-reimburse-{{ $item->id }}').close()" class="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-xl">Batal</button>
+                            <button class="px-4 py-2 text-sm font-medium text-white rounded-xl" style="background:var(--hris-gradient)">Simpan</button>
+                        </div>
+                    </form>
+                </dialog>
+                @endif
+                @endcan
                 @empty
                 <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">
                     {{ request('status') ? 'Tidak ada data dengan status ini.' : 'Belum ada data reimburse.' }}

@@ -115,10 +115,54 @@ class TaskWebController extends Controller
 
     public function show(Project $project, Task $task)
     {
-        $task->load(['assignee', 'milestone', 'creator', 'timeLogs.user']);
+        $task->load(['assignee', 'milestone', 'creator', 'timeLogs.user', 'comments.user', 'comments.attachments']);
         $runningLog = $task->timeLogs()->where('user_id', auth()->id())->where('is_running', true)->first();
+        // Cuma hitung jumlah di sini (buat badge) — daftar log lengkap (dengan relasi
+        // causer) baru di-load lewat logs() saat panel riwayat dibuka user (lazy load),
+        // biar halaman detail task tidak ikut berat setiap kali dibuka.
+        $logsCount = $task->activitiesAsSubject()->count();
 
-        return view('tasks.show', compact('project', 'task', 'runningLog'));
+        return view('tasks.show', compact('project', 'task', 'runningLog', 'logsCount'));
+    }
+
+    public function addComment(Request $request, Project $project, Task $task)
+    {
+        $request->validate([
+            'body'            => 'required|string|max:2000',
+            'attachments'     => 'nullable|array|max:5',
+            'attachments.*'   => 'file|max:10240',
+        ]);
+
+        $comment = $task->comments()->create(['user_id' => auth()->id(), 'body' => $request->body]);
+
+        foreach ($request->file('attachments', []) as $file) {
+            $path = $file->store("task-comment-attachments/{$comment->id}", 'public');
+            $comment->attachments()->create([
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+            ]);
+        }
+
+        $notify = collect([$task->assigned_to, $task->created_by])
+            ->filter()
+            ->unique()
+            ->reject(fn ($id) => $id === auth()->id());
+
+        foreach ($notify as $userId) {
+            $this->notifier->send($userId, 'task_comment_added', 'Komentar Baru',
+                auth()->user()->name . " berkomentar di task \"{$task->title}\".", ['task_id' => $task->id]);
+        }
+
+        return back()->with('success', 'Komentar ditambahkan.');
+    }
+
+    public function logs(Project $project, Task $task)
+    {
+        $logs = $task->activitiesAsSubject()->with('causer')->latest()->limit(50)->get();
+
+        return view('tasks._logs', compact('logs'));
     }
 
     public function update(Request $request, Project $project, Task $task, GoogleCalendarService $calendar)

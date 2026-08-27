@@ -9,6 +9,9 @@ use App\Models\AttendanceSetting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Activity;
 
 class AbsensiController extends Controller
 {
@@ -158,8 +161,21 @@ class AbsensiController extends Controller
             ->where('is_super_admin', false)
             ->orderBy('name')
             ->get(['id', 'name', 'avatar', 'face_descriptor']);
+        // Cuma hitung jumlah di sini (buat badge) — daftar log lengkap (dengan relasi
+        // causer) baru di-load lewat settingLogs() saat panel riwayat dibuka user
+        // (lazy load), biar halaman setting tidak ikut berat setiap kali dibuka.
+        $logsCount = $setting->activitiesAsSubject()->count();
 
-        return view('hris.absensi.setting', compact('setting', 'employees'));
+        return view('hris.absensi.setting', compact('setting', 'employees', 'logsCount'));
+    }
+
+    public function settingLogs()
+    {
+        $this->authorize('update absensi');
+        $setting = AttendanceSetting::forCompany(auth()->user()->company_id);
+        $logs = $setting->activitiesAsSubject()->with('causer')->latest()->limit(50)->get();
+
+        return view('hris.absensi._setting-logs', compact('logs'));
     }
 
     public function saveSetting(Request $request)
@@ -205,9 +221,34 @@ class AbsensiController extends Controller
             ->where('is_active', true)
             ->where('is_super_admin', false)
             ->orderBy('name')
-            ->get(['id', 'name', 'avatar', 'face_descriptor']);
+            ->get(['id', 'name', 'avatar', 'face_descriptor', 'face_photo']);
+        // Cuma hitung jumlah di sini (buat badge) — daftar log lengkap baru di-load
+        // lewat faceEnrollmentLogs() saat panel riwayat dibuka user (lazy load).
+        $logsCount = $this->faceLogsQuery()->count();
 
-        return view('hris.absensi.face-enrollment', compact('setting', 'employees'));
+        return view('hris.absensi.face-enrollment', compact('setting', 'employees', 'logsCount'));
+    }
+
+    public function faceEnrollmentLogs()
+    {
+        $this->authorizeFaceManagement();
+        $logs = $this->faceLogsQuery()->with(['causer', 'subject'])->latest()->limit(50)->get();
+
+        return view('hris.absensi._face-logs', compact('logs'));
+    }
+
+    /**
+     * Log pendaftaran/hapus wajah dicatat manual (bukan LogsActivity otomatis di
+     * model User) — descriptor-nya array 128 angka, tidak ada gunanya ditampilkan
+     * sebagai diff. Aman di-scope lewat subject (karyawan) karena baris user-nya
+     * tidak ikut terhapus, cuma face_descriptor/face_photo-nya di-null-kan.
+     */
+    private function faceLogsQuery()
+    {
+        $companyId = auth()->user()->company_id;
+
+        return Activity::where('log_name', 'face_enrollment')
+            ->when($companyId, fn ($q) => $q->whereHasMorph('subject', [User::class], fn ($q2) => $q2->where('company_id', $companyId)));
     }
 
     // ── Face enrollment (AJAX) ────────────────────────────────────────────
@@ -220,6 +261,7 @@ class AbsensiController extends Controller
 
         $request->validate([
             'descriptor' => 'required|string',
+            'photo'      => 'nullable|string',
         ]);
 
         // Verify JSON is valid array of 128 floats
@@ -228,7 +270,32 @@ class AbsensiController extends Controller
             return response()->json(['message' => 'Descriptor wajah tidak valid.'], 422);
         }
 
-        $employee->update(['face_descriptor' => $request->descriptor]);
+        $wasRegistered = (bool) $employee->face_descriptor;
+        $data = ['face_descriptor' => $request->descriptor];
+
+        // Foto (data URL base64 dari canvas kamera) cuma buat preview visual di UI —
+        // matching absensi tetap pakai face_descriptor, jadi kalau fotonya gagal
+        // diproses tetap lanjut simpan descriptor-nya.
+        if ($request->filled('photo') && preg_match('/^data:image\/(jpeg|jpg|png);base64,(.+)$/', $request->photo, $m)) {
+            $binary = base64_decode($m[2]);
+            if ($binary !== false) {
+                if ($employee->face_photo) {
+                    Storage::disk('public')->delete($employee->face_photo);
+                }
+                $path = 'face-photos/' . $employee->id . '-' . Str::random(8) . '.jpg';
+                if (Storage::disk('public')->put($path, $binary)) {
+                    $data['face_photo'] = $path;
+                }
+            }
+        }
+
+        $employee->update($data);
+
+        activity('face_enrollment')
+            ->performedOn($employee)
+            ->causedBy(auth()->user())
+            ->event($wasRegistered ? 'updated' : 'created')
+            ->log(($wasRegistered ? 'Memperbarui' : 'Mendaftarkan') . ' wajah ' . $employee->name);
 
         return response()->json(['message' => 'Wajah ' . $employee->name . ' berhasil didaftarkan.']);
     }
@@ -236,7 +303,17 @@ class AbsensiController extends Controller
     public function deleteFace(User $employee)
     {
         $this->authorizeFaceManagement();
-        $employee->update(['face_descriptor' => null]);
+        if ($employee->face_photo) {
+            Storage::disk('public')->delete($employee->face_photo);
+        }
+        $employee->update(['face_descriptor' => null, 'face_photo' => null]);
+
+        activity('face_enrollment')
+            ->performedOn($employee)
+            ->causedBy(auth()->user())
+            ->event('deleted')
+            ->log('Menghapus data wajah ' . $employee->name);
+
         return back()->with('success', 'Data wajah ' . $employee->name . ' dihapus.');
     }
 

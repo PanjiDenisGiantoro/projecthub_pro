@@ -525,11 +525,12 @@
                             <a x-show="m.action.status === 'done' && m.action.url" :href="m.action.url" class="text-xs font-semibold underline" style="color:#7c3aed">Buka proyeknya →</a>
                             <p x-show="m.action.status === 'error'" class="text-xs font-medium" style="color:#ef4444" x-text="m.action.resultMessage"></p>
                             <p x-show="m.action.status === 'cancelled'" class="text-xs italic" style="color:var(--fl-text-muted,#6b7280)">Dibatalkan.</p>
+                            <span x-show="m.ts" class="block text-[10px]" style="color:var(--fl-text-muted,#9ca3af)" x-text="formatTs(m.ts)"></span>
                         </div>
                     </template>
 
                     {{-- Bubble teks biasa --}}
-                    <div x-show="!m.action" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
+                    <div x-show="!m.action" class="flex flex-col" :class="m.role === 'user' ? 'items-end' : 'items-start'">
                         <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
                              :class="m.role === 'user'
                                 ? 'text-white rounded-br-sm'
@@ -538,6 +539,7 @@
                                 ? 'background:var(--ai-gradient)'
                                 : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
                              x-text="m.content"></div>
+                        <span x-show="m.ts" class="text-[10px] mt-0.5 px-1" style="color:var(--fl-text-muted,#9ca3af)" x-text="formatTs(m.ts)"></span>
                     </div>
                 </div>
             </template>
@@ -619,11 +621,19 @@ function aiAssistantWidget() {
             if (el) el.scrollTop = el.scrollHeight;
         },
 
+        formatTs(ts) {
+            if (!ts) return '';
+            const d = new Date(ts);
+            const datePart = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timePart = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            return datePart + ' · ' + timePart;
+        },
+
         async send() {
             const text = this.input.trim();
             if (!text || this.thinking) return;
 
-            this.messages.push({ role: 'user', content: text });
+            this.messages.push({ role: 'user', content: text, ts: Date.now() });
             this.input = '';
             this.thinking = true;
             this.$nextTick(() => this.scrollBottom());
@@ -632,9 +642,24 @@ function aiAssistantWidget() {
                 const history = this.messages.slice(-20).map(m => ({ role: m.role, content: m.content }));
                 const res = await fetch('{{ route('ai.chat') }}', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': this.csrf,
+                    },
                     body: JSON.stringify({ messages: history }),
                 });
+
+                // Sesi habis/CSRF token kadaluarsa bikin request di-redirect ke halaman
+                // login (bukan dikembalikan sebagai 401 JSON) kalau server tidak yakin
+                // ini request AJAX — makanya header Accept/X-Requested-With di atas WAJIB
+                // ada. Ini jaga-jaga tambahan: kalau tetap kena redirect (mis. lolos
+                // proxy/CDN lain), jangan tampilkan HTML halaman login mentah-mentah ke chat.
+                if (res.redirected || res.status === 401 || res.status === 419) {
+                    this.messages.push({ role: 'assistant', content: 'Sesi Anda sudah berakhir. Silakan muat ulang halaman dan login kembali.', ts: Date.now() });
+                    return;
+                }
 
                 // Balasan biasa di-stream sebagai plain text (Content-Type: text/plain) —
                 // baca bertahap biar teks muncul seiring model generate, bukan nunggu
@@ -643,21 +668,24 @@ function aiAssistantWidget() {
                 // ditampilkan sebagai teks atau tombol konfirmasi aksi.
                 const contentType = res.headers.get('Content-Type') || '';
 
-                if (contentType.includes('application/json')) {
+                if (contentType.includes('text/html')) {
+                    this.messages.push({ role: 'assistant', content: 'Terjadi kesalahan tak terduga. Silakan muat ulang halaman.', ts: Date.now() });
+                } else if (contentType.includes('application/json')) {
                     const data = await res.json();
                     if (res.ok && data.action) {
                         this.messages.push({
                             role: 'assistant',
                             content: '(mengusulkan aksi: ' + data.action.label + ')',
                             action: { ...data.action, status: 'pending', executing: false },
+                            ts: Date.now(),
                         });
                     } else if (res.ok) {
-                        this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
+                        this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)', ts: Date.now() });
                     } else {
-                        this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
+                        this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.', ts: Date.now() });
                     }
                 } else if (res.ok && res.body) {
-                    const msg = { role: 'assistant', content: '' };
+                    const msg = { role: 'assistant', content: '', ts: Date.now() };
                     this.messages.push(msg);
                     const idx = this.messages.length - 1;
                     const reader = res.body.getReader();
@@ -673,10 +701,10 @@ function aiAssistantWidget() {
                         this.messages[idx].content = '(tidak ada jawaban)';
                     }
                 } else {
-                    this.messages.push({ role: 'assistant', content: 'Terjadi kesalahan.' });
+                    this.messages.push({ role: 'assistant', content: 'Terjadi kesalahan.', ts: Date.now() });
                 }
             } catch (e) {
-                this.messages.push({ role: 'assistant', content: 'Gagal terhubung ke AI Assistant.' });
+                this.messages.push({ role: 'assistant', content: 'Gagal terhubung ke AI Assistant.', ts: Date.now() });
             } finally {
                 this.thinking = false;
                 this.save();
@@ -695,9 +723,21 @@ function aiAssistantWidget() {
             try {
                 const res = await fetch('{{ route('ai.execute-action') }}', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': this.csrf,
+                    },
                     body: JSON.stringify({ tool: action.tool, args: action.args }),
                 });
+
+                if (res.redirected || res.status === 401 || res.status === 419) {
+                    action.status = 'error';
+                    action.resultMessage = 'Sesi Anda sudah berakhir. Silakan muat ulang halaman dan login kembali.';
+                    return;
+                }
+
                 const data = await res.json();
                 if (res.ok) {
                     action.status = 'done';

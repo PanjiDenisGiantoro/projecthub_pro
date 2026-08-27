@@ -135,44 +135,70 @@
                     </div>
                 </div>
 
-                {{-- Permission groups --}}
+                {{-- Permission groups — dipisah per paket (Task Management vs HRIS) supaya
+                     jelas grup mana berlaku untuk paket mana, sesuai sidebar masing-masing
+                     paket ($showTm / $showHris di layouts/sidebar-nav.blade.php). Grup HRIS
+                     dikenali dari prefix "HRIS — " di nama grup (config/permissions.php). --}}
+                @php
+                    $tmGroups   = collect($groups)->reject(fn($items, $name) => str_starts_with($name, 'HRIS'));
+                    $hrisGroups = collect($groups)->filter(fn($items, $name) => str_starts_with($name, 'HRIS'));
+                    $packageSections = [
+                        ['label' => 'Task Management', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', 'tint' => 'text-blue-600 bg-blue-50 border-blue-100', 'items' => $tmGroups,   'show' => $showTm ?? true],
+                        ['label' => 'HRIS',            'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'tint' => 'text-emerald-600 bg-emerald-50 border-emerald-100', 'items' => $hrisGroups, 'show' => $showHris ?? true],
+                    ];
+                @endphp
                 <div class="divide-y divide-gray-100">
-                    @foreach($groups as $groupName => $items)
-                    <div x-data="{ open: true }" class="px-5 py-4">
-                        {{-- Group header with check-all --}}
-                        <div class="flex items-center justify-between mb-3 cursor-pointer" @click="open = !open">
-                            <div class="flex items-center gap-2">
-                                <svg :class="open ? 'rotate-90' : ''" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                                <span class="text-sm font-semibold text-gray-700">{{ $groupName }}</span>
-                                <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{{ count($items) }} permission</span>
-                            </div>
-                            @php
-                                $groupPerms = array_keys($items);
-                                $activeInGroup = count(array_intersect($groupPerms, $rolePermissions[$role->name]));
-                            @endphp
-                            <span class="text-xs {{ $activeInGroup === count($groupPerms) ? $c['text'] : 'text-gray-400' }}">
-                                {{ $activeInGroup }}/{{ count($groupPerms) }} aktif
-                            </span>
+                    @foreach($packageSections as $section)
+                    @continue($section['items']->isEmpty() || !$section['show'])
+                    <div>
+                        {{-- Section header (per paket) --}}
+                        <div class="px-5 py-2.5 flex items-center gap-2 border-b {{ $section['tint'] }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $section['icon'] }}"/>
+                            </svg>
+                            <span class="text-xs font-bold uppercase tracking-wide">Paket: {{ $section['label'] }}</span>
                         </div>
 
-                        {{-- Permission checkboxes --}}
-                        <div x-show="open" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-6">
-                            @foreach($items as $permName => $label)
-                            @php $isChecked = in_array($permName, $rolePermissions[$role->name]); @endphp
-                            <label class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all
-                                          {{ $isChecked ? $c['light'].' '.$c['border'] : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50' }}">
-                                <input type="checkbox"
-                                       name="permissions[]"
-                                       value="{{ $permName }}"
-                                       {{ $isChecked ? 'checked' : '' }}
-                                       class="mt-0.5 w-4 h-4 rounded border-gray-300 {{ str_replace('bg-', 'text-', $c['bg']) }} focus:ring-2 shrink-0">
-                                <div>
-                                    <p class="text-sm font-medium {{ $isChecked ? $c['text'] : 'text-gray-700' }}">{{ $label }}</p>
-                                    <p class="text-xs text-gray-400 font-mono">{{ $permName }}</p>
+                        <div class="divide-y divide-gray-100">
+                            @foreach($section['items'] as $groupName => $items)
+                            <div x-data="{ open: true }" class="px-5 py-4">
+                                {{-- Group header with check-all --}}
+                                <div class="flex items-center justify-between mb-3 cursor-pointer" @click="open = !open">
+                                    <div class="flex items-center gap-2">
+                                        <svg :class="open ? 'rotate-90' : ''" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                        <span class="text-sm font-semibold text-gray-700">{{ str_replace('HRIS — ', '', $groupName) }}</span>
+                                        <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{{ count($items) }} permission</span>
+                                    </div>
+                                    @php
+                                        $groupPerms = array_keys($items);
+                                        $activeInGroup = count(array_intersect($groupPerms, $rolePermissions[$role->name]));
+                                    @endphp
+                                    <span class="text-xs {{ $activeInGroup === count($groupPerms) ? $c['text'] : 'text-gray-400' }}">
+                                        {{ $activeInGroup }}/{{ count($groupPerms) }} aktif
+                                    </span>
                                 </div>
-                            </label>
+
+                                {{-- Permission checkboxes --}}
+                                <div x-show="open" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-6">
+                                    @foreach($items as $permName => $label)
+                                    @php $isChecked = in_array($permName, $rolePermissions[$role->name]); @endphp
+                                    <label class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all
+                                                  {{ $isChecked ? $c['light'].' '.$c['border'] : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50' }}">
+                                        <input type="checkbox"
+                                               name="permissions[]"
+                                               value="{{ $permName }}"
+                                               {{ $isChecked ? 'checked' : '' }}
+                                               class="mt-0.5 w-4 h-4 rounded border-gray-300 {{ str_replace('bg-', 'text-', $c['bg']) }} focus:ring-2 shrink-0">
+                                        <div>
+                                            <p class="text-sm font-medium {{ $isChecked ? $c['text'] : 'text-gray-700' }}">{{ $label }}</p>
+                                            <p class="text-xs text-gray-400 font-mono">{{ $permName }}</p>
+                                        </div>
+                                    </label>
+                                    @endforeach
+                                </div>
+                            </div>
                             @endforeach
                         </div>
                     </div>

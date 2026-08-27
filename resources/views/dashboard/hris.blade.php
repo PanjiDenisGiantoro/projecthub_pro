@@ -83,6 +83,144 @@
         </a>
     </div>
 
+    {{-- ── Row: Tren Kehadiran + Status Kehadiran Bulan Ini ──────────────── --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {{-- Tren Kehadiran 14 Hari --}}
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-6 pt-5 mb-1 flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Tren Kehadiran</h3>
+                        <p class="text-sm text-slate-400 mt-0.5">14 hari terakhir</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Hadir</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>Izin</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>Sakit</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>Alpha</span>
+                </div>
+            </div>
+            <div class="px-6 pb-6" style="height:260px">
+                <canvas id="attendanceTrendChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Status Kehadiran Bulan Ini --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-3 px-6 pt-5">
+                <div class="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Status Kehadiran</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM Y') }}</p>
+                </div>
+            </div>
+            <div class="px-6 pb-2" style="height:165px;position:relative">
+                <canvas id="attendanceStatusChart"></canvas>
+            </div>
+            <div class="px-6 pb-6 space-y-2.5" id="attendanceStatusLegend">
+                @foreach([
+                    ['#059669','Hadir', $attendance_status_month['hadir'] ?? 0],
+                    ['#d97706','Izin',  $attendance_status_month['izin'] ?? 0],
+                    ['#0ea5e9','Sakit', $attendance_status_month['sakit'] ?? 0],
+                    ['#ef4444','Alpha', $attendance_status_month['alpha'] ?? 0],
+                    ['#7c3aed','Cuti',  $attendance_status_month['cuti'] ?? 0],
+                ] as [$col,$label,$val])
+                <div class="flex items-center gap-2 text-[13px]">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{{ $col }}"></span>
+                    <span class="text-slate-600 flex-1">{{ $label }}</span>
+                    <span class="font-bold text-slate-900 tabular-nums">{{ $val }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+    </div>
+
+    {{-- ── Row: Cuti & Izin · Lembur · Reimburse ──────────────────────────── --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {{-- Cuti & Izin --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-3 px-6 pt-5">
+                <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Cuti &amp; Izin</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">Status pengajuan tahun ini</p>
+                </div>
+            </div>
+            <div class="px-6 pb-2" style="height:150px;position:relative">
+                <canvas id="leaveStatusChart"></canvas>
+            </div>
+            <div class="px-6 pb-6 space-y-2.5">
+                @foreach([
+                    ['#d97706','Pending',   $leave_status_year['pending'] ?? 0],
+                    ['#059669','Disetujui', $leave_status_year['approved'] ?? 0],
+                    ['#ef4444','Ditolak',   $leave_status_year['rejected'] ?? 0],
+                    ['#94a3b8','Dibatalkan',$leave_status_year['cancelled'] ?? 0],
+                ] as [$col,$label,$val])
+                <div class="flex items-center gap-2 text-[13px]">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{{ $col }}"></span>
+                    <span class="text-slate-600 flex-1">{{ $label }}</span>
+                    <span class="font-bold text-slate-900 tabular-nums">{{ $val }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Lembur --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-3 px-6 pt-5">
+                <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Lembur</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">Jam disetujui · 6 bulan</p>
+                </div>
+            </div>
+            <div class="px-6 pb-6" style="height:200px">
+                <canvas id="overtimeChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Reimburse --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-3 px-6 pt-5">
+                <div class="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Reimburse</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">Per kategori · bulan ini</p>
+                </div>
+            </div>
+            <div class="px-6 pb-6" style="height:200px">
+                <canvas id="reimburseChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
     {{-- Modul Core HRIS --}}
     <div>
         <h2 class="text-sm font-semibold text-gray-700 mb-3">Modul Core HRIS</h2>
@@ -187,4 +325,180 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Chart.defaults.font.family = "'Inter', ui-sans-serif, system-ui, sans-serif";
+
+    // ── 1. Tren Kehadiran 14 Hari ───────────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('attendanceTrendChart');
+        if (!ctx) return;
+        const data = @json($attendance_trend);
+        new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.label),
+                datasets: [
+                    { label: 'Hadir', data: data.map(d => d.hadir), backgroundColor: '#059669', borderRadius: 3 },
+                    { label: 'Izin',  data: data.map(d => d.izin),  backgroundColor: '#fbbf24', borderRadius: 3 },
+                    { label: 'Sakit', data: data.map(d => d.sakit), backgroundColor: '#38bdf8', borderRadius: 3 },
+                    { label: 'Alpha', data: data.map(d => d.alpha), backgroundColor: '#f87171', borderRadius: 3 },
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,23,42,0.9)', cornerRadius: 8, padding: 12,
+                        titleFont: { size: 12, weight: '600' }, bodyFont: { size: 12 },
+                    }
+                },
+                scales: {
+                    x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8' } },
+                    y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8', precision: 0 } }
+                }
+            }
+        });
+    })();
+
+    // ── 2. Status Kehadiran Bulan Ini ───────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('attendanceStatusChart');
+        if (!ctx) return;
+        new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Hadir', 'Izin', 'Sakit', 'Alpha', 'Cuti'],
+                datasets: [{
+                    data: [
+                        {{ $attendance_status_month['hadir'] ?? 0 }},
+                        {{ $attendance_status_month['izin'] ?? 0 }},
+                        {{ $attendance_status_month['sakit'] ?? 0 }},
+                        {{ $attendance_status_month['alpha'] ?? 0 }},
+                        {{ $attendance_status_month['cuti'] ?? 0 }},
+                    ],
+                    backgroundColor: ['#059669', '#d97706', '#0ea5e9', '#ef4444', '#7c3aed'],
+                    borderWidth: 0,
+                    cutout: '70%',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', cornerRadius: 8, callbacks: { label: c => ` ${c.label}: ${c.parsed}` } }
+                }
+            }
+        });
+    })();
+
+    // ── 3. Cuti & Izin — Status Tahun Ini ───────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('leaveStatusChart');
+        if (!ctx) return;
+        new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'Disetujui', 'Ditolak', 'Dibatalkan'],
+                datasets: [{
+                    data: [
+                        {{ $leave_status_year['pending'] ?? 0 }},
+                        {{ $leave_status_year['approved'] ?? 0 }},
+                        {{ $leave_status_year['rejected'] ?? 0 }},
+                        {{ $leave_status_year['cancelled'] ?? 0 }},
+                    ],
+                    backgroundColor: ['#d97706', '#059669', '#ef4444', '#94a3b8'],
+                    borderWidth: 0,
+                    cutout: '65%',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', cornerRadius: 8, callbacks: { label: c => ` ${c.label}: ${c.parsed}` } }
+                }
+            }
+        });
+    })();
+
+    // ── 4. Lembur — Jam per Bulan ────────────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('overtimeChart');
+        if (!ctx) return;
+        const data = @json($overtime_monthly);
+        new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.month),
+                datasets: [{
+                    label: 'Jam Lembur',
+                    data: data.map(d => d.hours),
+                    backgroundColor: '#f87171',
+                    borderRadius: 6,
+                    maxBarThickness: 28,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,23,42,0.9)', cornerRadius: 8, padding: 12,
+                        callbacks: { label: c => ` ${c.parsed.y} jam` }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } }
+                }
+            }
+        });
+    })();
+
+    // ── 5. Reimburse per Kategori ────────────────────────────────────────────
+    (function () {
+        const ctx = document.getElementById('reimburseChart');
+        if (!ctx) return;
+        const data = @json($reimburse_by_category);
+        new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.label),
+                datasets: [{
+                    label: 'Total',
+                    data: data.map(d => d.total),
+                    backgroundColor: '#14b8a6',
+                    borderRadius: 6,
+                    maxBarThickness: 22,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,23,42,0.9)', cornerRadius: 8, padding: 12,
+                        callbacks: { label: c => ` Rp ${c.parsed.x.toLocaleString('id-ID')}` }
+                    }
+                },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8', callback: v => 'Rp ' + (v / 1000) + 'rb' } },
+                    y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } }
+                }
+            }
+        });
+    })();
+});
+</script>
+@endpush
 @endsection

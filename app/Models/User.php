@@ -11,12 +11,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmailContract
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles, MustVerifyEmail, HasPushSubscriptions;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles, MustVerifyEmail, HasPushSubscriptions, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -38,6 +40,8 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'hire_date',
         'contract_end_date',
         'face_descriptor',
+        'face_photo',
+        'custom_fields',
         'email_verified_at',
     ];
 
@@ -57,7 +61,23 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'active_until'      => 'datetime',
             'hire_date'         => 'date',
             'contract_end_date' => 'date',
+            'custom_fields'     => 'array',
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        // Sengaja tidak logAll() — hindari kecatat password/token/face_descriptor
+        // di activity log. Cukup field yang relevan buat "siapa mengubah apa" di
+        // halaman /users.
+        return LogOptions::defaults()
+            ->logOnly([
+                'name', 'email', 'is_active', 'employment_type', 'employment_type_other',
+                'outsourcing_company_name', 'hire_date', 'contract_end_date', 'custom_fields',
+            ])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('user');
     }
 
     public function sendEmailVerificationNotification()

@@ -27,6 +27,14 @@
         </a>
     </div>
 
+    @if(session('success'))
+    <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-4 py-3">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+    <div class="bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl px-4 py-3">{{ session('error') }}</div>
+    @endif
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
     <form action="{{ route('hris.absensi.setting.save') }}" method="POST" class="space-y-5">
         @csrf
 
@@ -297,6 +305,40 @@
             </button>
         </div>
     </form>
+
+    {{-- Riwayat perubahan pengaturan — kolom samping, bisa dibuka/tutup.
+         Isinya di-lazy load lewat fetch() cuma pas panel ini dibuka, bukan
+         ikut di-query tiap kali halaman setting dibuka (lihat settingLogs()
+         di AbsensiController). --}}
+    <aside class="rounded-2xl border-2 border-gray-200 bg-white overflow-hidden lg:sticky lg:top-5"
+           x-data="{ open: false, loading: false, loaded: false }"
+           x-init="$watch('open', value => {
+               if (!value || loaded) return;
+               loading = true;
+               fetch('{{ route('hris.absensi.setting.logs') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                   .then(r => r.text())
+                   .then(html => { $refs.logList.innerHTML = html; loaded = true; })
+                   .catch(() => { $refs.logList.innerHTML = '<p class=&quot;px-4 py-6 text-center text-xs text-red-400&quot;>Gagal memuat riwayat.</p>'; })
+                   .finally(() => { loading = false; });
+           })">
+        <button type="button" @click="open = !open"
+                class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors">
+            <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="font-semibold text-gray-900 text-sm">Riwayat Perubahan</span>
+                @if($logsCount)
+                <span class="badge bg-gray-100 text-gray-600">{{ $logsCount }}</span>
+                @endif
+            </span>
+            <svg class="w-4 h-4 text-gray-400 transition-transform shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
+        <div x-show="open" x-cloak x-transition class="border-t border-gray-100 max-h-[70vh] overflow-y-auto">
+            <p x-show="loading" class="px-4 py-6 text-center text-xs text-gray-400">Memuat riwayat...</p>
+            <div x-show="!loading" x-ref="logList" class="divide-y divide-gray-100"></div>
+        </div>
+    </aside>
+    </div>
 
     {{-- ── Face Enrollment Modal ──────────────────────────────────────────── --}}
 <div x-show="enrollOpen" x-cloak
