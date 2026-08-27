@@ -10,33 +10,22 @@ class PermissionSeeder extends Seeder
 {
     // Default permissions per role (admin gets everything via Gate::before)
     private array $defaults = [
-        'manager' => [
+        'member' => [
             'access dashboard', 'access projects', 'access tickets', 'access requests',
-            'access campaigns', 'access invoices', 'access calendar', 'access search',
-            'access templates', 'access workload', 'access analytics', 'access users',
+            'access campaigns', 'access invoices', 'access calendar', 'access meetings', 'access search',
+            'access templates', 'access workload', 'access analytics', 'access reports', 'access users',
             'access approvals', 'access kb', 'access sprints', 'access budget', 'access risks',
+            'access clients',
             'create project', 'edit project', 'delete project', 'manage project members',
             'create ticket', 'assign ticket', 'close ticket', 'view all tickets', 'manage tickets',
             'create request', 'approve request',
-            'manage campaigns',
-            'manage invoices',
+            'create campaign', 'update campaign', 'delete campaign',
+            'create invoice', 'update invoice',
             'decide approvals',
-            'manage users',
+            'create user', 'update user', 'delete user',
             'manage face enrollment',
         ],
-        'developer' => [
-            'access dashboard', 'access tickets', 'access requests',
-            'access calendar', 'access search', 'access approvals', 'access kb', 'access sprints',
-            'create ticket', 'view all tickets', 'manage tickets',
-            'decide approvals',
-        ],
-        'marketing' => [
-            'access dashboard', 'access campaigns', 'access requests',
-            'access calendar', 'access search', 'access approvals',
-            'manage campaigns',
-            'decide approvals',
-        ],
-        'customer' => [
+        'client' => [
             'access dashboard', 'access tickets', 'access requests',
             'access invoices', 'access approvals', 'access projects',
             'create ticket',

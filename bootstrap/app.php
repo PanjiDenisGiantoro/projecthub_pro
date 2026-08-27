@@ -12,9 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Deploy webhook dipanggil dari CI/CD — tidak butuh CSRF token
+        // Deploy webhook dipanggil dari CI/CD, billing/notification dipanggil server-to-server oleh Midtrans — keduanya tidak butuh CSRF token
         $middleware->validateCsrfTokens(except: [
             'deploy/webhook',
+            'billing/notification',
         ]);
 
         $middleware->alias([
@@ -32,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('tasks:generate-recurring')->dailyAt('00:05');
         $schedule->command('notifications:deadline-reminders')->dailyAt('08:00');
         $schedule->command('approvals:expire')->everyFifteenMinutes();
+        $schedule->command('companies:check-expiring')->dailyAt('08:00');
+        $schedule->command('meetings:send-reminders')->everyFifteenMinutes();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

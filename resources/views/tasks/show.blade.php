@@ -85,7 +85,7 @@
                             <span class="{{ $overdue ? 'text-red-500 font-medium' : '' }}">{{ $task->due_date->format('d M Y') }}</span>
                         </div>
                         <div class="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-3 rounded-full {{ $overdue ? 'bg-red-400' : 'bg-indigo-400' }} transition-all"
+                            <div class="h-3 rounded-full {{ $overdue ? 'bg-red-400' : 'bg-blue-400' }} transition-all"
                                  style="width: {{ $timelinePct }}%"></div>
                         </div>
                         <div class="text-xs text-gray-400 mt-1 text-right">
@@ -136,7 +136,7 @@
                 </div>
                 @endif
 
-                @if($user->hasRole(['developer','admin','manager']))
+                @if($user->hasRole(['admin','member']))
                 <div class="flex gap-2 mb-4">
                     @if($runningLog)
                     <form method="POST" action="{{ route('tasks.timelog.store', $task) }}">
@@ -162,7 +162,7 @@
                         @csrf
                         <input type="hidden" name="action" value="manual">
                         <input type="number" name="minutes" min="1" placeholder="Menit..."
-                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Log Manual</button>
                     </form>
                 </div>
@@ -253,26 +253,47 @@
                 @endif
             </div>
 
+            {{-- Google Meet --}}
+            @if($task->google_meet_link || (!$user->hasRole('client') && $project->google_meet_enabled))
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Google Meet</h4>
+                @if($task->google_meet_link)
+                    <a href="{{ $task->google_meet_link }}" target="_blank" rel="noopener"
+                       class="inline-block px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                        Join Meeting
+                    </a>
+                @else
+                    <form method="POST" action="{{ route('tasks.meeting.create', [$project, $task]) }}">
+                        @csrf
+                        <button type="submit" class="px-3 py-1.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50">
+                            Buat Meeting
+                        </button>
+                    </form>
+                @endif
+            </div>
+            @endif
+
             {{-- Update Status --}}
-            @if(!$user->hasRole('customer'))
+            @if(!$user->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
-                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3">
+                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3"
+                      x-data="{ status: '{{ old('status', $task->status) }}' }">
                     @csrf @method('PUT')
-                    <select name="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="status" x-model="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
                             <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
                         @endforeach
                     </select>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">
-                            Deskripsi Penyelesaian <span class="text-red-500">*</span>
+                            Deskripsi Penyelesaian <span class="text-red-500" x-show="status === 'done'">*</span>
                         </label>
-                        <textarea name="completion_notes" rows="4" required
+                        <textarea name="completion_notes" rows="4" :required="status === 'done'"
                                   placeholder="Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting..."
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
                     </div>
-                    <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
                         Simpan Status
                     </button>
                 </form>
@@ -280,18 +301,18 @@
             @endif
 
             {{-- Re-assign --}}
-            @if($user->hasRole(['admin','manager']) && $task->status !== 'done')
+            @if($user->hasRole(['admin','member']) && $task->status !== 'done')
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Re-assign</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">— Tidak ada —</option>
-                        @foreach(\App\Models\User::role('developer')->get() as $dev)
+                        @foreach(\App\Models\User::role('member')->get() as $dev)
                             <option value="{{ $dev->id }}" {{ $task->assigned_to === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
                 </form>
             </div>
             @endif

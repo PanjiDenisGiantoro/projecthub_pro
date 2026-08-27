@@ -7,9 +7,9 @@
     <form method="GET" action="{{ route('search.index') }}" class="mb-6">
         <div class="flex gap-3">
             <input type="text" name="q" value="{{ $query }}" autofocus placeholder="Cari task, proyek, ticket, artikel..."
-                   class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                   class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit"
-                    class="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors">
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors">
                 Cari
             </button>
         </div>
@@ -36,7 +36,7 @@
         </h3>
         <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
             @foreach($results['tasks'] as $task)
-            <a href="{{ route('tasks.index', $task->project_id) }}"
+            <a href="{{ route('tasks.show', [$task->project_id, $task]) }}"
                class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800">{{ $task->title }}</p>
@@ -70,7 +70,7 @@
                class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800">{{ $proj->name }}</p>
-                    <p class="text-xs text-gray-400 mt-0.5">Manager: {{ $proj->manager?->name }} · {{ $proj->status }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Lead Project: {{ $proj->manager?->name }} · {{ $proj->status }}</p>
                 </div>
             </a>
             @endforeach

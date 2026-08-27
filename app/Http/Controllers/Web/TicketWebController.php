@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\BugTicket;
 use App\Models\Project;
@@ -9,29 +10,43 @@ use App\Models\TicketAttachment;
 use App\Models\TicketHistory;
 use App\Models\TicketLink;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use App\Services\SlaService;
+use App\Services\TeamNotifier;
 use Illuminate\Http\Request;
 
 class TicketWebController extends Controller
 {
-    public function __construct(private SlaService $sla, private NotificationService $notifier) {}
+    use HasPerPage;
+
+    public function __construct(private SlaService $sla, private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
 
     public function allTickets(Request $request)
     {
+        $authUser  = auth()->user();
+        $companyId = $authUser->company_id;
+
+        $companyScope = function ($q) use ($authUser, $companyId) {
+            if (! $authUser->is_super_admin && $companyId) {
+                $q->whereHas('project', fn($p) => $p->where('company_id', $companyId));
+            }
+        };
+
         $query = BugTicket::with(['project', 'reporter', 'assignee'])
+            ->tap($companyScope)
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
 
-        if (auth()->user()->hasRole('customer')) {
-            $query->where('reporter_id', auth()->id());
+        if ($authUser->hasRole('client')) {
+            $query->where('reporter_id', $authUser->id);
         }
 
-        $tickets   = $query->latest()->paginate(20);
+        $tickets   = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $slaReport = [
-            'total'    => BugTicket::count(),
-            'breached' => BugTicket::where('sla_breached', true)->count(),
-            'open'     => BugTicket::whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
+            'total'    => BugTicket::tap($companyScope)->count(),
+            'breached' => BugTicket::tap($companyScope)->where('sla_breached', true)->count(),
+            'open'     => BugTicket::tap($companyScope)->whereIn('status', ['open', 'assigned', 'in_progress'])->count(),
         ];
         $project = null;
         return view('tickets.index', compact('project', 'tickets', 'slaReport'));
@@ -43,11 +58,11 @@ class TicketWebController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
 
-        if (auth()->user()->hasRole('customer')) {
+        if (auth()->user()->hasRole('client')) {
             $query->where('reporter_id', auth()->id());
         }
 
-        $tickets    = $query->latest()->paginate(20);
+        $tickets    = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $slaReport  = [
             'total'    => $project->tickets()->count(),
             'breached' => $project->tickets()->where('sla_breached', true)->count(),
@@ -61,7 +76,7 @@ class TicketWebController extends Controller
         return view('tickets.create', compact('project'));
     }
 
-    public function store(Request $request, Project $project)
+    public function store(Request $request, Project $project, GoogleCalendarService $calendar)
     {
         $request->validate([
             'title'          => 'required|string|max:255',
@@ -97,8 +112,30 @@ class TicketWebController extends Controller
 
         $this->sla->applyPolicy($ticket);
         $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id], companyId: $project->company_id);
+        $this->teamNotifier->notify($project, '🐞 Tiket Baru', "[{$ticket->priority}] \"{$ticket->title}\" dilaporkan oleh " . auth()->user()->name . '.');
+
+        if ($project->meeting_auto_create) {
+            try {
+                $calendar->createMeetingForBugTicket($ticket, auth()->user());
+            } catch (\Throwable $e) {
+                // silent — user tetap bisa klik "Buat Meeting" manual nanti
+            }
+        }
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Tiket berhasil dibuat.');
+    }
+
+    public function createMeeting(BugTicket $ticket, GoogleCalendarService $calendar)
+    {
+        try {
+            $calendar->createMeetingForBugTicket($ticket, auth()->user());
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
+        }
+
+        return back()->with('success', 'Meeting berhasil dibuat.');
     }
 
     public function show(BugTicket $ticket)
@@ -107,14 +144,14 @@ class TicketWebController extends Controller
             'project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
             'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
         ]);
-        $developers = User::role('developer')->where('is_active', true)->get();
+        $developers = User::role('member')->where('is_active', true)->get();
         $relatableTickets = $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']);
         return view('tickets.show', compact('ticket', 'developers', 'relatableTickets'));
     }
 
     public function updateDetails(Request $request, BugTicket $ticket)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
 
         $request->validate([
             'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
@@ -143,7 +180,7 @@ class TicketWebController extends Controller
 
     public function linkTicket(Request $request, BugTicket $ticket)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
 
         $request->validate([
             'target_ticket_id' => 'required|exists:bug_tickets,id',
@@ -188,7 +225,7 @@ class TicketWebController extends Controller
 
     public function unlinkTicket(BugTicket $ticket, TicketLink $link)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
         abort_unless($link->source_ticket_id === $ticket->id, 404);
 
         $inverseMap = [
@@ -213,7 +250,7 @@ class TicketWebController extends Controller
 
     public function deleteAttachment(BugTicket $ticket, TicketAttachment $attachment)
     {
-        abort_unless(auth()->user()->hasRole(['admin', 'manager', 'developer']), 403);
+        abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
         abort_unless($attachment->ticket_id === $ticket->id, 404);
 
         \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment->file_path);

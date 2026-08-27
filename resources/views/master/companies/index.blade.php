@@ -16,8 +16,8 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / kode..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-52">
-            <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-52">
+            <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Status</option>
                 <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
                 <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
@@ -26,7 +26,7 @@
                 <a href="{{ route('companies.index') }}" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2">Reset</a>
             @endif
         </form>
-        <a href="{{ route('companies.create') }}" class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
+        <a href="{{ route('companies.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Perusahaan
         </a>
@@ -51,8 +51,8 @@
                 $color = $palette[$company->id % count($palette)];
                 $colorMap = [
                     'blue'    => ['bg' => 'bg-blue-500',   'light' => 'bg-blue-50',   'text' => 'text-blue-700',   'border' => 'border-blue-200'],
-                    'indigo'  => ['bg' => 'bg-indigo-500', 'light' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200'],
-                    'violet'  => ['bg' => 'bg-violet-500', 'light' => 'bg-violet-50', 'text' => 'text-violet-700', 'border' => 'border-violet-200'],
+                    'indigo'  => ['bg' => 'bg-blue-500', 'light' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200'],
+                    'violet'  => ['bg' => 'bg-blue-500', 'light' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-200'],
                     'emerald' => ['bg' => 'bg-emerald-500','light' => 'bg-emerald-50','text' => 'text-emerald-700','border' => 'border-emerald-200'],
                     'rose'    => ['bg' => 'bg-rose-500',   'light' => 'bg-rose-50',   'text' => 'text-rose-700',   'border' => 'border-rose-200'],
                     'amber'   => ['bg' => 'bg-amber-500',  'light' => 'bg-amber-50',  'text' => 'text-amber-700',  'border' => 'border-amber-200'],
@@ -67,10 +67,15 @@
 
                 <div class="p-5">
                     <div class="flex items-start gap-4 mb-4">
-                        {{-- Avatar --}}
-                        <div class="w-11 h-11 rounded-xl {{ $c['light'] }} {{ $c['text'] }} flex items-center justify-center font-bold text-base flex-shrink-0">
-                            {{ strtoupper(substr($company->name, 0, 2)) }}
-                        </div>
+                        {{-- Logo / Avatar --}}
+                        @if($company->logo)
+                            <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}"
+                                 class="w-11 h-11 rounded-xl object-cover border border-gray-200 flex-shrink-0">
+                        @else
+                            <div class="w-11 h-11 rounded-xl {{ $c['light'] }} {{ $c['text'] }} flex items-center justify-center font-bold text-base flex-shrink-0">
+                                {{ strtoupper(substr($company->name, 0, 2)) }}
+                            </div>
+                        @endif
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
@@ -92,12 +97,12 @@
                     {{-- Stats --}}
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-xl font-bold text-gray-800">{{ $company->divisions_count }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">Divisi</div>
+                            <div class="text-xl font-bold text-gray-800">{{ $company->root_organization_units_count }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">Unit Level 1</div>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-xl font-bold text-gray-800">{{ $company->departments_count }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">Departemen</div>
+                            <div class="text-xl font-bold text-gray-800">{{ $company->organization_units_count }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">Total Unit</div>
                         </div>
                     </div>
 
@@ -119,9 +124,9 @@
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
-                        <a href="{{ route('divisions.index', ['company_id' => $company->id]) }}"
-                           class="text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors">
-                            Lihat Divisi →
+                        <a href="{{ route('organization-units.index', ['company_id' => $company->id]) }}"
+                           class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                            Lihat Organisasi →
                         </a>
                         <div class="flex-1"></div>
                         <a href="{{ route('companies.edit', $company) }}" class="text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors">Edit</a>
@@ -136,9 +141,12 @@
             @endforeach
         </div>
 
-        @if($companies->hasPages())
-            <div class="mt-6">{{ $companies->links() }}</div>
-        @endif
+        <div class="mt-6 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            @if($companies->hasPages())
+            {{ $companies->links() }}
+            @endif
+        </div>
     @endif
 </div>
 @endsection

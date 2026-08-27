@@ -4,8 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\SlaPolicy;
 use App\Models\User;
+use App\Support\SystemRoles;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+
 // ApprovalPolicySeeder called via $this->call()
 
 class DatabaseSeeder extends Seeder
@@ -13,8 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $roles = ['admin', 'manager', 'marketing', 'developer', 'customer'];
-        foreach ($roles as $role) {
+        foreach (SystemRoles::ALL as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
@@ -25,29 +26,17 @@ class DatabaseSeeder extends Seeder
         );
         $admin->syncRoles(['admin']);
 
-        $manager = User::updateOrCreate(
-            ['email' => 'manager@projecthub.pro'],
-            ['name' => 'Manager One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+        $member = User::updateOrCreate(
+            ['email' => 'member@projecthub.pro'],
+            ['name' => 'Member One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
-        $manager->syncRoles(['manager']);
+        $member->syncRoles(['member']);
 
-        $dev = User::updateOrCreate(
-            ['email' => 'dev@projecthub.pro'],
-            ['name' => 'Developer One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
-        );
-        $dev->syncRoles(['developer']);
-
-        $marketing = User::updateOrCreate(
-            ['email' => 'marketing@projecthub.pro'],
-            ['name' => 'Marketing One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
-        );
-        $marketing->syncRoles(['marketing']);
-
-        $customer = User::updateOrCreate(
+        $client = User::updateOrCreate(
             ['email' => 'client@projecthub.pro'],
             ['name' => 'Client One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
         );
-        $customer->syncRoles(['customer']);
+        $client->syncRoles(['client']);
 
         // Default SLA policies (global)
         $slaPolicies = [
@@ -81,15 +70,16 @@ class DatabaseSeeder extends Seeder
         // Seed default structural level templates (company_id null)
         $this->call(StructuralLevelSeeder::class);
 
+        // Seed the default board-column (Kanban) template (company_id null)
+        $this->call(BoardColumnTemplateSeeder::class);
+
         $this->command->info('✅ Seeded roles, users, default SLA policies, and approval policies.');
         $this->command->table(
             ['Role', 'Email', 'Password'],
             [
-                ['admin',     'admin@projecthub.pro',     'password'],
-                ['manager',   'manager@projecthub.pro',   'password'],
-                ['developer', 'dev@projecthub.pro',       'password'],
-                ['marketing', 'marketing@projecthub.pro', 'password'],
-                ['customer',  'client@projecthub.pro',    'password'],
+                ['admin',  'admin@projecthub.pro',  'password'],
+                ['member', 'member@projecthub.pro', 'password'],
+                ['client', 'client@projecthub.pro', 'password'],
             ]
         );
     }

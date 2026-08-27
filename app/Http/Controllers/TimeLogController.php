@@ -21,7 +21,7 @@ class TimeLogController extends Controller
 
         if ($request->action === 'start') {
             // Stop any running timer first
-            TimeLog::where('user_id', $user->id)->where('is_running', true)->each->stop();
+            TimeLog::where('user_id', $user->id)->where('is_running', true)->get()->each->stop();
 
             $log = $task->timeLogs()->create([
                 'user_id' => $user->id,

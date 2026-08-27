@@ -59,8 +59,10 @@
                 ['Tunjangan Makan', $payroll->tunjangan_makan],
                 ['Tunjangan Jabatan', $payroll->tunjangan_jabatan],
                 ['Tunjangan Lainnya', $payroll->tunjangan_lainnya],
+                ['Bonus/THR', $payroll->bonus],
                 ['Lembur', $payroll->lembur],
                 ['Reimburse', $payroll->reimburse],
+                ['Tunjangan PPh 21 (Gross-Up)', $payroll->tunjangan_pph21],
             ] as [$label, $val])
             @if($val > 0)
             <tr><td>{{ $label }}</td><td class="amount">Rp {{ number_format($val, 0, ',', '.') }}</td></tr>
@@ -76,17 +78,36 @@
             @foreach([
                 ['BPJS Kesehatan (1%)', $payroll->potongan_bpjs_kes],
                 ['BPJS Ketenagakerjaan', $payroll->potongan_bpjs_tk],
-                ['PPh 21', $payroll->potongan_pph21],
+                ['PPh 21' . ($payroll->pph21_method === 'bukan_pegawai' ? ' (Bukan Pegawai)' : ''), $payroll->potongan_pph21],
                 ['Alpha (' . $payroll->hari_alpha . ' hari)', $payroll->potongan_alpha],
+                ['Cicilan Kasbon', $payroll->potongan_kasbon],
                 ['Potongan Lainnya', $payroll->potongan_lainnya],
             ] as [$label, $val])
-            @if($val > 0)
-            <tr><td>{{ $label }}</td><td class="amount">- Rp {{ number_format($val, 0, ',', '.') }}</td></tr>
+            @if($val != 0)
+            <tr><td>{{ $label }}{{ $val < 0 ? ' (kelebihan potong dikembalikan)' : '' }}</td><td class="amount" style="{{ $val < 0 ? 'color:#16a34a;' : '' }}">{{ $val < 0 ? '+' : '-' }} Rp {{ number_format(abs($val), 0, ',', '.') }}</td></tr>
             @endif
             @endforeach
-            <tr class="total-row"><td>Total Potongan</td><td class="amount">- Rp {{ number_format($payroll->total_potongan, 0, ',', '.') }}</td></tr>
+            <tr class="total-row"><td>Total Potongan</td><td class="amount" style="{{ $payroll->total_potongan < 0 ? 'color:#16a34a;' : '' }}">{{ $payroll->total_potongan < 0 ? '+' : '-' }} Rp {{ number_format(abs($payroll->total_potongan), 0, ',', '.') }}</td></tr>
         </tbody>
     </table>
+
+    @if($payroll->total_tanggungan_perusahaan > 0)
+    <p style="font-size:10px;font-weight:bold;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;margin-top:10px;">Tanggungan Perusahaan <span style="text-transform:none;font-weight:normal;">(tidak mengurangi gaji bersih)</span></p>
+    <table>
+        <tbody>
+            @foreach([
+                ['BPJS Kesehatan (4%)', $payroll->tanggungan_bpjs_kes],
+                ['BPJS Ketenagakerjaan', $payroll->tanggungan_bpjs_tk],
+                ['PPh 21 (Net)', $payroll->tanggungan_pph21],
+            ] as [$label, $val])
+            @if($val > 0)
+            <tr><td>{{ $label }}</td><td class="amount">Rp {{ number_format($val, 0, ',', '.') }}</td></tr>
+            @endif
+            @endforeach
+            <tr class="total-row"><td>Total Tanggungan Perusahaan</td><td class="amount">Rp {{ number_format($payroll->total_tanggungan_perusahaan, 0, ',', '.') }}</td></tr>
+        </tbody>
+    </table>
+    @endif
 
     <div class="net-pay">
         <span class="label">Gaji Bersih</span>

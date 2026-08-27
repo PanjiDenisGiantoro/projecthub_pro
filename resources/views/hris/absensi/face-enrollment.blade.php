@@ -105,7 +105,7 @@
                         <button type="button"
                                 @click="openEnroll({{ $emp->id }}, '{{ addslashes($emp->name) }}')"
                                 class="text-xs px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-all"
-                                style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
+                                style="background:var(--hris-gradient);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
                             Daftarkan Wajah
                         </button>
                     @endif
@@ -184,7 +184,7 @@
                     <button type="button" @click="captureEnroll()"
                             :disabled="enrollStatus !== 'ready' || captureCount >= 3"
                             class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
-                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                            style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                         <span x-text="captureCount < 3 ? 'Ambil Frame (' + captureCount + '/3)' : 'Menyimpan...'"></span>
                     </button>
                     <button type="button" @click="closeEnroll()"

@@ -15,6 +15,10 @@
     <div class="bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl px-4 py-3">{{ session('error') }}</div>
     @endif
 
+    @foreach($tenureBlocked as $message)
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-4 py-3">{{ $message }}</div>
+    @endforeach
+
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <form action="{{ route('hris.leave.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5"
               x-data="{ submitting: false }"
@@ -23,7 +27,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Cuti *</label>
-                <select name="leave_type_id" required class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                <select name="leave_type_id" required class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <option value="">Pilih jenis cuti...</option>
                     @foreach($leaveTypes as $type)
                     <option value="{{ $type->id }}" @selected(old('leave_type_id') == $type->id)>
@@ -39,32 +43,32 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai *</label>
                     <input type="date" name="start_date" value="{{ old('start_date') }}" required
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Akhir *</label>
                     <input type="date" name="end_date" value="{{ old('end_date') }}" required
-                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                           class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Alasan *</label>
                 <textarea name="reason" rows="3" required placeholder="Masukkan alasan cuti..."
-                          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none resize-none">{{ old('reason') }}</textarea>
+                          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none">{{ old('reason') }}</textarea>
                 @error('reason')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Lampiran <span class="text-gray-400">(opsional)</span></label>
                 <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"
-                       class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-violet-50 file:text-violet-700 file:font-medium">
+                       class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium">
             </div>
 
             <div class="flex gap-3 pt-2">
                 <button type="submit" :disabled="submitting"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                        style="background:var(--hris-gradient)">
                     <span x-show="!submitting">Kirim Pengajuan</span>
                     <span x-show="submitting" x-cloak>Mengirim...</span>
                 </button>

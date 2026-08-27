@@ -5,7 +5,8 @@
             <p class="text-xs text-gray-500 mt-0.5">Multiplier upah lembur per tipe hari — Permenaker No.5/2023</p>
         </div>
         <div class="flex gap-2">
-            <form action="{{ route('hris.master.overtime-rules.reset') }}" method="POST" onsubmit="return confirm('Reset ke default Permenaker No.5/2023?')">
+            <form action="{{ route('hris.master.overtime-rules.reset') }}" method="POST"
+                  data-confirm-submit="Reset ke default Permenaker No.5/2023?" data-confirm-text="Semua perubahan manual pada multiplier lembur akan tertimpa." data-confirm-btn="Ya, Reset">
                 @csrf
                 <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50">Reset Default</button>
             </form>
@@ -39,7 +40,7 @@
                 <td class="px-4 py-3 text-center text-gray-600">
                     {{ $rule->hour_from }}{{ $rule->hour_to > 0 ? ' — ' . $rule->hour_to : ' dst' }}
                 </td>
-                <td class="px-4 py-3 text-center font-bold text-violet-700">{{ $rule->multiplier }}×</td>
+                <td class="px-4 py-3 text-center font-bold text-blue-700">{{ $rule->multiplier }}×</td>
                 <td class="px-4 py-3 text-gray-500 text-xs">{{ $rule->label }}</td>
                 <td class="px-4 py-3 text-center">
                     <form action="{{ route('hris.master.overtime-rules.toggle', $rule) }}" method="POST" class="inline">

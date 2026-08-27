@@ -2,22 +2,21 @@
 
 namespace Database\Seeders;
 
-use App\Models\Branch;
 use App\Models\BudgetEntry;
 use App\Models\BugTicket;
 use App\Models\Campaign;
 use App\Models\Company;
 use App\Models\CustomerRequest;
-use App\Models\Department;
-use App\Models\Division;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Milestone;
+use App\Models\OrganizationUnit;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\SystemRoles;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -31,27 +30,27 @@ class TestingSeeder extends Seeder
             ['name' => 'PT Testing Indonesia', 'is_active' => true]
         );
 
-        $branch = Branch::updateOrCreate(
-            ['code' => 'PUSAT', 'company_id' => $company->id],
-            ['name' => 'Kantor Pusat', 'is_active' => true]
+        $rootUnit = OrganizationUnit::firstOrCreate(
+            ['company_id' => $company->id, 'parent_id' => null, 'name' => 'Kantor Pusat'],
+            [...OrganizationUnit::nextCodeForParent(null, $company->id), 'is_active' => true]
         );
 
-        $division = Division::updateOrCreate(
-            ['code' => 'ITDEV', 'branch_id' => $branch->id],
-            ['name' => 'IT & Development', 'is_active' => true]
+        $divisionUnit = OrganizationUnit::firstOrCreate(
+            ['company_id' => $company->id, 'parent_id' => $rootUnit->id, 'name' => 'IT & Development'],
+            [...OrganizationUnit::nextCodeForParent($rootUnit->id, $company->id), 'is_active' => true]
         );
 
-        $department = Department::updateOrCreate(
-            ['code' => 'ENG', 'division_id' => $division->id],
-            ['name' => 'Engineering', 'is_active' => true]
+        $department = OrganizationUnit::firstOrCreate(
+            ['company_id' => $company->id, 'parent_id' => $divisionUnit->id, 'name' => 'Engineering'],
+            [...OrganizationUnit::nextCodeForParent($divisionUnit->id, $company->id), 'is_active' => true]
         );
 
-        $levelStaff   = StructuralLevel::firstOrCreate(['name' => 'Staff'],   ['level' => 3]);
-        $levelManager = StructuralLevel::firstOrCreate(['name' => 'Manager'], ['level' => 2]);
-        $levelAdmin   = StructuralLevel::firstOrCreate(['name' => 'Admin'],   ['level' => 1]);
+        $levelStaff   = StructuralLevel::firstOrCreate(['name' => 'Staff'],   ['sort_order' => 3]);
+        $levelManager = StructuralLevel::firstOrCreate(['name' => 'Manager'], ['sort_order' => 2]);
+        $levelAdmin   = StructuralLevel::firstOrCreate(['name' => 'Admin'],   ['sort_order' => 1]);
 
         // ── 2. Roles ──────────────────────────────────────────────────────────
-        foreach (['admin', 'manager', 'developer', 'marketing', 'customer'] as $r) {
+        foreach (SystemRoles::ALL as $r) {
             Role::firstOrCreate(['name' => $r, 'guard_name' => 'web']);
         }
 
@@ -63,7 +62,7 @@ class TestingSeeder extends Seeder
                 'password'             => 'password',
                 'is_active'            => true,
                 'timezone'             => 'Asia/Jakarta',
-                'department_id'        => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id'  => $levelAdmin->id,
             ]
         );
@@ -76,11 +75,11 @@ class TestingSeeder extends Seeder
                 'password'            => 'password',
                 'is_active'           => true,
                 'timezone'            => 'Asia/Jakarta',
-                'department_id'       => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id' => $levelManager->id,
             ]
         );
-        $manager->syncRoles(['manager']);
+        $manager->syncRoles(['member']);
 
         $dev = User::updateOrCreate(
             ['email' => 'dev@projecthub.pro'],
@@ -89,11 +88,11 @@ class TestingSeeder extends Seeder
                 'password'            => 'password',
                 'is_active'           => true,
                 'timezone'            => 'Asia/Jakarta',
-                'department_id'       => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id' => $levelStaff->id,
             ]
         );
-        $dev->syncRoles(['developer']);
+        $dev->syncRoles(['member']);
 
         $customer = User::updateOrCreate(
             ['email' => 'client@projecthub.pro'],
@@ -102,11 +101,11 @@ class TestingSeeder extends Seeder
                 'password'            => 'password',
                 'is_active'           => true,
                 'timezone'            => 'Asia/Jakarta',
-                'department_id'       => $department->id,
+                'organization_unit_id' => $department->id,
                 'structural_level_id' => $levelStaff->id,
             ]
         );
-        $customer->syncRoles(['customer']);
+        $customer->syncRoles(['client']);
 
         // ── 4. Projects ───────────────────────────────────────────────────────
         $project1 = Project::updateOrCreate(
@@ -182,7 +181,7 @@ class TestingSeeder extends Seeder
             ['project_id' => $project1->id, 'milestone_id' => $m2->id, 'title' => 'Integrasi CMS',                  'status' => 'todo',        'priority' => 'medium', 'assigned_to' => $dev->id,     'due_date' => now()->addDays(20)],
             ['project_id' => $project1->id, 'milestone_id' => null,    'title' => 'Testing & QA Website',           'status' => 'todo',        'priority' => 'low',    'assigned_to' => $manager->id, 'due_date' => now()->addDays(55)],
             // Project 2
-            ['project_id' => $project2->id, 'milestone_id' => $m3->id, 'title' => 'Setup Laravel backend',          'status' => 'in_progress', 'priority' => 'critical', 'assigned_to' => $dev->id,   'due_date' => now()->addDays(7)],
+            ['project_id' => $project2->id, 'milestone_id' => $m3->id, 'title' => 'Setup Laravel backend',          'status' => 'in_progress', 'priority' => 'urgent', 'assigned_to' => $dev->id,   'due_date' => now()->addDays(7)],
             ['project_id' => $project2->id, 'milestone_id' => $m3->id, 'title' => 'Buat endpoint authentication',   'status' => 'todo',        'priority' => 'high',     'assigned_to' => $dev->id,   'due_date' => now()->addDays(14)],
             ['project_id' => $project2->id, 'milestone_id' => null,    'title' => 'Design UI Mobile (Figma)',        'status' => 'done',        'priority' => 'medium',   'assigned_to' => $dev->id,   'due_date' => now()->subDays(3)],
             ['project_id' => $project2->id, 'milestone_id' => null,    'title' => 'Setup CI/CD Pipeline',           'status' => 'todo',        'priority' => 'low',      'assigned_to' => $admin->id, 'due_date' => now()->addDays(30)],
@@ -282,10 +281,10 @@ class TestingSeeder extends Seeder
         $this->command->table(
             ['Role', 'Email', 'Password', 'Akses'],
             [
-                ['admin',     'admin@projecthub.pro',   'password', '/dashboard → semua menu'],
-                ['manager',   'manager@projecthub.pro', 'password', '/dashboard → project, task, ticket, invoice'],
-                ['developer', 'dev@projecthub.pro',     'password', '/dashboard → task, ticket, sprint, KB'],
-                ['customer',  'client@projecthub.pro',  'password', '/dashboard → ticket, request, invoice'],
+                ['admin',  'admin@projecthub.pro',   'password', '/dashboard → semua menu'],
+                ['member', 'manager@projecthub.pro', 'password', '/dashboard → project, task, ticket, campaign'],
+                ['member', 'dev@projecthub.pro',     'password', '/dashboard → project, task, ticket, campaign'],
+                ['client', 'client@projecthub.pro',  'password', '/dashboard → ticket, request, invoice'],
             ]
         );
         $this->command->info('');

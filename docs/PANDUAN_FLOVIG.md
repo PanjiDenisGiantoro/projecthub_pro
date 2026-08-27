@@ -17,15 +17,15 @@ sedang dipilih.
 
 ## 2. Role & Permission
 
-Role tersedia: **admin, manager, developer, marketing, customer**.
+Role tersedia: **admin, member, client**.
 
 - **admin** — otomatis punya semua permission (bypass lewat `Gate::before`),
   akses penuh ke semua fitur termasuk Master Data dan Manajemen Permission.
-- **manager** — akses luas ke Proyek, Tiket, Approval, HRIS (kelola absensi,
-  pendaftaran wajah), kelola user.
-- **developer / marketing** — akses ke fitur operasional harian sesuai
-  fungsinya (developer: tiket & sprint; marketing: campaign).
-- **customer** — akses terbatas: cuma lihat proyek miliknya sendiri (lewat
+- **member** — role gabungan untuk seluruh tim internal (dulu terpisah jadi
+  manager/developer/marketing) — akses ke Proyek, Tiket, Approval, Campaign,
+  Sprint, HRIS (kelola absensi, pendaftaran wajah), kelola user, sesuai
+  permission yang di-assign lewat Permission Management.
+- **client** — akses terbatas: cuma lihat proyek miliknya sendiri (lewat
   relasi `client_id`), bisa chat di proyek itu, buat ticket/request, lihat
   invoice miliknya.
 
@@ -41,27 +41,27 @@ Menu ini muncul saat modul aktif = `task_management`.
 
 | Menu | Fungsi |
 |---|---|
-| **Proyek** | Kelola proyek: buat proyek, tambah anggota tim, kelola task/milestone/sprint, budget, risiko, file, timesheet. Customer cuma lihat proyek yang `client_id`-nya dia. |
-| **Bug Tickets** | Laporan bug/masalah teknis dari customer atau internal, bisa di-assign ke developer, ada status open/resolved. |
+| **Proyek** | Kelola proyek: buat proyek, tambah anggota tim, kelola task/milestone/sprint, budget, risiko, file, timesheet. Client cuma lihat proyek yang `client_id`-nya dia. |
+| **Bug Tickets** | Laporan bug/masalah teknis dari client atau internal, bisa di-assign ke member, ada status open/resolved. |
 | **Approvals** | Pusat persetujuan lintas modul (request, cuti, lembur, reimburse, dll) — approver ditentukan berdasarkan **Approval Policy** yang dikonfigurasi admin. |
 | **Chat** | Satu halaman, 3 tab: **Proyek** (chat per proyek, anggotanya = anggota proyek), **Pesan** (chat 1-ke-1 antar siapa saja di company yang sama), **Forum** (grup chat, dibuat siapa saja lalu undang anggota). |
-| **Customer Requests** | Permintaan dari customer (di luar bug ticket), perlu approve/reject. |
+| **Customer Requests** | Permintaan dari client (di luar bug ticket), perlu approve/reject. |
 | **Campaigns** | Kelola campaign marketing & leads. |
-| **Invoice** | Buat, kirim, dan tandai lunas invoice ke customer. |
+| **Invoice** | Buat, kirim, dan tandai lunas invoice ke client. |
 | **Kalender** | Jadwal/deadline lintas proyek. |
 | **Templates** | Template proyek siap pakai (buat proyek baru dari template). |
 | **Workload** | Lihat beban kerja tiap anggota tim (jumlah task aktif). |
 | **Analytics** | Statistik & laporan proyek/tim. |
 | **Anggota Tim** (Users) | Kelola daftar user internal. |
-| **Clients** | Kelola daftar customer (admin & manager). |
+| **Clients** | Kelola daftar client (admin & member, sesuai permission `access clients`). |
 
 ### Alur bikin proyek baru
-1. Proyek → **Buat Proyek** → isi nama, deskripsi, pilih client & manager,
-   tanggal mulai/selesai, budget.
+1. Proyek → **Buat Proyek** → isi nama, deskripsi, pilih client & Lead Project
+   (dari pool semua user kecuali role client), tanggal mulai/selesai, budget.
 2. Buka proyek → tambah anggota tim lewat tab anggota.
 3. Buat milestone/sprint, lalu task di dalamnya, assign ke anggota.
 4. Progress otomatis terhitung dari status task.
-5. Chat proyek otomatis tersedia untuk manager & anggota (tab **Proyek** di
+5. Chat proyek otomatis tersedia untuk member & anggota (tab **Proyek** di
    menu Chat).
 
 ## 4. Modul HRIS
@@ -78,7 +78,7 @@ Menu ini muncul saat modul aktif = `hris`.
     server, tidak ada gambar wajah yang disimpan/dikirim ke pihak luar).
     Karyawan bisa **daftarkan wajah sendiri** langsung dari halaman Absensi
     kalau belum terdaftar.
-  - Rekap kehadiran per bulan bisa dilihat sendiri; admin/manager (dengan
+  - Rekap kehadiran per bulan bisa dilihat sendiri; admin/member (dengan
     permission `manage absensi`) bisa lihat rekap semua karyawan.
 
 ### Pengajuan
@@ -96,7 +96,7 @@ Menu ini muncul saat modul aktif = `hris`.
   tidak) — permission `manage absensi` (default: **admin saja**).
 - **Pendaftaran Wajah** — halaman khusus untuk daftarkan/perbarui/hapus data
   wajah karyawan mana pun — permission `manage face enrollment` (default:
-  **admin & manager**), terpisah dari Konfigurasi Absensi supaya manager bisa
+  **admin & member**), terpisah dari Konfigurasi Absensi supaya member bisa
   bantu daftarkan wajah tanpa perlu akses pengaturan penuh.
 - **Konfigurasi HRIS** — master data HRIS: jenis cuti, aturan lembur, PTKP,
   tarif PPh21 (permission `manage hris master`).
@@ -128,4 +128,4 @@ absensi, dll) kecuali diberi tahu langsung dalam percakapan.
   pengajuan (cuti, lembur, request, dll), dikonfigurasi terpisah dari
   permission biasa.
 - **client_id** — kolom di tabel proyek yang menghubungkan proyek ke akun
-  customer pemiliknya; dipakai untuk membatasi apa yang customer bisa lihat.
+  client pemiliknya; dipakai untuk membatasi apa yang client bisa lihat.

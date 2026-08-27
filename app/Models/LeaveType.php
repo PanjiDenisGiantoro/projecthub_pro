@@ -40,7 +40,30 @@ class LeaveType extends Model
     public function isEligible(User $user): bool
     {
         if (!$this->is_active) return false;
-        if ($this->gender_restriction === 'all') return true;
-        return $this->gender_restriction === ($user->gender ?? 'all');
+        if ($this->gender_restriction !== 'all' && $this->gender_restriction !== ($user->gender ?? 'all')) return false;
+        if ($this->tenureBlockedMessage($user) !== null) return false;
+        return true;
+    }
+
+    /**
+     * Cuti Tahunan (UU Ketenagakerjaan Pasal 79) baru berhak diambil setelah 12 bulan
+     * masa kerja terus-menerus. Jenis cuti lain (sakit, melahirkan, dll) tidak digerbang
+     * masa kerja. Kalau hire_date belum diisi admin, TIDAK diblokir — data tidak ada bukan
+     * berarti karyawannya baru, jadi tidak boleh tiba-tiba menutup akses cuti yang sudah
+     * berjalan normal sebelum field ini ada.
+     */
+    public function tenureBlockedMessage(User $user): ?string
+    {
+        if ($this->code !== 'TAHUNAN' || ! $user->hire_date) {
+            return null;
+        }
+
+        $months = $user->tenureMonths();
+        if ($months >= 12) {
+            return null;
+        }
+
+        $sisa = 12 - $months;
+        return "Cuti Tahunan baru bisa diajukan setelah 12 bulan masa kerja (masa kerja Anda saat ini {$months} bulan, {$sisa} bulan lagi).";
     }
 }

@@ -20,7 +20,7 @@
             <option value="{{ $m }}" @selected($m == $month)>{{ \Carbon\Carbon::create(null, $m)->locale('id')->isoFormat('MMMM') }}</option>
             @endforeach
         </select>
-        <button type="submit" class="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-xl hover:bg-violet-700">Filter</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700">Filter</button>
     </form>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
@@ -57,7 +57,10 @@
                 @endforelse
             </tbody>
         </table>
-        <div class="p-4">{{ $rekap->withQueryString()->links() }}</div>
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $rekap->links() }}
+        </div>
     </div>
 </div>
 @endsection

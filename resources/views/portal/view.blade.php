@@ -10,7 +10,7 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
     {{-- Header --}}
     <div class="flex items-center gap-4 mb-8">
-        <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">PH</div>
+        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">PH</div>
         <div>
             <p class="text-xs text-gray-400 uppercase font-semibold">Client Portal</p>
             <h1 class="text-xl font-bold text-gray-800">{{ $project->name }}</h1>
@@ -30,7 +30,7 @@
             <p class="font-semibold text-gray-800 capitalize">{{ $project->status }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-4">
-            <p class="text-xs text-gray-400 mb-1">Manager</p>
+            <p class="text-xs text-gray-400 mb-1">Lead Project</p>
             <p class="font-semibold text-gray-800">{{ $project->manager?->name }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -50,13 +50,32 @@
         </div>
         <div class="divide-y divide-gray-100">
             @forelse($project->milestones as $ms)
-            <div class="px-5 py-3 flex items-center justify-between">
+            <div class="px-5 py-3 flex items-center justify-between gap-3">
                 <div>
                     <p class="font-medium text-gray-800">{{ $ms->title }}</p>
                     <p class="text-xs text-gray-400">{{ $ms->due_date?->format('d M Y') ?? '—' }}</p>
                 </div>
-                @php $msColor = match($ms->status){ 'completed'=>'bg-green-100 text-green-700', 'in_progress'=>'bg-blue-100 text-blue-700', default=>'bg-gray-100 text-gray-600' }; @endphp
-                <span class="text-xs px-2 py-0.5 rounded-full {{ $msColor }}">{{ ucfirst($ms->status) }}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                    @php $msColor = match($ms->status){ 'completed'=>'bg-green-100 text-green-700', 'in_progress'=>'bg-blue-100 text-blue-700', default=>'bg-gray-100 text-gray-600' }; @endphp
+                    <span class="text-xs px-2 py-0.5 rounded-full {{ $msColor }}">{{ ucfirst($ms->status) }}</span>
+
+                    @if($pt->can_approve && $ms->status === 'completed')
+                        @if($ms->isClientApproved())
+                            <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Disetujui
+                            </span>
+                        @else
+                            <form method="POST" action="{{ route('portal.milestone.approve', [$pt->token, $ms]) }}"
+                                  onsubmit="return confirm('Setujui milestone \'{{ $ms->title }}\'?')">
+                                @csrf
+                                <button type="submit" class="text-xs font-medium px-3 py-1 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors">
+                                    Setujui
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
             </div>
             @empty
             <div class="px-5 py-4 text-sm text-gray-400">Tidak ada milestone.</div>
@@ -104,8 +123,8 @@
         <form method="POST" action="{{ route('portal.comment', $pt->token) }}">
             @csrf
             <textarea name="message" rows="4" required placeholder="Tulis komentar atau feedback Anda..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 mb-3"></textarea>
-            <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim</button>
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"></textarea>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim</button>
         </form>
     </div>
     @endif

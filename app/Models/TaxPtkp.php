@@ -10,7 +10,7 @@ class TaxPtkp extends Model
     protected $table = 'tax_ptkp';
 
     protected $fillable = [
-        'status_code', 'label', 'amount', 'description', 'is_active', 'sort_order',
+        'status_code', 'label', 'amount', 'description', 'is_active', 'sort_order', 'ter_category',
     ];
 
     protected $casts = [
@@ -35,8 +35,21 @@ class TaxPtkp extends Model
                      ->toArray();
     }
 
+    /** Kategori TER (A/B/C) untuk status PTKP tertentu — dipakai perhitungan PPh 21 metode TER. */
+    public static function getTerCategory(string $statusCode): ?string
+    {
+        return Cache::remember("tax_ptkp_ter_category_{$statusCode}", 3600, fn() =>
+            static::where('status_code', $statusCode)
+                  ->where('is_active', true)
+                  ->value('ter_category')
+        );
+    }
+
     protected static function booted(): void
     {
-        static::saved(fn(self $m) => Cache::forget("tax_ptkp_{$m->status_code}"));
+        static::saved(function (self $m) {
+            Cache::forget("tax_ptkp_{$m->status_code}");
+            Cache::forget("tax_ptkp_ter_category_{$m->status_code}");
+        });
     }
 }

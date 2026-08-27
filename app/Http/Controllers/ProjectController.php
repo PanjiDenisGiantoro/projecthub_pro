@@ -15,11 +15,8 @@ class ProjectController extends Controller
         $query = Project::with(['client', 'manager', 'members.user'])
             ->when($request->status, fn($q) => $q->where('status', $request->status));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
-        } elseif ($user->hasRole('developer') || $user->hasRole('marketing')) {
-            $query->whereHas('members', fn($q) => $q->where('user_id', $user->id))
-                ->orWhere('manager_id', $user->id);
         }
 
         return response()->json($query->latest()->paginate(15));
@@ -103,17 +100,10 @@ class ProjectController extends Controller
     private function authorizeProjectAccess(Project $project): void
     {
         $user = auth()->user();
-        if ($user->hasRole(['admin', 'manager'])) return;
+        if ($user->hasRole(['admin', 'member'])) return;
 
-        if ($user->hasRole('customer') && $project->client_id !== $user->id) {
+        if ($user->hasRole('client') && $project->client_id !== $user->id) {
             abort(403, 'Access denied.');
-        }
-
-        if ($user->hasRole(['developer', 'marketing'])) {
-            $isMember = $project->members()->where('user_id', $user->id)->exists();
-            if (!$isMember && $project->manager_id !== $user->id) {
-                abort(403, 'Access denied.');
-            }
         }
     }
 }

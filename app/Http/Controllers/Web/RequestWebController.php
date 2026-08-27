@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerRequest;
 use App\Models\Project;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class RequestWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -19,12 +22,12 @@ class RequestWebController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('customer_id', $user->id);
         }
 
-        $requests = $query->latest()->paginate(20);
-        $projects = $user->hasRole('customer')
+        $requests = $query->latest()->paginate($this->perPage($request))->withQueryString();
+        $projects = $user->hasRole('client')
             ? Project::where('client_id', $user->id)->get()
             : Project::get(['id', 'name']);
 
@@ -50,31 +53,27 @@ class RequestWebController extends Controller
         $cr = CustomerRequest::create([
             ...$request->only('project_id', 'title', 'description', 'type', 'priority'),
             'customer_id' => auth()->id(),
-            'status'      => 'submitted',
+            'status'      => 'waiting_approval',
         ]);
 
-        $this->notifier->notifyByRole('marketing', 'new_customer_request', 'Request Customer Baru', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
+        $this->notifier->notifyByRole('member', 'request_needs_approval', 'Request Perlu Approval', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
 
         return redirect()->route('requests.show', $cr)->with('success', 'Request berhasil dikirim.');
     }
 
     public function show(CustomerRequest $request)
     {
-        abort_if(auth()->user()->hasRole('customer') && $request->customer_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $request->customer_id !== auth()->id(), 403);
 
         $request->load(['project', 'customer', 'reviewer', 'approver']);
         return view('requests.show', ['customerRequest' => $request]);
     }
 
-    public function review(Request $request, CustomerRequest $customerRequest)
-    {
-        $customerRequest->update(['status' => 'under_review', 'marketing_notes' => $request->marketing_notes, 'reviewed_by' => auth()->id()]);
-        $this->notifier->notifyByRole('manager', 'request_needs_approval', 'Request Perlu Approval', "Request siap di-approve: {$customerRequest->title}", ['request_id' => $customerRequest->id], companyId: $customerRequest->project->company_id);
-        return back()->with('success', 'Request diteruskan ke Manager.');
-    }
-
     public function approve(Request $request, CustomerRequest $customerRequest)
     {
+        if ($customerRequest->status !== 'waiting_approval') {
+            return back()->with('error', 'Request tidak sedang menunggu approval.');
+        }
         $customerRequest->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
         $this->notifier->send($customerRequest->customer_id, 'request_approved', 'Request Disetujui', "Request Anda \"{$customerRequest->title}\" disetujui.", ['request_id' => $customerRequest->id]);
         return back()->with('success', 'Request disetujui.');
@@ -82,9 +81,22 @@ class RequestWebController extends Controller
 
     public function reject(Request $request, CustomerRequest $customerRequest)
     {
+        if ($customerRequest->status !== 'waiting_approval') {
+            return back()->with('error', 'Request tidak sedang menunggu approval.');
+        }
         $request->validate(['rejection_reason' => 'required|string']);
         $customerRequest->update(['status' => 'rejected', 'rejection_reason' => $request->rejection_reason, 'approved_by' => auth()->id()]);
         $this->notifier->send($customerRequest->customer_id, 'request_rejected', 'Request Ditolak', "Request Anda \"{$customerRequest->title}\" ditolak. Alasan: {$request->rejection_reason}", ['request_id' => $customerRequest->id]);
         return back()->with('success', 'Request ditolak.');
+    }
+
+    public function complete(CustomerRequest $customerRequest)
+    {
+        if ($customerRequest->status !== 'approved') {
+            return back()->with('error', 'Request harus disetujui dulu sebelum ditandai selesai.');
+        }
+        $customerRequest->update(['status' => 'done', 'completed_by' => auth()->id(), 'completed_at' => now()]);
+        $this->notifier->send($customerRequest->customer_id, 'request_done', 'Request Selesai', "Request Anda \"{$customerRequest->title}\" sudah selesai dikerjakan.", ['request_id' => $customerRequest->id]);
+        return back()->with('success', 'Request ditandai selesai.');
     }
 }

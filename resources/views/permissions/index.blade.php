@@ -5,14 +5,15 @@
 @section('content')
 @php
     $roleColors = [
-        'manager'   => ['bg'=>'bg-violet-600',  'light'=>'bg-blue-50',  'text'=>'text-blue-700',  'border'=>'border-blue-300'],
-        'developer' => ['bg'=>'bg-violet-600','light'=>'bg-violet-50','text'=>'text-violet-700','border'=>'border-violet-300'],
-        'marketing' => ['bg'=>'bg-pink-600',  'light'=>'bg-pink-50',  'text'=>'text-pink-700',  'border'=>'border-pink-300'],
-        'customer'  => ['bg'=>'bg-teal-600',  'light'=>'bg-teal-50',  'text'=>'text-teal-700',  'border'=>'border-teal-300'],
+        'member' => ['bg'=>'bg-blue-600',  'light'=>'bg-blue-50',  'text'=>'text-blue-700',  'border'=>'border-blue-300'],
+        'client' => ['bg'=>'bg-teal-600',  'light'=>'bg-teal-50',  'text'=>'text-teal-700',  'border'=>'border-teal-300'],
     ];
 @endphp
 
-<div class="py-4" x-data="{ activeRole: '{{ $roles->first()?->name }}' }">
+@php $roleNames = $roles->pluck('name'); @endphp
+<div class="py-4"
+     x-data="{ activeRole: '{{ $roles->first()?->name }}' }"
+     x-init="if (@js($roleNames).includes(location.hash.slice(1))) activeRole = location.hash.slice(1)">
 
     {{-- Flash --}}
     @if(session('success'))
@@ -57,11 +58,11 @@
         </div>
     </div>
     @else
-    <div class="mb-6 bg-violet-50 border border-violet-200 rounded-xl p-4 flex items-center gap-3">
-        <svg class="w-6 h-6 text-violet-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3">
+        <svg class="w-6 h-6 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
         <div>
-            <p class="text-sm font-semibold text-violet-800">Kustomisasi permission perusahaan Anda</p>
-            <p class="text-xs text-violet-600">Role yang belum Anda ubah otomatis memakai default global. Simpan perubahan untuk membuat aturan khusus perusahaan Anda.</p>
+            <p class="text-sm font-semibold text-blue-800">Kustomisasi permission perusahaan Anda</p>
+            <p class="text-xs text-blue-600">Role yang belum Anda ubah otomatis memakai default global. Simpan perubahan untuk membuat aturan khusus perusahaan Anda.</p>
         </div>
     </div>
     @endif
@@ -78,7 +79,7 @@
         <button @click="activeRole = '{{ $role->name }}'"
                 :class="activeRole === '{{ $role->name }}' ? '{{ $c['bg'] }} text-white shadow' : 'bg-white {{ $c['text'] }} {{ $c['border'] }} border hover:opacity-80'"
                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all">
-            {{ ucfirst($role->name) }}
+            {{ \App\Support\RoleLabel::for($role->name) }}
             <span class="text-xs font-bold opacity-80">{{ count($rolePermissions[$role->name]) }} hak</span>
             @if(($cid ?? null) && in_array($role->name, $customizedRoleNames ?? []))
                 <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-white/25">Kustom</span>
@@ -91,6 +92,14 @@
     @foreach($roles as $role)
     @php $c = $roleColors[$role->name] ?? ['bg'=>'bg-gray-500','light'=>'bg-gray-50','text'=>'text-gray-700','border'=>'border-gray-300']; @endphp
     <div x-show="activeRole === '{{ $role->name }}'" x-cloak>
+        {{-- Standalone reset form — kept outside the update <form> below so it never nests inside it --}}
+        <form id="reset-role-{{ $role->id }}" method="POST" action="{{ route('permissions.reset', $role->name) }}" class="hidden"
+              data-confirm-submit="Reset permission {{ \App\Support\RoleLabel::for($role->name) }}?"
+              data-confirm-text="Semua perubahan kustom untuk role ini akan kembali ke default."
+              data-confirm-btn="Ya, Reset">
+            @csrf
+        </form>
+
         <form method="POST" action="{{ route('permissions.update', $role->name) }}"
               x-data="{ changed: false }" @change="changed = true">
             @csrf @method('PUT')
@@ -99,13 +108,13 @@
                 {{-- Panel header --}}
                 <div class="px-5 py-4 {{ $c['light'] }} border-b {{ $c['border'] }} flex items-center justify-between">
                     <div>
-                        <h3 class="font-semibold {{ $c['text'] }}">Permission Role: {{ ucfirst($role->name) }}</h3>
+                        <h3 class="font-semibold {{ $c['text'] }}">Permission Role: {{ \App\Support\RoleLabel::for($role->name) }}</h3>
                         <p class="text-xs text-gray-500 mt-0.5">
                             {{ count($rolePermissions[$role->name]) }} dari {{ $stats['total_permissions'] }} permission aktif
                             @if(($cid ?? null))
                                 &middot;
                                 @if(in_array($role->name, $customizedRoleNames ?? []))
-                                    <span class="text-violet-600 font-medium">Kustom perusahaan Anda</span>
+                                    <span class="text-blue-600 font-medium">Kustom perusahaan Anda</span>
                                 @else
                                     <span class="text-gray-400">Memakai default global</span>
                                 @endif
@@ -113,11 +122,10 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('permissions.reset', $role->name) }}"
-                           onclick="return confirm('Reset permission {{ $role->name }} ke default?')"
-                           class="text-xs text-gray-400 hover:text-gray-600 border border-gray-300 px-3 py-1.5 rounded-lg bg-white">
+                        <button type="submit" form="reset-role-{{ $role->id }}"
+                                class="text-xs text-gray-400 hover:text-gray-600 border border-gray-300 px-3 py-1.5 rounded-lg bg-white">
                             Reset Default
-                        </a>
+                        </button>
                         <button type="submit"
                                 :class="changed ? '{{ $c['bg'] }} text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
                                 :disabled="!changed"
@@ -177,7 +185,7 @@
                             :class="changed ? '{{ $c['bg'] }} text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
                             :disabled="!changed"
                             class="text-sm font-semibold px-6 py-2 rounded-lg transition-all">
-                        Simpan Permission {{ ucfirst($role->name) }}
+                        Simpan Permission {{ \App\Support\RoleLabel::for($role->name) }}
                     </button>
                 </div>
             </div>

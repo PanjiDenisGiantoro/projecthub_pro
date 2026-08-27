@@ -10,7 +10,7 @@ class OvertimeRuleController extends Controller
 {
     public function store(Request $request)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $request->validate([
             'day_type'   => 'required|in:weekday,weekend,holiday',
             'hour_from'  => 'required|integer|min:1',
@@ -30,7 +30,7 @@ class OvertimeRuleController extends Controller
 
     public function update(Request $request, OvertimeRule $overtimeRule)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $request->validate([
             'multiplier' => 'required|numeric|min:0.5',
             'label'      => 'nullable|string|max:100',
@@ -41,21 +41,21 @@ class OvertimeRuleController extends Controller
 
     public function destroy(OvertimeRule $overtimeRule)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('delete hris master');
         $overtimeRule->delete();
         return redirect()->route('hris.master.index', ['tab' => 'overtime-rules'])->with('success', 'Aturan dihapus.');
     }
 
     public function toggle(OvertimeRule $overtimeRule)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $overtimeRule->update(['is_active' => !$overtimeRule->is_active]);
         return back()->with('success', 'Status diperbarui.');
     }
 
     public function resetDefault()
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $companyId = auth()->user()->company_id;
 
         OvertimeRule::whereNull('company_id')->get()->each(function ($r) use ($companyId) {

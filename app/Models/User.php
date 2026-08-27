@@ -30,8 +30,13 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'active_until',
         'timezone',
         'company_id',
-        'department_id',
+        'organization_unit_id',
         'structural_level_id',
+        'employment_type',
+        'employment_type_other',
+        'outsourcing_company_name',
+        'hire_date',
+        'contract_end_date',
         'face_descriptor',
         'email_verified_at',
     ];
@@ -50,12 +55,42 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'is_super_admin'    => 'boolean',
             'is_registered'     => 'boolean',
             'active_until'      => 'datetime',
+            'hire_date'         => 'date',
+            'contract_end_date' => 'date',
         ];
     }
 
     public function sendEmailVerificationNotification()
     {
         $this->notify(new QueuedVerifyEmail);
+    }
+
+    /** Masa kerja dalam bulan sejak hire_date, dasar hitung THR pro-rata & eligibilitas cuti tahunan. */
+    public function tenureMonths(): ?int
+    {
+        return $this->hire_date ? (int) $this->hire_date->diffInMonths(now()) : null;
+    }
+
+    public function contractDaysRemaining(): ?int
+    {
+        if (! $this->contract_end_date) {
+            return null;
+        }
+
+        return (int) now()->startOfDay()->diffInDays($this->contract_end_date->copy()->startOfDay(), false);
+    }
+
+    public function isContractExpired(): bool
+    {
+        return $this->contract_end_date !== null && $this->contract_end_date->isPast();
+    }
+
+    /** Perlu perhatian admin — kontrak habis dalam 30 hari atau sudah lewat. */
+    public function isContractExpiringSoon(): bool
+    {
+        $days = $this->contractDaysRemaining();
+
+        return $days !== null && $days <= 30;
     }
 
     public function packages()
@@ -114,6 +149,24 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->companyRegistrant()?->isExpired() ?? false;
     }
 
+    /** Sisa hari masa aktif company (dari registrant-nya), null kalau lifetime/belum expired-relevant. */
+    public function companyDaysRemaining(): ?int
+    {
+        $registrant = $this->companyRegistrant();
+        if (! $registrant || $registrant->isLifetime()) {
+            return null;
+        }
+
+        return now()->diffInDays($registrant->active_until, false);
+    }
+
+    /** Masa aktif company akan berakhir dalam <= $days hari (tapi belum lewat). */
+    public function isCompanyExpiringSoon(int $days = 7): bool
+    {
+        $remaining = $this->companyDaysRemaining();
+        return $remaining !== null && $remaining >= 0 && $remaining <= $days;
+    }
+
     public function scopeRegistered($query)
     {
         return $query->where('is_registered', true);
@@ -139,6 +192,11 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(ProjectMember::class);
     }
 
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_members');
+    }
+
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assigned_to');
@@ -154,9 +212,9 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->hasMany(PhNotification::class);
     }
 
-    public function department()
+    public function organizationUnit()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(OrganizationUnit::class);
     }
 
     public function structuralLevel()
@@ -164,21 +222,37 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->belongsTo(StructuralLevel::class);
     }
 
-    public function division()
-    {
-        return $this->hasOneThrough(
-            Division::class,
-            Department::class,
-            'id',
-            'id',
-            'department_id',
-            'division_id'
-        );
-    }
-
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /** Company tambahan (di luar company utama) yang boleh diakses user ini. */
+    public function additionalCompanies()
+    {
+        return $this->belongsToMany(Company::class, 'user_companies');
+    }
+
+    public function googleToken()
+    {
+        return $this->hasOne(GoogleToken::class);
+    }
+
+    /** Semua company yang boleh diakses user ini: company utama + company tambahan. */
+    public function accessibleCompanies()
+    {
+        return Company::query()
+            ->where(fn($q) => $q->where('id', $this->company_id)
+                ->orWhereIn('id', $this->additionalCompanies()->pluck('companies.id')))
+            ->orderBy('name')
+            ->get();
+    }
+
+    /** Cek apakah user ini boleh mengakses company tertentu (utama atau tambahan). */
+    public function canAccessCompany(int $companyId): bool
+    {
+        return $this->company_id === $companyId
+            || $this->additionalCompanies()->where('companies.id', $companyId)->exists();
     }
 
     /**

@@ -4,7 +4,8 @@
             <h3 class="font-semibold text-gray-900">Tarif Progresif PPh 21</h3>
             <p class="text-xs text-gray-500 mt-0.5">Pasal 17 UU HPP — PKP = Bruto - Biaya Jabatan (5%, max Rp 6 jt) - PTKP</p>
         </div>
-        <form action="{{ route('hris.master.tax-brackets.reset') }}" method="POST" onsubmit="return confirm('Reset ke tarif UU HPP?')">
+        <form action="{{ route('hris.master.tax-brackets.reset') }}" method="POST"
+              data-confirm-submit="Reset ke tarif UU HPP?" data-confirm-text="Semua perubahan manual pada tarif progresif akan tertimpa." data-confirm-btn="Ya, Reset">
             @csrf
             <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50">Reset Default</button>
         </form>
@@ -26,10 +27,10 @@
                 <td class="px-4 py-3 text-gray-700">
                     {{ $bracket->income_to ? 'Rp ' . number_format($bracket->income_to, 0, ',', '.') : '∞ Tak terbatas' }}
                 </td>
-                <td class="px-4 py-3 text-center font-bold text-lg text-violet-700">{{ ($bracket->rate * 100) }}%</td>
+                <td class="px-4 py-3 text-center font-bold text-lg text-blue-700">{{ ($bracket->rate * 100) }}%</td>
                 <td class="px-4 py-3 text-gray-500 text-xs">{{ $bracket->label }}</td>
                 <td class="px-4 py-3 text-center">
-                    <a href="{{ route('hris.master.tax-brackets.edit', $bracket) }}" class="text-xs text-violet-600 hover:underline">Edit</a>
+                    <a href="{{ route('hris.master.tax-brackets.edit', $bracket) }}" class="text-xs text-blue-600 hover:underline">Edit</a>
                 </td>
             </tr>
             @empty

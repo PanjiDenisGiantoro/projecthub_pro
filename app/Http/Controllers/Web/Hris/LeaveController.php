@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class LeaveController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private LeaveService $leaveService) {}
 
     public function index(Request $request)
@@ -18,23 +21,28 @@ class LeaveController extends Controller
 
         $requests = LeaveRequest::with(['user', 'leaveType'])
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage leave'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view leave'), fn($q) => $q->where('user_id', $user->id))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->orderByRaw("status = 'pending' desc")
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('hris.leave.index', compact('requests'));
     }
 
     public function create()
     {
-        $user       = auth()->user();
-        $leaveTypes = LeaveType::where('company_id', $user->company_id)
+        $user     = auth()->user();
+        $allTypes = LeaveType::where('company_id', $user->company_id)
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->get()
-            ->filter(fn($t) => $t->isEligible($user));
+            ->get();
 
-        return view('hris.leave.create', compact('leaveTypes'));
+        $leaveTypes    = $allTypes->filter(fn($t) => $t->isEligible($user));
+        $tenureBlocked = $allTypes->map(fn($t) => $t->tenureBlockedMessage($user))->filter()->values();
+
+        return view('hris.leave.create', compact('leaveTypes', 'tenureBlocked'));
     }
 
     public function store(Request $request)
@@ -72,7 +80,7 @@ class LeaveController extends Controller
 
     public function approve(LeaveRequest $leave)
     {
-        $this->authorize('manage leave');
+        $this->authorize('approve leave');
         abort_if($leave->status !== 'pending', 422, 'Status tidak valid.');
         $this->leaveService->approve($leave, auth()->user());
         return back()->with('success', 'Cuti disetujui.');
@@ -80,7 +88,7 @@ class LeaveController extends Controller
 
     public function reject(Request $request, LeaveRequest $leave)
     {
-        $this->authorize('manage leave');
+        $this->authorize('approve leave');
         $request->validate(['rejection_reason' => 'required|string|max:500']);
         $this->leaveService->reject($leave, auth()->user(), $request->rejection_reason);
         return back()->with('success', 'Cuti ditolak.');

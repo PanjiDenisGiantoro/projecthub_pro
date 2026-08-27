@@ -16,7 +16,7 @@
         <form method="GET" class="flex gap-2 items-center">
             <label class="text-xs text-gray-500">Periode:</label>
             <select name="period" onchange="this.form.submit()"
-                    class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+                    class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 @foreach([7=>'7 Hari',14=>'14 Hari',30=>'30 Hari',90=>'3 Bulan'] as $val=>$label)
                 <option value="{{ $val }}" {{ $period == $val ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
@@ -35,7 +35,7 @@
             ['label'=>'Aktif',         'value'=>$activeProjects,     'color'=>'text-blue-600',   'sub'=>null],
             ['label'=>'Open Ticket',   'value'=>$openTickets,        'color'=>'text-orange-600', 'sub'=>null],
             ['label'=>'SLA Breach',    'value'=>$slaBreached,        'color'=>'text-red-600',    'sub'=>null],
-            ['label'=>'Request Baru',  'value'=>$newRequests,        'color'=>'text-violet-600', 'sub'=>$period.'h'],
+            ['label'=>'Request Baru',  'value'=>$newRequests,        'color'=>'text-blue-600', 'sub'=>$period.'h'],
         ];
         @endphp
         @foreach($kpis as $k)

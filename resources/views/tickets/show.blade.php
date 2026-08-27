@@ -38,12 +38,12 @@
             {{-- Kategori Error & Solusi --}}
             <div class="bg-white rounded-xl border border-gray-200 p-6">
                 <h4 class="text-sm font-semibold text-gray-700 mb-4">Kategori Error & Solusi</h4>
-                @if($user->hasRole(['admin','manager','developer']))
+                @if($user->hasRole(['admin','member']))
                 <form method="POST" action="{{ route('tickets.details', $ticket) }}" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Error</label>
-                        <select name="error_category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <select name="error_category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">— Pilih Kategori —</option>
                             @foreach(['frontend'=>'Frontend','backend'=>'Backend','database'=>'Database','api'=>'API','infrastructure'=>'Infrastructure','integration'=>'Integrasi Pihak Ketiga','configuration'=>'Konfigurasi','other'=>'Lainnya'] as $val => $label)
                                 <option value="{{ $val }}" {{ $ticket->error_category === $val ? 'selected' : '' }}>{{ $label }}</option>
@@ -53,14 +53,14 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Solusi</label>
                         <textarea name="solution" rows="3" placeholder="Jelaskan solusi/perbaikan yang dilakukan..."
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">{{ $ticket->solution }}</textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ $ticket->solution }}</textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tambah Lampiran</label>
                         <input type="file" name="attachments[]" multiple
-                               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-violet-50 file:text-violet-700 file:text-sm">
+                               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 file:text-sm">
                     </div>
-                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">Simpan</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">Simpan</button>
                 </form>
                 @else
                     <div class="space-y-2 text-sm">
@@ -75,11 +75,12 @@
                     <div class="space-y-2">
                         @foreach($ticket->attachments as $att)
                         <div class="flex items-center justify-between gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">
-                            <a href="{{ $att->url() }}" target="_blank" class="text-violet-600 hover:underline truncate">{{ $att->file_name }}</a>
+                            <a href="{{ $att->url() }}" target="_blank" class="text-blue-600 hover:underline truncate">{{ $att->file_name }}</a>
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <span class="text-xs text-gray-400">{{ $att->uploader->name }}</span>
-                                @if($user->hasRole(['admin','manager','developer']))
-                                <form method="POST" action="{{ route('tickets.attachments.delete', [$ticket, $att]) }}" onsubmit="return confirm('Hapus lampiran ini?')">
+                                @if($user->hasRole(['admin','member']))
+                                <form method="POST" action="{{ route('tickets.attachments.delete', [$ticket, $att]) }}"
+                                      data-confirm-delete="{{ $att->file_name }}" data-confirm-label="Hapus Lampiran">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Hapus</button>
                                 </form>
@@ -93,7 +94,7 @@
             </div>
 
             {{-- Tiket Referensi --}}
-            <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <div class="hidden bg-white rounded-xl border border-gray-200 p-6">
                 <h4 class="text-sm font-semibold text-gray-700 mb-4">Tiket Referensi</h4>
 
                 @php
@@ -110,10 +111,11 @@
                     <div class="flex items-center justify-between gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">
                         <span>
                             <span class="text-gray-500">{{ $linkLabels[$link->link_type] ?? $link->link_type }}:</span>
-                            <a href="{{ route('tickets.show', $link->targetTicket) }}" class="text-violet-600 hover:underline">#{{ $link->targetTicket->id }} {{ $link->targetTicket->title }}</a>
+                            <a href="{{ route('tickets.show', $link->targetTicket) }}" class="text-blue-600 hover:underline">#{{ $link->targetTicket->id }} {{ $link->targetTicket->title }}</a>
                         </span>
-                        @if($user->hasRole(['admin','manager','developer']))
-                        <form method="POST" action="{{ route('tickets.links.delete', [$ticket, $link]) }}" onsubmit="return confirm('Hapus referensi ini?')">
+                        @if($user->hasRole(['admin','member']))
+                        <form method="POST" action="{{ route('tickets.links.delete', [$ticket, $link]) }}"
+                              data-confirm-delete="referensi ini" data-confirm-label="Hapus Referensi">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-red-500 hover:text-red-700 text-xs flex-shrink-0">Hapus</button>
                         </form>
@@ -124,7 +126,7 @@
                     <div class="flex items-center justify-between gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">
                         <span>
                             <span class="text-gray-500">{{ $linkLabels[$link->link_type] ?? $link->link_type }}:</span>
-                            <a href="{{ route('tickets.show', $link->sourceTicket) }}" class="text-violet-600 hover:underline">#{{ $link->sourceTicket->id }} {{ $link->sourceTicket->title }}</a>
+                            <a href="{{ route('tickets.show', $link->sourceTicket) }}" class="text-blue-600 hover:underline">#{{ $link->sourceTicket->id }} {{ $link->sourceTicket->title }}</a>
                         </span>
                     </div>
                     @endforeach
@@ -133,21 +135,21 @@
                 <p class="text-sm text-gray-400 mb-4">Belum ada tiket referensi.</p>
                 @endif
 
-                @if($user->hasRole(['admin','manager','developer']))
+                @if($user->hasRole(['admin','member']))
                 <form method="POST" action="{{ route('tickets.links.store', $ticket) }}" class="flex gap-2">
                     @csrf
-                    <select name="link_type" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="link_type" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach($linkLabels as $val => $label)
                             <option value="{{ $val }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    <select name="target_ticket_id" required class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="target_ticket_id" required class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">— Pilih Tiket —</option>
                         @foreach($relatableTickets as $rt)
                             <option value="{{ $rt->id }}">#{{ $rt->id }} {{ $rt->title }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-4 py-2 rounded-lg transition-colors flex-shrink-0">Tambah</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors flex-shrink-0">Tambah</button>
                 </form>
                 @endif
             </div>
@@ -196,8 +198,8 @@
                 <form method="POST" action="{{ route('tickets.comment', $ticket) }}" class="flex gap-3">
                     @csrf
                     <textarea name="body" rows="2" placeholder="Tulis komentar..." required
-                              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"></textarea>
-                    <button type="submit" class="self-end bg-violet-600 hover:bg-violet-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">Kirim</button>
+                              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                    <button type="submit" class="self-end bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">Kirim</button>
                 </form>
             </div>
 
@@ -233,48 +235,68 @@
                 @endif
             </div>
 
+            {{-- Google Meet --}}
+            @if($ticket->google_meet_link || (!$user->hasRole('client') && $ticket->project->google_meet_enabled))
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Google Meet</h4>
+                @if($ticket->google_meet_link)
+                    <a href="{{ $ticket->google_meet_link }}" target="_blank" rel="noopener"
+                       class="inline-block px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                        Join Meeting
+                    </a>
+                @else
+                    <form method="POST" action="{{ route('tickets.meeting.create', $ticket) }}">
+                        @csrf
+                        <button type="submit" class="px-3 py-1.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50">
+                            Buat Meeting
+                        </button>
+                    </form>
+                @endif
+            </div>
+            @endif
+
             {{-- Update Status --}}
-            @if($user->hasRole(['admin','manager','developer']))
+            @if($user->hasRole(['admin','member']))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
                 <form method="POST" action="{{ route('tickets.status', $ticket) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="status" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="status" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach(['open','assigned','in_progress','pending_review','resolved','closed'] as $s)
                             <option value="{{ $s }}" {{ $ticket->status === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Simpan</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Simpan</button>
                 </form>
             </div>
             @endif
 
             {{-- Assign --}}
-            @if($user->hasRole(['admin','manager']))
+            @if($user->hasRole(['admin','member']))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3">Assign Developer</h4>
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Assign User</h4>
                 <form method="POST" action="{{ route('tickets.assign', $ticket) }}" class="flex gap-2">
                     @csrf @method('PUT')
-                    <select name="assignee_id" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
-                        <option value="">— Pilih Developer —</option>
+                    <select name="assignee_id" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">— Pilih User —</option>
                         @foreach($developers as $dev)
                             <option value="{{ $dev->id }}" {{ $ticket->assignee_id === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Assign</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">Assign</button>
                 </form>
             </div>
             @endif
 
             {{-- Reopen --}}
-            @if($ticket->status === 'closed' && $user->hasRole('customer'))
+            @if($ticket->status === 'closed' && $user->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5" x-data="{open:false}">
                 <button @click="open=!open" class="w-full text-sm font-medium text-red-600 hover:text-red-800">Buka Kembali Tiket</button>
                 <div x-show="open" x-cloak class="mt-3">
                     <form method="POST" action="{{ route('tickets.reopen', $ticket) }}">
                         @csrf @method('PUT')
                         <textarea name="reason" rows="2" placeholder="Alasan reopen..." required
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 mb-2"></textarea>
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"></textarea>
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2 rounded-lg transition-colors">Reopen</button>
                     </form>
                 </div>

@@ -2,39 +2,58 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
-use App\Models\Company;
+use App\Models\OrganizationUnit;
 use App\Models\Package;
+use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
 use App\Models\User;
+use App\Support\EmploymentType;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
 class UserWebController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request)
     {
         $authUser  = auth()->user();
-        $isAdmin   = $authUser->can('manage users');
+        $canCreate = $authUser->can('create user');
+        $canUpdate = $authUser->can('update user');
+        $canDelete = $authUser->can('delete user');
+        $isAdmin   = $canCreate || $canUpdate || $canDelete;
 
-        $query = User::with(['roles', 'structuralLevel', 'department'])
-            ->where('is_super_admin', false)
-            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'customer'))
+        $baseScope = function ($q) use ($authUser, $isAdmin) {
+            $q->whereDoesntHave('roles', fn($r) => $r->where('name', 'client'));
+
+            if ($authUser->company_id) {
+                $q->where('company_id', $authUser->company_id);
+            } elseif (! $isAdmin) {
+                $q->where('id', $authUser->id);
+            }
+        };
+
+        $query = User::with(['roles', 'structuralLevel', 'organizationUnit', 'projects:id,name'])
+            ->tap($baseScope)
             ->when($request->role, fn($q) => $q->role($request->role))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"));
 
-        // Selalu scope ke company sendiri — super admin tidak masuk sini (middleware superadmin terpisah)
-        if ($authUser->company_id) {
-            $query->where('company_id', $authUser->company_id);
-        } elseif (! $isAdmin) {
-            $query->where('id', $authUser->id);
-        }
+        $users = $query->paginate($this->perPage($request))->withQueryString();
+        $roles = $isAdmin ? Role::whereNotIn('name', ['client', 'tester'])->get() : collect();
 
-        $users = $query->paginate(20);
-        $roles = $isAdmin ? Role::where('name', '!=', 'customer')->get() : collect();
+        $totalUsers    = User::tap($baseScope)->count();
+        $activeUsers   = User::tap($baseScope)->where('is_active', true)->count();
+        $inactiveUsers = User::tap($baseScope)->where('is_active', false)->count();
 
-        return view('users.index', compact('users', 'roles', 'isAdmin'));
+        return view('users.index', compact(
+            'users', 'roles', 'isAdmin', 'canCreate', 'canUpdate', 'canDelete',
+            'totalUsers', 'activeUsers', 'inactiveUsers'
+        ));
     }
 
     /**
@@ -46,45 +65,63 @@ class UserWebController extends Controller
     {
         $authUser = auth()->user();
 
-        $users = User::with(['roles', 'structuralLevel', 'department'])
+        $users = User::with(['roles', 'structuralLevel', 'organizationUnit'])
             ->whereHas('roles', fn($q) => $q->where('name', 'admin'))
             ->where('company_id', $authUser->company_id)
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"))
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('users.admin-team', compact('users'));
     }
 
     public function create()
     {
-        $roles            = Role::all();
-        $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
-        $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
-        return view('users.create', compact('roles', 'structuralLevels', 'companies'));
+        $roles             = Role::whereNotIn('name', ['tester', 'client'])->get();
+        $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
+        $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
+        $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
+        return view('users.create', compact('roles', 'structuralLevels', 'organizationUnits', 'projects'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'                => 'required|string|max:255',
-            'email'               => 'required|email|unique:users',
-            'password'            => 'required|min:8|confirmed',
-            'role'                => 'required|exists:roles,name',
-            'structural_level_id' => 'nullable|exists:structural_levels,id',
-            'department_id'       => 'nullable|exists:departments,id',
+            'name'                      => 'required|string|max:255',
+            'email'                     => 'required|email|unique:users',
+            'password'                  => 'required|min:8|confirmed',
+            'role'                      => 'required|exists:roles,name|not_in:client',
+            'structural_level_id'       => 'nullable|exists:structural_levels,id',
+            'organization_unit_id'      => 'nullable|exists:organization_units,id',
+            'employment_type'           => ['nullable', Rule::in(array_keys(EmploymentType::LABELS))],
+            'employment_type_other'     => 'nullable|string|max:100|required_if:employment_type,lainnya',
+            'outsourcing_company_name'  => 'nullable|string|max:255|required_unless:employment_type,tetap,kontrak',
+            'hire_date'                 => 'nullable|date',
+            'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
+            'project_ids'               => 'nullable|array',
+            'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
         ]);
 
         $user = User::create([
-            'name'                => $request->name,
-            'email'               => $request->email,
-            'password'            => $request->password,
-            'company_id'          => auth()->user()->company_id,
-            'is_active'           => $request->boolean('is_active', true),
-            'structural_level_id' => $request->structural_level_id,
-            'department_id'       => $request->department_id,
+            'name'                      => $request->name,
+            'email'                     => $request->email,
+            'password'                  => $request->password,
+            'company_id'                => auth()->user()->company_id,
+            'is_active'                 => $request->boolean('is_active', true),
+            'structural_level_id'       => $request->structural_level_id,
+            'organization_unit_id'      => $request->organization_unit_id,
+            'employment_type'           => $request->employment_type ?? EmploymentType::TETAP,
+            'employment_type_other'     => EmploymentType::requiresCustomLabel($request->employment_type) ? $request->employment_type_other : null,
+            'outsourcing_company_name'  => EmploymentType::requiresSourceCompany($request->employment_type) ? $request->outsourcing_company_name : null,
+            'hire_date'                 => $request->hire_date,
+            'contract_end_date'         => EmploymentType::allowsContractEndDate($request->employment_type) ? $request->contract_end_date : null,
         ]);
         $user->assignRole($request->role);
+
+        foreach ($request->input('project_ids', []) as $projectId) {
+            ProjectMember::firstOrCreate(['project_id' => $projectId, 'user_id' => $user->id]);
+        }
 
         // User baru mengikuti package yang sudah dipakai company-nya,
         // supaya tidak perlu di-assign manual satu-satu oleh super admin.
@@ -98,39 +135,67 @@ class UserWebController extends Controller
 
     public function edit(User $user)
     {
-        $roles            = Role::all();
-        $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
-        $companies        = Company::where('id', auth()->user()->company_id)->get(['id', 'name']);
+        $roles             = Role::all();
+        $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
+        $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
+        $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
+        $selectedProjectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id')->toArray();
 
-        // Pre-populate cascade dari department_id yang sudah ada
-        $preselect = ['company_id' => null, 'branch_id' => null, 'division_id' => null];
-        if ($user->department_id) {
-            $dept = $user->department()->with('division.branch')->first();
-            if ($dept) {
-                $preselect['division_id'] = $dept->division_id;
-                $preselect['branch_id']   = $dept->division?->branch_id;
-                $preselect['company_id']  = $dept->division?->branch?->company_id;
-            }
-        }
-
-        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'companies', 'preselect'));
+        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'organizationUnits', 'projects', 'selectedProjectIds'));
     }
 
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'                => 'required|string|max:255',
-            'email'               => 'required|email|unique:users,email,' . $user->id,
-            'role'                => 'required|exists:roles,name',
-            'structural_level_id' => 'nullable|exists:structural_levels,id',
-            'department_id'       => 'nullable|exists:departments,id',
+            'name'                      => 'required|string|max:255',
+            'email'                     => 'required|email|unique:users,email,' . $user->id,
+            'role'                      => 'required|exists:roles,name',
+            'structural_level_id'       => 'nullable|exists:structural_levels,id',
+            'organization_unit_id'      => 'nullable|exists:organization_units,id',
+            'employment_type'           => ['nullable', Rule::in(array_keys(EmploymentType::LABELS))],
+            'employment_type_other'     => 'nullable|string|max:100|required_if:employment_type,lainnya',
+            'outsourcing_company_name'  => 'nullable|string|max:255|required_unless:employment_type,tetap,kontrak',
+            'hire_date'                 => 'nullable|date',
+            'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
+            'project_ids'               => 'nullable|array',
+            'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
         ]);
 
-        $user->update([
-            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'department_id'),
+        $data = [
+            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id'),
             'is_active' => $request->boolean('is_active'),
-        ]);
+        ];
+
+        // Field HRIS ini tidak dikirim sama sekali kalau paket HRIS company tidak aktif
+        // (form tidak menampilkannya) — jangan timpa data yang sudah ada dengan default.
+        if ($request->has('employment_type')) {
+            $data['employment_type'] = $request->employment_type ?? EmploymentType::TETAP;
+            $data['employment_type_other'] = EmploymentType::requiresCustomLabel($request->employment_type)
+                ? $request->employment_type_other
+                : null;
+            $data['outsourcing_company_name'] = EmploymentType::requiresSourceCompany($request->employment_type)
+                ? $request->outsourcing_company_name
+                : null;
+            $data['hire_date'] = $request->hire_date;
+            $data['contract_end_date'] = EmploymentType::allowsContractEndDate($request->employment_type)
+                ? $request->contract_end_date
+                : null;
+        }
+
+        $user->update($data);
         $user->syncRoles([$request->role]);
+
+        $companyProjectIds = Project::where('company_id', auth()->user()->company_id)->pluck('id');
+        $selectedProjectIds = $request->input('project_ids', []);
+
+        ProjectMember::where('user_id', $user->id)
+            ->whereIn('project_id', $companyProjectIds)
+            ->whereNotIn('project_id', $selectedProjectIds)
+            ->delete();
+
+        foreach ($selectedProjectIds as $projectId) {
+            ProjectMember::firstOrCreate(['project_id' => $projectId, 'user_id' => $user->id]);
+        }
 
         return redirect()->route('users.index')->with('success', 'User diperbarui.');
     }

@@ -18,10 +18,11 @@
             ['overtime-rules', 'Aturan Lembur'],
             ['tax-ptkp',       'PTKP'],
             ['tax-brackets',   'Tarif PPh 21'],
+            ['tax-ter',        'Tarif TER'],
         ] as [$key, $label])
         <button @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
-                    ? 'border-b-2 border-violet-600 text-violet-700 font-semibold'
+                    ? 'border-b-2 border-blue-600 text-blue-700 font-semibold'
                     : 'text-gray-500 hover:text-gray-700'"
                 class="px-4 py-2.5 text-sm transition-colors whitespace-nowrap">
             {{ $label }}
@@ -47,6 +48,11 @@
     {{-- Tab: Tarif PPh 21 --}}
     <div x-show="tab === 'tax-brackets'" x-cloak>
         @include('hris.master._tax-brackets', ['taxBrackets' => $taxBrackets])
+    </div>
+
+    {{-- Tab: Tarif TER --}}
+    <div x-show="tab === 'tax-ter'" x-cloak>
+        @include('hris.master._tax-ter', ['terRates' => $terRates])
     </div>
 
 </div>

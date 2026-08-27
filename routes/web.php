@@ -1,82 +1,108 @@
 <?php
 
-use App\Http\Controllers\Web\AnalyticsWebController;
-use App\Http\Controllers\Web\ChatWebController;
-use App\Http\Controllers\Web\DirectMessageWebController;
-use App\Http\Controllers\Web\ForumWebController;
+use App\Http\Controllers\DeployWebhookController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\Web\ActivityLogWebController;
 use App\Http\Controllers\Web\AiAssistantWebController;
+use App\Http\Controllers\Web\AjaxController;
+use App\Http\Controllers\Web\AnalyticsWebController;
 use App\Http\Controllers\Web\ApprovalWebController;
-use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
-use App\Http\Controllers\Web\RegisterWebController;
-use App\Http\Controllers\Web\VerificationController;
-use App\Http\Controllers\Web\BranchWebController;
+use App\Http\Controllers\Web\BillingWebController;
+use App\Http\Controllers\Web\BoardColumnTemplateWebController;
+use App\Http\Controllers\Web\BoardColumnWebController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
 use App\Http\Controllers\Web\CampaignWebController;
+use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\ClientPortalWebController;
 use App\Http\Controllers\Web\ClientWebController;
 use App\Http\Controllers\Web\CompanyWebController;
 use App\Http\Controllers\Web\DashboardWebController;
-use App\Http\Controllers\Web\DepartmentWebController;
-use App\Http\Controllers\Web\DivisionWebController;
+use App\Http\Controllers\Web\DirectMessageWebController;
 use App\Http\Controllers\Web\ExportWebController;
-use App\Http\Controllers\Web\InvoiceWebController;
-use App\Http\Controllers\Web\KbArticleWebController;
-use App\Http\Controllers\Web\MasterDataWebController;
-use App\Http\Controllers\Web\MilestoneWebController;
-use App\Http\Controllers\Web\ProjectFileWebController;
-use App\Http\Controllers\Web\ProjectTemplateWebController;
-use App\Http\Controllers\Web\ProjectWebController;
-use App\Http\Controllers\Web\RecurringTaskWebController;
-use App\Http\Controllers\Web\RequestWebController;
-use App\Http\Controllers\Web\RiskWebController;
-use App\Http\Controllers\Web\SearchWebController;
-use App\Http\Controllers\Web\SprintWebController;
-use App\Http\Controllers\Web\TaskWebController;
-use App\Http\Controllers\Web\TicketWebController;
-use App\Http\Controllers\Web\AjaxController;
-use App\Http\Controllers\Web\RoleWebController;
-use App\Http\Controllers\Web\StructuralLevelWebController;
-use App\Http\Controllers\Web\UserWebController;
-use App\Http\Controllers\Web\ProfileWebController;
+use App\Http\Controllers\Web\ForumWebController;
+use App\Http\Controllers\Web\GithubWebController;
+use App\Http\Controllers\Web\GoogleCalendarController;
 use App\Http\Controllers\Web\Hris\AbsensiController;
-use App\Http\Controllers\Web\Hris\LeaveController;
-use App\Http\Controllers\Web\Hris\OvertimeController;
-use App\Http\Controllers\Web\Hris\ReimbursementController;
+use App\Http\Controllers\Web\Hris\BonusController;
 use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
-use App\Http\Controllers\Web\Hris\PayrollController;
+use App\Http\Controllers\Web\Hris\KasbonController;
+use App\Http\Controllers\Web\Hris\LeaveController;
 use App\Http\Controllers\Web\Hris\Master\HrisMasterController;
 use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
 use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
-use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
 use App\Http\Controllers\Web\Hris\Master\TaxBracketController;
-use App\Http\Controllers\DeployWebhookController;
-use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
+use App\Http\Controllers\Web\Hris\Master\TaxTerRateController;
+use App\Http\Controllers\Web\Hris\OvertimeController;
+use App\Http\Controllers\Web\Hris\PayrollController;
+use App\Http\Controllers\Web\Hris\PayrollSettingController;
+use App\Http\Controllers\Web\Hris\ReimbursementController;
+use App\Http\Controllers\Web\InvoiceWebController;
+use App\Http\Controllers\Web\KbArticleWebController;
+use App\Http\Controllers\Web\MasterDataWebController;
+use App\Http\Controllers\Web\MeetingWebController;
+use App\Http\Controllers\Web\MilestoneWebController;
+use App\Http\Controllers\Web\OrganizationUnitWebController;
+use App\Http\Controllers\Web\PermissionWebController;
+use App\Http\Controllers\Web\ProfileWebController;
+use App\Http\Controllers\Web\ProjectFileWebController;
+use App\Http\Controllers\Web\ProjectTemplateWebController;
+use App\Http\Controllers\Web\ProjectWebController;
+use App\Http\Controllers\Web\PushSubscriptionController;
+use App\Http\Controllers\Web\RecurringTaskWebController;
+use App\Http\Controllers\Web\RegisterWebController;
+use App\Http\Controllers\Web\ReportWebController;
+use App\Http\Controllers\Web\RequestWebController;
+use App\Http\Controllers\Web\RiskWebController;
+use App\Http\Controllers\Web\RoleWebController;
+use App\Http\Controllers\Web\SearchWebController;
+use App\Http\Controllers\Web\SprintWebController;
+use App\Http\Controllers\Web\StructuralLevelWebController;
+use App\Http\Controllers\Web\TaskWebController;
+use App\Http\Controllers\Web\TeamNotificationWebController;
+use App\Http\Controllers\Web\TicketWebController;
+use App\Http\Controllers\Web\UserWebController;
+use App\Http\Controllers\Web\VerificationController;
+use App\Models\Package;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // ─── Deploy Webhook (tanpa auth & CSRF, dilindungi token) ────────────────────
 Route::prefix('deploy')->name('deploy.')->group(function () {
     Route::post('/webhook', [DeployWebhookController::class, 'trigger'])->name('webhook');
-    Route::get('/log',      [DeployWebhookController::class, 'log'])->name('log');
-    Route::get('/status',   [DeployWebhookController::class, 'status'])->name('status');
+    Route::get('/log', [DeployWebhookController::class, 'log'])->name('log');
+    Route::get('/status', [DeployWebhookController::class, 'status'])->name('status');
 });
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-Route::get('/', fn() => view('landing'))->name('home');
+Route::get('/', fn () => view('landing', [
+    'pricingTiers' => Package::tiers()->active()->orderBy('sort_order')->with('features')->get(),
+]))->name('home');
 Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
+Route::get('/privacy-policy', fn () => view('legal.privacy-policy'))->name('legal.privacy');
+Route::get('/terms-of-service', fn () => view('legal.terms-of-service'))->name('legal.terms');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
+    Route::put('/users/{user}/companies', [SuperAdminController::class, 'updateUserCompanies'])->name('users.companies');
     Route::patch('/companies/{company}/toggle', [SuperAdminController::class, 'toggleCompany'])->name('companies.toggle');
     Route::delete('/companies/{company}', [SuperAdminController::class, 'destroyCompany'])->name('companies.destroy');
     Route::get('/registered-users', [SuperAdminController::class, 'registeredUsers'])->name('registered-users');
     Route::post('/registered-users', [SuperAdminController::class, 'storeRegisteredUser'])->name('registered-users.store');
     Route::patch('/registered-users/{user}/lifetime', [SuperAdminController::class, 'updateLifetime'])->name('registered-users.lifetime');
+
+    Route::get('/packages', [SuperAdminController::class, 'packages'])->name('packages');
+    Route::post('/packages', [SuperAdminController::class, 'storePackage'])->name('packages.store');
+    Route::put('/packages/{package}', [SuperAdminController::class, 'updatePackage'])->name('packages.update');
+    Route::patch('/packages/{package}/toggle', [SuperAdminController::class, 'togglePackage'])->name('packages.toggle');
+    Route::delete('/packages/{package}', [SuperAdminController::class, 'destroyPackage'])->name('packages.destroy');
 });
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -96,13 +122,26 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 });
 
+// ─── Perpanjangan Langganan (Midtrans) ─────────────────────────────────────────
+// Sengaja di luar middleware check.active supaya user yang masa aktifnya sudah
+// habis tetap bisa membuka halaman ini (tidak logout paksa / redirect loop).
+Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function () {
+    Route::get('/renew', [BillingWebController::class, 'renew'])->name('renew');
+    Route::get('/history', [BillingWebController::class, 'history'])->name('history');
+    Route::post('/checkout/{package}', [BillingWebController::class, 'checkout'])->name('checkout');
+    Route::get('/finish', [BillingWebController::class, 'finish'])->name('finish');
+    Route::get('/status/{order:order_number}', [BillingWebController::class, 'status'])->name('status');
+});
+Route::post('/billing/notification', [BillingWebController::class, 'notification'])->name('billing.notification');
+
 // ─── Authenticated ────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard2', [DashboardWebController::class, 'v2'])->name('dashboard.v2');
 
     // Package switcher
-    Route::post('/switch-package', function (\Illuminate\Http\Request $request) {
+    Route::post('/switch-package', function (Request $request) {
         $pkg = $request->input('package');
         $valid = ['task_management', 'hris'];
         $allowed = auth()->user()->is_super_admin ? $valid : auth()->user()->activePackages();
@@ -112,6 +151,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         if (is_string($pkg) && in_array($pkg, $allowed)) {
             $request->session()->put('active_package', $pkg);
         }
+
         return redirect()->route('dashboard');
     })->name('switch.package');
 
@@ -120,6 +160,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/profile/avatar', [ProfileWebController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
+
+    // Google Calendar (connect terpisah dari login, scope Calendar events)
+    Route::get('/google-calendar/connect', [GoogleCalendarController::class, 'connect'])->name('google-calendar.connect');
+    Route::get('/google-calendar/callback', [GoogleCalendarController::class, 'callback'])->name('google-calendar.callback');
+    Route::delete('/google-calendar/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('google-calendar.disconnect');
 
     // Projects — 'create project' (punya route literal /projects/create) harus
     // terdaftar SEBELUM 'access projects' (punya wildcard /projects/{project}),
@@ -135,6 +180,15 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('can:edit project')->group(function () {
         Route::get('/projects/{project}/edit', [ProjectWebController::class, 'edit'])->name('projects.edit');
         Route::match(['put', 'patch'], '/projects/{project}', [ProjectWebController::class, 'update'])->name('projects.update');
+
+        Route::get('/projects/{project}/board-columns', [BoardColumnWebController::class, 'index'])->name('board-columns.index');
+        Route::post('/projects/{project}/board-columns', [BoardColumnWebController::class, 'store'])->name('board-columns.store');
+        Route::put('/projects/{project}/board-columns/{column}', [BoardColumnWebController::class, 'update'])->name('board-columns.update');
+        Route::delete('/projects/{project}/board-columns/{column}', [BoardColumnWebController::class, 'destroy'])->name('board-columns.destroy');
+        Route::post('/projects/{project}/board-columns/reorder', [BoardColumnWebController::class, 'reorder'])->name('board-columns.reorder');
+    });
+    Route::middleware('can:access projects')->group(function () {
+        Route::post('/projects/{project}/meeting', [ProjectWebController::class, 'createMeeting'])->name('projects.meeting.create');
     });
     Route::middleware('can:delete project')->group(function () {
         Route::delete('/projects/{project}', [ProjectWebController::class, 'destroy'])->name('projects.destroy');
@@ -149,6 +203,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/milestones', [MilestoneWebController::class, 'store'])->name('milestones.store');
         Route::put('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'update'])->name('milestones.update');
         Route::delete('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'destroy'])->name('milestones.destroy');
+        Route::post('/projects/{project}/milestones/{milestone}/meeting', [MilestoneWebController::class, 'createMeeting'])->name('milestones.meeting.create');
 
         // Tasks
         Route::get('/projects/{project}/tasks', [TaskWebController::class, 'index'])->name('tasks.index');
@@ -157,11 +212,15 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::put('/projects/{project}/tasks/{task}', [TaskWebController::class, 'update'])->name('tasks.update');
         Route::delete('/projects/{project}/tasks/{task}', [TaskWebController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/projects/{project}/tasks/{task}/move', [TaskWebController::class, 'moveStatus'])->name('tasks.move');
+        Route::post('/projects/{project}/tasks/{task}/meeting', [TaskWebController::class, 'createMeeting'])->name('tasks.meeting.create');
     });
     // {task} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::post('/tasks/{task}/time-logs', [TaskWebController::class, 'storeTimeLog'])->name('tasks.timelog.store');
 
-    // Bug Tickets
+    // Aktivitas Kerja (list lintas proyek: Task / Sprint / Recurring / Ticket)
+    Route::get('/tasks', [TaskWebController::class, 'allTasks'])->name('tasks.all');
+    Route::get('/sprints', [SprintWebController::class, 'allSprints'])->name('sprints.all');
+    Route::get('/recurring', [RecurringTaskWebController::class, 'allRecurring'])->name('recurring.all');
     Route::get('/tickets', [TicketWebController::class, 'allTickets'])->name('tickets.all');
     Route::get('/projects/{project}/tickets', [TicketWebController::class, 'index'])->name('tickets.index');
     Route::get('/projects/{project}/tickets/create', [TicketWebController::class, 'create'])->name('tickets.create');
@@ -175,6 +234,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::delete('/tickets/{ticket}/attachments/{attachment}', [TicketWebController::class, 'deleteAttachment'])->name('tickets.attachments.delete');
     Route::post('/tickets/{ticket}/links', [TicketWebController::class, 'linkTicket'])->name('tickets.links.store');
     Route::delete('/tickets/{ticket}/links/{link}', [TicketWebController::class, 'unlinkTicket'])->name('tickets.links.delete');
+    Route::post('/tickets/{ticket}/meeting', [TicketWebController::class, 'createMeeting'])->name('tickets.meeting.create');
 
     // Approvals
     Route::get('/approvals', [ApprovalWebController::class, 'index'])->name('approvals.index');
@@ -182,29 +242,36 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/approvals/{approval}/reject', [ApprovalWebController::class, 'reject'])->name('approvals.reject');
     Route::delete('/approvals/{approval}', [ApprovalWebController::class, 'cancel'])->name('approvals.cancel');
 
-    // Role Management (admin only)
-    Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-
-    // Permission Management (admin only)
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
-        Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
-        Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+    // Role Management (permission-gated, not hardcoded to admin — admin always
+    // passes via Gate::before regardless)
+    Route::middleware('can:manage permissions')->group(function () {
+        Route::resource('roles', RoleWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     });
 
-    // Activity Log (admin only)
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/activity-log', [\App\Http\Controllers\Web\ActivityLogWebController::class, 'index'])->name('activity-log.index');
+    // Permission Management (permission-gated)
+    Route::middleware('can:manage permissions')->group(function () {
+        Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
+        Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
+        Route::post('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+    });
+
+    // Activity Log (permission-gated)
+    Route::middleware('can:manage permissions')->group(function () {
+        Route::get('/activity-log', [ActivityLogWebController::class, 'index'])->name('activity-log.index');
     });
 
     // Approval Policies
     Route::middleware('can:access approval policies')->group(function () {
         Route::get('/approval-policies', [ApprovalWebController::class, 'policies'])->name('approval-policies.index');
     });
-    Route::middleware('can:manage approval policies')->group(function () {
+    Route::middleware('can:create approval policy')->group(function () {
         Route::post('/approval-policies', [ApprovalWebController::class, 'storePolicy'])->name('approval-policies.store');
+    });
+    Route::middleware('can:update approval policy')->group(function () {
         Route::put('/approval-policies/{policy}', [ApprovalWebController::class, 'updatePolicy'])->name('approval-policies.update');
         Route::patch('/approval-policies/{policy}/toggle', [ApprovalWebController::class, 'togglePolicy'])->name('approval-policies.toggle');
+    });
+    Route::middleware('can:delete approval policy')->group(function () {
         Route::delete('/approval-policies/{policy}', [ApprovalWebController::class, 'destroyPolicy'])->name('approval-policies.destroy');
     });
 
@@ -217,29 +284,37 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::resource('requests', RequestWebController::class)->only(['index', 'show']);
     });
     Route::middleware('can:approve request')->group(function () {
-        Route::put('/requests/{request}/review', [RequestWebController::class, 'review'])->name('requests.review');
         Route::put('/requests/{request}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
         Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
+        Route::put('/requests/{request}/complete', [RequestWebController::class, 'complete'])->name('requests.complete');
     });
 
-    // Campaigns & Leads — grup 'manage' (punya route literal /create) harus terdaftar
-    // SEBELUM grup 'access' (punya wildcard /{campaign}), supaya /campaigns/create
+    // Campaigns & Leads — grup 'create'/'update' (punya route literal /create) harus
+    // terdaftar SEBELUM grup 'access' (punya wildcard /{campaign}), supaya /campaigns/create
     // tidak "ketangkep" duluan sebagai {campaign} = "create".
-    Route::middleware('can:manage campaigns')->group(function () {
-        Route::resource('campaigns', CampaignWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::middleware('can:create campaign')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['create', 'store']);
         Route::post('/campaigns/{campaign}/leads', [CampaignWebController::class, 'storeLead'])->name('campaigns.leads.store');
+    });
+    Route::middleware('can:update campaign')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['edit', 'update']);
         Route::put('/leads/{lead}', [CampaignWebController::class, 'updateLead'])->name('leads.update');
-        Route::delete('/leads/{lead}', [CampaignWebController::class, 'destroyLead'])->name('leads.destroy');
         Route::post('/campaigns/{campaign}/leads/bulk', [CampaignWebController::class, 'bulkUpdateLeads'])->name('campaigns.leads.bulk');
         Route::patch('/campaigns/{campaign}/metrics', [CampaignWebController::class, 'updateMetrics'])->name('campaigns.metrics');
+    });
+    Route::middleware('can:delete campaign')->group(function () {
+        Route::resource('campaigns', CampaignWebController::class)->only(['destroy']);
+        Route::delete('/leads/{lead}', [CampaignWebController::class, 'destroyLead'])->name('leads.destroy');
     });
     Route::middleware('can:access campaigns')->group(function () {
         Route::resource('campaigns', CampaignWebController::class)->only(['index', 'show']);
     });
 
-    // Invoices — sama alasannya, 'manage' (punya /create) duluan sebelum 'access' ({invoice}).
-    Route::middleware('can:manage invoices')->group(function () {
+    // Invoices — sama alasannya, 'create'/'update' (punya /create) duluan sebelum 'access' ({invoice}).
+    Route::middleware('can:create invoice')->group(function () {
         Route::resource('invoices', InvoiceWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:update invoice')->group(function () {
         Route::put('/invoices/{invoice}/send', [InvoiceWebController::class, 'send'])->name('invoices.send');
         Route::put('/invoices/{invoice}/mark-paid', [InvoiceWebController::class, 'markPaid'])->name('invoices.markPaid');
     });
@@ -261,10 +336,8 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // AJAX cascade dropdowns
     Route::prefix('ajax')->name('ajax.')->group(function () {
-        Route::get('/companies',  [AjaxController::class, 'companies'])->name('companies');
-        Route::get('/branches',   [AjaxController::class, 'branches'])->name('branches');
-        Route::get('/divisions',  [AjaxController::class, 'divisions'])->name('divisions');
-        Route::get('/departments',[AjaxController::class, 'departments'])->name('departments');
+        Route::get('/companies', [AjaxController::class, 'companies'])->name('companies');
+        Route::get('/organization-units', [AjaxController::class, 'organizationUnits'])->name('organization-units');
     });
 
     // User Management
@@ -272,22 +345,41 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::resource('users', UserWebController::class)->only(['index']);
         Route::get('/admin-team', [UserWebController::class, 'adminTeam'])->name('admin-team.index');
     });
-    Route::middleware('can:manage users')->group(function () {
-        Route::resource('users', UserWebController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::middleware('can:create user')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:update user')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['edit', 'update']);
+    });
+    Route::middleware('can:delete user')->group(function () {
+        Route::resource('users', UserWebController::class)->only(['destroy']);
     });
 
     // Client Management
     Route::resource('clients', ClientWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
-    // Master Data (Admin only)
-    Route::middleware('role:admin')->group(function () {
+    // Master Data
+    Route::middleware('can:access master data')->group(function () {
         Route::get('/master', [MasterDataWebController::class, 'index'])->name('master.index');
-        Route::resource('companies', CompanyWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('branches', BranchWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('divisions', DivisionWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('departments', DepartmentWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        Route::resource('companies', CompanyWebController::class)->only(['index']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['index']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['index']);
+    });
+    Route::middleware('can:create master data')->group(function () {
+        Route::resource('companies', CompanyWebController::class)->only(['create', 'store']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['create', 'store']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['create', 'store']);
+    });
+    Route::middleware('can:update master data')->group(function () {
+        Route::resource('companies', CompanyWebController::class)->only(['edit', 'update']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['edit', 'update']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['edit', 'update']);
         Route::post('structural-levels/reset', [StructuralLevelWebController::class, 'resetDefault'])->name('structural-levels.reset');
+    });
+    Route::middleware('can:delete master data')->group(function () {
+        Route::resource('companies', CompanyWebController::class)->only(['destroy']);
+        Route::resource('organization-units', OrganizationUnitWebController::class)->only(['destroy']);
+        Route::resource('structural-levels', StructuralLevelWebController::class)->only(['destroy']);
     });
 
     // Timesheet
@@ -301,21 +393,33 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/calendar/events', [CalendarWebController::class, 'events'])->name('calendar.events');
     Route::get('/calendar/upcoming', [CalendarWebController::class, 'upcoming'])->name('calendar.upcoming');
 
+    // Meetings
+    Route::get('/meetings', [MeetingWebController::class, 'index'])->name('meetings.index');
+    Route::get('/meetings/pickables', [MeetingWebController::class, 'pickables'])->name('meetings.pickables');
+    Route::post('/meetings/create', [MeetingWebController::class, 'create'])->name('meetings.create');
+
     // Global Search
     Route::get('/search', [SearchWebController::class, 'index'])->name('search.index');
 
     // Notifications
-    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
-    Route::put('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
-    Route::put('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.markRead');
 
     // Push Subscriptions
-    Route::post('/push/subscribe', [\App\Http\Controllers\Web\PushSubscriptionController::class, 'store'])->name('push.subscribe');
-    Route::delete('/push/unsubscribe', [\App\Http\Controllers\Web\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
     // Analytics
     Route::get('/analytics', [AnalyticsWebController::class, 'index'])->name('analytics.index');
+
+    // Reports
+    Route::middleware('can:access reports')->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportWebController::class, 'index'])->name('index');
+        Route::get('/{key}', [ReportWebController::class, 'show'])->name('show');
+        Route::get('/{key}/export/{format}', [ReportWebController::class, 'export'])->name('export')->whereIn('format', ['pdf', 'xlsx']);
+    });
 
     // Sprints, File Manager, Budget, Risk Register, Recurring Tasks, Client Portal
     // — hanya anggota/manager/client proyek atau admin/manager
@@ -327,11 +431,14 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'destroy'])->name('sprints.destroy');
         Route::post('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'addTask'])->name('sprints.tasks.add');
         Route::delete('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'removeTask'])->name('sprints.tasks.remove');
+        Route::post('/projects/{project}/sprints/{sprint}/meeting', [SprintWebController::class, 'createMeeting'])->name('sprints.meeting.create');
+        Route::post('/projects/{project}/sprints/{sprint}/standup', [SprintWebController::class, 'createStandup'])->name('sprints.standup.create');
 
         Route::get('/projects/{project}/files', [ProjectFileWebController::class, 'index'])->name('project.files.index');
         Route::post('/projects/{project}/files', [ProjectFileWebController::class, 'store'])->name('project.files.store');
         Route::delete('/projects/{project}/files/{projectFile}', [ProjectFileWebController::class, 'destroy'])->name('project.files.destroy');
         Route::patch('/projects/{project}/files/{projectFile}/folder', [ProjectFileWebController::class, 'moveFolder'])->name('project.files.move');
+        Route::post('/projects/{project}/files/folders', [ProjectFileWebController::class, 'storeFolder'])->name('project.files.folders.store');
 
         Route::get('/projects/{project}/budget', [BudgetWebController::class, 'index'])->name('budget.index');
         Route::post('/projects/{project}/budget', [BudgetWebController::class, 'store'])->name('budget.store');
@@ -348,10 +455,24 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/recurring', [RecurringTaskWebController::class, 'store'])->name('recurring.store');
         Route::put('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'update'])->name('recurring.update');
         Route::delete('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'destroy'])->name('recurring.destroy');
+        Route::post('/projects/{project}/recurring/{recurringTask}/generate', [RecurringTaskWebController::class, 'generateNow'])->name('recurring.generateNow');
 
         Route::get('/projects/{project}/portal', [ClientPortalWebController::class, 'index'])->name('portal.index');
         Route::post('/projects/{project}/portal', [ClientPortalWebController::class, 'store'])->name('portal.store');
         Route::delete('/projects/{project}/portal/{portalToken}', [ClientPortalWebController::class, 'destroy'])->name('portal.destroy');
+
+        Route::get('/projects/{project}/github', [GithubWebController::class, 'index'])->name('github.index');
+        Route::post('/projects/{project}/github', [GithubWebController::class, 'store'])->name('github.store');
+        Route::post('/projects/{project}/github/refresh', [GithubWebController::class, 'refresh'])->name('github.refresh');
+        Route::delete('/projects/{project}/github', [GithubWebController::class, 'destroy'])->name('github.destroy');
+        Route::get('/projects/{project}/github/files', [GithubWebController::class, 'files'])->name('github.files');
+        Route::get('/projects/{project}/github/files/edit', [GithubWebController::class, 'editFile'])->name('github.files.edit');
+        Route::put('/projects/{project}/github/files', [GithubWebController::class, 'updateFile'])->name('github.files.update');
+
+        Route::get('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'index'])->name('team-notifications.index');
+        Route::post('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'store'])->name('team-notifications.store');
+        Route::post('/projects/{project}/team-notifications/test', [TeamNotificationWebController::class, 'test'])->name('team-notifications.test');
+        Route::delete('/projects/{project}/team-notifications', [TeamNotificationWebController::class, 'destroy'])->name('team-notifications.destroy');
     });
 
     // Project Templates
@@ -362,6 +483,15 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::delete('/templates/{template}', [ProjectTemplateWebController::class, 'destroy'])->name('templates.destroy');
     Route::get('/templates/{template}/apply', [ProjectTemplateWebController::class, 'applyForm'])->name('templates.apply');
     Route::post('/templates/{template}/apply', [ProjectTemplateWebController::class, 'applyToProject'])->name('templates.apply.post');
+
+    // Board Column Templates
+    Route::get('/board-column-templates', [BoardColumnTemplateWebController::class, 'index'])->name('board-column-templates.index');
+    Route::get('/board-column-templates/create', [BoardColumnTemplateWebController::class, 'create'])->name('board-column-templates.create');
+    Route::post('/board-column-templates', [BoardColumnTemplateWebController::class, 'store'])->name('board-column-templates.store');
+    Route::get('/board-column-templates/{template}', [BoardColumnTemplateWebController::class, 'show'])->name('board-column-templates.show');
+    Route::delete('/board-column-templates/{template}', [BoardColumnTemplateWebController::class, 'destroy'])->name('board-column-templates.destroy');
+    Route::get('/board-column-templates/{template}/apply', [BoardColumnTemplateWebController::class, 'applyForm'])->name('board-column-templates.apply');
+    Route::post('/board-column-templates/{template}/apply', [BoardColumnTemplateWebController::class, 'applyToProject'])->name('board-column-templates.apply.post');
 
     // Chat
     Route::get('/chat', [ChatWebController::class, 'index'])->name('chat.index');
@@ -400,6 +530,10 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Exports
     Route::get('/projects/{project}/export/timesheet/excel', [ExportWebController::class, 'timesheetExcel'])->name('export.timesheet.excel');
     Route::get('/projects/{project}/export/timesheet/pdf', [ExportWebController::class, 'timesheetPdf'])->name('export.timesheet.pdf');
+    Route::get('/projects/{project}/export/timesheet/summary/excel', [ExportWebController::class, 'timesheetSummaryExcel'])->name('export.timesheet.summary.excel');
+    Route::get('/projects/{project}/export/timesheet/summary/pdf', [ExportWebController::class, 'timesheetSummaryPdf'])->name('export.timesheet.summary.pdf');
+    Route::get('/projects/{project}/export/timesheet/gantt/excel', [ExportWebController::class, 'ganttExcel'])->name('export.timesheet.gantt.excel');
+    Route::get('/projects/{project}/export/timesheet/gantt/pdf', [ExportWebController::class, 'ganttPdf'])->name('export.timesheet.gantt.pdf');
     Route::get('/projects/{project}/export/report/pdf', [ExportWebController::class, 'projectReportPdf'])->name('export.report.pdf');
     Route::get('/projects/{project}/export/report/excel', [ExportWebController::class, 'projectReportExcel'])->name('export.report.excel');
 
@@ -407,79 +541,107 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::prefix('hris')->name('hris.')->middleware('package:hris')->group(function () {
 
         // Absensi
-        Route::get('absensi',                            [AbsensiController::class, 'index'])->name('absensi.index');
-        Route::post('absensi/checkin',                   [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
-        Route::post('absensi/checkout',                  [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
-        Route::get('absensi/rekap',                      [AbsensiController::class, 'rekap'])->name('absensi.rekap');
-        Route::get('absensi/setting',                    [AbsensiController::class, 'setting'])->name('absensi.setting');
-        Route::post('absensi/setting',                   [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
-        Route::get('absensi/face-enrollment',             [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
-        Route::post('absensi/enroll-face/{employee}',    [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
-        Route::delete('absensi/delete-face/{employee}',  [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
+        Route::get('absensi', [AbsensiController::class, 'index'])->name('absensi.index');
+        Route::post('absensi/checkin', [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
+        Route::post('absensi/checkout', [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
+        Route::get('absensi/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi/setting', [AbsensiController::class, 'setting'])->name('absensi.setting');
+        Route::post('absensi/setting', [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
+        Route::get('absensi/face-enrollment', [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
+        Route::post('absensi/enroll-face/{employee}', [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
+        Route::delete('absensi/delete-face/{employee}', [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
 
         // Cuti & Izin
-        Route::get('leave',                        [LeaveController::class, 'index'])->name('leave.index');
-        Route::get('leave/create',                 [LeaveController::class, 'create'])->name('leave.create');
-        Route::post('leave',                       [LeaveController::class, 'store'])->name('leave.store');
-        Route::delete('leave/{leave}',             [LeaveController::class, 'destroy'])->name('leave.destroy');
-        Route::patch('leave/{leave}/approve',      [LeaveController::class, 'approve'])->name('leave.approve');
-        Route::patch('leave/{leave}/reject',       [LeaveController::class, 'reject'])->name('leave.reject');
+        Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
+        Route::get('leave/create', [LeaveController::class, 'create'])->name('leave.create');
+        Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
+        Route::delete('leave/{leave}', [LeaveController::class, 'destroy'])->name('leave.destroy');
+        Route::patch('leave/{leave}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
+        Route::patch('leave/{leave}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
 
         // Lembur
-        Route::get('overtime',                     [OvertimeController::class, 'index'])->name('overtime.index');
-        Route::get('overtime/create',              [OvertimeController::class, 'create'])->name('overtime.create');
-        Route::post('overtime',                    [OvertimeController::class, 'store'])->name('overtime.store');
-        Route::delete('overtime/{overtime}',       [OvertimeController::class, 'destroy'])->name('overtime.destroy');
-        Route::patch('overtime/{overtime}/approve',[OvertimeController::class, 'approve'])->name('overtime.approve');
+        Route::get('overtime', [OvertimeController::class, 'index'])->name('overtime.index');
+        Route::get('overtime/create', [OvertimeController::class, 'create'])->name('overtime.create');
+        Route::post('overtime', [OvertimeController::class, 'store'])->name('overtime.store');
+        Route::delete('overtime/{overtime}', [OvertimeController::class, 'destroy'])->name('overtime.destroy');
+        Route::patch('overtime/{overtime}/approve', [OvertimeController::class, 'approve'])->name('overtime.approve');
 
         // Reimburse
-        Route::get('reimburse',                        [ReimbursementController::class, 'index'])->name('reimburse.index');
-        Route::get('reimburse/create',                 [ReimbursementController::class, 'create'])->name('reimburse.create');
-        Route::post('reimburse',                       [ReimbursementController::class, 'store'])->name('reimburse.store');
-        Route::delete('reimburse/{reimburse}',         [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
-        Route::patch('reimburse/{reimburse}/approve',  [ReimbursementController::class, 'approve'])->name('reimburse.approve');
+        Route::get('reimburse', [ReimbursementController::class, 'index'])->name('reimburse.index');
+        Route::get('reimburse/create', [ReimbursementController::class, 'create'])->name('reimburse.create');
+        Route::post('reimburse', [ReimbursementController::class, 'store'])->name('reimburse.store');
+        Route::delete('reimburse/{reimburse}', [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
+        Route::patch('reimburse/{reimburse}/approve', [ReimbursementController::class, 'approve'])->name('reimburse.approve');
 
         // Gaji Karyawan (EmployeeSalary)
-        Route::get('salary/{user}',              [EmployeeSalaryController::class, 'index'])->name('salary.index');
-        Route::get('salary/{user}/create',       [EmployeeSalaryController::class, 'create'])->name('salary.create');
-        Route::post('salary/{user}',             [EmployeeSalaryController::class, 'store'])->name('salary.store');
-        Route::get('salary/{user}/{salary}/edit',[EmployeeSalaryController::class, 'edit'])->name('salary.edit');
-        Route::put('salary/{user}/{salary}',     [EmployeeSalaryController::class, 'update'])->name('salary.update');
-        Route::delete('salary/{user}/{salary}',  [EmployeeSalaryController::class, 'destroy'])->name('salary.destroy');
+        Route::get('salary/{user}', [EmployeeSalaryController::class, 'index'])->name('salary.index');
+        Route::get('salary/{user}/create', [EmployeeSalaryController::class, 'create'])->name('salary.create');
+        Route::post('salary/{user}', [EmployeeSalaryController::class, 'store'])->name('salary.store');
+        Route::get('salary/{user}/{salary}/edit', [EmployeeSalaryController::class, 'edit'])->name('salary.edit');
+        Route::put('salary/{user}/{salary}', [EmployeeSalaryController::class, 'update'])->name('salary.update');
+        Route::delete('salary/{user}/{salary}', [EmployeeSalaryController::class, 'destroy'])->name('salary.destroy');
 
         // Payroll
-        Route::get('payroll',                        [PayrollController::class, 'index'])->name('payroll.index');
-        Route::post('payroll/generate',              [PayrollController::class, 'generate'])->name('payroll.generate');
-        Route::get('payroll/{payroll}',              [PayrollController::class, 'show'])->name('payroll.show');
-        Route::get('payroll/{payroll}/slip',         [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
-        Route::patch('payroll/{payroll}/finalize',   [PayrollController::class, 'finalize'])->name('payroll.finalize');
+        Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
+        Route::post('payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::get('payroll/setting', [PayrollSettingController::class, 'edit'])->name('payroll.setting');
+        Route::post('payroll/setting', [PayrollSettingController::class, 'update'])->name('payroll.setting.save');
+        Route::get('payroll/setting/logs', [PayrollSettingController::class, 'logs'])->name('payroll.setting.logs');
+
+        // Bonus / THR
+        Route::get('bonus', [BonusController::class, 'index'])->name('bonus.index');
+        Route::post('bonus', [BonusController::class, 'store'])->name('bonus.store');
+        Route::delete('bonus/{bonus}', [BonusController::class, 'destroy'])->name('bonus.destroy');
+        Route::get('bonus/calculate-thr/{user}', [BonusController::class, 'calculateThr'])->name('bonus.calculateThr');
+
+        // Kasbon
+        Route::get('kasbon', [KasbonController::class, 'index'])->name('kasbon.index');
+        Route::post('kasbon', [KasbonController::class, 'store'])->name('kasbon.store');
+        Route::delete('kasbon/{kasbon}', [KasbonController::class, 'destroy'])->name('kasbon.destroy');
+
+        Route::get('payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
+        Route::get('payroll/{payroll}/slip', [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
+        Route::patch('payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
 
         // Master Data HRIS
-        Route::prefix('master')->name('master.')->middleware('can:manage hris master')->group(function () {
-            Route::get('/',                                    [HrisMasterController::class, 'index'])->name('index');
+        Route::prefix('master')->name('master.')->group(function () {
+            Route::middleware('can:view hris master')->group(function () {
+                Route::get('/', [HrisMasterController::class, 'index'])->name('index');
+                Route::get('tax-brackets/{taxBracket}/edit', [TaxBracketController::class, 'edit'])->name('tax-brackets.edit');
+                Route::get('tax-ter/{taxTerRate}/edit', [TaxTerRateController::class, 'edit'])->name('tax-ter.edit');
+            });
 
-            Route::post('leave-types',                         [LeaveTypeController::class, 'store'])->name('leave-types.store');
-            Route::put('leave-types/{leaveType}',              [LeaveTypeController::class, 'update'])->name('leave-types.update');
-            Route::delete('leave-types/{leaveType}',           [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
-            Route::patch('leave-types/{leaveType}/toggle',     [LeaveTypeController::class, 'toggle'])->name('leave-types.toggle');
-            Route::post('leave-types/reset',                   [LeaveTypeController::class, 'resetDefault'])->name('leave-types.reset');
+            Route::middleware('can:create hris master')->group(function () {
+                Route::post('leave-types', [LeaveTypeController::class, 'store'])->name('leave-types.store');
+                Route::post('leave-types/reset', [LeaveTypeController::class, 'resetDefault'])->name('leave-types.reset');
+                Route::post('overtime-rules', [OvertimeRuleController::class, 'store'])->name('overtime-rules.store');
+                Route::post('overtime-rules/reset', [OvertimeRuleController::class, 'resetDefault'])->name('overtime-rules.reset');
+                Route::post('tax-ptkp/reset', [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
+                Route::post('tax-brackets', [TaxBracketController::class, 'store'])->name('tax-brackets.store');
+                Route::post('tax-brackets/reset', [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
+                Route::post('tax-ter', [TaxTerRateController::class, 'store'])->name('tax-ter.store');
+                Route::post('tax-ter/reset', [TaxTerRateController::class, 'resetDefault'])->name('tax-ter.reset');
+            });
 
-            Route::post('overtime-rules',                      [OvertimeRuleController::class, 'store'])->name('overtime-rules.store');
-            Route::put('overtime-rules/{overtimeRule}',        [OvertimeRuleController::class, 'update'])->name('overtime-rules.update');
-            Route::delete('overtime-rules/{overtimeRule}',     [OvertimeRuleController::class, 'destroy'])->name('overtime-rules.destroy');
-            Route::patch('overtime-rules/{overtimeRule}/toggle',[OvertimeRuleController::class, 'toggle'])->name('overtime-rules.toggle');
-            Route::post('overtime-rules/reset',                [OvertimeRuleController::class, 'resetDefault'])->name('overtime-rules.reset');
+            Route::middleware('can:update hris master')->group(function () {
+                Route::put('leave-types/{leaveType}', [LeaveTypeController::class, 'update'])->name('leave-types.update');
+                Route::patch('leave-types/{leaveType}/toggle', [LeaveTypeController::class, 'toggle'])->name('leave-types.toggle');
+                Route::put('overtime-rules/{overtimeRule}', [OvertimeRuleController::class, 'update'])->name('overtime-rules.update');
+                Route::patch('overtime-rules/{overtimeRule}/toggle', [OvertimeRuleController::class, 'toggle'])->name('overtime-rules.toggle');
+                Route::patch('tax-ptkp/{taxPtkp}', [TaxPtkpController::class, 'update'])->name('tax-ptkp.update');
+                Route::patch('tax-ptkp/{taxPtkp}/toggle', [TaxPtkpController::class, 'toggle'])->name('tax-ptkp.toggle');
+                Route::put('tax-brackets/{taxBracket}', [TaxBracketController::class, 'update'])->name('tax-brackets.update');
+                Route::patch('tax-brackets/{taxBracket}/toggle', [TaxBracketController::class, 'toggle'])->name('tax-brackets.toggle');
+                Route::put('tax-ter/{taxTerRate}', [TaxTerRateController::class, 'update'])->name('tax-ter.update');
+                Route::patch('tax-ter/{taxTerRate}/toggle', [TaxTerRateController::class, 'toggle'])->name('tax-ter.toggle');
+            });
 
-            Route::patch('tax-ptkp/{taxPtkp}',                 [TaxPtkpController::class, 'update'])->name('tax-ptkp.update');
-            Route::patch('tax-ptkp/{taxPtkp}/toggle',          [TaxPtkpController::class, 'toggle'])->name('tax-ptkp.toggle');
-            Route::post('tax-ptkp/reset',                      [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
-
-            Route::post('tax-brackets',                        [TaxBracketController::class, 'store'])->name('tax-brackets.store');
-            Route::get('tax-brackets/{taxBracket}/edit',       [TaxBracketController::class, 'edit'])->name('tax-brackets.edit');
-            Route::put('tax-brackets/{taxBracket}',            [TaxBracketController::class, 'update'])->name('tax-brackets.update');
-            Route::delete('tax-brackets/{taxBracket}',         [TaxBracketController::class, 'destroy'])->name('tax-brackets.destroy');
-            Route::patch('tax-brackets/{taxBracket}/toggle',   [TaxBracketController::class, 'toggle'])->name('tax-brackets.toggle');
-            Route::post('tax-brackets/reset',                  [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
+            Route::middleware('can:delete hris master')->group(function () {
+                Route::delete('leave-types/{leaveType}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
+                Route::delete('overtime-rules/{overtimeRule}', [OvertimeRuleController::class, 'destroy'])->name('overtime-rules.destroy');
+                Route::delete('tax-brackets/{taxBracket}', [TaxBracketController::class, 'destroy'])->name('tax-brackets.destroy');
+                Route::delete('tax-ter/{taxTerRate}', [TaxTerRateController::class, 'destroy'])->name('tax-ter.destroy');
+            });
         });
     });
 
@@ -488,3 +650,4 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 // Client Portal (no auth — token based)
 Route::get('/portal/{token}', [ClientPortalWebController::class, 'view'])->name('portal.view');
 Route::post('/portal/{token}/comment', [ClientPortalWebController::class, 'comment'])->name('portal.comment');
+Route::post('/portal/{token}/milestones/{milestone}/approve', [ClientPortalWebController::class, 'approveMilestone'])->name('portal.milestone.approve');

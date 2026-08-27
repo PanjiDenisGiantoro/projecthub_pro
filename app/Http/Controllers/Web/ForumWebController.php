@@ -19,14 +19,14 @@ class ForumWebController extends Controller
     private function canAccess(Forum $forum): bool
     {
         $user = Auth::user();
-        if ($user->hasRole(['admin', 'manager'])) return true;
+        if ($user->hasRole(['admin', 'member'])) return true;
         return $forum->members()->where('user_id', $user->id)->exists();
     }
 
     private function canManage(Forum $forum): bool
     {
         $user = Auth::user();
-        return $user->hasRole(['admin', 'manager']) || $forum->created_by === $user->id;
+        return $user->hasRole(['admin', 'member']) || $forum->created_by === $user->id;
     }
 
     public function store(Request $request)
@@ -244,7 +244,7 @@ class ForumWebController extends Controller
             'id'             => $m->id,
             'body'           => $m->trashed() ? '' : $m->body,
             'formatted_body' => $m->trashed() ? '' : e($m->body),
-            'created_at'     => $m->created_at->format('d M, H:i'),
+            'created_at'     => $m->created_at->toIso8601String(),
             'edited_at'      => $m->edited_at?->format('d M, H:i'),
             'deleted'        => $m->trashed(),
             'is_mine'        => $m->user_id === $userId,

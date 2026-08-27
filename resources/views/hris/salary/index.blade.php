@@ -18,7 +18,7 @@
         </div>
         <a href="{{ route('hris.salary.create', $user) }}"
            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl"
-           style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+           style="background:var(--hris-gradient)">
             + Input Gaji Baru
         </a>
     </div>
@@ -30,10 +30,10 @@
     {{-- Salary aktif sekarang --}}
     @php $current = $salaries->first(); @endphp
     @if($current)
-    <div class="bg-white rounded-2xl border border-violet-200 shadow-sm p-6">
+    <div class="bg-white rounded-2xl border border-blue-200 shadow-sm p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="font-semibold text-gray-900">Gaji Aktif Saat Ini</h2>
-            <span class="text-xs text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full font-medium">
+            <span class="text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium">
                 Efektif: {{ $current->effective_date->format('d M Y') }}
             </span>
         </div>
@@ -91,11 +91,11 @@
                         $tunjangan = $s->tunjangan_transport + $s->tunjangan_makan + $s->tunjangan_jabatan;
                         $bruto = $s->gaji_pokok + $tunjangan;
                     @endphp
-                    <tr class="{{ $loop->first ? 'bg-violet-50' : '' }}">
+                    <tr class="{{ $loop->first ? 'bg-blue-50' : '' }}">
                         <td class="px-4 py-3">
                             <span class="font-medium text-gray-900">{{ $s->effective_date->format('d M Y') }}</span>
                             @if($loop->first)
-                            <span class="ml-2 text-[10px] bg-violet-200 text-violet-700 px-1.5 py-0.5 rounded-full font-semibold">Aktif</span>
+                            <span class="ml-2 text-[10px] bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded-full font-semibold">Aktif</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($s->gaji_pokok, 0, ',', '.') }}</td>
@@ -107,9 +107,10 @@
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-3">
                                 <a href="{{ route('hris.salary.edit', [$user, $s]) }}"
-                                   class="text-xs text-violet-600 hover:text-violet-800">Edit</a>
+                                   class="text-xs text-blue-600 hover:text-blue-800">Edit</a>
                                 @if(!$loop->first)
-                                <form action="{{ route('hris.salary.destroy', [$user, $s]) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data gaji ini?')">
+                                <form action="{{ route('hris.salary.destroy', [$user, $s]) }}" method="POST" class="inline"
+                                      data-confirm-delete="data gaji ini">
                                     @csrf @method('DELETE')
                                     <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                                 </form>

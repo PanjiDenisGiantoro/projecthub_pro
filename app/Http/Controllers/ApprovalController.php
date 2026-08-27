@@ -137,7 +137,7 @@ class ApprovalController extends Controller
             'action'          => 'required|string|max:50',
             'flow_type'       => 'required|in:sequential,parallel_all,any_of,single',
             'approver_roles'  => 'required|array|min:1',
-            'approver_roles.*'=> 'string|in:admin,manager,developer,marketing,customer',
+            'approver_roles.*'=> 'string|in:'.implode(',', \App\Support\SystemRoles::ALL),
             'timeout_hours'   => 'required|integer|min:1|max:720',
             'is_active'       => 'boolean',
             'description'     => 'nullable|string|max:500',
@@ -164,7 +164,7 @@ class ApprovalController extends Controller
         $request->validate([
             'flow_type'       => 'sometimes|in:sequential,parallel_all,any_of,single',
             'approver_roles'  => 'sometimes|array|min:1',
-            'approver_roles.*'=> 'string|in:admin,manager,developer,marketing,customer',
+            'approver_roles.*'=> 'string|in:'.implode(',', \App\Support\SystemRoles::ALL),
             'timeout_hours'   => 'sometimes|integer|min:1|max:720',
             'is_active'       => 'sometimes|boolean',
             'description'     => 'sometimes|nullable|string|max:500',

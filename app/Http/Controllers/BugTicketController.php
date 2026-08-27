@@ -34,7 +34,7 @@ class BugTicketController extends Controller
             ->when($request->type,     fn($q) => $q->where('type', $request->type))
             ->when($request->search,   fn($q) => $q->where('title', 'like', "%{$request->search}%"));
 
-        if ($request->user()->hasRole('customer')) {
+        if ($request->user()->hasRole('client')) {
             $query->where('reporter_id', $request->user()->id);
         }
 
@@ -87,7 +87,7 @@ class BugTicketController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->hasAnyRole(['admin', 'manager']) &&
+        if (!$user->hasAnyRole(['admin', 'member']) &&
             $ticket->reporter_id !== $user->id &&
             $ticket->assignee_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);

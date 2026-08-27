@@ -10,11 +10,18 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Project extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'company_id', 'name', 'description', 'client_id', 'manager_id',
         'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress',
+        'github_repo_url', 'github_token', 'slack_webhook_url', 'discord_webhook_url',
+        'google_meet_enabled', 'meeting_auto_create', 'meeting_default_time', 'meeting_default_duration_minutes',
+        'google_event_id', 'google_meet_link', 'meeting_starts_at',
+    ];
+
+    protected $hidden = [
+        'github_token', 'slack_webhook_url', 'discord_webhook_url',
     ];
 
     protected static function booted(): void
@@ -45,7 +52,50 @@ class Project extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'budget' => 'decimal:2',
+            'github_token' => 'encrypted',
+            'slack_webhook_url' => 'encrypted',
+            'discord_webhook_url' => 'encrypted',
+            'google_meet_enabled' => 'boolean',
+            'meeting_auto_create' => 'boolean',
+            'meeting_default_duration_minutes' => 'integer',
+            'meeting_starts_at' => 'datetime',
         ];
+    }
+
+    public function hasGithubIntegration(): bool
+    {
+        return ! empty($this->github_repo_url) && ! empty($this->github_token);
+    }
+
+    public function hasMeetingEnabled(): bool
+    {
+        return (bool) $this->google_meet_enabled;
+    }
+
+    public function hasSlackIntegration(): bool
+    {
+        return ! empty($this->slack_webhook_url);
+    }
+
+    public function hasDiscordIntegration(): bool
+    {
+        return ! empty($this->discord_webhook_url);
+    }
+
+    /**
+     * Parse "owner/repo" dari berbagai format URL GitHub yang dimasukkan user.
+     */
+    public function githubOwnerRepo(): ?string
+    {
+        if (! $this->github_repo_url) {
+            return null;
+        }
+
+        $path = trim(parse_url($this->github_repo_url, PHP_URL_PATH) ?? $this->github_repo_url, '/');
+        $path = preg_replace('/\.git$/', '', $path);
+        $parts = explode('/', $path);
+
+        return count($parts) >= 2 ? "{$parts[0]}/{$parts[1]}" : null;
     }
 
     public function getActivitylogOptions(): LogOptions
@@ -76,6 +126,11 @@ class Project extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function boardColumns()
+    {
+        return $this->hasMany(BoardColumn::class)->orderBy('sort_order');
     }
 
     public function tickets()
@@ -118,6 +173,11 @@ class Project extends Model
         return $this->hasMany(ProjectFile::class);
     }
 
+    public function folders()
+    {
+        return $this->hasMany(ProjectFolder::class);
+    }
+
     public function risks()
     {
         return $this->hasMany(Risk::class);
@@ -155,7 +215,10 @@ class Project extends Model
 
     public function budgetUsedPercent(): float
     {
-        if (!$this->budget || $this->budget <= 0) return 0;
+        if (! $this->budget || $this->budget <= 0) {
+            return 0;
+        }
+
         return min(100, round($this->totalExpenses() / $this->budget * 100, 1));
     }
 }

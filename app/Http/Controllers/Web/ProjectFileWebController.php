@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
+use App\Models\ProjectFolder;
+use App\Support\FolderTreeBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,19 +15,52 @@ class ProjectFileWebController extends Controller
     public function index(Project $project)
     {
         $files = $project->files()->with('uploader')->orderBy('folder')->orderByDesc('created_at')->get();
-        $folders = $files->pluck('folder')->unique()->sort()->values();
-        return view('files.index', compact('project', 'files', 'folders'));
+
+        // Gabungkan folder yang sudah berisi file dengan folder kosong yang
+        // sengaja dibuat duluan (belum ada file di dalamnya).
+        $folders = $files->pluck('folder')
+            ->merge($project->folders()->pluck('path'))
+            ->unique()
+            ->sort()
+            ->values();
+
+        $folderTree = FolderTreeBuilder::build($folders);
+        return view('files.index', compact('project', 'files', 'folders', 'folderTree'));
+    }
+
+    /** Buat folder kosong (bisa bersarang lebih dari 1 level lewat "parent"). */
+    public function storeFolder(Request $request, Project $project)
+    {
+        $request->validate([
+            'name'   => 'required|string|max:100',
+            'parent' => 'nullable|string|max:255',
+        ]);
+
+        $parent = $this->normalizeFolderPath($request->input('parent'));
+        $name   = $this->normalizeFolderPath($request->input('name'));
+        $path   = $parent !== '' ? "{$parent}/{$name}" : $name;
+
+        if ($path === '') {
+            return back()->withErrors(['name' => 'Nama folder tidak boleh kosong.']);
+        }
+
+        ProjectFolder::firstOrCreate(
+            ['project_id' => $project->id, 'path' => $path],
+            ['created_by' => auth()->id()]
+        );
+
+        return back()->with('success', "Folder \"{$path}\" berhasil dibuat.");
     }
 
     public function store(Request $request, Project $project)
     {
         $request->validate([
             'files.*' => 'required|file|max:51200', // 50MB
-            'folder' => 'nullable|string|max:100',
+            'folder' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:500',
         ]);
 
-        $folder = trim($request->input('folder', 'General')) ?: 'General';
+        $folder = $this->normalizeFolderPath($request->input('folder', 'General')) ?: 'General';
         $description = $request->input('description');
 
         foreach ($request->file('files', []) as $file) {
@@ -55,8 +90,18 @@ class ProjectFileWebController extends Controller
 
     public function moveFolder(Request $request, Project $project, ProjectFile $projectFile)
     {
-        $request->validate(['folder' => 'required|string|max:100']);
-        $projectFile->update(['folder' => $request->folder]);
+        $request->validate(['folder' => 'required|string|max:255']);
+        $projectFile->update(['folder' => $this->normalizeFolderPath($request->folder)]);
         return back()->with('success', 'File dipindahkan.');
+    }
+
+    /**
+     * "Docs / Kontrak / / 2024/" -> "Docs/Kontrak/2024" — supaya folder bisa
+     * dinamai lewat "/" (folder di dalam folder) tanpa slash ganda/nyasar di ujung.
+     */
+    private function normalizeFolderPath(?string $path): string
+    {
+        $segments = array_filter(array_map('trim', explode('/', $path ?? '')), fn($s) => $s !== '');
+        return implode('/', $segments);
     }
 }

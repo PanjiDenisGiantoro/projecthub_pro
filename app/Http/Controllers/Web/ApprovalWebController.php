@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Approval;
 use App\Models\ApprovalPolicy;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class ApprovalWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private ApprovalService $approvalService) {}
 
     public function index(Request $request)
@@ -21,12 +24,14 @@ class ApprovalWebController extends Controller
             ->where('status', 'pending')
             ->whereHas('steps', fn($q) => $q->where('status', 'pending')->whereIn('approver_role', $roles))
             ->latest()
-            ->paginate(15, ['*'], 'pending_page');
+            ->paginate($this->perPage($request, 10, 'pending_per_page'), ['*'], 'pending_page')
+            ->withQueryString();
 
         $myRequests = Approval::with(['steps.approver', 'policy', 'approvable'])
             ->where('requested_by', $user->id)
             ->latest()
-            ->paginate(15, ['*'], 'my_page');
+            ->paginate($this->perPage($request, 10, 'my_per_page'), ['*'], 'my_page')
+            ->withQueryString();
 
         $stats = [
             'pending_for_me' => Approval::where('status', 'pending')
@@ -58,7 +63,7 @@ class ApprovalWebController extends Controller
 
         try {
             $this->approvalService->reject($approval, $request->user(), $request->notes);
-            return back()->with('error_msg', 'Permintaan telah ditolak.');
+            return back()->with('success', 'Permintaan telah ditolak.');
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -103,7 +108,7 @@ class ApprovalWebController extends Controller
             'action'           => 'required|string|max:50',
             'flow_type'        => 'required|in:sequential,parallel_all,any_of,single',
             'approver_roles'   => 'required|array|min:1',
-            'approver_roles.*' => 'string|in:admin,manager,developer,marketing,customer',
+            'approver_roles.*' => 'string|in:'.implode(',', \App\Support\SystemRoles::ALL),
             'timeout_hours'    => 'required|integer|min:1|max:720',
             'description'      => 'nullable|string|max:500',
         ]);
@@ -124,7 +129,7 @@ class ApprovalWebController extends Controller
         $request->validate([
             'flow_type'        => 'required|in:sequential,parallel_all,any_of,single',
             'approver_roles'   => 'required|array|min:1',
-            'approver_roles.*' => 'string|in:admin,manager,developer,marketing,customer',
+            'approver_roles.*' => 'string|in:'.implode(',', \App\Support\SystemRoles::ALL),
             'timeout_hours'    => 'required|integer|min:1|max:720',
             'description'      => 'nullable|string|max:500',
         ]);

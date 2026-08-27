@@ -11,11 +11,11 @@
 
     <div class="flex justify-between items-center mb-4">
         <div class="flex gap-3">
-            <span class="text-sm text-gray-500">{{ $risks->count() }} risiko terdaftar</span>
+            <span class="text-sm text-gray-500">{{ $allRisks->count() }} risiko terdaftar</span>
         </div>
-        @if(!auth()->user()->hasRole('customer'))
+        @if(!auth()->user()->hasRole('client'))
         <button @click="showForm=!showForm"
-                class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span x-text="showForm ? 'Batal' : 'Tambah Risiko'"></span>
         </button>
@@ -31,7 +31,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <h3 class="text-sm font-semibold text-gray-700 mb-3">Ringkasan</h3>
             @php
-                $byLevel = $risks->groupBy(fn($r) => $r->level());
+                $byLevel = $allRisks->groupBy(fn($r) => $r->level());
                 $levels = ['critical'=>'Kritis','high'=>'Tinggi','medium'=>'Sedang','low'=>'Rendah'];
                 $levelColors = ['critical'=>'text-red-600','high'=>'text-orange-600','medium'=>'text-yellow-600','low'=>'text-green-600'];
             @endphp
@@ -45,22 +45,22 @@
     </div>
 
     {{-- Add Form --}}
-    @if(!auth()->user()->hasRole('customer'))
+    @if(!auth()->user()->hasRole('client'))
     <div x-show="showForm" x-cloak class="bg-white rounded-xl border border-blue-200 p-5 mb-5">
         <h4 class="text-sm font-semibold text-gray-700 mb-4">Tambah Risiko Baru</h4>
         <form method="POST" action="{{ route('risks.store', $project) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @csrf
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Judul *</label>
-                <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="text" name="title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
-                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+                <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Kategori *</label>
-                <select name="category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach(['technical','schedule','resource','budget','external','other'] as $c)
                     <option value="{{ $c }}">{{ ucfirst($c) }}</option>
                     @endforeach
@@ -68,7 +68,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Status *</label>
-                <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @foreach(['open','mitigated','accepted','closed'] as $s)
                     <option value="{{ $s }}">{{ ucfirst($s) }}</option>
                     @endforeach
@@ -76,28 +76,31 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Probabilitas (1-5) *</label>
-                <input type="number" name="probability" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="probability" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Dampak (1-5) *</label>
-                <input type="number" name="impact" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="number" name="impact" min="1" max="5" value="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Owner</label>
-                <input type="text" name="owner" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                <input type="text" name="owner" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Rencana Mitigasi</label>
-                <textarea name="mitigation_plan" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
+                <textarea name="mitigation_plan" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
             <div class="sm:col-span-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan</button>
             </div>
         </form>
     </div>
     @endif
 
     {{-- Risk Table --}}
+    <div class="flex justify-end mb-2">
+        <x-per-page />
+    </div>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         @if($risks->isEmpty())
         <div class="text-center py-10 text-gray-400">
@@ -114,7 +117,7 @@
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Level</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Owner</th>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <th class="px-4 py-3"></th>
                     @endif
                 </tr>
@@ -143,10 +146,23 @@
                     </td>
                     <td class="px-4 py-3 capitalize text-gray-600">{{ $risk->status }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $risk->owner ?? '—' }}</td>
-                    @if(!auth()->user()->hasRole('customer'))
-                    <td class="px-4 py-3 text-right">
+                    @if(!auth()->user()->hasRole('client'))
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                        <button type="button"
+                                @click="editRisk = @js([
+                                    'id' => $risk->id,
+                                    'title' => $risk->title,
+                                    'description' => $risk->description,
+                                    'category' => $risk->category,
+                                    'status' => $risk->status,
+                                    'probability' => $risk->probability,
+                                    'impact' => $risk->impact,
+                                    'owner' => $risk->owner,
+                                    'mitigation_plan' => $risk->mitigation_plan,
+                                ])"
+                                class="text-xs text-blue-600 hover:text-blue-800 mr-2">Edit</button>
                         <form method="POST" action="{{ route('risks.destroy', [$project, $risk]) }}"
-                              data-confirm-delete="{{ $risk->title }}">
+                              data-confirm-delete="{{ $risk->title }}" class="inline">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                         </form>
@@ -156,13 +172,90 @@
                 @endforeach
             </tbody>
         </table>
+        @if($risks->hasPages())
+        <div class="px-4 py-3 border-t border-gray-100">{{ $risks->links() }}</div>
+        @endif
         @endif
     </div>
+
+    {{-- Edit Risk Modal --}}
+    @if(!auth()->user()->hasRole('client'))
+    @php $riskUpdateUrlTemplate = route('risks.update', [$project, '__ID__']); @endphp
+    <div x-show="editRisk" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40" @click="editRisk = null"></div>
+        <div class="relative bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-5"
+             @click.away="editRisk = null">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-semibold text-gray-700">Edit Risiko</h4>
+                <button type="button" @click="editRisk = null" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <template x-if="editRisk">
+                <form method="POST" :action="@js($riskUpdateUrlTemplate).replace('__ID__', editRisk.id)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @csrf @method('PUT')
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Judul *</label>
+                        <input type="text" name="title" required x-model="editRisk.title" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                        <textarea name="description" rows="2" x-model="editRisk.description" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori *</label>
+                        <select name="category" required x-model="editRisk.category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach(['technical','schedule','resource','budget','external','other'] as $c)
+                            <option value="{{ $c }}">{{ ucfirst($c) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Status *</label>
+                        <select name="status" required x-model="editRisk.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach(['open','mitigated','accepted','closed'] as $s)
+                            <option value="{{ $s }}">{{ ucfirst($s) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Probabilitas (1-5) *</label>
+                        <input type="number" name="probability" min="1" max="5" required x-model="editRisk.probability" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Dampak (1-5) *</label>
+                        <input type="number" name="impact" min="1" max="5" required x-model="editRisk.impact" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Owner</label>
+                        <input type="text" name="owner" x-model="editRisk.owner" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Rencana Mitigasi</label>
+                        <textarea name="mitigation_plan" rows="2" x-model="editRisk.mitigation_plan" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div class="sm:col-span-2 flex justify-end gap-2">
+                        <button type="button" @click="editRisk = null" class="text-sm text-gray-500 hover:text-gray-700 px-4 py-2">Batal</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </template>
+        </div>
+    </div>
+    @endif
 </div>
 
 @push('scripts')
+@php
+    $matrixData = $allRisks->map(fn($r) => [
+        'x'     => $r->probability,
+        'y'     => $r->impact,
+        'label' => $r->title,
+        'score' => $r->score(),
+    ]);
+@endphp
 <script>
-const matrixData = @json($risks->map(fn($r) => ['x'=>$r->probability,'y'=>$r->impact,'label'=>$r->title,'score'=>$r->score()]));
+const matrixData = @json($matrixData);
 
 new Chart(document.getElementById('riskMatrix'), {
     type: 'scatter',

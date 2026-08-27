@@ -25,9 +25,16 @@ class NotificationService
         return $notification;
     }
 
+    /** Kirim notifikasi ke SEMUA user aktif di satu company (bukan cuma role tertentu). */
+    public function notifyCompany(int $companyId, string $type, string $title, string $message, array $data = [], bool $push = true): void
+    {
+        User::where('company_id', $companyId)->where('is_active', true)
+            ->each(fn($user) => $this->send($user->id, $type, $title, $message, $data, $push));
+    }
+
     public function notifyManagers(string $type, string $title, string $message, array $data = [], bool $push = true, ?int $companyId = null): void
     {
-        $this->notifyByRole('manager', $type, $title, $message, $data, $push, $companyId);
+        $this->notifyByRole('member', $type, $title, $message, $data, $push, $companyId);
         $this->notifyByRole('admin', $type, $title, $message, $data, $push, $companyId);
     }
 

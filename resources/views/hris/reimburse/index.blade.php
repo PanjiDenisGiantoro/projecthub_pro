@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Reimburse</h1>
         <a href="{{ route('hris.reimburse.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl"
-           style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+           style="background:var(--hris-gradient)">
             + Ajukan Reimburse
         </a>
     </div>
@@ -16,6 +16,18 @@
     @if(session('success'))
     <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-4 py-3">{{ session('success') }}</div>
     @endif
+
+    <form method="GET" class="flex gap-2">
+        <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+            <option value="">Semua Status</option>
+            @foreach(['pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','paid'=>'Paid'] as $s => $sl)
+                <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $sl }}</option>
+            @endforeach
+        </select>
+        @if(request('status'))
+            <a href="{{ route('hris.reimburse.index') }}" class="text-sm text-gray-400 hover:text-gray-600 px-2 py-2">✕ Reset</a>
+        @endif
+    </form>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <table class="w-full text-sm">
@@ -35,7 +47,7 @@
                 <tr>
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $item->user->name }}</td>
                     <td class="px-4 py-3">
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium capitalize">{{ $item->category }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium capitalize">{{ $item->category }}</span>
                     </td>
                     <td class="px-4 py-3 text-gray-700">{{ $item->title }}</td>
                     <td class="px-4 py-3 text-gray-600 text-xs">{{ $item->expense_date->format('d/m/Y') }}</td>
@@ -50,14 +62,18 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                         @if($item->status === 'pending')
-                            @can('manage reimbursement')
-                            <form action="{{ route('hris.reimburse.approve', $item) }}" method="POST" class="inline">
+                            @can('approve reimbursement')
+                            <form action="{{ route('hris.reimburse.approve', $item) }}" method="POST" class="inline"
+                                  data-confirm-submit="Setujui reimbursement {{ $item->user->name }}?"
+                                  data-confirm-text="{{ $item->title }} · Rp {{ number_format($item->amount, 0, ',', '.') }}. Persetujuan tidak bisa dibatalkan dari sini."
+                                  data-confirm-btn="Ya, Setujui">
                                 @csrf @method('PATCH')
                                 <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>
                             </form>
                             @endcan
                             @if($item->user_id === auth()->id())
-                            <form action="{{ route('hris.reimburse.destroy', $item) }}" method="POST" class="inline" onsubmit="return confirm('Hapus pengajuan?')">
+                            <form action="{{ route('hris.reimburse.destroy', $item) }}" method="POST" class="inline"
+                                  data-confirm-delete="pengajuan reimbursement ini">
                                 @csrf @method('DELETE')
                                 <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                             </form>
@@ -66,11 +82,16 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">Belum ada data reimburse.</td></tr>
+                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">
+                    {{ request('status') ? 'Tidak ada data dengan status ini.' : 'Belum ada data reimburse.' }}
+                </td></tr>
                 @endforelse
             </tbody>
         </table>
-        <div class="p-4">{{ $items->links() }}</div>
+        <div class="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            {{ $items->links() }}
+        </div>
     </div>
 </div>
 @endsection

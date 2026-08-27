@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(py *)"
+      "Bash(py *)",
+      "Bash(git add *)",
+      "Bash(php -l app/Http/Controllers/Web/BillingWebController.php)",
+      "Bash(php -l app/Models/SubscriptionOrder.php)",
+      "Bash(php artisan *)",
+      "Bash(php -l app/Http/Controllers/Web/Hris/Master/TaxTerRateController.php)",
+      "Bash(php -l app/Http/Controllers/Web/Hris/Master/TaxPtkpController.php)",
+      "Bash(php -l app/Http/Controllers/Web/Hris/PayrollSettingController.php)",
+      "Bash(php -l routes/web.php)",
+      "Bash(php -r ' *)",
+      "Bash(chromium-cli --help)",
+      "Bash(find / -xdev -iname \"*chromium-cli*\")",
+      "Bash(find / -xdev -path \"*/skills/*chromium*\")",
+      "Bash(find / -xdev -iname \"chromium-cli\" -type f)",
+      "Read(//tmp/claude-0/bundled-skills/2.1.227/**)",
+      "Bash(git status *)",
+      "Bash(npx --yes shadcn@latest init -t laravel -b radix -p base-nova -y)"
     ]
   }
 }

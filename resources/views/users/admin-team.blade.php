@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / email..."
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-56">
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
             <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg transition-colors">Filter</button>
         </form>
     </div>
@@ -41,12 +41,12 @@
                     <td class="px-4 py-3 text-gray-600">{{ $u->email }}</td>
                     <td class="px-4 py-3">
                         @foreach($u->getRoleNames() as $role)
-                            <span class="badge bg-red-100 text-red-700">{{ ucfirst($role) }}</span>
+                            <span class="badge bg-red-100 text-red-700">{{ \App\Support\RoleLabel::for($role) }}</span>
                         @endforeach
                     </td>
                     <td class="px-4 py-3">
-                        @if($u->department)
-                            <span class="text-xs text-gray-700">{{ $u->department->name }}</span>
+                        @if($u->organizationUnit)
+                            <span class="text-xs text-gray-700">{{ $u->organizationUnit->name }}</span>
                         @else
                             <span class="text-gray-300 text-xs">—</span>
                         @endif
@@ -63,9 +63,12 @@
                 @endforelse
             </tbody>
         </table>
-        @if($users->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100">{{ $users->links() }}</div>
-        @endif
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <x-per-page />
+            @if($users->hasPages())
+            {{ $users->links() }}
+            @endif
+        </div>
     </div>
 </div>
 @endsection

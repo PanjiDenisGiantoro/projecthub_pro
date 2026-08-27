@@ -8,16 +8,28 @@ class Sprint extends Model
 {
     protected $fillable = [
         'project_id', 'name', 'goal', 'start_date', 'end_date', 'status', 'created_by',
+        'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
+        'google_meeting_is_recurring',
     ];
 
     protected function casts(): array
     {
-        return ['start_date' => 'date', 'end_date' => 'date'];
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'meeting_starts_at' => 'datetime',
+            'google_meeting_is_recurring' => 'boolean',
+        ];
     }
 
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function meetingOrganizer()
+    {
+        return $this->belongsTo(User::class, 'google_meeting_organizer_id');
     }
 
     public function tasks()

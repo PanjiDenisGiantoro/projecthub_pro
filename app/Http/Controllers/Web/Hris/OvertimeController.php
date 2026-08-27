@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Overtime;
 use App\Services\NotificationService;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class OvertimeController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private OvertimeService $overtimeService, private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -19,9 +22,12 @@ class OvertimeController extends Controller
 
         $overtimes = Overtime::with('user')
             ->where('company_id', $user->company_id)
-            ->when(!$user->can('manage overtime'), fn($q) => $q->where('user_id', $user->id))
+            ->when(!$user->can('view overtime'), fn($q) => $q->where('user_id', $user->id))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->orderByRaw("status = 'pending' desc")
             ->orderByDesc('date')
-            ->paginate(20);
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return view('hris.overtime.index', compact('overtimes'));
     }
@@ -71,7 +77,7 @@ class OvertimeController extends Controller
         ]);
 
         $this->notifier->notifyByPermission(
-            'manage overtime',
+            'approve overtime',
             'overtime_submitted',
             'Pengajuan Lembur Baru',
             "{$user->name} mengajukan lembur {$hours} jam pada {$date->format('d M Y')}.",
@@ -92,7 +98,7 @@ class OvertimeController extends Controller
 
     public function approve(Overtime $overtime)
     {
-        $this->authorize('manage overtime');
+        $this->authorize('approve overtime');
         abort_if($overtime->status !== 'pending', 422, 'Status tidak valid.');
 
         try {

@@ -16,6 +16,7 @@ class BugTicket extends Model
         'title', 'description', 'type', 'error_category', 'solution', 'priority', 'status',
         'sla_policy_id', 'sla_due_at', 'sla_breached', 'sla_paused', 'sla_paused_at',
         'escalated_at', 'resolved_at', 'closed_at',
+        'google_event_id', 'google_meet_link', 'meeting_starts_at',
     ];
 
     protected function casts(): array
@@ -28,6 +29,7 @@ class BugTicket extends Model
             'closed_at'     => 'datetime',
             'sla_breached'  => 'boolean',
             'sla_paused'    => 'boolean',
+            'meeting_starts_at' => 'datetime',
         ];
     }
 

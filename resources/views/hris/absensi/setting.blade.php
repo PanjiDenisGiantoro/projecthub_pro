@@ -82,7 +82,7 @@
                                    value="{{ $setting->max_distance_meters }}"
                                    x-model="maxDistance"
                                    class="flex-1 accent-[#7c3aed]">
-                            <span class="text-sm font-bold w-20 shrink-0" style="color:var(--lav-700,#7c3aed)">
+                            <span class="text-sm font-bold w-20 shrink-0" style="color:var(--lav-700,#1d4ed8)">
                                 <span x-text="maxDistance"></span>m
                             </span>
                         </div>
@@ -183,7 +183,7 @@
                                    value="{{ $setting->face_recognition_threshold }}"
                                    x-model="threshold"
                                    class="flex-1 accent-[#7c3aed]">
-                            <span class="text-sm font-bold w-12 shrink-0" style="color:var(--lav-700,#7c3aed)" x-text="threshold"></span>
+                            <span class="text-sm font-bold w-12 shrink-0" style="color:var(--lav-700,#1d4ed8)" x-text="threshold"></span>
                         </div>
                         <div class="flex justify-between text-[10px] mt-1" style="color:var(--fl-text-subtle,#9ca3af)">
                             <span>0.3 = Ketat</span>
@@ -274,7 +274,7 @@
                                 <button type="button"
                                         @click="openEnroll({{ $emp->id }}, '{{ addslashes($emp->name) }}')"
                                         class="text-xs px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-all"
-                                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
+                                        style="background:var(--hris-gradient);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
                                     Daftarkan Wajah
                                 </button>
                             @endif
@@ -289,7 +289,7 @@
         <div class="flex justify-end">
             <button type="submit"
                     class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5"
-                    style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 16px rgba(109,40,217,0.35)">
+                    style="background:var(--hris-gradient);box-shadow:0 4px 16px rgba(109,40,217,0.35)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
@@ -367,7 +367,7 @@
                 <button type="button" @click="captureEnroll()"
                         :disabled="enrollStatus !== 'ready' || captureCount >= 3"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                        style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                     <span x-text="captureCount < 3 ? 'Ambil Frame (' + captureCount + '/3)' : 'Menyimpan...'"></span>
                 </button>
                 <button type="button" @click="closeEnroll()"

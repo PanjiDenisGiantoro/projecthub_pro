@@ -22,12 +22,14 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
             <span class="text-gray-700 font-medium">{{ $campaign->name }}</span>
         </div>
         <div class="flex gap-2">
-            @can('manage campaigns')
+            @can('update campaign')
             <a href="{{ route('campaigns.edit', $campaign) }}"
                class="inline-flex items-center gap-1.5 text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 Edit
             </a>
+            @endcan
+            @can('delete campaign')
             <form method="POST" action="{{ route('campaigns.destroy', $campaign) }}" data-confirm-delete="{{ $campaign->name }}">
                 @csrf @method('DELETE')
                 <button type="submit" class="inline-flex items-center gap-1.5 text-sm border border-red-200 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50">
@@ -68,7 +70,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                     ['v'=>$campaign->leads_count.($campaign->goal_leads ? '/'.$campaign->goal_leads : ''), 'l'=>'Leads', 'c'=>'text-blue-600'],
                     ['v'=>$campaign->conversion_rate.'%', 'l'=>'Konversi', 'c'=>'text-emerald-600'],
                     ['v'=>number_format($campaign->impressions), 'l'=>'Impressions', 'c'=>'text-gray-700'],
-                    ['v'=>$campaign->ctr.'%', 'l'=>'CTR', 'c'=>'text-violet-600'],
+                    ['v'=>$campaign->ctr.'%', 'l'=>'CTR', 'c'=>'text-blue-600'],
                     ['v'=>$campaign->budget ? 'Rp '.number_format($campaign->budget,0,',','.') : '—', 'l'=>'Budget', 'c'=>'text-gray-700'],
                     ['v'=>$campaign->actual_spend > 0 ? 'Rp '.number_format($campaign->actual_spend,0,',','.') : '—', 'l'=>'Spent', 'c'=>'text-orange-600'],
                 ];
@@ -102,7 +104,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
         <div class="flex gap-1 mb-4 border-b border-gray-200">
             @foreach(['leads'=>'Leads ('.$campaign->leads->count().')','funnel'=>'Funnel','metrics'=>'Metrik & Performa'] as $t=>$label)
             <button @click="tab = '{{ $t }}'"
-                    :class="tab === '{{ $t }}' ? 'border-violet-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    :class="tab === '{{ $t }}' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px">
                 {{ $label }}
             </button>
@@ -116,9 +118,9 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div class="flex items-center gap-2">
                     <input type="text" x-model="search" placeholder="Cari lead…"
-                           class="text-sm border border-gray-300 rounded-lg px-3 py-2 w-44 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="text-sm border border-gray-300 rounded-lg px-3 py-2 w-44 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <select x-model="filterStatus"
-                            class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Semua Status</option>
                         <option value="lead">Lead</option>
                         <option value="prospect">Prospect</option>
@@ -145,9 +147,9 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                             </form>
                         </div>
                     </template>
-                    @can('manage campaigns')
+                    @can('create campaign')
                     <button @click="openLeadModal(null)"
-                            class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+                            class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Tambah Lead
                     </button>
@@ -184,7 +186,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                             <div class="flex items-start justify-between mb-1">
                                 <div class="flex items-center gap-1.5">
                                     <input type="checkbox" :value="{{ $lead->id }}" x-model="selected"
-                                           @click.stop class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-violet-500">
+                                           @click.stop class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                     <p class="text-xs font-semibold text-gray-800 leading-snug">{{ $lead->name }}</p>
                                 </div>
                                 @if($lead->score > 0)
@@ -322,8 +324,8 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                     $metricCards = [
                         ['label'=>'Impressions',   'value'=> number_format($campaign->impressions),   'icon'=>'👁',  'color'=>'text-gray-700'],
                         ['label'=>'Reach',         'value'=> number_format($campaign->reach),         'icon'=>'📡',  'color'=>'text-blue-600'],
-                        ['label'=>'Clicks',        'value'=> number_format($campaign->clicks),        'icon'=>'🖱',  'color'=>'text-violet-600'],
-                        ['label'=>'CTR',           'value'=> $campaign->ctr.'%',                      'icon'=>'📊',  'color'=>'text-indigo-600'],
+                        ['label'=>'Clicks',        'value'=> number_format($campaign->clicks),        'icon'=>'🖱',  'color'=>'text-blue-600'],
+                        ['label'=>'CTR',           'value'=> $campaign->ctr.'%',                      'icon'=>'📊',  'color'=>'text-blue-600'],
                         ['label'=>'Budget',        'value'=> $campaign->budget ? 'Rp '.number_format($campaign->budget,0,',','.') : '—', 'icon'=>'💰', 'color'=>'text-gray-700'],
                         ['label'=>'Actual Spend',  'value'=> $campaign->actual_spend > 0 ? 'Rp '.number_format($campaign->actual_spend,0,',','.') : '—', 'icon'=>'💸', 'color'=>'text-orange-600'],
                         ['label'=>'Cost per Lead', 'value'=> $cpl > 0 ? 'Rp '.number_format($cpl,0,',','.') : '—', 'icon'=>'🎯', 'color'=>'text-teal-600'],
@@ -341,7 +343,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 </div>
 
                 {{-- Update metrics form --}}
-                @can('manage campaigns')
+                @can('update campaign')
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
                     <h4 class="text-sm font-semibold text-gray-700 mb-4">Update Metrik</h4>
                     <form method="POST" action="{{ route('campaigns.metrics', $campaign) }}" class="space-y-3">
@@ -350,10 +352,10 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">{{ $label }}</label>
                             <input type="number" name="{{ $field }}" value="{{ $campaign->$field ?? '' }}" min="0"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         @endforeach
-                        <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium py-2 rounded-lg transition-colors mt-1">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-lg transition-colors mt-1">
                             Simpan Metrik
                         </button>
                     </form>
@@ -407,31 +409,31 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nama *</label>
                     <input type="text" name="name" :value="lead.name" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Kontak *</label>
                     <input type="text" name="contact" :value="lead.contact" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
                     <input type="email" name="email" :value="lead.email"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
                     <input type="text" name="phone" :value="lead.phone"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
                     <input type="text" name="company" :value="lead.company"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Sumber</label>
-                    <select name="source" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="source" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">—</option>
                         @foreach(['website','referral','ads','event','cold_call','other'] as $src)
                         <option value="{{ $src }}" :selected="lead.source === '{{ $src }}'">{{ ucfirst(str_replace('_',' ',$src)) }}</option>
@@ -441,17 +443,17 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Score (1–10)</label>
                     <input type="number" name="score" :value="lead.score" min="0" max="10"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nilai Potensial (Rp)</label>
                     <input type="number" name="value" :value="lead.value" min="0"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <template x-if="lead.id">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                    <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach(['lead','prospect','client','lost'] as $s)
                         <option value="{{ $s }}" :selected="lead.status === '{{ $s }}'">{{ ucfirst($s) }}</option>
                         @endforeach
@@ -460,7 +462,7 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 </template>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Assignee</label>
-                    <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">—</option>
                         @foreach($users as $u)
                         <option value="{{ $u->id }}" :selected="lead.assigned_to == {{ $u->id }}">{{ $u->name }}</option>
@@ -470,24 +472,24 @@ $sourcLabels = ['website'=>'Website','referral'=>'Referral','ads'=>'Ads','event'
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Follow-up Date</label>
                     <input type="date" name="follow_up_at" :value="lead.follow_up_at"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                     <textarea name="notes" rows="2" x-text="lead.notes"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"></textarea>
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
                 <template x-if="lead.id && lead.status === 'lost'">
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Alasan Lost</label>
                     <input type="text" name="lost_reason" :value="lead.lost_reason"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 </template>
             </div>
 
             <div class="flex gap-2 pt-1">
-                <button type="submit" class="flex-1 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium py-2.5 rounded-lg">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg">
                     Simpan
                 </button>
                 <template x-if="lead.id">

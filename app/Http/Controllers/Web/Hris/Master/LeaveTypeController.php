@@ -11,7 +11,7 @@ class LeaveTypeController extends Controller
 {
     public function store(Request $request)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $request->validate([
             'name'             => 'required|string|max:100',
             'code'             => 'required|string|max:30',
@@ -38,7 +38,7 @@ class LeaveTypeController extends Controller
 
     public function update(Request $request, LeaveType $leaveType)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $leaveType->update([
             ...$request->only(['name','description','default_quota','gender_restriction']),
             'is_paid'          => $request->boolean('is_paid'),
@@ -52,21 +52,21 @@ class LeaveTypeController extends Controller
 
     public function destroy(LeaveType $leaveType)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('delete hris master');
         $leaveType->delete();
         return redirect()->route('hris.master.index', ['tab' => 'leave-types'])->with('success', 'Jenis cuti dihapus.');
     }
 
     public function toggle(LeaveType $leaveType)
     {
-        $this->authorize('manage hris master');
+        $this->authorize('update hris master');
         $leaveType->update(['is_active' => !$leaveType->is_active]);
         return back()->with('success', 'Status diperbarui.');
     }
 
     public function resetDefault()
     {
-        $this->authorize('manage hris master');
+        $this->authorize('create hris master');
         $companyId = auth()->user()->company_id;
 
         LeaveType::whereNull('company_id')->get()->each(function ($t) use ($companyId) {

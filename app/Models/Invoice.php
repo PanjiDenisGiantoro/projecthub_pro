@@ -12,7 +12,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'company_id', 'project_id', 'client_id', 'invoice_number', 'status',
-        'issue_date', 'due_date', 'subtotal', 'tax', 'total', 'paid_at', 'notes',
+        'issue_date', 'due_date', 'subtotal', 'tax', 'total', 'paid_at', 'notes', 'attachment',
     ];
 
     protected static function booted(): void
@@ -56,6 +56,11 @@ class Invoice extends Model
     public function client()
     {
         return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function attachmentUrl(): ?string
+    {
+        return $this->attachment ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->attachment) : null;
     }
 
     public function items()

@@ -25,7 +25,7 @@ class ChatWebController extends Controller
     private function canAccess(Project $project): bool
     {
         $user = Auth::user();
-        if ($user->hasRole(['admin', 'manager'])) return true;
+        if ($user->hasRole(['admin', 'member'])) return true;
         return $project->members()->where('user_id', $user->id)->exists()
             || $project->manager_id === $user->id
             || $project->client_id === $user->id;
@@ -37,7 +37,7 @@ class ChatWebController extends Controller
 
         // ── Proyek ────────────────────────────────────────────────────────
         $projectQuery = Project::query();
-        if (!$user->hasRole(['admin', 'manager'])) {
+        if (!$user->hasRole(['admin', 'member'])) {
             $projectQuery->where(function ($q) use ($user) {
                 $q->where('manager_id', $user->id)
                   ->orWhere('client_id', $user->id)
@@ -108,7 +108,7 @@ class ChatWebController extends Controller
 
         // ── Forum ────────────────────────────────────────────────────────
         $forumQuery = Forum::where('company_id', $user->company_id);
-        if (!$user->hasRole(['admin', 'manager'])) {
+        if (!$user->hasRole(['admin', 'member'])) {
             $forumQuery->whereHas('members', fn($q) => $q->where('user_id', $user->id));
         }
 
@@ -187,7 +187,7 @@ class ChatWebController extends Controller
             'id'             => $m->id,
             'body'           => $m->trashed() ? '' : $m->body,
             'formatted_body' => $m->trashed() ? '' : $this->highlightMentions($m->body),
-            'created_at'     => $m->created_at->format('d M, H:i'),
+            'created_at'     => $m->created_at->toIso8601String(),
             'edited_at'      => $m->edited_at?->format('d M, H:i'),
             'deleted'        => $m->trashed(),
             'is_mine'        => $m->user_id === $userId,
@@ -331,7 +331,7 @@ class ChatWebController extends Controller
     public function destroy(Project $project, ProjectMessage $message)
     {
         abort_unless(
-            $message->user_id === Auth::id() || Auth::user()->hasRole(['admin', 'manager']),
+            $message->user_id === Auth::id() || Auth::user()->hasRole(['admin', 'member']),
             403
         );
         $message->delete();
@@ -398,7 +398,7 @@ class ChatWebController extends Controller
     {
         $user = Auth::user();
 
-        $projectIds = $user->hasRole(['admin', 'manager'])
+        $projectIds = $user->hasRole(['admin', 'member'])
             ? Project::pluck('id')
             : Project::where('manager_id', $user->id)
                 ->orWhere('client_id', $user->id)
@@ -420,7 +420,7 @@ class ChatWebController extends Controller
             ->whereDoesntHave('reads', fn($q) => $q->where('user_id', $user->id))
             ->count();
 
-        $forumIds = $user->hasRole(['admin', 'manager'])
+        $forumIds = $user->hasRole(['admin', 'member'])
             ? Forum::where('company_id', $user->company_id)->pluck('id')
             : Forum::whereHas('members', fn($q) => $q->where('user_id', $user->id))->pluck('id');
 

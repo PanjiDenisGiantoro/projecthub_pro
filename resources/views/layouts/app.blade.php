@@ -6,6 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
     <title>@yield('title', 'Dashboard') — Flovig</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,8 +23,10 @@
 <body class="h-full font-sans antialiased" style="background-color:var(--fl-page)" x-data="{ sidebarOpen: false }">
 
 {{-- Page Loading Overlay --}}
-<div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center" style="background-color:var(--fl-page,#09061a)">
-    <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." class="w-64 h-64 object-contain">
+<div id="page-loader" class="fixed inset-0 z-[9999] overflow-hidden" style="background-color:#ffffff">
+    <div id="page-loader-icon" class="absolute inset-0 flex items-center justify-center">
+        <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-72 sm:w-80 h-auto object-contain">
+    </div>
 </div>
 
 <div class="flex h-full">
@@ -31,10 +37,7 @@
 
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-9 h-9 rounded-xl object-contain shrink-0">
-            <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
-                Flovig
-            </span>
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
         </div>
 
         {{-- Nav --}}
@@ -50,7 +53,7 @@
                     @if(auth()->user()->avatar)
                         <img src="{{ Storage::url(auth()->user()->avatar) }}"
                              alt="{{ auth()->user()->name }}"
-                             class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-indigo-400 transition-all shrink-0">
+                             class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-blue-400 transition-all shrink-0">
                     @else
                         <div class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
@@ -58,7 +61,7 @@
                     @endif
                     <div class="flex-1 min-w-0">
                         <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ auth()->user()->getRoleNames()->first() }}</p>
+                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
                     </div>
                     <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200"
                          style="color:var(--ph-user-chev)"
@@ -109,7 +112,7 @@
                             </span>
                             <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
                                     class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
-                                    :class="enabled ? 'bg-violet-600' : 'bg-gray-400/50'">
+                                    :class="enabled ? 'bg-blue-600' : 'bg-gray-400/50'">
                                 <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
                                       :class="enabled ? 'translate-x-4' : 'translate-x-0.5'"></span>
                             </button>
@@ -140,10 +143,7 @@
            class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:hidden ph-sidebar"
            style="box-shadow:4px 0 30px rgba(0,0,0,0.3)">
         <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <img src="{{ asset('flovig_logo.webp') }}" alt="Flovig" class="w-9 h-9 rounded-xl object-contain shrink-0">
-            <span class="font-bold text-[15px] leading-none tracking-tight" style="color:var(--ph-logo-color)">
-                Flovig
-            </span>
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
             <button @click="sidebarOpen=false" class="ml-auto ph-close-btn shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -166,10 +166,10 @@
                 @endif
                 <div class="flex-1 min-w-0">
                     <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                    <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ auth()->user()->getRoleNames()->first() }}</p>
+                    <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
                 </div>
                 @if(auth()->user()->is_super_admin)
-                    <a href="{{ route('superadmin.dashboard') }}" class="text-slate-400 hover:text-indigo-400 p-1.5 rounded-lg hover:bg-indigo-500/10 transition-colors shrink-0" title="Superadmin">
+                    <a href="{{ route('superadmin.dashboard') }}" class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-500/10 transition-colors shrink-0" title="Superadmin">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
@@ -207,7 +207,7 @@
                 $userPackages = auth()->user()->is_super_admin
                     ? ['task_management', 'hris']
                     : auth()->user()->activePackages();
-                if (auth()->user()->hasRole('customer')) {
+                if (auth()->user()->hasRole('client')) {
                     $userPackages = array_values(array_diff($userPackages, ['hris']));
                 }
             @endphp
@@ -283,10 +283,10 @@
                      style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
                     <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
                         <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifikasi</p>
-                        <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[11px] text-indigo-400 hover:text-indigo-300">Tandai semua dibaca</button>
+                        <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[11px] text-blue-400 hover:text-blue-300">Tandai semua dibaca</button>
                     </div>
                     <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak class="px-4 py-2.5 ph-drop-divider-b">
-                        <button @click="subscribePush()" class="w-full text-[11.5px] font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5">
+                        <button @click="subscribePush()" class="w-full text-[11.5px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
@@ -298,7 +298,7 @@
                             <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">Belum ada notifikasi.</p>
                         </template>
                         <template x-for="n in items" :key="n.id">
-                            <button @click="markRead(n)" class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors" :class="!n.read_at ? 'bg-indigo-500/5' : ''">
+                            <button @click="markRead(n)" class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors" :class="!n.read_at ? 'bg-blue-500/5' : ''">
                                 <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)" x-text="n.title"></p>
                                 <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message"></p>
                             </button>
@@ -405,10 +405,33 @@
 
         {{-- Page content --}}
         <main class="@yield('main-class', 'flex-1 px-6 pb-8 overflow-auto')">
+            @if(auth()->check() && ! auth()->user()->is_super_admin && auth()->user()->isCompanyExpiringSoon())
+                @php $daysLeft = auth()->user()->companyDaysRemaining(); @endphp
+                <div class="mt-4 mb-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>
+                        @if($daysLeft <= 0)
+                            Masa aktif perusahaan Anda berakhir <strong>hari ini</strong>.
+                        @else
+                            Masa aktif perusahaan Anda akan berakhir dalam <strong>{{ $daysLeft }} hari</strong> lagi.
+                        @endif
+                        Hubungi admin untuk perpanjangan supaya akses tidak terganggu.
+                    </span>
+                </div>
+            @endif
             @yield('content')
         </main>
+
     </div>
 </div>
+
+<footer class="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none px-4">
+    <div class="pointer-events-auto flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border border-gray-100 bg-white/90 backdrop-blur shadow-lg">
+        <span class="text-xs text-gray-400">Powered by</span>
+        <img src="{{ asset('arunika_logo.png') }}" alt="Arunika Solusi Inovasi" class="h-5 w-auto">
+        <span class="text-xs text-gray-400">&copy; {{ date('Y') }}</span>
+    </div>
+</footer>
 
 {{-- ═══════════════════════════════════════
      AI Assistant — floating widget
@@ -417,7 +440,7 @@
     {{-- Bubble button --}}
     <button @click="toggle()"
             class="fixed bottom-5 right-5 z-40 w-16 h-16 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 overflow-hidden"
-            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 6px 20px rgba(109,40,217,0.4);border:2px solid rgba(255,255,255,0.25)">
+            style="background:var(--ai-gradient);box-shadow:0 6px 20px rgba(37,99,235,0.4);border:2px solid rgba(255,255,255,0.25)">
         <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
         <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -426,11 +449,16 @@
 
     {{-- Panel --}}
     <div x-show="open" x-cloak x-transition
-         class="fixed bottom-24 right-5 z-40 w-[min(360px,calc(100vw-2.5rem))] h-[min(520px,calc(100vh-8rem))] rounded-2xl overflow-hidden flex flex-col"
+         class="fixed bottom-24 right-5 z-40 rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
+         :class="minimized
+            ? 'w-[min(360px,calc(100vw-2.5rem))] h-auto'
+            : (expanded
+                ? 'w-[min(640px,calc(100vw-2.5rem))] h-[min(85vh,calc(100vh-6rem))]'
+                : 'w-[min(360px,calc(100vw-2.5rem))] h-[min(520px,calc(100vh-8rem))]')"
          style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);box-shadow:0 10px 40px rgba(109,40,217,0.25)">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:var(--ai-gradient)">
             <div class="w-9 h-9 rounded-full shrink-0 overflow-hidden" style="border:1.5px solid rgba(255,255,255,0.4)">
                 <img src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
             </div>
@@ -438,7 +466,23 @@
                 <p class="text-sm font-bold text-white">AI Assistant</p>
                 <p class="text-[10px] text-white/70">Self-hosted · tidak dikirim ke pihak ketiga</p>
             </div>
-            <button @click="clearHistory()" title="Hapus riwayat" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+            <button @click="minimized = !minimized" :title="minimized ? 'Perbesar' : 'Minimize'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+                <svg x-show="!minimized" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
+                </svg>
+                <svg x-show="minimized" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                </svg>
+            </button>
+            <button x-show="!minimized" @click="expanded = !expanded" :title="expanded ? 'Kecilkan' : 'Perbesar ukuran'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
+                <svg x-show="!expanded" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                </svg>
+                <svg x-show="expanded" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 4H5m4 0L4 4m11 5V5m0 4h4m-4 0l5-5M9 15v4m0-4H5m4 0l-5 5m11-5v4m0-4h4m-4 0l5 5"/>
+                </svg>
+            </button>
+            <button x-show="!minimized" @click="clearHistory()" title="Hapus riwayat" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
@@ -446,7 +490,7 @@
         </div>
 
         {{-- Messages --}}
-        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea" style="background:var(--fl-search-bg,#f9fafb)">
+        <div x-show="!minimized" class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea" style="background:var(--fl-search-bg,#f9fafb)">
             <div x-show="messages.length === 0" class="text-center py-8">
                 <p class="text-sm" style="color:var(--fl-text-muted,#6b7280)">Halo! Ada yang bisa saya bantu?</p>
             </div>
@@ -466,7 +510,7 @@
                                 <div class="flex gap-2 pt-1">
                                     <button @click="confirmAction(i)" :disabled="m.action.executing"
                                             class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                                            style="background:var(--ai-gradient)">
                                         <span x-show="!m.action.executing">Konfirmasi</span>
                                         <span x-show="m.action.executing" x-cloak>Memproses...</span>
                                     </button>
@@ -491,7 +535,7 @@
                                 ? 'text-white rounded-br-sm'
                                 : 'rounded-bl-sm border'"
                              :style="m.role === 'user'
-                                ? 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'
+                                ? 'background:var(--ai-gradient)'
                                 : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
                              x-text="m.content"></div>
                     </div>
@@ -509,7 +553,7 @@
         </div>
 
         {{-- Input --}}
-        <div class="p-3 border-t shrink-0" style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
+        <div x-show="!minimized" class="p-3 border-t shrink-0" style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
             <div class="flex gap-2 items-end">
                 <textarea x-model="input"
                           x-ref="aiInput"
@@ -520,7 +564,7 @@
                           style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d);max-height:80px"></textarea>
                 <button @click="send()" :disabled="thinking || !input.trim()"
                         class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white transition disabled:opacity-40"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                        style="background:var(--ai-gradient)">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
@@ -537,6 +581,8 @@
 function aiAssistantWidget() {
     return {
         open: false,
+        minimized: false,
+        expanded: false,
         input: '',
         messages: [],
         thinking: false,
@@ -552,7 +598,10 @@ function aiAssistantWidget() {
 
         toggle() {
             this.open = !this.open;
-            if (this.open) this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
+            if (this.open) {
+                this.minimized = false;
+                this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
+            }
         },
 
         clearHistory() {
@@ -586,17 +635,45 @@ function aiAssistantWidget() {
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
                     body: JSON.stringify({ messages: history }),
                 });
-                const data = await res.json();
-                if (res.ok && data.action) {
-                    this.messages.push({
-                        role: 'assistant',
-                        content: '(mengusulkan aksi: ' + data.action.label + ')',
-                        action: { ...data.action, status: 'pending', executing: false },
-                    });
-                } else if (res.ok) {
-                    this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
+
+                // Balasan biasa di-stream sebagai plain text (Content-Type: text/plain) —
+                // baca bertahap biar teks muncul seiring model generate, bukan nunggu
+                // semuanya selesai. Balasan yang mengusulkan aksi (create_project/task)
+                // tetap JSON biasa karena butuh dicek utuh dulu sebelum tahu mau
+                // ditampilkan sebagai teks atau tombol konfirmasi aksi.
+                const contentType = res.headers.get('Content-Type') || '';
+
+                if (contentType.includes('application/json')) {
+                    const data = await res.json();
+                    if (res.ok && data.action) {
+                        this.messages.push({
+                            role: 'assistant',
+                            content: '(mengusulkan aksi: ' + data.action.label + ')',
+                            action: { ...data.action, status: 'pending', executing: false },
+                        });
+                    } else if (res.ok) {
+                        this.messages.push({ role: 'assistant', content: data.reply || '(tidak ada jawaban)' });
+                    } else {
+                        this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
+                    }
+                } else if (res.ok && res.body) {
+                    const msg = { role: 'assistant', content: '' };
+                    this.messages.push(msg);
+                    const idx = this.messages.length - 1;
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    this.thinking = false; // token pertama akan langsung tampil, indikator "mengetik" tidak perlu lagi
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        this.messages[idx].content += decoder.decode(value, { stream: true });
+                        this.$nextTick(() => this.scrollBottom());
+                    }
+                    if (!this.messages[idx].content) {
+                        this.messages[idx].content = '(tidak ada jawaban)';
+                    }
                 } else {
-                    this.messages.push({ role: 'assistant', content: data.error || 'Terjadi kesalahan.' });
+                    this.messages.push({ role: 'assistant', content: 'Terjadi kesalahan.' });
                 }
             } catch (e) {
                 this.messages.push({ role: 'assistant', content: 'Gagal terhubung ke AI Assistant.' });
@@ -854,21 +931,23 @@ document.addEventListener('DOMContentLoaded', function () {
     font-size: 0.975rem !important;
     font-weight: 600 !important;
 }
-#page-loader {
-    transition: opacity 0.3s ease;
+#page-loader-icon {
+    transition: opacity .35s ease;
+}
+#page-loader.hidden #page-loader-icon {
+    opacity: 0;
 }
 #page-loader.hidden {
-    opacity: 0;
     pointer-events: none;
 }
 </style>
 <script>
 window.addEventListener('load', function () {
     var loader = document.getElementById('page-loader');
-    if (loader) {
-        loader.classList.add('hidden');
-        setTimeout(function () { loader.style.display = 'none'; }, 300);
-    }
+    if (!loader) return;
+
+    loader.classList.add('hidden');
+    setTimeout(function () { loader.style.display = 'none'; }, 650);
 });
 </script>
 

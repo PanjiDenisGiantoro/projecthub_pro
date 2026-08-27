@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
 use App\Models\Company;
-use App\Models\Department;
-use App\Models\Division;
+use App\Models\OrganizationUnit;
 use Illuminate\Http\Request;
 
 class AjaxController extends Controller
@@ -18,39 +16,22 @@ class AjaxController extends Controller
         );
     }
 
-    public function branches(Request $request)
+    /** Anak langsung dari sebuah unit organisasi (atau root-level unit se-company jika parent_id kosong). */
+    public function organizationUnits(Request $request)
     {
-        $request->validate(['company_id' => 'required|integer']);
+        $request->validate([
+            'company_id' => 'required_without:parent_id|nullable|integer',
+            'parent_id'  => 'nullable|integer',
+        ]);
 
-        return response()->json(
-            Branch::where('company_id', $request->company_id)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name'])
-        );
-    }
+        $query = OrganizationUnit::where('is_active', true);
 
-    public function divisions(Request $request)
-    {
-        $request->validate(['branch_id' => 'required|integer']);
+        if ($request->parent_id) {
+            $query->where('parent_id', $request->parent_id);
+        } else {
+            $query->where('company_id', $request->company_id)->whereNull('parent_id');
+        }
 
-        return response()->json(
-            Division::where('branch_id', $request->branch_id)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name'])
-        );
-    }
-
-    public function departments(Request $request)
-    {
-        $request->validate(['division_id' => 'required|integer']);
-
-        return response()->json(
-            Department::where('division_id', $request->division_id)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name'])
-        );
+        return response()->json($query->orderBy('order')->get(['id', 'name', 'code']));
     }
 }

@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') — Super Admin</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-slate-950 text-white antialiased">
 
 {{-- Page Loading Overlay --}}
-<div id="page-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#020617;transition:opacity 0.3s ease">
-    <img src="{{ asset('flovig_loading_transparent.webp') }}" alt="Loading..." style="width:16rem;height:16rem;object-fit:contain">
+<div id="page-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#ffffff;transition:opacity 0.3s ease">
+    <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." style="width:20rem;height:auto;object-fit:contain">
 </div>
 
 <div class="flex h-full">
@@ -19,7 +23,7 @@
     <aside class="w-60 flex flex-col fixed inset-y-0 bg-slate-900 border-r border-white/5">
         {{-- Logo --}}
         <div class="flex items-center gap-3 px-5 h-16 border-b border-white/5 shrink-0">
-            <img src="{{ asset('logo.png') }}" alt="Flovig" class="w-8 h-8 rounded-lg object-contain shrink-0">
+            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-6 w-auto object-contain shrink-0">
             <div class="min-w-0">
                 <p class="text-sm font-bold text-white leading-none">Super Admin</p>
                 <p class="text-xs text-amber-400 mt-0.5">Flovig</p>
@@ -59,6 +63,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 Pelanggan
+            </a>
+
+            <a href="{{ route('superadmin.packages') }}" class="{{ request()->routeIs('superadmin.packages') ? $a : $i }}">
+                <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01"/>
+                </svg>
+                Paket & Harga
             </a>
 
             <div class="pt-3 mt-3 border-t border-white/5">
@@ -108,6 +120,11 @@
             @if(session('success'))
                 <div class="mb-6 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl px-4 py-3 text-sm">
                     {{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-4 py-3 text-sm">
+                    {{ session('error') }}
                 </div>
             @endif
             @if($errors->any())

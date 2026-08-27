@@ -5,7 +5,8 @@
 @section('content')
 @php
     $user = auth()->user();
-    $sc = ['submitted'=>'bg-blue-100 text-blue-700','under_review'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700','in_progress'=>'bg-purple-100 text-purple-700','done'=>'bg-gray-100 text-gray-700'];
+    $sc = ['waiting_approval'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700','done'=>'bg-gray-100 text-gray-700'];
+    $sl = ['waiting_approval' => 'Waiting for Approval Manager', 'approved' => 'Approved', 'rejected' => 'Rejected', 'done' => 'Done'];
     $pc = ['low'=>'bg-green-100 text-green-700','medium'=>'bg-yellow-100 text-yellow-700','high'=>'bg-orange-100 text-orange-700','urgent'=>'bg-red-100 text-red-700'];
 @endphp
 <div class="py-4 max-w-3xl">
@@ -25,7 +26,7 @@
                 </div>
                 <div class="flex gap-2 flex-shrink-0">
                     <span class="badge {{ $pc[$customerRequest->priority] ?? '' }}">{{ ucfirst($customerRequest->priority) }}</span>
-                    <span class="badge {{ $sc[$customerRequest->status] ?? '' }}">{{ ucfirst(str_replace('_',' ',$customerRequest->status)) }}</span>
+                    <span class="badge {{ $sc[$customerRequest->status] ?? '' }}">{{ $sl[$customerRequest->status] ?? ucfirst(str_replace('_',' ',$customerRequest->status)) }}</span>
                 </div>
             </div>
             <p class="text-sm text-gray-600 whitespace-pre-line">{{ $customerRequest->description }}</p>
@@ -48,21 +49,23 @@
             <h4 class="text-sm font-semibold text-gray-700 mb-4">Alur Approval</h4>
             <div class="flex items-center gap-2 text-sm flex-wrap">
                 @php
+                    $rejected = $customerRequest->status === 'rejected';
                     $steps = [
-                        ['label'=>'Customer', 'done'=>true],
-                        ['label'=>'Marketing Review', 'done'=>in_array($customerRequest->status, ['under_review','approved','rejected','in_progress','done'])],
-                        ['label'=>'Manager Approval', 'done'=>in_array($customerRequest->status, ['approved','in_progress','done'])],
-                        ['label'=>'Developer', 'done'=>in_array($customerRequest->status, ['in_progress','done'])],
-                        ['label'=>'Done', 'done'=>$customerRequest->status==='done'],
+                        ['label'=>'Client', 'done'=>true, 'bad'=>false],
+                        ['label'=>'Waiting for Approval Manager', 'done'=>in_array($customerRequest->status, ['approved','done']), 'bad'=>$rejected],
+                        ['label'=>'Done', 'done'=>$customerRequest->status==='done', 'bad'=>false],
                     ];
                 @endphp
                 @foreach($steps as $i => $step)
                     <div class="flex items-center gap-2">
                         <div class="flex items-center gap-1.5">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs {{ $step['done'] ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500' }}">
-                                {{ $step['done'] ? '✓' : $i+1 }}
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs
+                                {{ $step['bad'] ? 'bg-red-500 text-white' : ($step['done'] ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500') }}">
+                                {{ $step['bad'] ? '✗' : ($step['done'] ? '✓' : $i+1) }}
                             </div>
-                            <span class="{{ $step['done'] ? 'text-green-700 font-medium' : 'text-gray-500' }}">{{ $step['label'] }}</span>
+                            <span class="{{ $step['bad'] ? 'text-red-700 font-medium' : ($step['done'] ? 'text-green-700 font-medium' : 'text-gray-500') }}">
+                                {{ $step['bad'] ? 'Ditolak' : $step['label'] }}
+                            </span>
                         </div>
                         @if($i < count($steps)-1)
                             <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -73,19 +76,7 @@
         </div>
 
         {{-- Actions --}}
-        @if($user->hasRole('marketing') && $customerRequest->status === 'submitted')
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <h4 class="text-sm font-semibold text-gray-700 mb-3">Teruskan ke Manager</h4>
-            <form method="POST" action="{{ route('requests.review', $customerRequest) }}" class="space-y-3">
-                @csrf @method('PUT')
-                <textarea name="marketing_notes" rows="2" placeholder="Catatan marketing (opsional)..."
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"></textarea>
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Teruskan ke Manager</button>
-            </form>
-        </div>
-        @endif
-
-        @if($user->hasRole(['admin','manager']) && in_array($customerRequest->status, ['submitted','under_review']))
+        @if($user->hasRole(['admin','member']) && $customerRequest->status === 'waiting_approval')
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <h4 class="text-sm font-semibold text-gray-700 mb-3">Keputusan Manager</h4>
             <div class="flex gap-3">
@@ -103,6 +94,16 @@
                     </div>
                 </form>
             </div>
+        </div>
+        @endif
+
+        @if($user->hasRole(['admin','member']) && $customerRequest->status === 'approved')
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">Tandai Selesai</h4>
+            <form method="POST" action="{{ route('requests.complete', $customerRequest) }}">
+                @csrf @method('PUT')
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Tandai Selesai</button>
+            </form>
         </div>
         @endif
     </div>

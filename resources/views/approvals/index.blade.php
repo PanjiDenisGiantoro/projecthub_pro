@@ -5,26 +5,6 @@
 @section('content')
 <div class="py-4" x-data="{ tab: '{{ request('tab','pending') }}', approveModal: null, rejectModal: null }">
 
-    {{-- Flash --}}
-    @if(session('success'))
-    <div class="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        {{ session('success') }}
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        {{ session('error') }}
-    </div>
-    @endif
-    @if(session('error_msg'))
-    <div class="mb-4 flex items-center gap-3 bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded-lg text-sm">
-        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        {{ session('error_msg') }}
-    </div>
-    @endif
-
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl border border-yellow-200 p-4 text-center">
@@ -195,9 +175,12 @@
                     @endforelse
                 </tbody>
             </table>
-            @if($pendingForMe->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100">{{ $pendingForMe->links() }}</div>
-            @endif
+            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+                <x-per-page :param-name="'pending_per_page'" />
+                @if($pendingForMe->hasPages())
+                {{ $pendingForMe->links() }}
+                @endif
+            </div>
         </div>
     </div>
 
@@ -258,7 +241,7 @@
                         <td class="px-4 py-3">
                             @if($approval->status === 'pending')
                             <form method="POST" action="{{ route('approvals.cancel', $approval) }}"
-                                  onsubmit="return confirm('Batalkan permintaan approval ini?')">
+                                  data-confirm-submit="Batalkan permintaan approval ini?" data-confirm-btn="Ya, Batalkan">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition-colors">Batalkan</button>
                             </form>
@@ -270,9 +253,12 @@
                     @endforelse
                 </tbody>
             </table>
-            @if($myRequests->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100">{{ $myRequests->links() }}</div>
-            @endif
+            <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+                <x-per-page :param-name="'my_per_page'" />
+                @if($myRequests->hasPages())
+                {{ $myRequests->links() }}
+                @endif
+            </div>
         </div>
     </div>
 

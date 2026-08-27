@@ -54,8 +54,10 @@
                 ['Tunjangan Makan', $payroll->tunjangan_makan],
                 ['Tunjangan Jabatan', $payroll->tunjangan_jabatan],
                 ['Tunjangan Lainnya', $payroll->tunjangan_lainnya],
+                ['Bonus/THR', $payroll->bonus],
                 ['Lembur', $payroll->lembur],
                 ['Reimburse', $payroll->reimburse],
+                ['Tunjangan PPh 21 (Gross-Up)', $payroll->tunjangan_pph21],
             ] as [$label, $val])
             @if($val > 0)
             <div class="flex justify-between text-sm">
@@ -75,22 +77,45 @@
             @foreach([
                 ['BPJS Kesehatan (1%)', $payroll->potongan_bpjs_kes],
                 ['BPJS Ketenagakerjaan', $payroll->potongan_bpjs_tk],
-                ['PPh 21', $payroll->potongan_pph21],
+                ['PPh 21' . ($payroll->pph21_method === 'bukan_pegawai' ? ' (Bukan Pegawai)' : ''), $payroll->potongan_pph21],
                 ['Potongan Alpha (' . $payroll->hari_alpha . ' hari)', $payroll->potongan_alpha],
+                ['Cicilan Kasbon', $payroll->potongan_kasbon],
                 ['Potongan Lainnya', $payroll->potongan_lainnya],
+            ] as [$label, $val])
+            @if($val != 0)
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">{{ $label }}{{ $val < 0 ? ' (kelebihan potong dikembalikan)' : '' }}</span>
+                <span class="font-medium {{ $val < 0 ? 'text-green-600' : 'text-red-600' }}">{{ $val < 0 ? '+' : '-' }} Rp {{ number_format(abs($val), 0, ',', '.') }}</span>
+            </div>
+            @endif
+            @endforeach
+            <div class="flex justify-between text-sm font-bold border-t border-gray-100 pt-2 {{ $payroll->total_potongan < 0 ? 'text-green-600' : 'text-red-600' }}">
+                <span>Total Potongan</span>
+                <span>{{ $payroll->total_potongan < 0 ? '+' : '-' }} Rp {{ number_format(abs($payroll->total_potongan), 0, ',', '.') }}</span>
+            </div>
+        </div>
+
+        @if($payroll->total_tanggungan_perusahaan > 0)
+        <div class="space-y-2">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Tanggungan Perusahaan <span class="normal-case font-normal text-gray-400">(tidak mengurangi gaji bersih)</span></p>
+            @foreach([
+                ['BPJS Kesehatan (4%)', $payroll->tanggungan_bpjs_kes],
+                ['BPJS Ketenagakerjaan', $payroll->tanggungan_bpjs_tk],
+                ['PPh 21 (Net)', $payroll->tanggungan_pph21],
             ] as [$label, $val])
             @if($val > 0)
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">{{ $label }}</span>
-                <span class="font-medium text-red-600">- Rp {{ number_format($val, 0, ',', '.') }}</span>
+                <span class="font-medium text-gray-900">Rp {{ number_format($val, 0, ',', '.') }}</span>
             </div>
             @endif
             @endforeach
-            <div class="flex justify-between text-sm font-bold border-t border-gray-100 pt-2 text-red-600">
-                <span>Total Potongan</span>
-                <span>- Rp {{ number_format($payroll->total_potongan, 0, ',', '.') }}</span>
+            <div class="flex justify-between text-sm font-bold border-t border-gray-100 pt-2">
+                <span>Total Tanggungan Perusahaan</span>
+                <span>Rp {{ number_format($payroll->total_tanggungan_perusahaan, 0, ',', '.') }}</span>
             </div>
         </div>
+        @endif
 
         <div class="bg-green-50 rounded-xl px-5 py-4 flex justify-between items-center">
             <span class="font-bold text-gray-900">Gaji Bersih</span>

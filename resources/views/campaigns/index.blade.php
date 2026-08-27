@@ -13,7 +13,7 @@
             ['label'=>'Aktif',           'value'=> $stats['active'],          'color'=>'text-green-600'],
             ['label'=>'Total Leads',     'value'=> number_format($stats['total_leads']), 'color'=>'text-blue-600'],
             ['label'=>'Converted',       'value'=> number_format($stats['converted']),  'color'=>'text-emerald-600'],
-            ['label'=>'Conversion Rate', 'value'=> $stats['conversion_rate'].'%',       'color'=>'text-violet-600'],
+            ['label'=>'Conversion Rate', 'value'=> $stats['conversion_rate'].'%',       'color'=>'text-blue-600'],
             ['label'=>'Total Spend',     'value'=> 'Rp '.number_format($stats['total_spend'],0,',','.'), 'color'=>'text-orange-600'],
         ];
         @endphp
@@ -29,16 +29,16 @@
     <div class="flex flex-wrap items-center gap-3 justify-between">
         <form method="GET" class="flex flex-wrap gap-2 items-center">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari campaign…"
-                   class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 w-48">
+                   class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48">
             <select name="status" onchange="this.form.submit()"
-                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Status</option>
                 @foreach(['draft','active','paused','completed','cancelled'] as $s)
                 <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
                 @endforeach
             </select>
             <select name="channel" onchange="this.form.submit()"
-                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Channel</option>
                 @foreach(['social_media','email','event','ads','seo','other'] as $c)
                 <option value="{{ $c }}" {{ request('channel') === $c ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$c)) }}</option>
@@ -48,9 +48,9 @@
             <a href="{{ route('campaigns.index') }}" class="text-xs text-gray-400 hover:text-gray-600">× Reset</a>
             @endif
         </form>
-        @can('manage campaigns')
+        @can('create campaign')
         <a href="{{ route('campaigns.create') }}"
-           class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Buat Campaign
         </a>
@@ -133,7 +133,7 @@
                 <span></span>
                 @endif
                 <a href="{{ route('campaigns.show', $c) }}"
-                   class="text-xs font-semibold text-violet-600 hover:text-violet-800">Lihat →</a>
+                   class="text-xs font-semibold text-blue-600 hover:text-blue-800">Lihat →</a>
             </div>
         </div>
         @empty
@@ -144,9 +144,12 @@
         @endforelse
     </div>
 
-    @if($campaigns->hasPages())
-    <div class="mt-2">{{ $campaigns->links() }}</div>
-    @endif
+    <div class="mt-2 flex items-center justify-between gap-3 flex-wrap">
+        <x-per-page />
+        @if($campaigns->hasPages())
+        {{ $campaigns->links() }}
+        @endif
+    </div>
 
 </div>
 @endsection

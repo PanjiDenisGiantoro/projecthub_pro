@@ -15,7 +15,7 @@ class CustomerRequest extends Model
     protected $fillable = [
         'company_id', 'project_id', 'customer_id', 'title', 'description', 'type',
         'priority', 'status', 'rejection_reason', 'marketing_notes',
-        'reviewed_by', 'approved_by', 'approved_at', 'attachment_path',
+        'reviewed_by', 'approved_by', 'approved_at', 'completed_by', 'completed_at', 'attachment_path',
     ];
 
     protected static function booted(): void
@@ -36,7 +36,7 @@ class CustomerRequest extends Model
 
     protected function casts(): array
     {
-        return ['approved_at' => 'datetime'];
+        return ['approved_at' => 'datetime', 'completed_at' => 'datetime'];
     }
 
     public function company()
@@ -67,5 +67,10 @@ class CustomerRequest extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function completer()
+    {
+        return $this->belongsTo(User::class, 'completed_by');
     }
 }

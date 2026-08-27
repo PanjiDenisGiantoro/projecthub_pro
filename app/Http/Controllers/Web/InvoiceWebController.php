@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\User;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceWebController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier) {}
 
     public function index(Request $request)
@@ -22,36 +26,63 @@ class InvoiceWebController extends Controller
         $query = Invoice::with(['project', 'client'])
             ->when($request->status, fn($q) => $q->where('status', $request->status));
 
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
         }
 
-        $invoices = $query->latest()->paginate(15);
+        $invoices = $query->latest()->paginate($this->perPage($request))->withQueryString();
         return view('invoices.index', compact('invoices'));
     }
 
     public function create()
     {
-        $cid      = $this->tenantId();
-        $projects = Project::where('status', 'active')->with('client')->get();
-        $clients  = User::role('customer')->where('is_active', true)
-            ->when($cid, fn($q) => $q->where('company_id', $cid))
+        $user = auth()->user();
+        $companies = $user->is_super_admin ? Company::orderBy('name')->get() : $user->accessibleCompanies();
+        $companyIds = $companies->pluck('id');
+
+        // Global scope Project/User cuma tahu company_id utama, padahal admin bisa
+        // punya akses ke beberapa company (lihat User::accessibleCompanies()) —
+        // di-bypass supaya dropdown proyek/client ikut semua company yang bisa diakses.
+        $projects = Project::withoutGlobalScope('company')
+            ->where('status', 'active')
+            ->when(! $user->is_super_admin, fn($q) => $q->whereIn('company_id', $companyIds))
+            ->with('client')
             ->get();
-        return view('invoices.create', compact('projects', 'clients'));
+
+        $clients = User::role('client')
+            ->where('is_active', true)
+            ->when(! $user->is_super_admin, fn($q) => $q->whereIn('company_id', $companyIds))
+            ->get();
+
+        return view('invoices.create', compact('projects', 'clients', 'companies'));
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $accessibleCompanyIds = $user->is_super_admin ? null : $user->accessibleCompanies()->pluck('id');
+
         $request->validate([
-            'project_id'              => 'required|exists:projects,id',
+            'invoice_type'            => 'required|in:project,internal',
+            'company_id'              => 'nullable|exists:companies,id',
+            'project_id'              => 'required_if:invoice_type,project|nullable|exists:projects,id',
             'client_id'               => 'required|exists:users,id',
             'issue_date'              => 'required|date',
             'due_date'                => 'required|date|after_or_equal:issue_date',
+            'attachment'              => 'nullable|file|max:10240', // 10MB
             'items'                   => 'required|array|min:1',
             'items.*.description'     => 'required|string',
             'items.*.quantity'        => 'required|numeric|min:0',
             'items.*.unit_price'      => 'required|numeric|min:0',
         ]);
+
+        if ($accessibleCompanyIds !== null && $request->company_id && ! $accessibleCompanyIds->contains((int) $request->company_id)) {
+            abort(403);
+        }
+
+        $attachmentPath = $request->hasFile('attachment')
+            ? $request->file('attachment')->store('invoice-attachments', 'public')
+            : null;
 
         // lockForUpdate() di Invoice::generateNumber() cuma efektif di dalam transaction.
         // Attempt ke-3 di DB::transaction() bikin Laravel otomatis retry kalau kena
@@ -61,9 +92,12 @@ class InvoiceWebController extends Controller
         $maxAttempts = 3;
         for ($attempt = 1; ; $attempt++) {
             try {
-                $invoice = DB::transaction(function () use ($request) {
+                $invoice = DB::transaction(function () use ($request, $attachmentPath) {
                     $invoice = Invoice::create([
-                        ...$request->only('project_id', 'client_id', 'issue_date', 'due_date', 'notes'),
+                        ...$request->only('client_id', 'issue_date', 'due_date', 'notes'),
+                        'company_id'     => $request->company_id,
+                        'project_id'     => $request->invoice_type === 'project' ? $request->project_id : null,
+                        'attachment'     => $attachmentPath,
                         'invoice_number' => Invoice::generateNumber(),
                         'status'         => 'draft',
                         'tax'            => $request->get('tax', 0),
@@ -93,7 +127,7 @@ class InvoiceWebController extends Controller
 
     public function show(Invoice $invoice)
     {
-        abort_if(auth()->user()->hasRole('customer') && $invoice->client_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $invoice->client_id !== auth()->id(), 403);
 
         $invoice->load(['project', 'client', 'items']);
         return view('invoices.show', compact('invoice'));
@@ -114,7 +148,7 @@ class InvoiceWebController extends Controller
 
     public function downloadPdf(Invoice $invoice)
     {
-        abort_if(auth()->user()->hasRole('customer') && $invoice->client_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $invoice->client_id !== auth()->id(), 403);
 
         $invoice->load(['project', 'client', 'items']);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));

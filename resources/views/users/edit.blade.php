@@ -29,6 +29,28 @@
 .select2-dropdown { border: 1px solid #d1d5db !important; border-radius: 0.5rem !important; font-size: 0.875rem !important; }
 .select2-results__option--highlighted { background-color: #2563eb !important; }
 .select2-search--dropdown .select2-search__field { border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.375rem 0.625rem !important; font-size: 0.875rem !important; }
+.select2-container--default .select2-selection--multiple {
+    min-height: 42px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59,130,246,.25) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    color: #1d4ed8 !important;
+    border-radius: 0.375rem !important;
+    padding: 1px 6px !important;
+    font-size: 0.75rem !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #3b82f6 !important;
+    margin-right: 4px !important;
+}
 </style>
 @endpush
 
@@ -41,24 +63,25 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
                 <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
                 <select name="role" id="select-role" required class="w-full">
                     @foreach($roles as $role)
-                        <option value="{{ $role->name }}" {{ old('role', $user->getRoleNames()->first()) === $role->name ? 'selected' : '' }}>{{ ucfirst($role->name) }}</option>
+                        <option value="{{ $role->name }}" {{ old('role', $user->getRoleNames()->first()) === $role->name ? 'selected' : '' }}>{{ \App\Support\RoleLabel::for($role->name) }}</option>
                     @endforeach
                 </select>
             </div>
 
+            @if(session('active_package') === 'hris')
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Level Struktural</label>
                 <select name="structural_level_id" id="select-level" class="w-full">
@@ -71,57 +94,92 @@
                 </select>
             </div>
 
-            {{-- Cascade: Company → Branch → Division → Department --}}
-            <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Penempatan Organisasi</p>
+            <div x-data="{ employmentType: '{{ old('employment_type', $user->employment_type ?? 'tetap') }}' }">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Karyawan <span class="text-red-500">*</span></label>
+                <select name="employment_type" id="select-employment-type" x-model="employmentType" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    @foreach(\App\Support\EmploymentType::options() as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="mt-3" x-show="employmentType === 'lainnya'" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Tipe Karyawan <span class="text-red-500">*</span></label>
+                    <input type="text" name="employment_type_other" value="{{ old('employment_type_other', $user->employment_type_other) }}"
+                           placeholder="mis. Freelance Musiman, Konsultan Lepas..."
+                           :required="employmentType === 'lainnya'"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('employment_type_other') border-red-400 @enderror">
+                    @error('employment_type_other') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="mt-3" x-show="!['tetap','kontrak'].includes(employmentType)" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dari Perusahaan Mana <span class="text-red-500">*</span></label>
+                    <input type="text" name="outsourcing_company_name" value="{{ old('outsourcing_company_name', $user->outsourcing_company_name) }}"
+                           placeholder="Nama perusahaan/vendor asal karyawan"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('outsourcing_company_name') border-red-400 @enderror">
+                    @error('outsourcing_company_name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan</label>
-                        <select id="sel-company" class="w-full">
-                            <option value="">— Pilih Perusahaan —</option>
-                            @foreach($companies as $company)
-                                <option value="{{ $company->id }}"
-                                    {{ (old('company_id', $preselect['company_id'])) == $company->id ? 'selected' : '' }}>
-                                    {{ $company->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Kerja</label>
+                        <input type="date" name="hire_date" value="{{ old('hire_date', $user->hire_date?->format('Y-m-d')) }}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('hire_date') border-red-400 @enderror">
+                        @error('hire_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                        <select id="sel-branch" class="w-full">
-                            <option value="">— Pilih Branch —</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                        <select id="sel-division" class="w-full">
-                            <option value="">— Pilih Divisi —</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Departemen</label>
-                        <select id="sel-department" name="department_id" class="w-full">
-                            <option value="">— Pilih Departemen —</option>
-                        </select>
+                    <div x-show="employmentType !== 'tetap'" x-cloak>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Tanggal Akhir Kontrak <span class="text-red-500" x-show="employmentType === 'kontrak'">*</span>
+                        </label>
+                        <input type="date" name="contract_end_date" value="{{ old('contract_end_date', $user->contract_end_date?->format('Y-m-d')) }}"
+                               :required="employmentType === 'kontrak'"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('contract_end_date') border-red-400 @enderror">
+                        @error('contract_end_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>
+            @endif
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Proyek</label>
+                <select name="project_ids[]" id="select-projects" multiple style="width:100%">
+                    @foreach($projects as $project)
+                        <option value="{{ $project->id }}" {{ collect(old('project_ids', $selectedProjectIds))->contains($project->id) ? 'selected' : '' }}>
+                            {{ $project->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-gray-400">Opsional. Anggota tim proyek akan disesuaikan dengan pilihan ini.</p>
+            </div>
+
+            @if(session('active_package') === 'hris')
+            <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Penempatan Organisasi</p>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit Organisasi</label>
+                    <select name="organization_unit_id" id="sel-org-unit" class="w-full">
+                        <option value="">— Tidak Ditentukan —</option>
+                        @foreach($organizationUnits as $unit)
+                            <option value="{{ $unit->id }}" {{ old('organization_unit_id', $user->organization_unit_id) == $unit->id ? 'selected' : '' }}>
+                                {{ str_repeat('— ', $unit->level - 1) }}{{ $unit->name }} (L{{ $unit->code }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            @endif
 
             <input type="hidden" name="timezone" value="{{ $user->timezone ?? 'Asia/Jakarta' }}">
 
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_active" value="1" id="is_active"
-                       {{ $user->is_active ? 'checked' : '' }} class="w-4 h-4 text-violet-600 rounded">
+                       {{ $user->is_active ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
                 <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan</button>
                 <a href="{{ route('users.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
             </div>
         </form>
@@ -134,74 +192,15 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
-    const URLS = {
-        branches:    '{{ route('ajax.branches') }}',
-        divisions:   '{{ route('ajax.divisions') }}',
-        departments: '{{ route('ajax.departments') }}',
-    };
-
-    const preselect = {
-        company_id:    {{ $preselect['company_id']  ?? 'null' }},
-        branch_id:     {{ $preselect['branch_id']   ?? 'null' }},
-        division_id:   {{ $preselect['division_id'] ?? 'null' }},
-        department_id: {{ old('department_id', $user->department_id) ?? 'null' }},
-    };
-
-    $('#select-role, #select-level, #sel-company, #sel-branch, #sel-division, #sel-department').select2({
+    $('#select-role, #select-level, #sel-org-unit').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',
     });
-
-    function clearSelect(sel, placeholder) {
-        $(sel).empty().append(`<option value="">${placeholder}</option>`).trigger('change.select2');
-    }
-
-    function loadOptions(sel, url, params, placeholder, preselectVal, nextFn) {
-        clearSelect(sel, placeholder);
-        $.getJSON(url, params).done(function (data) {
-            $(sel).empty().append(`<option value="">${placeholder}</option>`);
-            data.forEach(item => $(sel).append(new Option(item.name, item.id)));
-            if (preselectVal) $(sel).val(preselectVal);
-            $(sel).trigger('change.select2');
-            if (nextFn) nextFn();
-        });
-    }
-
-    $('#sel-company').on('change', function () {
-        const id = $(this).val();
-        clearSelect('#sel-branch', '— Pilih Branch —');
-        clearSelect('#sel-division', '— Pilih Divisi —');
-        clearSelect('#sel-department', '— Pilih Departemen —');
-        if (id) loadOptions('#sel-branch', URLS.branches, { company_id: id }, '— Pilih Branch —');
+    $('#select-projects').select2({
+        placeholder: '— Pilih Proyek —',
+        width: '100%',
     });
-
-    $('#sel-branch').on('change', function () {
-        const id = $(this).val();
-        clearSelect('#sel-division', '— Pilih Divisi —');
-        clearSelect('#sel-department', '— Pilih Departemen —');
-        if (id) loadOptions('#sel-division', URLS.divisions, { branch_id: id }, '— Pilih Divisi —');
-    });
-
-    $('#sel-division').on('change', function () {
-        const id = $(this).val();
-        clearSelect('#sel-department', '— Pilih Departemen —');
-        if (id) loadOptions('#sel-department', URLS.departments, { division_id: id }, '— Pilih Departemen —');
-    });
-
-    // Pre-populate cascade on page load using sequential callbacks
-    if (preselect.company_id) {
-        loadOptions('#sel-branch', URLS.branches, { company_id: preselect.company_id }, '— Pilih Branch —',
-            preselect.branch_id, function () {
-                if (!preselect.branch_id) return;
-                loadOptions('#sel-division', URLS.divisions, { branch_id: preselect.branch_id }, '— Pilih Divisi —',
-                    preselect.division_id, function () {
-                        if (!preselect.division_id) return;
-                        loadOptions('#sel-department', URLS.departments, { division_id: preselect.division_id }, '— Pilih Departemen —',
-                            preselect.department_id, null);
-                    });
-            });
-    }
 });
 </script>
 @endpush

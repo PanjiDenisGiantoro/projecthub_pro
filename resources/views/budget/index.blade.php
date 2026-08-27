@@ -52,46 +52,47 @@
             @if($byCategory->isEmpty())
             <p class="text-sm text-gray-400">Belum ada data.</p>
             @else
-            <canvas id="categoryChart" height="220"></canvas>
+            <canvas id="categoryChart" height="220" class="cursor-pointer"></canvas>
+            <p class="text-xs text-gray-400 mt-2">Klik segmen untuk memfilter tabel transaksi di bawah.</p>
             @endif
         </div>
 
         {{-- Add entry form --}}
         <div class="lg:col-span-2">
-            @if(!auth()->user()->hasRole('customer'))
+            @if(!auth()->user()->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">Tambah Entri</h3>
                 <form method="POST" action="{{ route('budget.store', $project) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @csrf
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tipe *</label>
-                        <select name="type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <select name="type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="expense">Pengeluaran</option>
                             <option value="income">Pemasukan</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal *</label>
-                        <input type="date" name="entry_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <input type="date" name="entry_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Kategori *</label>
-                        <input type="text" name="category" placeholder="e.g. Labor, Software..." required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <input type="text" name="category" placeholder="e.g. Labor, Software..." required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah (Rp) *</label>
-                        <input type="number" name="amount" step="0.01" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <input type="number" name="amount" step="0.01" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi *</label>
-                        <input type="text" name="description" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <input type="text" name="description" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Referensi</label>
-                        <input type="text" name="reference" placeholder="No. Invoice / PO" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <input type="text" name="reference" placeholder="No. Invoice / PO" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan</button>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -101,12 +102,21 @@
 
     {{-- Entries Table --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div class="px-5 py-3 border-b border-gray-100">
-            <h3 class="text-sm font-semibold text-gray-700">Riwayat Transaksi</h3>
+        <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <h3 class="text-sm font-semibold text-gray-700">Riwayat Transaksi</h3>
+                @if(request('category'))
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                    {{ request('category') }}
+                    <a href="{{ route('budget.index', $project) }}" class="hover:text-blue-900" title="Hapus filter">✕</a>
+                </span>
+                @endif
+            </div>
+            <x-per-page />
         </div>
         @if($entries->isEmpty())
         <div class="text-center py-10 text-gray-400">
-            <p class="font-medium">Belum ada transaksi.</p>
+            <p class="font-medium">{{ request('category') ? 'Tidak ada transaksi di kategori ini.' : 'Belum ada transaksi.' }}</p>
         </div>
         @else
         <table class="w-full text-sm">
@@ -117,7 +127,7 @@
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Kategori</th>
                     <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Jumlah</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Oleh</th>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <th class="px-4 py-3"></th>
                     @endif
                 </tr>
@@ -135,7 +145,7 @@
                         {{ $entry->type === 'income' ? '+' : '-' }} Rp {{ number_format($entry->amount, 0, ',', '.') }}
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $entry->creator?->name }}</td>
-                    @if(!auth()->user()->hasRole('customer'))
+                    @if(!auth()->user()->hasRole('client'))
                     <td class="px-4 py-3 text-right">
                         <form method="POST" action="{{ route('budget.destroy', [$project, $entry]) }}"
                               data-confirm-delete="{{ $entry->description }}">
@@ -148,6 +158,9 @@
                 @endforeach
             </tbody>
         </table>
+        @if($entries->hasPages())
+        <div class="px-4 py-3 border-t border-gray-100">{{ $entries->links() }}</div>
+        @endif
         @endif
     </div>
 </div>
@@ -155,13 +168,26 @@
 @push('scripts')
 <script>
 @if(!$byCategory->isEmpty())
-new Chart(document.getElementById('categoryChart'), {
+var categoryLabels = @json($byCategory->keys());
+var categoryChart = new Chart(document.getElementById('categoryChart'), {
     type: 'doughnut',
     data: {
-        labels: @json($byCategory->keys()),
+        labels: categoryLabels,
         datasets: [{ data: @json($byCategory->values()), backgroundColor: ['#3B82F6','#F59E0B','#EF4444','#10B981','#8B5CF6','#F97316','#06B6D4','#EC4899'], borderWidth: 0 }]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+        onClick: function (evt) {
+            var points = categoryChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            if (!points.length) return;
+            var category = categoryLabels[points[0].index];
+            var url = new URL(window.location.href);
+            url.searchParams.set('category', category);
+            url.searchParams.delete('page');
+            window.location.href = url.toString();
+        }
+    }
 });
 @endif
 </script>
