@@ -15,6 +15,10 @@
     <div class="bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl px-4 py-3">{{ session('error') }}</div>
     @endif
 
+    @foreach($tenureBlocked as $message)
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-4 py-3">{{ $message }}</div>
+    @endforeach
+
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <form action="{{ route('hris.leave.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5"
               x-data="{ submitting: false }"
@@ -64,7 +68,7 @@
             <div class="flex gap-3 pt-2">
                 <button type="submit" :disabled="submitting"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                        style="background:var(--hris-gradient)">
                     <span x-show="!submitting">Kirim Pengajuan</span>
                     <span x-show="submitting" x-cloak>Mengirim...</span>
                 </button>

@@ -21,6 +21,8 @@ class ReimbursementController extends Controller
         $items = Reimbursement::with('user')
             ->where('company_id', $user->company_id)
             ->when(!$user->can('view reimbursement'), fn($q) => $q->where('user_id', $user->id))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->orderByRaw("status = 'pending' desc")
             ->orderByDesc('expense_date')
             ->paginate($this->perPage($request))
             ->withQueryString();

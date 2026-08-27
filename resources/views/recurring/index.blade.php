@@ -9,8 +9,20 @@
         <span class="mx-2">/</span><span class="text-gray-700">Recurring Tasks</span>
     </nav>
 
-    <div class="flex justify-between items-center mb-5">
-        <p class="text-sm text-gray-500">{{ $definitions->total() }} definisi terdaftar</p>
+    <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+            <p class="text-sm text-gray-500">{{ $definitions->total() }} definisi terdaftar</p>
+            <form method="GET" class="flex gap-2">
+                <select name="is_active" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">Semua Status</option>
+                    <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Aktif</option>
+                    <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Nonaktif</option>
+                </select>
+                @if(request()->filled('is_active'))
+                    <a href="{{ route('recurring.index', $project) }}" class="text-sm text-gray-400 hover:text-gray-600 px-2 py-2">✕ Reset</a>
+                @endif
+            </form>
+        </div>
         @if(!auth()->user()->hasRole('client'))
         <button @click="showForm=!showForm"
                 class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
@@ -109,7 +121,7 @@
         @if($definitions->isEmpty())
         <div class="text-center py-12 text-gray-400">
             <p class="text-3xl mb-2">🔄</p>
-            <p class="font-medium text-gray-500">Belum ada recurring task.</p>
+            <p class="font-medium text-gray-500">{{ request()->filled('is_active') ? 'Tidak ada definisi dengan status ini.' : 'Belum ada recurring task.' }}</p>
         </div>
         @else
         <table class="w-full text-sm">

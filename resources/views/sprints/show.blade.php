@@ -61,25 +61,39 @@
 
     {{-- Kanban board --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        @foreach($statuses as $key => $label)
-        @php $colTasks = $sprint->tasks->where('status', $key); @endphp
+        @forelse($columns as $col)
+        @php $colTasks = $sprint->tasks->where('board_column_id', $col->id); @endphp
         <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                <span class="text-sm font-semibold text-gray-700">{{ $label }}</span>
+                <span class="text-sm font-semibold text-gray-700">{{ $col->name }}</span>
                 <span class="text-xs bg-white border border-gray-200 text-gray-600 rounded-full px-2 py-0.5">{{ $colTasks->count() }}</span>
             </div>
             <div class="p-3 space-y-2 min-h-[200px]"
-                 data-status="{{ $key }}"
+                 data-column-id="{{ $col->id }}"
                  ondragover="event.preventDefault(); this.classList.add('bg-blue-50')"
                  ondragleave="this.classList.remove('bg-blue-50')"
-                 ondrop="handleSprintDrop(event,'{{ $key }}','{{ $project->id }}')">
+                 ondrop="handleSprintDrop(event,{{ $col->id }})">
                 @foreach($colTasks as $task)
                 <div draggable="true"
                      data-task-id="{{ $task->id }}"
                      ondragstart="event.dataTransfer.setData('taskId',this.dataset.taskId); this.classList.add('opacity-50')"
                      ondragend="this.classList.remove('opacity-50')"
-                     class="bg-white rounded-lg border border-gray-200 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm">
-                    <p class="text-sm font-medium text-gray-800 leading-snug">{{ $task->title }}</p>
+                     class="group bg-white rounded-lg border border-gray-200 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm">
+                    <div class="flex items-start justify-between gap-2">
+                        <p class="text-sm font-medium text-gray-800 leading-snug">{{ $task->title }}</p>
+                        @if(!auth()->user()->hasRole('client'))
+                        <form method="POST" action="{{ route('sprints.tasks.remove', [$project, $sprint]) }}"
+                              data-confirm-submit="Keluarkan task &quot;{{ $task->title }}&quot; dari sprint ini ke backlog?" data-confirm-btn="Ya, Keluarkan"
+                              class="shrink-0 opacity-0 group-hover:opacity-100 transition">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="task_id" value="{{ $task->id }}">
+                            <button type="submit" title="Keluarkan dari sprint (kembali ke backlog)" class="text-gray-300 hover:text-red-500 transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </form>
+                        @endif
+                    </div>
                     <div class="flex items-center gap-2 mt-2">
                         @if($task->story_points)
                         <span class="text-xs bg-blue-50 text-blue-600 rounded-full px-2 py-0.5">{{ $task->story_points }} pts</span>
@@ -92,13 +106,19 @@
                 @endforeach
             </div>
         </div>
-        @endforeach
+        @empty
+        <div class="col-span-full text-center text-sm text-gray-400 py-10">
+            Proyek ini belum punya kolom board. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Kelola kolom board</a>
+        </div>
+        @endforelse
     </div>
 </div>
 
 @push('scripts')
 <script>
-async function handleSprintDrop(e, status, projectId) {
+const SPRINT_MOVE_URL = @json(route('tasks.move', [$project, '__ID__']));
+
+async function handleSprintDrop(e, columnId) {
     e.currentTarget.classList.remove('bg-blue-50');
     const taskId = e.dataTransfer.getData('taskId');
     if (!taskId) return;
@@ -107,15 +127,15 @@ async function handleSprintDrop(e, status, projectId) {
     const target = e.currentTarget;
 
     try {
-        const res = await fetch(`/projects/${projectId}/tasks/${taskId}/move`, {
+        const res = await fetch(SPRINT_MOVE_URL.replace('__ID__', taskId), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ status })
+            body: JSON.stringify({ board_column_id: columnId })
         });
         if (res.ok) {
             target.appendChild(card);
             // Update counts
-            document.querySelectorAll('[data-status]').forEach(col => {
+            document.querySelectorAll('[data-column-id]').forEach(col => {
                 const cnt = col.querySelectorAll('[data-task-id]').length;
                 col.previousElementSibling.querySelector('span:last-child').textContent = cnt;
             });

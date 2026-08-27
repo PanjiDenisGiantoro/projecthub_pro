@@ -44,9 +44,9 @@
                     <input type="checkbox" name="can_comment" value="1" class="rounded border-gray-300">
                     Bisa Komentar
                 </label>
-                <label class="flex items-center gap-2 text-sm text-gray-700">
+                <label class="flex items-center gap-2 text-sm text-gray-700" title="Client bisa klik 'Setujui' pada milestone yang berstatus selesai">
                     <input type="checkbox" name="can_approve" value="1" class="rounded border-gray-300">
-                    Bisa Approve
+                    Bisa Approve Milestone
                 </label>
                 <label class="flex items-center gap-2 text-sm text-gray-700">
                     <input type="checkbox" name="show_budget" value="1" class="rounded border-gray-300">

@@ -41,27 +41,49 @@
         <button @click="open = !open" class="text-sm font-medium text-blue-700 hover:text-blue-900">
             + Tambah Bonus/THR
         </button>
-        <div x-show="open" class="mt-4">
+        @php $thrCalcUrlTemplate = route('hris.bonus.calculateThr', ['user' => '__ID__']); @endphp
+        <div x-show="open" class="mt-4"
+             x-data="{ userId: '', type: 'bonus', thrInfo: null, thrLoading: false }">
             <form action="{{ route('hris.bonus.store') }}" method="POST" class="flex gap-3 flex-wrap items-start">
                 @csrf
-                <select name="user_id" required class="border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                <select name="user_id" x-model="userId" required class="border border-gray-200 rounded-xl px-3 py-2 text-sm">
                     <option value="">Pilih karyawan...</option>
                     @foreach($employees as $emp)
                     <option value="{{ $emp->id }}">{{ $emp->name }}</option>
                     @endforeach
                 </select>
-                <select name="type" required class="border border-gray-200 rounded-xl px-3 py-2 text-sm">
+                <select name="type" x-model="type" required class="border border-gray-200 rounded-xl px-3 py-2 text-sm">
                     @foreach(\App\Models\Bonus::typeLabels() as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
                 </select>
-                <input type="number" name="amount" required min="0" placeholder="Nominal (Rp)"
+                <input type="number" name="amount" x-ref="amountInput" required min="0" placeholder="Nominal (Rp)"
                        class="border border-gray-200 rounded-xl px-3 py-2 text-sm w-40">
+                <button type="button" x-show="type === 'thr' && userId" x-cloak
+                        @click="
+                            thrLoading = true; thrInfo = null;
+                            fetch(@json($thrCalcUrlTemplate).replace('__ID__', userId), { headers: { 'Accept': 'application/json' } })
+                                .then(r => r.json())
+                                .then(data => {
+                                    thrInfo = data;
+                                    thrLoading = false;
+                                    if (data.eligible) $refs.amountInput.value = data.thr;
+                                })
+                                .catch(() => { thrLoading = false; thrInfo = { eligible: false, message: 'Gagal menghitung. Coba lagi.' }; })
+                        "
+                        class="px-3 py-2 text-xs font-medium text-purple-700 border border-purple-300 rounded-xl hover:bg-purple-50 whitespace-nowrap">
+                    <span x-show="!thrLoading">Hitung THR Otomatis</span>
+                    <span x-show="thrLoading" x-cloak>Menghitung...</span>
+                </button>
                 <input type="text" name="description" placeholder="Keterangan (opsional)"
                        class="border border-gray-200 rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px]">
                 <input type="hidden" name="year" value="{{ $year }}">
                 <input type="hidden" name="month" value="{{ $month }}">
                 <button class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Simpan</button>
+
+                <template x-if="thrInfo">
+                    <p class="w-full text-xs px-1" :class="thrInfo.eligible ? 'text-gray-500' : 'text-amber-600'" x-text="thrInfo.message"></p>
+                </template>
             </form>
         </div>
     </div>
@@ -90,8 +112,8 @@
                     <td class="px-4 py-3 text-gray-500">{{ $b->description ?: '-' }}</td>
                     <td class="px-4 py-3 text-center">
                         @can('delete payroll')
-                        <form action="{{ route('hris.bonus.destroy', $b) }}" method="POST"
-                              onsubmit="return confirm('Hapus data bonus ini?')" class="inline">
+                        <form action="{{ route('hris.bonus.destroy', $b) }}" method="POST" class="inline"
+                              data-confirm-delete="data bonus ini">
                             @csrf @method('DELETE')
                             <button class="text-xs text-red-600 hover:text-red-800">Hapus</button>
                         </form>

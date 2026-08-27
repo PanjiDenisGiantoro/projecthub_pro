@@ -22,6 +22,8 @@ class LeaveController extends Controller
         $requests = LeaveRequest::with(['user', 'leaveType'])
             ->where('company_id', $user->company_id)
             ->when(!$user->can('view leave'), fn($q) => $q->where('user_id', $user->id))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->orderByRaw("status = 'pending' desc")
             ->orderByDesc('created_at')
             ->paginate($this->perPage($request))
             ->withQueryString();
@@ -31,14 +33,16 @@ class LeaveController extends Controller
 
     public function create()
     {
-        $user       = auth()->user();
-        $leaveTypes = LeaveType::where('company_id', $user->company_id)
+        $user     = auth()->user();
+        $allTypes = LeaveType::where('company_id', $user->company_id)
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->get()
-            ->filter(fn($t) => $t->isEligible($user));
+            ->get();
 
-        return view('hris.leave.create', compact('leaveTypes'));
+        $leaveTypes    = $allTypes->filter(fn($t) => $t->isEligible($user));
+        $tenureBlocked = $allTypes->map(fn($t) => $t->tenureBlockedMessage($user))->filter()->values();
+
+        return view('hris.leave.create', compact('leaveTypes', 'tenureBlocked'));
     }
 
     public function store(Request $request)

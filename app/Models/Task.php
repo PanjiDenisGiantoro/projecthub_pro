@@ -9,11 +9,11 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Task extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'project_id', 'milestone_id', 'ticket_id', 'sprint_id', 'title', 'description',
-        'completion_notes', 'assigned_to', 'created_by', 'status', 'priority', 'start_date', 'due_date',
+        'completion_notes', 'assigned_to', 'created_by', 'status', 'board_column_id', 'priority', 'start_date', 'due_date',
         'estimated_hours', 'story_points', 'sort_order', 'recurring_definition_id',
         'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
     ];
@@ -27,26 +27,52 @@ class Task extends Model
         ];
     }
 
+    public function setPriorityAttribute(?string $value): void
+    {
+        // recurring definitions & project templates use a 'critical' option that predates
+        // this table's enum (low/medium/high/urgent) — normalize so saving never 500s.
+        $this->attributes['priority'] = $value === 'critical' ? 'urgent' : $value;
+    }
+
     public function daysRemaining(): ?int
     {
-        if (!$this->due_date || $this->status === 'done') return null;
+        if (! $this->due_date || $this->isDone()) {
+            return null;
+        }
+
         return (int) now()->startOfDay()->diffInDays($this->due_date->startOfDay(), false);
     }
 
     public function isOverdue(): bool
     {
-        return $this->due_date && $this->due_date->isPast() && $this->status !== 'done';
+        return $this->due_date && $this->due_date->isPast() && ! $this->isDone();
+    }
+
+    /**
+     * Whether this task sits in a "done" board column. Falls back to the
+     * legacy literal status check for tasks without a board_column_id
+     * (shouldn't happen post-backfill, but kept defensive).
+     */
+    public function isDone(): bool
+    {
+        return $this->boardColumn ? (bool) $this->boardColumn->is_done : $this->status === 'done';
     }
 
     public function timeProgressPercent(): int
     {
-        if (!$this->estimated_hours || $this->estimated_hours <= 0) return 0;
+        if (! $this->estimated_hours || $this->estimated_hours <= 0) {
+            return 0;
+        }
+
         return min(100, (int) round(($this->totalMinutes() / 60) / $this->estimated_hours * 100));
     }
 
     public function durationDays(): ?int
     {
-        if (!$this->start_date || !$this->due_date) return null;
+        if (! $this->start_date || ! $this->due_date) {
+            return null;
+        }
+
         return (int) $this->start_date->diffInDays($this->due_date) + 1;
     }
 
@@ -58,6 +84,11 @@ class Task extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function boardColumn()
+    {
+        return $this->belongsTo(BoardColumn::class);
     }
 
     public function meetingOrganizer()

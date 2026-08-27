@@ -57,8 +57,12 @@ class EmployeeSalaryController extends Controller
             'tunjangan_jabatan'    => $request->tunjangan_jabatan ?? 0,
             'npwp'                 => $request->npwp,
             'status_pajak'         => $request->status_pajak,
-            'bpjs_kesehatan'       => $request->boolean('bpjs_kesehatan', true),
-            'bpjs_ketenagakerjaan' => $request->boolean('bpjs_ketenagakerjaan', true),
+            // Checkbox HTML tidak mengirim apa pun saat unchecked — default kedua
+            // di boolean() cuma dipakai kalau field-nya benar-benar absen dari
+            // request, jadi TIDAK BOLEH true di sini atau uncheck tidak pernah
+            // tersimpan (bug lama: BPJS selalu jadi true apa pun pilihan admin).
+            'bpjs_kesehatan'       => $request->boolean('bpjs_kesehatan'),
+            'bpjs_ketenagakerjaan' => $request->boolean('bpjs_ketenagakerjaan'),
             'effective_date'       => $request->effective_date,
         ]);
 
@@ -99,8 +103,12 @@ class EmployeeSalaryController extends Controller
             'tunjangan_jabatan'    => $request->tunjangan_jabatan ?? 0,
             'npwp'                 => $request->npwp,
             'status_pajak'         => $request->status_pajak,
-            'bpjs_kesehatan'       => $request->boolean('bpjs_kesehatan', true),
-            'bpjs_ketenagakerjaan' => $request->boolean('bpjs_ketenagakerjaan', true),
+            // Checkbox HTML tidak mengirim apa pun saat unchecked — default kedua
+            // di boolean() cuma dipakai kalau field-nya benar-benar absen dari
+            // request, jadi TIDAK BOLEH true di sini atau uncheck tidak pernah
+            // tersimpan (bug lama: BPJS selalu jadi true apa pun pilihan admin).
+            'bpjs_kesehatan'       => $request->boolean('bpjs_kesehatan'),
+            'bpjs_ketenagakerjaan' => $request->boolean('bpjs_ketenagakerjaan'),
             'effective_date'       => $request->effective_date,
         ]);
 

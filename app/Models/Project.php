@@ -10,7 +10,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Project extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'company_id', 'name', 'description', 'client_id', 'manager_id',
@@ -64,7 +64,7 @@ class Project extends Model
 
     public function hasGithubIntegration(): bool
     {
-        return !empty($this->github_repo_url) && !empty($this->github_token);
+        return ! empty($this->github_repo_url) && ! empty($this->github_token);
     }
 
     public function hasMeetingEnabled(): bool
@@ -74,12 +74,12 @@ class Project extends Model
 
     public function hasSlackIntegration(): bool
     {
-        return !empty($this->slack_webhook_url);
+        return ! empty($this->slack_webhook_url);
     }
 
     public function hasDiscordIntegration(): bool
     {
-        return !empty($this->discord_webhook_url);
+        return ! empty($this->discord_webhook_url);
     }
 
     /**
@@ -87,7 +87,7 @@ class Project extends Model
      */
     public function githubOwnerRepo(): ?string
     {
-        if (!$this->github_repo_url) {
+        if (! $this->github_repo_url) {
             return null;
         }
 
@@ -126,6 +126,11 @@ class Project extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function boardColumns()
+    {
+        return $this->hasMany(BoardColumn::class)->orderBy('sort_order');
     }
 
     public function tickets()
@@ -210,7 +215,10 @@ class Project extends Model
 
     public function budgetUsedPercent(): float
     {
-        if (!$this->budget || $this->budget <= 0) return 0;
+        if (! $this->budget || $this->budget <= 0) {
+            return 0;
+        }
+
         return min(100, round($this->totalExpenses() / $this->budget * 100, 1));
     }
 }

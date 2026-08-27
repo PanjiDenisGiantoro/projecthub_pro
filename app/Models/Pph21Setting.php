@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Pph21Setting extends Model
 {
+    use LogsActivity;
+
     protected $fillable = [
         'company_id',
         'method',
@@ -41,6 +45,19 @@ class Pph21Setting extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'method', 'payment_scheme', 'jkk_rate',
+                'potong_alpha', 'potongan_alpha_metode', 'potongan_alpha_nominal',
+                'tax_tunjangan_jabatan', 'tax_tunjangan_transport', 'tax_tunjangan_makan',
+            ])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('payroll_setting');
     }
 
     /** Get or create settings for a company */

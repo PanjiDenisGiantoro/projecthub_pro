@@ -146,10 +146,10 @@
                     <a href="{{ $att->url() }}" download
                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">Unduh</a>
                     @if(!auth()->user()->hasRole('client'))
-                    <form method="POST" action="{{ route('kb.attachment.destroy', $att) }}">
+                    <form method="POST" action="{{ route('kb.attachment.destroy', $att) }}"
+                          data-confirm-delete="{{ $att->original_name }}" data-confirm-label="Hapus Lampiran">
                         @csrf @method('DELETE')
-                        <button type="submit" class="text-xs text-red-500 hover:text-red-700"
-                                onclick="return confirm('Hapus lampiran ini?')">Hapus</button>
+                        <button type="submit" class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                     </form>
                     @endif
                 </div>

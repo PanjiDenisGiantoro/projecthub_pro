@@ -4,7 +4,8 @@
             <h3 class="font-semibold text-gray-900">Tarif Progresif PPh 21</h3>
             <p class="text-xs text-gray-500 mt-0.5">Pasal 17 UU HPP — PKP = Bruto - Biaya Jabatan (5%, max Rp 6 jt) - PTKP</p>
         </div>
-        <form action="{{ route('hris.master.tax-brackets.reset') }}" method="POST" onsubmit="return confirm('Reset ke tarif UU HPP?')">
+        <form action="{{ route('hris.master.tax-brackets.reset') }}" method="POST"
+              data-confirm-submit="Reset ke tarif UU HPP?" data-confirm-text="Semua perubahan manual pada tarif progresif akan tertimpa." data-confirm-btn="Ya, Reset">
             @csrf
             <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50">Reset Default</button>
         </form>

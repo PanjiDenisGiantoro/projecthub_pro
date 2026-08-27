@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClientPortalToken;
+use App\Models\Milestone;
 use App\Models\Project;
+use App\Services\NotificationService;
+use App\Services\TeamNotifier;
 use Illuminate\Http\Request;
 
 class ClientPortalWebController extends Controller
 {
+    public function __construct(private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
+
     // Manage tokens (admin/manager)
     public function index(Project $project)
     {
@@ -59,6 +64,37 @@ class ClientPortalWebController extends Controller
         ]);
 
         return view('portal.view', compact('pt', 'project'));
+    }
+
+    public function approveMilestone(string $token, Milestone $milestone)
+    {
+        $pt = ClientPortalToken::where('token', $token)->with('project')->firstOrFail();
+
+        if ($pt->isExpired() || ! $pt->can_approve) {
+            abort(403);
+        }
+
+        // Milestone must belong to the project this token was issued for — a client
+        // must never be able to approve another project's milestone by guessing an id.
+        if ($milestone->project_id !== $pt->project_id) {
+            abort(404);
+        }
+
+        if (! $milestone->isClientApproved()) {
+            $milestone->update([
+                'client_approved_at' => now(),
+                'client_approved_via_token_id' => $pt->id,
+            ]);
+
+            $notify = $pt->project->manager_id;
+            if ($notify) {
+                $this->notifier->send($notify, 'milestone_client_approved', 'Milestone Disetujui Klien',
+                    "Milestone \"{$milestone->title}\" disetujui oleh klien lewat Client Portal.", ['milestone_id' => $milestone->id]);
+            }
+            $this->teamNotifier->notify($pt->project, '✅ Milestone Disetujui Klien', "\"{$milestone->title}\" disetujui oleh klien.");
+        }
+
+        return back()->with('success', 'Milestone disetujui.');
     }
 
     public function comment(Request $request, string $token)

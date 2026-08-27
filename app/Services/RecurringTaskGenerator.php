@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BoardColumn;
 use App\Models\RecurringTaskDefinition;
 use App\Models\Task;
 use Illuminate\Support\Carbon;
@@ -40,18 +41,24 @@ class RecurringTaskGenerator
             return null;
         }
 
+        $todoColumn = BoardColumn::where('project_id', $def->project_id)
+            ->where('is_done', false)
+            ->orderBy('sort_order')
+            ->first();
+
         $task = Task::create([
-            'project_id'              => $def->project_id,
-            'milestone_id'            => $def->milestone_id,
-            'title'                   => $def->title,
-            'description'             => $def->description,
-            'assigned_to'             => $def->assigned_to,
-            'status'                  => 'todo',
-            'priority'                => $def->priority,
-            'start_date'              => $today,
-            'due_date'                => $today->addDays($def->due_offset_days),
-            'estimated_hours'         => $def->estimated_hours,
-            'created_by'              => $def->created_by,
+            'project_id' => $def->project_id,
+            'milestone_id' => $def->milestone_id,
+            'title' => $def->title,
+            'description' => $def->description,
+            'assigned_to' => $def->assigned_to,
+            'status' => $todoColumn->slug ?? 'todo',
+            'board_column_id' => $todoColumn->id ?? null,
+            'priority' => $def->priority,
+            'start_date' => $today,
+            'due_date' => $today->addDays($def->due_offset_days),
+            'estimated_hours' => $def->estimated_hours,
+            'created_by' => $def->created_by,
             'recurring_definition_id' => $def->id,
         ]);
 
@@ -63,11 +70,11 @@ class RecurringTaskGenerator
     private function matchesSchedule(RecurringTaskDefinition $def, Carbon $today): bool
     {
         return match ($def->frequency) {
-            'daily'    => true,
-            'weekly'   => $today->dayOfWeek === ($def->day_of_week ?? 1),
+            'daily' => true,
+            'weekly' => $today->dayOfWeek === ($def->day_of_week ?? 1),
             'biweekly' => $today->dayOfWeek === ($def->day_of_week ?? 1) && $today->weekOfYear % 2 === 0,
-            'monthly'  => $today->day === ($def->day_of_month ?? 1),
-            default    => false,
+            'monthly' => $today->day === ($def->day_of_month ?? 1),
+            default => false,
         };
     }
 }

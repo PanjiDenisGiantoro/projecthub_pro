@@ -123,7 +123,7 @@
                                         class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                                 {{-- Delete --}}
                                 <form method="POST" action="{{ route('approval-policies.destroy', $policy) }}"
-                                      onsubmit="return confirm('Hapus policy {{ addslashes($policy->module.'.'. $policy->action) }}? Aksi ini tidak dapat dibatalkan.')">
+                                      data-confirm-delete="policy {{ $policy->module }}.{{ $policy->action }}">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-xs text-red-400 hover:text-red-600 font-medium">Hapus</button>
                                 </form>

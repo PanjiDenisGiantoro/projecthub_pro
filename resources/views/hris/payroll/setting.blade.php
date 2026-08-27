@@ -1,17 +1,17 @@
 @extends('layouts.app')
-@section('title', 'Pengaturan PPh 21')
-@section('page-title', 'Pengaturan PPh 21')
+@section('title', 'Pengaturan Penggajian')
+@section('page-title', 'Pengaturan Penggajian')
 
 @section('content')
-<div class="max-w-2xl mx-auto pt-5 space-y-6" x-data="{ method: '{{ old('method', $setting->method) }}', scheme: '{{ old('payment_scheme', $setting->payment_scheme) }}', potongAlpha: {{ old('potong_alpha', $setting->potong_alpha) ? 'true' : 'false' }}, alphaMetode: '{{ old('potongan_alpha_metode', $setting->potongan_alpha_metode) }}' }">
+<div class="max-w-6xl mx-auto pt-5 space-y-6">
 
     <div class="flex items-center gap-3">
         <a href="{{ route('hris.payroll.index') }}" class="text-gray-400 hover:text-gray-700">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
         </a>
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Pengaturan PPh 21</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Pilih metode perhitungan potongan pajak penghasilan karyawan untuk perusahaan ini.</p>
+            <h1 class="text-2xl font-bold text-gray-900">Pengaturan Penggajian</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Metode PPh 21, BPJS Ketenagakerjaan, potongan Alpha, dan komponen gaji kena pajak untuk perusahaan ini.</p>
         </div>
     </div>
 
@@ -19,6 +19,8 @@
     <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-4 py-3">{{ session('success') }}</div>
     @endif
 
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div x-data="{ method: '{{ old('method', $setting->method) }}', scheme: '{{ old('payment_scheme', $setting->payment_scheme) }}', potongAlpha: {{ old('potong_alpha', $setting->potong_alpha) ? 'true' : 'false' }}, alphaMetode: '{{ old('potongan_alpha_metode', $setting->potongan_alpha_metode) }}' }">
     <form action="{{ route('hris.payroll.setting.save') }}" method="POST" class="space-y-4">
         @csrf
 
@@ -174,9 +176,44 @@
 
         <button type="submit"
                 class="w-full py-2.5 rounded-xl font-semibold text-white text-sm"
-                style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                style="background:var(--hris-gradient)">
             Simpan Pengaturan
         </button>
     </form>
+    </div>
+
+    {{-- Riwayat perubahan pengaturan — kolom samping, bisa dibuka/tutup.
+         Isinya di-lazy load lewat fetch() cuma pas panel ini dibuka, bukan
+         ikut di-query tiap kali halaman setting dibuka (lihat logs() di
+         PayrollSettingController). --}}
+    <aside class="rounded-2xl border-2 border-gray-200 bg-white overflow-hidden lg:sticky lg:top-5"
+           x-data="{ open: false, loading: false, loaded: false }"
+           x-init="$watch('open', value => {
+               if (!value || loaded) return;
+               loading = true;
+               fetch('{{ route('hris.payroll.setting.logs') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                   .then(r => r.text())
+                   .then(html => { $refs.logList.innerHTML = html; loaded = true; })
+                   .catch(() => { $refs.logList.innerHTML = '<p class=&quot;px-4 py-6 text-center text-xs text-red-400&quot;>Gagal memuat riwayat.</p>'; })
+                   .finally(() => { loading = false; });
+           })">
+        <button type="button" @click="open = !open"
+                class="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors">
+            <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="font-semibold text-gray-900 text-sm">Riwayat Perubahan</span>
+                @if($logsCount)
+                <span class="badge bg-gray-100 text-gray-600">{{ $logsCount }}</span>
+                @endif
+            </span>
+            <svg class="w-4 h-4 text-gray-400 transition-transform shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
+        <div x-show="open" x-cloak x-transition class="border-t border-gray-100 max-h-[70vh] overflow-y-auto">
+            <p x-show="loading" class="px-4 py-6 text-center text-xs text-gray-400">Memuat riwayat...</p>
+            <div x-show="!loading" x-ref="logList" class="divide-y divide-gray-100"></div>
+        </div>
+    </aside>
+    </div>
 </div>
 @endsection

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\SystemRoles;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+
 // ApprovalPolicySeeder called via $this->call()
 
 class DatabaseSeeder extends Seeder
@@ -68,6 +69,9 @@ class DatabaseSeeder extends Seeder
 
         // Seed default structural level templates (company_id null)
         $this->call(StructuralLevelSeeder::class);
+
+        // Seed the default board-column (Kanban) template (company_id null)
+        $this->call(BoardColumnTemplateSeeder::class);
 
         $this->command->info('✅ Seeded roles, users, default SLA policies, and approval policies.');
         $this->command->table(

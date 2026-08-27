@@ -74,6 +74,7 @@
                     @if(session('active_package') === 'hris')
                     <th class="px-4 py-3 text-left">Level Struktural</th>
                     <th class="px-4 py-3 text-left">Departemen</th>
+                    <th class="px-4 py-3 text-left">Tipe Karyawan</th>
                     @endif
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Bergabung</th>
@@ -130,6 +131,21 @@
                             <span class="text-gray-300 text-xs">—</span>
                         @endif
                     </td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs text-gray-700">{{ \App\Support\EmploymentType::displayFor($u->employment_type, $u->employment_type_other) }}</span>
+                        @if($u->outsourcing_company_name)
+                            <p class="text-xs text-gray-400 mt-0.5">{{ $u->outsourcing_company_name }}</p>
+                        @endif
+                        @if($u->contract_end_date)
+                            @if($u->isContractExpired())
+                                <p class="text-xs text-red-600 font-medium mt-0.5">Kontrak berakhir {{ $u->contract_end_date->format('d M Y') }}</p>
+                            @elseif($u->isContractExpiringSoon())
+                                <p class="text-xs text-amber-600 font-medium mt-0.5">Berakhir {{ $u->contract_end_date->format('d M Y') }} ({{ $u->contractDaysRemaining() }}h lagi)</p>
+                            @else
+                                <p class="text-xs text-gray-400 mt-0.5">s/d {{ $u->contract_end_date->format('d M Y') }}</p>
+                            @endif
+                        @endif
+                    </td>
                     @endif
                     <td class="px-4 py-3">
                         <span class="badge {{ $u->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
@@ -160,7 +176,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="{{ session('active_package') === 'hris' ? 9 : 7 }}" class="px-4 py-8 text-center text-gray-400">Tidak ada user ditemukan.</td></tr>
+                <tr><td colspan="{{ session('active_package') === 'hris' ? 10 : 7 }}" class="px-4 py-8 text-center text-gray-400">Tidak ada user ditemukan.</td></tr>
                 @endforelse
             </tbody>
         </table>

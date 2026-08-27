@@ -50,13 +50,32 @@
         </div>
         <div class="divide-y divide-gray-100">
             @forelse($project->milestones as $ms)
-            <div class="px-5 py-3 flex items-center justify-between">
+            <div class="px-5 py-3 flex items-center justify-between gap-3">
                 <div>
                     <p class="font-medium text-gray-800">{{ $ms->title }}</p>
                     <p class="text-xs text-gray-400">{{ $ms->due_date?->format('d M Y') ?? '—' }}</p>
                 </div>
-                @php $msColor = match($ms->status){ 'completed'=>'bg-green-100 text-green-700', 'in_progress'=>'bg-blue-100 text-blue-700', default=>'bg-gray-100 text-gray-600' }; @endphp
-                <span class="text-xs px-2 py-0.5 rounded-full {{ $msColor }}">{{ ucfirst($ms->status) }}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                    @php $msColor = match($ms->status){ 'completed'=>'bg-green-100 text-green-700', 'in_progress'=>'bg-blue-100 text-blue-700', default=>'bg-gray-100 text-gray-600' }; @endphp
+                    <span class="text-xs px-2 py-0.5 rounded-full {{ $msColor }}">{{ ucfirst($ms->status) }}</span>
+
+                    @if($pt->can_approve && $ms->status === 'completed')
+                        @if($ms->isClientApproved())
+                            <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Disetujui
+                            </span>
+                        @else
+                            <form method="POST" action="{{ route('portal.milestone.approve', [$pt->token, $ms]) }}"
+                                  onsubmit="return confirm('Setujui milestone \'{{ $ms->title }}\'?')">
+                                @csrf
+                                <button type="submit" class="text-xs font-medium px-3 py-1 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors">
+                                    Setujui
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
             </div>
             @empty
             <div class="px-5 py-4 text-sm text-gray-400">Tidak ada milestone.</div>

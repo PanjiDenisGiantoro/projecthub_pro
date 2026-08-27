@@ -277,18 +277,19 @@
             @if(!$user->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
-                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3">
+                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3"
+                      x-data="{ status: '{{ old('status', $task->status) }}' }">
                     @csrf @method('PUT')
-                    <select name="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="status" x-model="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
                             <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
                         @endforeach
                     </select>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">
-                            Deskripsi Penyelesaian <span class="text-red-500">*</span>
+                            Deskripsi Penyelesaian <span class="text-red-500" x-show="status === 'done'">*</span>
                         </label>
-                        <textarea name="completion_notes" rows="4" required
+                        <textarea name="completion_notes" rows="4" :required="status === 'done'"
                                   placeholder="Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting..."
                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
                     </div>

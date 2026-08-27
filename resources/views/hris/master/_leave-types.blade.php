@@ -5,7 +5,8 @@
             <p class="text-xs text-gray-500 mt-0.5">Konfigurasi jenis cuti sesuai kebijakan perusahaan</p>
         </div>
         <div class="flex gap-2">
-            <form action="{{ route('hris.master.leave-types.reset') }}" method="POST" onsubmit="return confirm('Reset ke 9 jenis cuti default UU Ketenagakerjaan?')">
+            <form action="{{ route('hris.master.leave-types.reset') }}" method="POST"
+                  data-confirm-submit="Reset ke 9 jenis cuti default UU Ketenagakerjaan?" data-confirm-btn="Ya, Reset">
                 @csrf
                 <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50">Reset Default</button>
             </form>
@@ -52,7 +53,8 @@
                     </form>
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <form action="{{ route('hris.master.leave-types.destroy', $lt) }}" method="POST" class="inline" onsubmit="return confirm('Hapus jenis cuti ini?')">
+                    <form action="{{ route('hris.master.leave-types.destroy', $lt) }}" method="POST" class="inline"
+                          data-confirm-delete="jenis cuti {{ $lt->name }}">
                         @csrf @method('DELETE')
                         <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                     </form>

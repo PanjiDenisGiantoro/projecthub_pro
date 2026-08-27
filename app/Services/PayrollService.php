@@ -11,6 +11,7 @@ use App\Models\Payroll;
 use App\Models\Pph21Setting;
 use App\Models\Reimbursement;
 use App\Models\User;
+use App\Support\EmploymentType;
 use Carbon\Carbon;
 
 class PayrollService
@@ -40,8 +41,12 @@ class PayrollService
         // --- PPh 21 ---
         $pph21     = $this->hitungPph21($user, $salary, $setting, $year, $month, $bonus);
         $tunjanganPph21 = $pph21['tunjangan_pph21'];
-        $potonganPph21  = $setting->payment_scheme === 'net' ? 0 : $pph21['pajak_bulanan'];
-        $tanggunganPph21 = $setting->payment_scheme === 'net' ? $pph21['pajak_bulanan'] : 0;
+        // Bukan Pegawai (Outsourcing/Magang) selalu skema gross — perusahaan tidak
+        // menanggung/gross-up pajak orang yang bukan pegawainya sendiri, apa pun
+        // payment_scheme yang dipilih company untuk pegawai tetapnya.
+        $isBukanPegawai  = $pph21['metode'] === 'bukan_pegawai';
+        $potonganPph21   = (!$isBukanPegawai && $setting->payment_scheme === 'net') ? 0 : $pph21['pajak_bulanan'];
+        $tanggunganPph21 = (!$isBukanPegawai && $setting->payment_scheme === 'net') ? $pph21['pajak_bulanan'] : 0;
 
         // --- Pendapatan ---
         // Tunjangan PPh21 (skema gross_up) ikut jadi pendapatan karyawan (& kena pajak lagi, sudah diperhitungkan saat iterasi).
@@ -113,6 +118,25 @@ class PayrollService
     private function hitungPph21(User $user, $salary, Pph21Setting $setting, int $year, int $month, float $bonusBulanan = 0): array
     {
         $service = new PPh21Service();
+
+        // Bukan Pegawai punya basis pajak yang beda sama sekali dari pegawai
+        // (tanpa PTKP/biaya jabatan) — cek ini duluan, di luar pilihan metode
+        // progresif/TER perusahaan (itu cuma relevan untuk pegawai).
+        if (EmploymentType::usesBukanPegawaiTax($user->employment_type)) {
+            $brutoBulanan = $setting->brutoPajak(
+                $salary->gaji_pokok, $salary->tunjangan_jabatan,
+                $salary->tunjangan_transport, $salary->tunjangan_makan
+            ) + $bonusBulanan;
+
+            $result = $service->hitungBukanPegawai($brutoBulanan, (bool) $salary->npwp);
+
+            return [
+                'pajak_bulanan'   => $result['pajak_bulanan'],
+                'metode'          => 'bukan_pegawai',
+                'tunjangan_pph21' => 0,
+            ];
+        }
+
         $grossUp = $setting->payment_scheme === 'gross_up';
 
         if ($setting->method !== 'ter') {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Bonus;
 use App\Models\User;
+use App\Services\ThrCalculatorService;
 use Illuminate\Http\Request;
 
 class BonusController extends Controller
@@ -62,6 +63,14 @@ class BonusController extends Controller
         ]);
 
         return back()->with('success', 'Bonus/THR berhasil ditambahkan.');
+    }
+
+    public function calculateThr(User $user, ThrCalculatorService $calculator)
+    {
+        $this->authorize('create payroll');
+        abort_if($user->company_id !== auth()->user()->company_id, 403);
+
+        return response()->json($calculator->calculate($user));
     }
 
     public function destroy(Bonus $bonus)

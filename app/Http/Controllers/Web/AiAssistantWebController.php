@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\BoardColumn;
 use App\Models\Project;
 use App\Models\Task;
 use App\Services\NotificationService;
@@ -373,9 +374,16 @@ class AiAssistantWebController extends Controller
         $project = $projects->first();
         abort_unless($user->can('view', $project), 403);
 
+        $todoColumn = BoardColumn::where('project_id', $project->id)
+            ->where('is_done', false)
+            ->orderBy('sort_order')
+            ->first();
+
         $task = $project->tasks()->create([
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
+            'status'      => $todoColumn->slug ?? 'todo',
+            'board_column_id' => $todoColumn->id ?? null,
             'created_by'  => $user->id,
         ]);
 

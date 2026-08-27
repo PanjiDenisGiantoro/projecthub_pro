@@ -18,7 +18,7 @@
         </div>
         <a href="{{ route('hris.salary.create', $user) }}"
            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl"
-           style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+           style="background:var(--hris-gradient)">
             + Input Gaji Baru
         </a>
     </div>
@@ -109,7 +109,8 @@
                                 <a href="{{ route('hris.salary.edit', [$user, $s]) }}"
                                    class="text-xs text-blue-600 hover:text-blue-800">Edit</a>
                                 @if(!$loop->first)
-                                <form action="{{ route('hris.salary.destroy', [$user, $s]) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data gaji ini?')">
+                                <form action="{{ route('hris.salary.destroy', [$user, $s]) }}" method="POST" class="inline"
+                                      data-confirm-delete="data gaji ini">
                                     @csrf @method('DELETE')
                                     <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                                 </form>

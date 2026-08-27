@@ -52,7 +52,8 @@
             @if($byCategory->isEmpty())
             <p class="text-sm text-gray-400">Belum ada data.</p>
             @else
-            <canvas id="categoryChart" height="220"></canvas>
+            <canvas id="categoryChart" height="220" class="cursor-pointer"></canvas>
+            <p class="text-xs text-gray-400 mt-2">Klik segmen untuk memfilter tabel transaksi di bawah.</p>
             @endif
         </div>
 
@@ -101,13 +102,21 @@
 
     {{-- Entries Table --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-gray-700">Riwayat Transaksi</h3>
+        <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <h3 class="text-sm font-semibold text-gray-700">Riwayat Transaksi</h3>
+                @if(request('category'))
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                    {{ request('category') }}
+                    <a href="{{ route('budget.index', $project) }}" class="hover:text-blue-900" title="Hapus filter">✕</a>
+                </span>
+                @endif
+            </div>
             <x-per-page />
         </div>
         @if($entries->isEmpty())
         <div class="text-center py-10 text-gray-400">
-            <p class="font-medium">Belum ada transaksi.</p>
+            <p class="font-medium">{{ request('category') ? 'Tidak ada transaksi di kategori ini.' : 'Belum ada transaksi.' }}</p>
         </div>
         @else
         <table class="w-full text-sm">
@@ -159,13 +168,26 @@
 @push('scripts')
 <script>
 @if(!$byCategory->isEmpty())
-new Chart(document.getElementById('categoryChart'), {
+var categoryLabels = @json($byCategory->keys());
+var categoryChart = new Chart(document.getElementById('categoryChart'), {
     type: 'doughnut',
     data: {
-        labels: @json($byCategory->keys()),
+        labels: categoryLabels,
         datasets: [{ data: @json($byCategory->values()), backgroundColor: ['#3B82F6','#F59E0B','#EF4444','#10B981','#8B5CF6','#F97316','#06B6D4','#EC4899'], borderWidth: 0 }]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+        onClick: function (evt) {
+            var points = categoryChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            if (!points.length) return;
+            var category = categoryLabels[points[0].index];
+            var url = new URL(window.location.href);
+            url.searchParams.set('category', category);
+            url.searchParams.delete('page');
+            window.location.href = url.toString();
+        }
+    }
 });
 @endif
 </script>

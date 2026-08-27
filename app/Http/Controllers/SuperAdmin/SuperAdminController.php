@@ -53,6 +53,10 @@ class SuperAdminController extends Controller
     {
         $users = User::with(['organizationUnit.company', 'company', 'additionalCompanies'])
             ->where('is_super_admin', false)
+            ->when($request->search, fn ($q) => $q->where(fn ($w) => $w
+                ->where('name', 'like', "%{$request->search}%")
+                ->orWhere('email', 'like', "%{$request->search}%")))
+            ->when($request->company_id, fn ($q) => $q->where('company_id', $request->company_id))
             ->latest()
             ->paginate($this->perPage($request))
             ->withQueryString();

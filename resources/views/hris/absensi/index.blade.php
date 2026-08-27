@@ -195,22 +195,27 @@
                     <div>
                         <p class="text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)">Verifikasi Wajah Diperlukan</p>
                         @php $desc = auth()->user()->face_descriptor; @endphp
+                        <template x-if="faceStatus === 'error' && faceErrorMsg">
+                            <p class="text-xs mt-1 font-medium" style="color:#dc2626" x-text="faceErrorMsg"></p>
+                        </template>
+                        <template x-if="!(faceStatus === 'error' && faceErrorMsg)">
                         @if($desc)
                         <p class="text-xs mt-1" style="color:var(--fl-text-muted,#6b7280)">Wajah Anda sudah terdaftar. Klik tombol untuk memulai verifikasi.</p>
                         @else
                         <p class="text-xs mt-1" style="color:#f59e0b">Wajah Anda belum terdaftar. Daftarkan wajah Anda terlebih dahulu.</p>
                         @endif
+                        </template>
                     </div>
                     @if($desc)
                     <button type="button" @click="startFaceVerification()"
                             class="px-5 py-2 rounded-xl font-semibold text-sm transition-all"
-                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                            style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                         Mulai Kamera
                     </button>
                     @else
                     <button type="button" @click="openEnroll()"
                             class="px-5 py-2 rounded-xl font-semibold text-sm transition-all"
-                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                            style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                         Daftarkan Wajah Saya
                     </button>
                     @endif
@@ -281,7 +286,7 @@
                 <button type="submit"
                         :disabled="!canCheckIn"
                         class="w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 16px rgba(109,40,217,0.35)"
+                        style="background:var(--hris-gradient);box-shadow:0 4px 16px rgba(109,40,217,0.35)"
                         :class="canCheckIn ? 'hover:-translate-y-0.5 active:translate-y-0' : ''">
                     <span x-show="!checkingIn">
                         {{ $setting->is_location_enabled || $setting->is_face_recognition_enabled ? 'Check In Sekarang' : 'Check In Sekarang' }}
@@ -323,9 +328,12 @@
                 <div x-show="faceStatus === 'idle' || faceStatus === 'error'"
                      class="flex flex-col items-center py-6 gap-2" style="background:rgba(124,58,237,0.04)">
                     <p class="text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)">Verifikasi Wajah untuk Check-Out</p>
+                    <template x-if="faceStatus === 'error' && faceErrorMsg">
+                        <p class="text-xs font-medium px-4 text-center" style="color:#dc2626" x-text="faceErrorMsg"></p>
+                    </template>
                     <button type="button" @click="startFaceVerification()"
                             class="mt-1 px-5 py-2 rounded-xl font-semibold text-sm"
-                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff">
+                            style="background:var(--hris-gradient);color:#fff">
                         Mulai Kamera
                     </button>
                 </div>
@@ -519,7 +527,7 @@
                     <button type="button" @click="captureEnroll()"
                             :disabled="enrollStatus !== 'ready' || captureCount >= 3"
                             class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
-                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                            style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                         <span x-text="captureCount < 3 ? 'Ambil Frame (' + captureCount + '/3)' : 'Menyimpan...'"></span>
                     </button>
                     <button type="button" @click="closeEnroll()"
@@ -550,6 +558,7 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
         // Face state
         faceEnabled,
         faceStatus: 'idle',  // idle | loading | detecting | verified | error
+        faceErrorMsg: '',
         faceDetected: false,
         faceMatch: false,
         faceConf: 0,
@@ -637,12 +646,20 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
 
         async startFaceVerification() {
             if (!this.referenceDescriptor) {
+                this.faceErrorMsg = 'Wajah Anda belum terdaftar. Daftarkan wajah Anda terlebih dahulu.';
                 this.faceStatus = 'error';
                 return;
             }
             this.faceStatus = 'loading';
-            await this.loadFaceModels();
-            await this.openCamera();
+            try {
+                await this.loadFaceModels();
+            } catch (e) {
+                this.faceErrorMsg = 'Gagal memuat model pengenalan wajah. Periksa koneksi internet Anda dan coba lagi.';
+                this.faceStatus = 'error';
+                return;
+            }
+            const opened = await this.openCamera();
+            if (!opened) return;
             this.faceStatus = 'detecting';
             this.runFaceLoop();
         },
@@ -669,8 +686,15 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
                     video.srcObject = this.faceStream;
                     await new Promise(r => video.onloadedmetadata = r);
                 }
+                return true;
             } catch(e) {
+                this.faceErrorMsg = e.name === 'NotAllowedError'
+                    ? 'Izin kamera ditolak. Aktifkan izin kamera untuk situs ini di pengaturan browser Anda, lalu coba lagi.'
+                    : e.name === 'NotFoundError'
+                    ? 'Kamera tidak ditemukan di perangkat ini.'
+                    : 'Gagal mengakses kamera. Coba refresh halaman atau gunakan perangkat lain.';
                 this.faceStatus = 'error';
+                return false;
             }
         },
 
@@ -723,6 +747,7 @@ function absensiPage(locEnabled, faceEnabled, officeLat, officeLng, maxDist, fac
             clearInterval(this.faceLoop);
             if (this.faceStream) this.faceStream.getTracks().forEach(t => t.stop());
             this.faceStatus = 'idle';
+            this.faceErrorMsg = '';
             this.faceDetected = false;
             this.faceMatch = false;
             this.faceConf = 0;

@@ -4,7 +4,8 @@
             <h3 class="font-semibold text-gray-900">Nilai PTKP</h3>
             <p class="text-xs text-gray-500 mt-0.5">Penghasilan Tidak Kena Pajak per status — PMK-168/2023</p>
         </div>
-        <form action="{{ route('hris.master.tax-ptkp.reset') }}" method="POST" onsubmit="return confirm('Reset ke nilai PMK-168/2023?')">
+        <form action="{{ route('hris.master.tax-ptkp.reset') }}" method="POST"
+              data-confirm-submit="Reset ke nilai PMK-168/2023?" data-confirm-text="Semua perubahan manual pada nilai PTKP akan tertimpa." data-confirm-btn="Ya, Reset">
             @csrf
             <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50">Reset Default</button>
         </form>

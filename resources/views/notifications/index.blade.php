@@ -52,7 +52,8 @@
                             Kirim Test
                         </button>
                     </form>
-                    <form method="POST" action="{{ route('team-notifications.destroy', $project) }}" onsubmit="return confirm('Putuskan integrasi Slack?')">
+                    <form method="POST" action="{{ route('team-notifications.destroy', $project) }}"
+                          data-confirm-submit="Putuskan integrasi Slack?" data-confirm-btn="Ya, Putuskan">
                         @csrf @method('DELETE')
                         <input type="hidden" name="provider" value="slack">
                         <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition">
@@ -100,7 +101,8 @@
                             Kirim Test
                         </button>
                     </form>
-                    <form method="POST" action="{{ route('team-notifications.destroy', $project) }}" onsubmit="return confirm('Putuskan integrasi Discord?')">
+                    <form method="POST" action="{{ route('team-notifications.destroy', $project) }}"
+                          data-confirm-submit="Putuskan integrasi Discord?" data-confirm-btn="Ya, Putuskan">
                         @csrf @method('DELETE')
                         <input type="hidden" name="provider" value="discord">
                         <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition">

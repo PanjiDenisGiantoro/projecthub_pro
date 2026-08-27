@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectFolder;
+use App\Support\FolderTreeBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +24,7 @@ class ProjectFileWebController extends Controller
             ->sort()
             ->values();
 
-        $folderTree = $this->buildFolderTree($folders);
+        $folderTree = FolderTreeBuilder::build($folders);
         return view('files.index', compact('project', 'files', 'folders', 'folderTree'));
     }
 
@@ -102,25 +103,5 @@ class ProjectFileWebController extends Controller
     {
         $segments = array_filter(array_map('trim', explode('/', $path ?? '')), fn($s) => $s !== '');
         return implode('/', $segments);
-    }
-
-    /**
-     * Ubah daftar path folder flat ("Docs", "Docs/Kontrak") jadi tree bersarang
-     * untuk ditampilkan sebagai folder-di-dalam-folder di sidebar.
-     */
-    private function buildFolderTree(\Illuminate\Support\Collection $paths): array
-    {
-        $tree = [];
-        foreach ($paths as $path) {
-            $node = &$tree;
-            $currentPath = '';
-            foreach (explode('/', $path) as $segment) {
-                $currentPath = $currentPath === '' ? $segment : "{$currentPath}/{$segment}";
-                $node[$segment] ??= ['path' => $currentPath, 'children' => []];
-                $node = &$node[$segment]['children'];
-            }
-            unset($node);
-        }
-        return $tree;
     }
 }

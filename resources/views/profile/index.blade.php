@@ -103,7 +103,8 @@
                     @endif
                 </div>
                 @if($googleToken)
-                    <form method="POST" action="{{ route('google-calendar.disconnect') }}" onsubmit="return confirm('Putuskan sambungan Google Calendar?')">
+                    <form method="POST" action="{{ route('google-calendar.disconnect') }}"
+                          data-confirm-submit="Putuskan sambungan Google Calendar?" data-confirm-btn="Ya, Putuskan">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50">

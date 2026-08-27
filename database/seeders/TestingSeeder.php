@@ -181,7 +181,7 @@ class TestingSeeder extends Seeder
             ['project_id' => $project1->id, 'milestone_id' => $m2->id, 'title' => 'Integrasi CMS',                  'status' => 'todo',        'priority' => 'medium', 'assigned_to' => $dev->id,     'due_date' => now()->addDays(20)],
             ['project_id' => $project1->id, 'milestone_id' => null,    'title' => 'Testing & QA Website',           'status' => 'todo',        'priority' => 'low',    'assigned_to' => $manager->id, 'due_date' => now()->addDays(55)],
             // Project 2
-            ['project_id' => $project2->id, 'milestone_id' => $m3->id, 'title' => 'Setup Laravel backend',          'status' => 'in_progress', 'priority' => 'critical', 'assigned_to' => $dev->id,   'due_date' => now()->addDays(7)],
+            ['project_id' => $project2->id, 'milestone_id' => $m3->id, 'title' => 'Setup Laravel backend',          'status' => 'in_progress', 'priority' => 'urgent', 'assigned_to' => $dev->id,   'due_date' => now()->addDays(7)],
             ['project_id' => $project2->id, 'milestone_id' => $m3->id, 'title' => 'Buat endpoint authentication',   'status' => 'todo',        'priority' => 'high',     'assigned_to' => $dev->id,   'due_date' => now()->addDays(14)],
             ['project_id' => $project2->id, 'milestone_id' => null,    'title' => 'Design UI Mobile (Figma)',        'status' => 'done',        'priority' => 'medium',   'assigned_to' => $dev->id,   'due_date' => now()->subDays(3)],
             ['project_id' => $project2->id, 'milestone_id' => null,    'title' => 'Setup CI/CD Pipeline',           'status' => 'todo',        'priority' => 'low',      'assigned_to' => $admin->id, 'due_date' => now()->addDays(30)],

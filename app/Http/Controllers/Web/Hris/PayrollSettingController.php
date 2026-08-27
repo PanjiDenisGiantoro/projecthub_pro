@@ -13,8 +13,22 @@ class PayrollSettingController extends Controller
     {
         $this->authorize('update payroll');
         $setting = Pph21Setting::forCompany(auth()->user()->company_id);
+        // Cuma hitung jumlah (buat badge) di sini — daftar log lengkap (dengan relasi
+        // causer) baru di-load lewat logs() saat panel riwayat dibuka user (lazy load),
+        // biar halaman setting tidak ikut berat setiap kali dibuka padahal log-nya
+        // belum tentu dilihat.
+        $logsCount = $setting->activitiesAsSubject()->count();
 
-        return view('hris.payroll.setting', compact('setting'));
+        return view('hris.payroll.setting', compact('setting', 'logsCount'));
+    }
+
+    public function logs()
+    {
+        $this->authorize('update payroll');
+        $setting = Pph21Setting::forCompany(auth()->user()->company_id);
+        $logs = $setting->activitiesAsSubject()->with('causer')->latest()->limit(50)->get();
+
+        return view('hris.payroll._setting-logs', compact('logs'));
     }
 
     public function update(Request $request)

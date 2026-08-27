@@ -79,7 +79,8 @@
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <span class="text-xs text-gray-400">{{ $att->uploader->name }}</span>
                                 @if($user->hasRole(['admin','member']))
-                                <form method="POST" action="{{ route('tickets.attachments.delete', [$ticket, $att]) }}" onsubmit="return confirm('Hapus lampiran ini?')">
+                                <form method="POST" action="{{ route('tickets.attachments.delete', [$ticket, $att]) }}"
+                                      data-confirm-delete="{{ $att->file_name }}" data-confirm-label="Hapus Lampiran">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Hapus</button>
                                 </form>
@@ -113,7 +114,8 @@
                             <a href="{{ route('tickets.show', $link->targetTicket) }}" class="text-blue-600 hover:underline">#{{ $link->targetTicket->id }} {{ $link->targetTicket->title }}</a>
                         </span>
                         @if($user->hasRole(['admin','member']))
-                        <form method="POST" action="{{ route('tickets.links.delete', [$ticket, $link]) }}" onsubmit="return confirm('Hapus referensi ini?')">
+                        <form method="POST" action="{{ route('tickets.links.delete', [$ticket, $link]) }}"
+                              data-confirm-delete="referensi ini" data-confirm-label="Hapus Referensi">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-red-500 hover:text-red-700 text-xs flex-shrink-0">Hapus</button>
                         </form>

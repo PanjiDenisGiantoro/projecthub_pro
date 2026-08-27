@@ -19,7 +19,7 @@
         @can('access users')
         <a href="{{ route('users.index') }}"
            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shrink-0 transition-all hover:-translate-y-0.5"
-           style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 14px rgba(124,58,237,0.35)">
+           style="background:var(--hris-gradient);box-shadow:0 4px 14px rgba(124,58,237,0.35)">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
@@ -91,7 +91,7 @@
             $modules = [
                 ['label' => 'Absensi',       'route' => 'hris.absensi.index',  'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'emerald'],
                 ['label' => 'Penggajian',    'route' => 'hris.payroll.index',  'perm' => 'view payroll',   'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'blue'],
-                ['label' => 'Pajak PPh 21',  'route' => 'hris.payroll.setting', 'perm' => 'update payroll', 'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',                                                        'color' => 'orange'],
+                ['label' => 'Pengaturan Penggajian', 'route' => 'hris.payroll.setting', 'perm' => 'update payroll', 'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',                                                        'color' => 'orange'],
                 ['label' => 'Cuti & Izin',   'route' => 'hris.leave.index',    'perm' => null,             'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',                                                                 'color' => 'amber'],
                 ['label' => 'Lembur',        'route' => 'hris.overtime.index', 'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'red'],
                 ['label' => 'Reimburse',     'route' => 'hris.reimburse.index','perm' => null,             'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',         'color' => 'teal'],

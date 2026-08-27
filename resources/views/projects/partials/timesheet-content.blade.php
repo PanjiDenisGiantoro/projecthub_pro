@@ -339,10 +339,19 @@
 
     {{-- ============================================================
          DETAIL LOGS TABLE
+         $logs (paginator) datang dari halaman Timesheet penuh; kalau tidak ada
+         (mis. dari tab ringkas di halaman project), tampilkan preview $recentLogs
+         + link "Lihat semua log" ke halaman penuh.
     ============================================================ --}}
+    @php $displayLogs = $logs ?? $recentLogs; @endphp
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="text-base font-semibold text-gray-900">Detail Log Waktu</h2>
+            <h2 class="text-base font-semibold text-gray-900">
+                Detail Log Waktu
+                @if(!isset($logs) && isset($recentLogsTotal))
+                <span class="text-gray-400 font-normal text-sm">({{ min($recentLogs->count(), $recentLogsTotal) }} dari {{ $recentLogsTotal }})</span>
+                @endif
+            </h2>
             <div class="flex items-center gap-2">
                 <a href="{{ route('export.timesheet.excel', $project) }}"
                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition">
@@ -369,7 +378,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
-                    @forelse($logs as $log)
+                    @forelse($displayLogs as $log)
                     @php
                         $minutes = $log->minutes ?? 0;
                         $hours   = floor($minutes / 60);
@@ -400,4 +409,15 @@
                 </tbody>
             </table>
         </div>
+        @if(isset($logs))
+        @if($logs->hasPages())
+        <div class="px-6 py-4 border-t border-gray-100">{{ $logs->links() }}</div>
+        @endif
+        @elseif(isset($recentLogsTotal) && $recentLogsTotal > $recentLogs->count())
+        <div class="px-6 py-3 border-t border-gray-100 text-center">
+            <a href="{{ route('projects.timesheet', $project) }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                Lihat semua log &rarr;
+            </a>
+        </div>
+        @endif
     </div>

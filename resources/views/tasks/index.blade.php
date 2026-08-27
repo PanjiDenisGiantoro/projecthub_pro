@@ -182,9 +182,10 @@
 
                     {{-- Status select --}}
                     @if(!auth()->user()->hasRole('client'))
-                    <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="inline">
+                    <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="inline quick-status-form">
                         @csrf @method('PUT')
-                        <select name="status" onchange="this.form.submit()"
+                        <input type="hidden" name="completion_notes">
+                        <select name="status" onchange="handleQuickStatusChange(this)"
                                 class="text-xs border-0 rounded-full px-3 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer {{ $sc[$task->status] ?? 'bg-gray-100 text-gray-600' }}">
                             @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
                                 <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
@@ -235,32 +236,28 @@
     {{-- ===== KANBAN VIEW ===== --}}
     <div x-show="view==='kanban'" x-cloak>
         @php
-            $kanbanCols = [
-                'todo'        => ['label' => 'To Do',       'color' => 'bg-gray-400', 'header' => 'bg-gray-50 border-gray-200'],
-                'in_progress' => ['label' => 'In Progress', 'color' => 'bg-blue-500', 'header' => 'bg-blue-50 border-blue-100'],
-                'review'      => ['label' => 'Review',      'color' => 'bg-purple-500','header'=> 'bg-purple-50 border-purple-100'],
-                'done'        => ['label' => 'Done',        'color' => 'bg-green-500', 'header' => 'bg-green-50 border-green-100'],
-            ];
+            $boardColumns = $project->boardColumns;
             $allTasks = $project->tasks()->with(['assignee','milestone'])->latest()->get();
         @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" id="kanban-board">
-            @foreach($kanbanCols as $statusKey => $col)
-            @php $colTasks = $allTasks->where('status', $statusKey); @endphp
-            <div class="flex flex-col min-h-64" data-column="{{ $statusKey }}">
+            @forelse($boardColumns as $col)
+            @php $colTasks = $allTasks->where('board_column_id', $col->id); @endphp
+            <div class="flex flex-col min-h-64" data-column="{{ $col->id }}">
                 {{-- Column header --}}
-                <div class="flex items-center gap-2 px-3 py-2.5 rounded-t-xl border border-b-0 {{ $col['header'] }}">
-                    <span class="w-2.5 h-2.5 rounded-full {{ $col['color'] }}"></span>
-                    <span class="text-sm font-semibold text-gray-700">{{ $col['label'] }}</span>
+                <div class="flex items-center gap-2 px-3 py-2.5 rounded-t-xl border border-b-0 {{ \App\Support\BoardColumnPalette::header($col->color) }}">
+                    <span class="w-2.5 h-2.5 rounded-full {{ \App\Support\BoardColumnPalette::dot($col->color) }}"></span>
+                    <span class="text-sm font-semibold text-gray-700">{{ $col->name }}</span>
                     <span class="ml-auto bg-white text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-200 kanban-count"
-                          id="count-{{ $statusKey }}">{{ $colTasks->count() }}</span>
+                          id="count-{{ $col->id }}">{{ $colTasks->count() }}</span>
                 </div>
 
                 {{-- Drop zone --}}
                 <div class="flex-1 border border-t-0 border-gray-200 rounded-b-xl bg-gray-50 p-2 space-y-2 min-h-24 kanban-col"
-                     data-status="{{ $statusKey }}"
+                     data-column-id="{{ $col->id }}"
+                     data-column-name="{{ $col->name }}"
                      ondragover="event.preventDefault(); this.classList.add('ring-2','ring-blue-400','ring-inset')"
                      ondragleave="this.classList.remove('ring-2','ring-blue-400','ring-inset')"
-                     ondrop="handleDrop(event, '{{ $statusKey }}')">
+                     ondrop="handleDrop(event, {{ $col->id }})">
 
                     @forelse($colTasks as $task)
                     @php
@@ -271,7 +268,7 @@
                     <div class="bg-white rounded-lg border border-gray-200 border-l-4 {{ $pl }} p-3 hover:shadow-sm transition-shadow cursor-grab active:cursor-grabbing select-none kanban-card"
                          draggable="true"
                          data-task-id="{{ $task->id }}"
-                         data-status="{{ $task->status }}"
+                         data-column-id="{{ $col->id }}"
                          ondragstart="handleDragStart(event)"
                          ondragend="handleDragEnd(event)">
 
@@ -320,7 +317,11 @@
                     @endforelse
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div class="col-span-full text-center text-sm text-gray-400 py-10">
+                Proyek ini belum punya kolom board. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Kelola kolom board</a>
+            </div>
+            @endforelse
         </div>
 
         {{-- Drop feedback toast --}}
@@ -336,6 +337,39 @@
     const CSRF     = document.querySelector('meta[name="csrf-token"]').content;
     let dragging   = null;
 
+    window.handleQuickStatusChange = function(select) {
+        const form = select.closest('form');
+        if (select.value !== 'done') {
+            form.submit();
+            return;
+        }
+
+        const previousValue = select.dataset.prev || Array.from(select.options).find(o => o.defaultSelected)?.value || 'todo';
+
+        Swal.fire({
+            title: 'Tandai selesai?',
+            input: 'textarea',
+            inputLabel: 'Deskripsi penyelesaian',
+            inputPlaceholder: 'Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting...',
+            inputValidator: (value) => !value ? 'Deskripsi penyelesaian wajib diisi.' : undefined,
+            showCancelButton: true,
+            confirmButtonText: 'Simpan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#2563eb',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.querySelector('input[name="completion_notes"]').value = result.value;
+                form.submit();
+            } else {
+                select.value = previousValue;
+            }
+        });
+    };
+
+    document.querySelectorAll('.quick-status-form select[name="status"]').forEach(sel => {
+        sel.dataset.prev = sel.value;
+    });
+
     window.handleDragStart = function(e) {
         dragging = e.currentTarget;
         e.dataTransfer.effectAllowed = 'move';
@@ -350,7 +384,7 @@
             c.classList.remove('ring-2','ring-blue-400','ring-inset'));
     };
 
-    window.handleDrop = function(e, newStatus) {
+    window.handleDrop = function(e, newColumnId) {
         e.preventDefault();
         const col = e.currentTarget;
         col.classList.remove('ring-2','ring-blue-400','ring-inset');
@@ -358,27 +392,28 @@
         const card = dragging || document.querySelector(`.kanban-card[data-task-id="${e.dataTransfer.getData('text/plain')}"]`);
         if (!card) return;
 
-        const oldStatus = card.dataset.status;
-        if (oldStatus === newStatus) return;
+        const oldColumnId = card.dataset.columnId;
+        if (String(oldColumnId) === String(newColumnId)) return;
 
         const taskId = card.dataset.taskId;
+        const newColumnName = col.dataset.columnName || '';
 
         // Optimistic UI: move card DOM
         const emptyEl = col.querySelector('.kanban-empty');
         if (emptyEl) emptyEl.remove();
         col.appendChild(card);
-        card.dataset.status = newStatus;
+        card.dataset.columnId = newColumnId;
 
         // Remove empty placeholder from old col if needed
-        const oldCol = document.querySelector(`.kanban-col[data-status="${oldStatus}"]`);
+        const oldCol = document.querySelector(`.kanban-col[data-column-id="${oldColumnId}"]`);
         if (oldCol && oldCol.querySelectorAll('.kanban-card').length === 0) {
             oldCol.innerHTML = '<div class="py-6 text-center text-xs text-gray-400 kanban-empty">Tidak ada task</div>';
         }
 
         // Update counts
-        ['todo','in_progress','review','done'].forEach(s => {
-            const cnt = document.querySelectorAll(`.kanban-col[data-status="${s}"] .kanban-card`).length;
-            const badge = document.getElementById('count-' + s);
+        document.querySelectorAll('.kanban-col').forEach(c => {
+            const cnt = c.querySelectorAll('.kanban-card').length;
+            const badge = document.getElementById('count-' + c.dataset.columnId);
             if (badge) badge.textContent = cnt;
         });
 
@@ -386,20 +421,16 @@
         fetch(MOVE_URL.replace('__ID__', taskId), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ board_column_id: newColumnId })
         })
         .then(r => r.json())
         .then(data => {
-            if (data.ok) showToast('✓ Status diperbarui ke ' + formatStatus(newStatus));
+            if (data.ok) showToast('✓ Status diperbarui ke ' + newColumnName);
         })
         .catch(() => {
             showToast('✕ Gagal update status', true);
         });
     };
-
-    function formatStatus(s) {
-        return { todo:'To Do', in_progress:'In Progress', review:'Review', done:'Done' }[s] || s;
-    }
 
     function showToast(msg, err = false) {
         const t = document.getElementById('kanban-toast');

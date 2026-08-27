@@ -46,7 +46,7 @@
             <div class="flex gap-3 pt-2">
                 <button type="submit" :disabled="submitting"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                        style="background:var(--hris-gradient)">
                     <span x-show="!submitting">Kirim Pengajuan</span>
                     <span x-show="submitting" x-cloak>Mengirim...</span>
                 </button>

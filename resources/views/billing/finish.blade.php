@@ -39,11 +39,22 @@
                 </svg>
             </div>
             <h2 class="text-lg font-bold text-gray-900">Pembayaran Sedang Diproses</h2>
-            <p class="text-sm text-gray-500 mt-2">
+            <p class="text-sm text-gray-500 mt-2" id="processing-msg">
                 Terima kasih! Status pembayaran Anda sedang diverifikasi oleh Midtrans.
                 Untuk transfer Virtual Account, halaman ini akan otomatis memperbarui diri
                 begitu pembayaran dikonfirmasi.
             </p>
+            <p class="text-sm text-amber-600 mt-2 hidden" id="processing-timeout-msg">
+                Verifikasi memakan waktu lebih lama dari biasanya. Pembayaran Anda mungkin
+                masih diproses bank/Midtrans — cek lagi beberapa saat lagi, atau hubungi kami
+                jika sudah transfer lebih dari 15 menit.
+            </p>
+            <button type="button" id="processing-refresh-btn"
+                    class="hidden mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors"
+                    onclick="window.location.reload()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Cek Status Sekarang
+            </button>
         @endif
 
         @if($order)
@@ -73,14 +84,26 @@
     @push('scripts')
     <script>
         (function () {
-            var checkUrl = @json(route('billing.status', $order->order_number));
+            var checkUrl   = @json(route('billing.status', $order->order_number));
+            var maxAttempts = 75; // ~5 menit @ 4 detik/percobaan
+            var attempts    = 0;
+
             var interval = setInterval(function () {
+                attempts++;
                 fetch(checkUrl, { headers: { 'Accept': 'application/json' } })
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
                         if (data.status !== 'pending') {
                             clearInterval(interval);
                             window.location.reload();
+                        } else if (attempts >= maxAttempts) {
+                            clearInterval(interval);
+                            var msg = document.getElementById('processing-msg');
+                            var timeoutMsg = document.getElementById('processing-timeout-msg');
+                            var refreshBtn = document.getElementById('processing-refresh-btn');
+                            if (msg) msg.classList.add('hidden');
+                            if (timeoutMsg) timeoutMsg.classList.remove('hidden');
+                            if (refreshBtn) refreshBtn.classList.remove('hidden');
                         }
                     })
                     .catch(function () { /* diamkan, coba lagi di interval berikutnya */ });

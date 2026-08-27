@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BoardColumn;
 use App\Models\Project;
 use App\Models\Task;
 use App\Services\NotificationService;
@@ -31,8 +32,15 @@ class TaskController extends Controller
             'estimated_hours' => 'nullable|integer|min:1',
         ]);
 
+        $todoColumn = BoardColumn::where('project_id', $project->id)
+            ->where('is_done', false)
+            ->orderBy('sort_order')
+            ->first();
+
         $task = $project->tasks()->create([
             ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'priority', 'due_date', 'estimated_hours', 'ticket_id'),
+            'status' => $todoColumn->slug ?? 'todo',
+            'board_column_id' => $todoColumn->id ?? null,
             'created_by' => $request->user()->id,
         ]);
 

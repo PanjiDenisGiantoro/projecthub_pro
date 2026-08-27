@@ -9,6 +9,7 @@ class Milestone extends Model
     protected $fillable = [
         'project_id', 'title', 'description', 'start_date', 'due_date', 'status', 'assigned_to',
         'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
+        'client_approved_at', 'client_approved_via_token_id',
     ];
 
     protected function casts(): array
@@ -17,7 +18,18 @@ class Milestone extends Model
             'start_date' => 'date',
             'due_date' => 'date',
             'meeting_starts_at' => 'datetime',
+            'client_approved_at' => 'datetime',
         ];
+    }
+
+    public function isClientApproved(): bool
+    {
+        return $this->client_approved_at !== null;
+    }
+
+    public function clientApprovedVia()
+    {
+        return $this->belongsTo(ClientPortalToken::class, 'client_approved_via_token_id');
     }
 
     public function meetingOrganizer()

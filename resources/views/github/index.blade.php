@@ -82,7 +82,10 @@
                         ↻ Refresh
                     </button>
                 </form>
-                <form method="POST" action="{{ route('github.destroy', $project) }}" onsubmit="return confirm('Putuskan integrasi repo GitHub ini?')">
+                <form method="POST" action="{{ route('github.destroy', $project) }}"
+                      data-confirm-submit="Putuskan integrasi repo GitHub ini?"
+                      data-confirm-text="Anda bisa menyambungkan repo lain kapan saja setelah ini."
+                      data-confirm-btn="Ya, Putuskan">
                     @csrf @method('DELETE')
                     <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition">
                         Putuskan

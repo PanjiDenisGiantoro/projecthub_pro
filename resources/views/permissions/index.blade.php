@@ -10,7 +10,10 @@
     ];
 @endphp
 
-<div class="py-4" x-data="{ activeRole: '{{ $roles->first()?->name }}' }">
+@php $roleNames = $roles->pluck('name'); @endphp
+<div class="py-4"
+     x-data="{ activeRole: '{{ $roles->first()?->name }}' }"
+     x-init="if (@js($roleNames).includes(location.hash.slice(1))) activeRole = location.hash.slice(1)">
 
     {{-- Flash --}}
     @if(session('success'))
@@ -89,6 +92,14 @@
     @foreach($roles as $role)
     @php $c = $roleColors[$role->name] ?? ['bg'=>'bg-gray-500','light'=>'bg-gray-50','text'=>'text-gray-700','border'=>'border-gray-300']; @endphp
     <div x-show="activeRole === '{{ $role->name }}'" x-cloak>
+        {{-- Standalone reset form — kept outside the update <form> below so it never nests inside it --}}
+        <form id="reset-role-{{ $role->id }}" method="POST" action="{{ route('permissions.reset', $role->name) }}" class="hidden"
+              data-confirm-submit="Reset permission {{ \App\Support\RoleLabel::for($role->name) }}?"
+              data-confirm-text="Semua perubahan kustom untuk role ini akan kembali ke default."
+              data-confirm-btn="Ya, Reset">
+            @csrf
+        </form>
+
         <form method="POST" action="{{ route('permissions.update', $role->name) }}"
               x-data="{ changed: false }" @change="changed = true">
             @csrf @method('PUT')
@@ -111,11 +122,10 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('permissions.reset', $role->name) }}"
-                           onclick="return confirm('Reset permission {{ $role->name }} ke default?')"
-                           class="text-xs text-gray-400 hover:text-gray-600 border border-gray-300 px-3 py-1.5 rounded-lg bg-white">
+                        <button type="submit" form="reset-role-{{ $role->id }}"
+                                class="text-xs text-gray-400 hover:text-gray-600 border border-gray-300 px-3 py-1.5 rounded-lg bg-white">
                             Reset Default
-                        </a>
+                        </button>
                         <button type="submit"
                                 :class="changed ? '{{ $c['bg'] }} text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
                                 :disabled="!changed"

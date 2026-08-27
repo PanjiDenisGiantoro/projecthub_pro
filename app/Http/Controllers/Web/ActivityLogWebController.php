@@ -17,6 +17,7 @@ class ActivityLogWebController extends Controller
         'task'             => 'Task',
         'ticket'           => 'Tiket',
         'customer_request' => 'Customer Request',
+        'payroll_setting'  => 'Pengaturan Payroll',
     ];
 
     public function index(Request $request)

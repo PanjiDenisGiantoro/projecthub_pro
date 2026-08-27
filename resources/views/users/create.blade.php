@@ -107,6 +107,51 @@
                     @endforeach
                 </select>
             </div>
+
+            <div x-data="{ employmentType: '{{ old('employment_type', 'tetap') }}' }">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Karyawan <span class="text-red-500">*</span></label>
+                <select name="employment_type" id="select-employment-type" x-model="employmentType" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    @foreach(\App\Support\EmploymentType::options() as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+
+                <div class="mt-3" x-show="employmentType === 'lainnya'" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Tipe Karyawan <span class="text-red-500">*</span></label>
+                    <input type="text" name="employment_type_other" value="{{ old('employment_type_other') }}"
+                           placeholder="mis. Freelance Musiman, Konsultan Lepas..."
+                           :required="employmentType === 'lainnya'"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('employment_type_other') border-red-400 @enderror">
+                    @error('employment_type_other') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="mt-3" x-show="!['tetap','kontrak'].includes(employmentType)" x-cloak>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dari Perusahaan Mana <span class="text-red-500">*</span></label>
+                    <input type="text" name="outsourcing_company_name" value="{{ old('outsourcing_company_name') }}"
+                           placeholder="Nama perusahaan/vendor asal karyawan"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('outsourcing_company_name') border-red-400 @enderror">
+                    @error('outsourcing_company_name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Kerja</label>
+                        <input type="date" name="hire_date" value="{{ old('hire_date') }}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('hire_date') border-red-400 @enderror">
+                        @error('hire_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div x-show="employmentType !== 'tetap'" x-cloak>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Tanggal Akhir Kontrak <span class="text-red-500" x-show="employmentType === 'kontrak'">*</span>
+                        </label>
+                        <input type="date" name="contract_end_date" value="{{ old('contract_end_date') }}"
+                               :required="employmentType === 'kontrak'"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('contract_end_date') border-red-400 @enderror">
+                        @error('contract_end_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
             @endif
 
             <div>

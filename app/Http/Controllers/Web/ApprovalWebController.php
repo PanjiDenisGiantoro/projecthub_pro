@@ -63,7 +63,7 @@ class ApprovalWebController extends Controller
 
         try {
             $this->approvalService->reject($approval, $request->user(), $request->notes);
-            return back()->with('error_msg', 'Permintaan telah ditolak.');
+            return back()->with('success', 'Permintaan telah ditolak.');
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }

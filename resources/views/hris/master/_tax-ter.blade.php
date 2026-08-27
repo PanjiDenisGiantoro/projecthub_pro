@@ -4,7 +4,8 @@
             <h3 class="font-semibold text-gray-900">Tarif Efektif Rata-rata (TER)</h3>
             <p class="text-xs text-gray-500 mt-0.5">PP 58/2023 & PMK 168/2023 — potongan bulanan Jan-Nov = bruto bulan berjalan × tarif TER. Desember tetap direkonsiliasi pakai tarif progresif.</p>
         </div>
-        <form action="{{ route('hris.master.tax-ter.reset') }}" method="POST" onsubmit="return confirm('Reset ke tarif TER resmi PMK-168/2023? Semua perubahan manual akan tertimpa.')">
+        <form action="{{ route('hris.master.tax-ter.reset') }}" method="POST"
+              data-confirm-submit="Reset ke tarif TER resmi PMK-168/2023?" data-confirm-text="Semua perubahan manual akan tertimpa." data-confirm-btn="Ya, Reset">
             @csrf
             <button class="text-xs text-amber-600 border border-amber-300 px-3 py-1.5 rounded-lg hover:bg-amber-50 whitespace-nowrap">Reset Default</button>
         </form>

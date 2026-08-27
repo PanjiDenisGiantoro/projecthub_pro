@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\StructuralLevel;
 use App\Models\User;
+use App\Support\EmploymentType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -87,24 +88,34 @@ class UserWebController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'                  => 'required|string|max:255',
-            'email'                 => 'required|email|unique:users',
-            'password'              => 'required|min:8|confirmed',
-            'role'                  => 'required|exists:roles,name|not_in:client',
-            'structural_level_id'   => 'nullable|exists:structural_levels,id',
-            'organization_unit_id'  => 'nullable|exists:organization_units,id',
-            'project_ids'           => 'nullable|array',
-            'project_ids.*'         => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
+            'name'                      => 'required|string|max:255',
+            'email'                     => 'required|email|unique:users',
+            'password'                  => 'required|min:8|confirmed',
+            'role'                      => 'required|exists:roles,name|not_in:client',
+            'structural_level_id'       => 'nullable|exists:structural_levels,id',
+            'organization_unit_id'      => 'nullable|exists:organization_units,id',
+            'employment_type'           => ['nullable', Rule::in(array_keys(EmploymentType::LABELS))],
+            'employment_type_other'     => 'nullable|string|max:100|required_if:employment_type,lainnya',
+            'outsourcing_company_name'  => 'nullable|string|max:255|required_unless:employment_type,tetap,kontrak',
+            'hire_date'                 => 'nullable|date',
+            'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
+            'project_ids'               => 'nullable|array',
+            'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
         ]);
 
         $user = User::create([
-            'name'                 => $request->name,
-            'email'                => $request->email,
-            'password'             => $request->password,
-            'company_id'           => auth()->user()->company_id,
-            'is_active'            => $request->boolean('is_active', true),
-            'structural_level_id'  => $request->structural_level_id,
-            'organization_unit_id' => $request->organization_unit_id,
+            'name'                      => $request->name,
+            'email'                     => $request->email,
+            'password'                  => $request->password,
+            'company_id'                => auth()->user()->company_id,
+            'is_active'                 => $request->boolean('is_active', true),
+            'structural_level_id'       => $request->structural_level_id,
+            'organization_unit_id'      => $request->organization_unit_id,
+            'employment_type'           => $request->employment_type ?? EmploymentType::TETAP,
+            'employment_type_other'     => EmploymentType::requiresCustomLabel($request->employment_type) ? $request->employment_type_other : null,
+            'outsourcing_company_name'  => EmploymentType::requiresSourceCompany($request->employment_type) ? $request->outsourcing_company_name : null,
+            'hire_date'                 => $request->hire_date,
+            'contract_end_date'         => EmploymentType::allowsContractEndDate($request->employment_type) ? $request->contract_end_date : null,
         ]);
         $user->assignRole($request->role);
 
@@ -136,19 +147,42 @@ class UserWebController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'                 => 'required|string|max:255',
-            'email'                => 'required|email|unique:users,email,' . $user->id,
-            'role'                 => 'required|exists:roles,name',
-            'structural_level_id'  => 'nullable|exists:structural_levels,id',
-            'organization_unit_id' => 'nullable|exists:organization_units,id',
-            'project_ids'          => 'nullable|array',
-            'project_ids.*'        => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
+            'name'                      => 'required|string|max:255',
+            'email'                     => 'required|email|unique:users,email,' . $user->id,
+            'role'                      => 'required|exists:roles,name',
+            'structural_level_id'       => 'nullable|exists:structural_levels,id',
+            'organization_unit_id'      => 'nullable|exists:organization_units,id',
+            'employment_type'           => ['nullable', Rule::in(array_keys(EmploymentType::LABELS))],
+            'employment_type_other'     => 'nullable|string|max:100|required_if:employment_type,lainnya',
+            'outsourcing_company_name'  => 'nullable|string|max:255|required_unless:employment_type,tetap,kontrak',
+            'hire_date'                 => 'nullable|date',
+            'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
+            'project_ids'               => 'nullable|array',
+            'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
         ]);
 
-        $user->update([
+        $data = [
             ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id'),
             'is_active' => $request->boolean('is_active'),
-        ]);
+        ];
+
+        // Field HRIS ini tidak dikirim sama sekali kalau paket HRIS company tidak aktif
+        // (form tidak menampilkannya) — jangan timpa data yang sudah ada dengan default.
+        if ($request->has('employment_type')) {
+            $data['employment_type'] = $request->employment_type ?? EmploymentType::TETAP;
+            $data['employment_type_other'] = EmploymentType::requiresCustomLabel($request->employment_type)
+                ? $request->employment_type_other
+                : null;
+            $data['outsourcing_company_name'] = EmploymentType::requiresSourceCompany($request->employment_type)
+                ? $request->outsourcing_company_name
+                : null;
+            $data['hire_date'] = $request->hire_date;
+            $data['contract_end_date'] = EmploymentType::allowsContractEndDate($request->employment_type)
+                ? $request->contract_end_date
+                : null;
+        }
+
+        $user->update($data);
         $user->syncRoles([$request->role]);
 
         $companyProjectIds = Project::where('company_id', auth()->user()->company_id)->pluck('id');

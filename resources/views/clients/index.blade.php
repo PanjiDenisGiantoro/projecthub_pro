@@ -135,7 +135,7 @@
                             @endcan
                             @can('delete user')
                             <form method="POST" action="{{ route('clients.destroy', $client) }}"
-                                  onsubmit="return confirm('Hapus client {{ $client->name }}?')">
+                                  data-confirm-delete="{{ $client->name }}" data-confirm-label="Hapus Client">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Hapus</button>
                             </form>

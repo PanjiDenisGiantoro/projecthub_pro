@@ -57,7 +57,7 @@ class LeaveService
         }
 
         throw_if(!$type->isEligible($user), \Exception::class,
-            "Jenis cuti {$type->name} tidak tersedia untuk Anda.");
+            $type->tenureBlockedMessage($user) ?? "Jenis cuti {$type->name} tidak tersedia untuk Anda.");
 
         if ($type->has_balance && $type->default_quota > 0) {
             $balance = $this->getOrCreateBalance($user, $type, $start->year);

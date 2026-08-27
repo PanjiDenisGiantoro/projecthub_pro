@@ -56,6 +56,56 @@ class PPh21Service
     }
 
     /**
+     * PPh 21 "Bukan Pegawai" (PER-16/PJ/2016) — dipakai untuk Outsourcing/Magang, bukan
+     * pegawai tetap: DPP = 50% dari bruto (tanpa PTKP, tanpa biaya jabatan 5%), langsung
+     * kena tarif progresif Pasal 17 dari DPP itu.
+     *
+     * Simplifikasi yang perlu diketahui: versi ini menghitung tiap bulan berdiri sendiri
+     * (non-kumulatif). Untuk Bukan Pegawai yang menerima penghasilan berkesinambungan dari
+     * pemberi kerja yang sama sepanjang tahun, aturan resmi mewajibkan DPP dikumulatifkan
+     * bulan berjalan terhadap lapisan tarif tahunan — kalau butuh kepatuhan penuh untuk kasus
+     * itu, ini perlu tracking bruto kumulatif per tahun seperti rekonsiliasi TER Desember.
+     */
+    public function hitungBukanPegawai(float $brutoBulanan, bool $punyaNpwp = true): array
+    {
+        $dpp = max(0, $brutoBulanan * 0.5);
+        $dpp = floor($dpp / 1000) * 1000;
+
+        $brackets  = TaxBracket::getActive();
+        $pajak     = 0.0;
+        $breakdown = [];
+
+        foreach ($brackets as $bracket) {
+            if ($dpp <= $bracket->income_from) break;
+
+            $batasAtas = $bracket->income_to ?? PHP_FLOAT_MAX;
+            $kena      = min($dpp, $batasAtas) - $bracket->income_from;
+            $amount    = $kena * $bracket->rate;
+            $pajak    += $amount;
+
+            $breakdown[] = [
+                'label'  => $bracket->label,
+                'pkp'    => $kena,
+                'rate'   => $bracket->rate,
+                'amount' => round($amount),
+            ];
+        }
+
+        if (!$punyaNpwp) {
+            $pajak *= 1.20;
+        }
+
+        return [
+            'metode'         => 'bukan_pegawai',
+            'bruto_bulanan'  => $brutoBulanan,
+            'dpp'            => $dpp,
+            'pajak_bulanan'  => round($pajak),
+            'non_npwp_extra' => !$punyaNpwp,
+            'breakdown'      => $breakdown,
+        ];
+    }
+
+    /**
      * Bonus/THR/gratifikasi (penghasilan tidak teratur) dihitung pakai metode
      * selisih: pajak atas bonus = pajak(setahun reguler + bonus) - pajak(setahun
      * reguler), lalu ditambahkan penuh ke potongan bulan bonus itu dibayarkan

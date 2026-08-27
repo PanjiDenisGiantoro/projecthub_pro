@@ -47,8 +47,8 @@
                     <td class="px-4 py-3 text-gray-700 max-w-sm truncate">{{ $activity->description }}</td>
                     <td class="px-4 py-3">
                         @php
-                            $old   = $activity->properties['old'] ?? null;
-                            $new   = $activity->properties['attributes'] ?? null;
+                            $old   = $activity->attribute_changes['old'] ?? null;
+                            $new   = $activity->attribute_changes['attributes'] ?? null;
                             $isDeleted = $activity->event === 'deleted';
                             $rows  = [];
                             if ($isDeleted && $old) {

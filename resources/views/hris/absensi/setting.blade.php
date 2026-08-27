@@ -274,7 +274,7 @@
                                 <button type="button"
                                         @click="openEnroll({{ $emp->id }}, '{{ addslashes($emp->name) }}')"
                                         class="text-xs px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-all"
-                                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
+                                        style="background:var(--hris-gradient);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
                                     Daftarkan Wajah
                                 </button>
                             @endif
@@ -289,7 +289,7 @@
         <div class="flex justify-end">
             <button type="submit"
                     class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5"
-                    style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 16px rgba(109,40,217,0.35)">
+                    style="background:var(--hris-gradient);box-shadow:0 4px 16px rgba(109,40,217,0.35)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
@@ -367,7 +367,7 @@
                 <button type="button" @click="captureEnroll()"
                         :disabled="enrollStatus !== 'ready' || captureCount >= 3"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                        style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
                     <span x-text="captureCount < 3 ? 'Ambil Frame (' + captureCount + '/3)' : 'Menyimpan...'"></span>
                 </button>
                 <button type="button" @click="closeEnroll()"

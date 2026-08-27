@@ -78,7 +78,7 @@
             @foreach([
                 ['BPJS Kesehatan (1%)', $payroll->potongan_bpjs_kes],
                 ['BPJS Ketenagakerjaan', $payroll->potongan_bpjs_tk],
-                ['PPh 21', $payroll->potongan_pph21],
+                ['PPh 21' . ($payroll->pph21_method === 'bukan_pegawai' ? ' (Bukan Pegawai)' : ''), $payroll->potongan_pph21],
                 ['Alpha (' . $payroll->hari_alpha . ' hari)', $payroll->potongan_alpha],
                 ['Cicilan Kasbon', $payroll->potongan_kasbon],
                 ['Potongan Lainnya', $payroll->potongan_lainnya],

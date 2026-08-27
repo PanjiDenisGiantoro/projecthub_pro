@@ -103,13 +103,19 @@
         @if($user->hasRole(['admin','member']))
         <div class="px-6 py-4 border-t border-gray-100 flex gap-3 no-print">
             @if($invoice->status === 'draft')
-            <form method="POST" action="{{ route('invoices.send', $invoice) }}">
+            <form method="POST" action="{{ route('invoices.send', $invoice) }}"
+                  data-confirm-submit="Kirim invoice {{ $invoice->invoice_number ?? '' }} ke client?"
+                  data-confirm-text="Client akan menerima notifikasi. Invoice tidak bisa ditarik kembali setelah dikirim."
+                  data-confirm-btn="Ya, Kirim">
                 @csrf @method('PUT')
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Kirim ke Client</button>
             </form>
             @endif
             @if(in_array($invoice->status, ['sent','overdue']))
-            <form method="POST" action="{{ route('invoices.markPaid', $invoice) }}">
+            <form method="POST" action="{{ route('invoices.markPaid', $invoice) }}"
+                  data-confirm-submit="Tandai invoice ini lunas?"
+                  data-confirm-text="Status pembayaran akan berubah menjadi Lunas."
+                  data-confirm-btn="Ya, Tandai Lunas">
                 @csrf @method('PUT')
                 <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">Tandai Lunas</button>
             </form>

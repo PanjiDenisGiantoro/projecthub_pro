@@ -23,6 +23,18 @@
     --color-primary-800: #1e40af;
 }
 
+/* ── Module brand colors ───────────────────────────────────────────────── */
+:root {
+    /* HRIS module accent — kept separate from --color-primary so the module
+       stays visually distinct; change once here instead of per-file hex. */
+    --hris-gradient: linear-gradient(135deg, #7c3aed, #6d28d9);
+
+    /* AI Assistant widget accent — matches the Flovig logo's blue→cyan
+       gradient (flovig_logo.png), used across all packages (not module-specific
+       like --hris-gradient). */
+    --ai-gradient: linear-gradient(135deg, #2563eb, #0891b2);
+}
+
 /* ── Card ───────────────────────────────────────────────────────────────── */
 .glass-card {
     background: #ffffff;

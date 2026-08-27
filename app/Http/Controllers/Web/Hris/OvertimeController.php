@@ -23,6 +23,8 @@ class OvertimeController extends Controller
         $overtimes = Overtime::with('user')
             ->where('company_id', $user->company_id)
             ->when(!$user->can('view overtime'), fn($q) => $q->where('user_id', $user->id))
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->orderByRaw("status = 'pending' desc")
             ->orderByDesc('date')
             ->paginate($this->perPage($request))
             ->withQueryString();

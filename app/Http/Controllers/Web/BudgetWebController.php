@@ -16,7 +16,9 @@ class BudgetWebController extends Controller
     {
         // Breakdown per kategori butuh seluruh entri, bukan cuma satu halaman.
         $allEntries = $project->budgetEntries()->orderByDesc('entry_date')->orderByDesc('id')->get();
-        $entries = $project->budgetEntries()->with('creator')->orderByDesc('entry_date')->orderByDesc('id')
+        $entries = $project->budgetEntries()->with('creator')
+            ->when($request->category, fn ($q) => $q->where('category', $request->category))
+            ->orderByDesc('entry_date')->orderByDesc('id')
             ->paginate($this->perPage($request))
             ->withQueryString();
         $summary = [

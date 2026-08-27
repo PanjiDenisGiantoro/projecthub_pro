@@ -78,23 +78,22 @@
         $daysLeft = $hasOpenItems ? (int) ($openTaskDays + $openSprintDays + $openTicketDays) : null;
 
         $tabs = [
-            ['key' => 'overview',   'label' => 'Overview',   'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
-            ['key' => 'tasks',      'label' => 'Tasks',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'],
-            ['key' => 'milestones', 'label' => 'Milestone',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
-            ['key' => 'sprints',    'label' => 'Sprints',    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>'],
-            ['key' => 'team',       'label' => 'Tim',        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>'],
-            ['key' => 'tickets',    'label' => 'Tickets',    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'],
-            ['key' => 'timesheet',  'label' => 'Timesheet',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
-            ['key' => 'kb',         'label' => 'Knowledge Base', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>'],
-            ['key' => 'files',      'label' => 'File Arsip', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
-            ['key' => 'budget',     'label' => 'Modal Budget', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
-            ['key' => 'recurring',  'label' => 'Recurring',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
-            ['key' => 'portal',     'label' => 'Portal',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
-            ['key' => 'notif',      'label' => 'Notifikasi', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>'],
-            ['key' => 'chat',       'label' => 'Chat',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
+            ['key' => 'overview',   'label' => 'Overview',   'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
+            ['key' => 'timesheet',  'label' => 'Timesheet',  'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
+            ['key' => 'tasks',      'label' => 'Tasks',      'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'],
+            ['key' => 'milestones', 'label' => 'Milestone',  'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
+            ['key' => 'sprints',    'label' => 'Sprints',    'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>'],
+            ['key' => 'recurring',  'label' => 'Recurring',  'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
+            ['key' => 'team',       'label' => 'Tim',        'group' => 'Team',          'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>'],
+            ['key' => 'tickets',    'label' => 'Tickets',    'group' => 'Issues',        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'],
+            ['key' => 'files',      'label' => 'File Arsip', 'group' => 'Documents',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
+            ['key' => 'kb',         'label' => 'Knowledge Base', 'group' => 'Documents', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>'],
+            ['key' => 'portal',     'label' => 'Portal',     'group' => 'Tools',         'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
+            ['key' => 'budget',     'label' => 'Modal Budget', 'group' => 'Tools',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
+            ['key' => 'notif',      'label' => 'Integrasi Notifikasi', 'group' => 'Communication', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>'],
+            ['key' => 'chat',       'label' => 'Chat',       'group' => 'Communication', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
         ];
-        $coreTabs     = array_slice($tabs, 0, 5);
-        $optionalTabs = array_slice($tabs, 5);
+        $groupedTabs = collect($tabs)->groupBy('group');
     @endphp
 
     {{-- Breadcrumb --}}
@@ -104,45 +103,36 @@
         <span class="text-gray-600 truncate max-w-[200px]">{{ $project->name }}</span>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-6 items-start" x-data="{ showOptional: true }">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
         {{-- ============================================================
              SIDEBAR NAVIGATION
         ============================================================ --}}
         <aside class="w-full lg:w-52 shrink-0 lg:sticky lg:top-4">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2.5 mb-2">Inti</p>
-            <nav class="space-y-1">
-                @foreach($coreTabs as $t)
-                <button
-                    @click="tab = '{{ $t['key'] }}'"
-                    :class="tab === '{{ $t['key'] }}'
-                        ? 'bg-white border-blue-400 text-blue-700 shadow-sm'
-                        : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
-                    class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-sm font-medium transition-all">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
-                    {{ $t['label'] }}
+            @foreach($groupedTabs as $groupName => $groupTabs)
+            <div class="mb-1" x-data="{ open: true }">
+                <button type="button" @click="open = !open"
+                        class="group w-full flex items-center justify-between gap-1.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-gray-400 uppercase tracking-wide hover:bg-white hover:text-gray-600 transition cursor-pointer">
+                    <span>{{ $groupName }}</span>
+                    <svg class="w-4 h-4 shrink-0 text-gray-400 group-hover:text-gray-700 transition-all" :class="open ? '' : '-rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
                 </button>
-                @endforeach
-            </nav>
-
-            <button @click="showOptional = !showOptional"
-                    class="w-full flex items-center gap-1.5 px-2.5 py-2 mt-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition">
-                <svg class="w-3.5 h-3.5 transition-transform shrink-0" :class="showOptional ? '' : '-rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                <span x-text="showOptional ? 'Sembunyikan' : 'Tampilkan'"></span>
-            </button>
-
-            <nav x-show="showOptional" x-cloak class="space-y-1">
-                @foreach($optionalTabs as $t)
-                <button
-                    @click="tab = '{{ $t['key'] }}'"
-                    :class="tab === '{{ $t['key'] }}'
-                        ? 'bg-white border-blue-400 text-blue-700 shadow-sm'
-                        : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
-                    class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-sm font-medium transition-all">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
-                    {{ $t['label'] }}
-                </button>
-                @endforeach
-            </nav>
+                <nav x-show="open" x-cloak class="relative space-y-1 ml-4 pl-3.5 border-l-2 border-gray-200 mt-0.5">
+                    @foreach($groupTabs as $t)
+                    <button
+                        @click="tab = '{{ $t['key'] }}'"
+                        :class="tab === '{{ $t['key'] }}'
+                            ? 'bg-white border-blue-400 text-blue-700 shadow-sm'
+                            : 'border-transparent text-gray-500 hover:bg-white hover:text-gray-700'"
+                        class="relative w-full flex items-center gap-2 px-2 py-1.5 rounded-lg border text-sm font-medium transition-all">
+                        <span class="absolute -left-3.5 top-1/2 -translate-y-1/2 w-2.5 h-px bg-gray-200"></span>
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
+                        {{ $t['label'] }}
+                    </button>
+                    @endforeach
+                </nav>
+            </div>
+            @endforeach
         </aside>
 
         {{-- ============================================================
@@ -323,15 +313,33 @@
                     List
                 </button>
             </div>
-            @if(!auth()->user()->hasRole('client'))
-            <button @click="showAddTask = !showAddTask"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                </svg>
-                Tambah Task
-            </button>
-            @endif
+            <div class="flex items-center gap-2">
+                <a href="{{ route('tasks.index', $project) }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-gray-800 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5h18M3 12h18M3 16.5h18"/>
+                    </svg>
+                    Kelola di Tampilan Tabel
+                </a>
+                @if(!auth()->user()->hasRole('client'))
+                <a x-show="taskView==='kanban'" x-cloak
+                   href="{{ route('board-columns.index', $project) }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 hover:text-gray-800 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Kelola Kolom
+                </a>
+                <button @click="showAddTask = !showAddTask"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Task
+                </button>
+                @endif
+            </div>
         </div>
 
         {{-- Add Task Form --}}
@@ -460,29 +468,23 @@
 
         {{-- KANBAN VIEW --}}
         <div x-show="taskView==='kanban'" x-cloak>
-            @php
-                $kCols = [
-                    'todo'        => ['label' => 'To Do',       'dot' => 'bg-gray-400',   'hdr' => 'bg-gray-50 border-gray-200'],
-                    'in_progress' => ['label' => 'In Progress', 'dot' => 'bg-blue-500',   'hdr' => 'bg-blue-50 border-blue-100'],
-                    'review'      => ['label' => 'Review',      'dot' => 'bg-purple-500', 'hdr' => 'bg-purple-50 border-purple-100'],
-                    'done'        => ['label' => 'Done',        'dot' => 'bg-green-500',  'hdr' => 'bg-green-50 border-green-100'],
-                ];
-            @endphp
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" id="kanban-board">
-                @foreach($kCols as $kSt => $kCol)
-                @php $kTasks = $project->tasks->where('status', $kSt); @endphp
+                @forelse($project->boardColumns as $kCol)
+                @php $kTasks = $project->tasks->where('board_column_id', $kCol->id); @endphp
                 <div class="flex flex-col min-h-48">
-                    <div class="flex items-center gap-2 px-3 py-2.5 rounded-t-xl border border-b-0 {{ $kCol['hdr'] }}">
-                        <span class="w-2.5 h-2.5 rounded-full {{ $kCol['dot'] }}"></span>
-                        <span class="text-sm font-semibold text-gray-700">{{ $kCol['label'] }}</span>
-                        <span class="ml-auto bg-white text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-200 kb-count" id="kb-count-{{ $kSt }}">{{ $kTasks->count() }}</span>
+                    <div class="flex items-center gap-2 px-3 py-2.5 rounded-t-xl border border-b-0 {{ \App\Support\BoardColumnPalette::header($kCol->color) }}">
+                        <span class="w-2.5 h-2.5 rounded-full {{ \App\Support\BoardColumnPalette::dot($kCol->color) }}"></span>
+                        <span class="text-sm font-semibold text-gray-700">{{ $kCol->name }}</span>
+                        <span class="ml-auto bg-white text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-200 kb-count" id="kb-count-{{ $kCol->id }}">{{ $kTasks->count() }}</span>
                     </div>
                     <div class="flex-1 border border-t-0 border-gray-200 rounded-b-xl bg-gray-50/80 p-2 space-y-2 min-h-16 kb-col transition-all"
-                         id="kb-col-{{ $kSt }}"
-                         data-status="{{ $kSt }}"
+                         id="kb-col-{{ $kCol->id }}"
+                         data-column-id="{{ $kCol->id }}"
+                         data-column-name="{{ $kCol->name }}"
+                         data-column-color="{{ $kCol->color }}"
                          ondragover="event.preventDefault(); kbDragOver(this)"
                          ondragleave="kbDragLeave(this)"
-                         ondrop="kbDrop(event, '{{ $kSt }}')">
+                         ondrop="kbDrop(event, {{ $kCol->id }})">
                         @forelse($kTasks as $task)
                         @php
                             $kOver = $task->isOverdue();
@@ -492,7 +494,7 @@
                              draggable="true"
                              data-task-id="{{ $task->id }}"
                              data-task-title="{{ addslashes($task->title) }}"
-                             data-status="{{ $task->status }}"
+                             data-column-id="{{ $kCol->id }}"
                              ondragstart="kbDragStart(event)"
                              ondragend="kbDragEnd(event)">
                             <a href="{{ route('tasks.show', [$project, $task]) }}"
@@ -522,7 +524,11 @@
                         @endforelse
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div class="col-span-full text-center text-sm text-gray-400 py-10">
+                    Proyek ini belum punya kolom board. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Kelola kolom board</a>
+                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -716,6 +722,12 @@
                                     </span>
                                     @if($mOverdue)
                                         <span class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600">Overdue</span>
+                                    @endif
+                                    @if($ms->isClientApproved())
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700" title="Disetujui klien pada {{ $ms->client_approved_at->format('d M Y H:i') }}">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Disetujui Klien
+                                        </span>
                                     @endif
                                 </div>
                                 @if(!auth()->user()->hasRole('client'))
@@ -1025,10 +1037,10 @@
                         <div class="flex items-center gap-3">
                             @if(!auth()->user()->hasRole('client'))
                             <form method="POST" action="{{ route('projects.members.remove', [$project, $member->user]) }}"
-                                  class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                  class="opacity-0 group-hover:opacity-100 transition-opacity"
+                                  data-confirm-delete="{{ $member->user->name }} dari tim" data-confirm-label="Hapus dari Tim">
                                 @csrf @method('DELETE')
                                 <button type="submit"
-                                        onclick="return confirm('Hapus {{ $member->user->name }} dari tim?')"
                                         class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a1 1 0 00-1-1h-4a1 1 0 00-1 1H5"/></svg>
                                 </button>
@@ -1127,26 +1139,14 @@
          TAB: SPRINTS
     ============================================================ --}}
     <div x-show="tab === 'sprints'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">Sprint Planning</h2>
-            <a href="{{ route('sprints.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                Kelola Sprints &rarr;
-            </a>
-        </div>
+        @include('projects.partials.sprints-content')
     </div>
 
     {{-- ============================================================
          TAB: FILES
     ============================================================ --}}
     <div x-show="tab === 'files'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">File Manager</h2>
-            <a href="{{ route('project.files.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                Buka File Manager &rarr;
-            </a>
-        </div>
+        @include('projects.partials.files-content')
     </div>
 
     {{-- ============================================================
@@ -1198,14 +1198,7 @@
          TAB: RECURRING
     ============================================================ --}}
     <div x-show="tab === 'recurring'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">Recurring Tasks</h2>
-            <p class="text-sm text-gray-500 mb-4">{{ $project->recurringTasks()->where('is_active', true)->count() }} recurring task aktif.</p>
-            <a href="{{ route('recurring.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                Kelola Recurring Tasks &rarr;
-            </a>
-        </div>
+        @include('projects.partials.recurring-content')
     </div>
 
     {{-- ============================================================
@@ -1226,22 +1219,7 @@
          TAB: NOTIFIKASI TIM (SLACK/DISCORD)
     ============================================================ --}}
     <div x-show="tab === 'notif'" x-cloak>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-4">Notifikasi Tim</h2>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $project->hasSlackIntegration() ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400' }}">
-                    Slack {{ $project->hasSlackIntegration() ? 'terhubung' : 'belum terhubung' }}
-                </span>
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $project->hasDiscordIntegration() ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400' }}">
-                    Discord {{ $project->hasDiscordIntegration() ? 'terhubung' : 'belum terhubung' }}
-                </span>
-            </div>
-            <p class="text-sm text-gray-500 mb-4">Kirim notifikasi otomatis ke channel Slack/Discord saat ada task atau tiket baru.</p>
-            <a href="{{ route('team-notifications.index', $project) }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                Kelola Notifikasi &rarr;
-            </a>
-        </div>
+        @include('projects.partials.notifications-content')
     </div>
 
     {{-- ============================================================
@@ -1261,23 +1239,22 @@
 @push('scripts')
 <script>
 (function () {
-    const STATUS_LABELS = {
-        todo:        'To Do',
-        in_progress: 'In Progress',
-        review:      'Review',
-        done:        'Done',
-    };
-    const STATUS_BADGE = {
-        todo:        'bg-gray-100 text-gray-600',
-        in_progress: 'bg-blue-100 text-blue-700',
-        review:      'bg-purple-100 text-purple-700',
-        done:        'bg-green-100 text-green-700',
+    // Column label/color now come from data-column-name/data-column-color
+    // attributes rendered server-side (App\Support\BoardColumnPalette) —
+    // this map only resolves a color KEY to a badge class for the modal,
+    // it no longer needs to know the set of possible statuses/columns.
+    const COLOR_BADGE = {
+        gray: 'bg-gray-100 text-gray-600', blue: 'bg-blue-100 text-blue-700',
+        purple: 'bg-purple-100 text-purple-700', green: 'bg-green-100 text-green-700',
+        red: 'bg-red-100 text-red-700', amber: 'bg-amber-100 text-amber-700',
+        pink: 'bg-pink-100 text-pink-700', indigo: 'bg-indigo-100 text-indigo-700',
+        teal: 'bg-teal-100 text-teal-700', slate: 'bg-slate-100 text-slate-700',
     };
 
     // --- drag state ---
     let _card      = null;
     let _originCol = null;
-    let _newStatus = null;
+    let _newColumnId = null;
 
     window.kbDragStart = function (e) {
         _card      = e.currentTarget;
@@ -1299,32 +1276,31 @@
         _clearDropStyle(col);
     };
 
-    window.kbDrop = function (e, newStatus) {
+    window.kbDrop = function (e, newColumnId) {
         e.preventDefault();
-        const col = document.getElementById('kb-col-' + newStatus);
+        const col = document.getElementById('kb-col-' + newColumnId);
         _clearDropStyle(col);
 
-        if (!_card || _card.dataset.status === newStatus) return;
+        if (!_card || String(_card.dataset.columnId) === String(newColumnId)) return;
 
-        _newStatus = newStatus;
+        _newColumnId = newColumnId;
 
         // Optimistic move
         _removeEmpty(col);
         col.appendChild(_card);
-        _card.dataset.status = newStatus;
+        _card.dataset.columnId = newColumnId;
         _updateCounts();
 
         // Show modal
-        const oldStatus = _originCol ? _originCol.dataset.status : '';
         document.getElementById('kb-modal-title').textContent = _card.dataset.taskTitle;
 
         const oldBadge = document.getElementById('kb-modal-old-status');
-        oldBadge.textContent = STATUS_LABELS[oldStatus] || oldStatus;
-        oldBadge.className   = 'text-xs px-2 py-0.5 rounded-full font-medium ' + (STATUS_BADGE[oldStatus] || 'bg-gray-100 text-gray-600');
+        oldBadge.textContent = _originCol ? _originCol.dataset.columnName : '';
+        oldBadge.className   = 'text-xs px-2 py-0.5 rounded-full font-medium ' + (COLOR_BADGE[_originCol?.dataset.columnColor] || 'bg-gray-100 text-gray-600');
 
         const newBadge = document.getElementById('kb-modal-new-status');
-        newBadge.textContent = STATUS_LABELS[newStatus] || newStatus;
-        newBadge.className   = 'text-xs px-2 py-0.5 rounded-full font-medium ' + (STATUS_BADGE[newStatus] || 'bg-gray-100 text-gray-600');
+        newBadge.textContent = col.dataset.columnName;
+        newBadge.className   = 'text-xs px-2 py-0.5 rounded-full font-medium ' + (COLOR_BADGE[col.dataset.columnColor] || 'bg-gray-100 text-gray-600');
 
         document.getElementById('kb-modal-notes').value = '';
         document.getElementById('kb-modal').classList.remove('hidden');
@@ -1350,7 +1326,7 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ status: _newStatus, notes: notes }),
+            body: JSON.stringify({ board_column_id: _newColumnId, notes: notes }),
         })
         .then(r => r.json())
         .then(data => {
@@ -1382,10 +1358,10 @@
         if (revert && _card && _originCol) {
             _removeEmpty(_originCol);
             _originCol.appendChild(_card);
-            _card.dataset.status = _originCol.dataset.status;
+            _card.dataset.columnId = _originCol.dataset.columnId;
             _updateCounts();
         }
-        _card = _originCol = _newStatus = null;
+        _card = _originCol = _newColumnId = null;
     }
 
     function _clearDropStyle(col) {
@@ -1398,9 +1374,9 @@
 
     function _updateCounts() {
         document.querySelectorAll('.kb-col').forEach(col => {
-            const status = col.dataset.status;
+            const columnId = col.dataset.columnId;
             const count  = col.querySelectorAll('.kb-card').length;
-            const badge  = document.getElementById('kb-count-' + status);
+            const badge  = document.getElementById('kb-count-' + columnId);
             if (badge) badge.textContent = count;
 
             if (count === 0 && !col.querySelector('.kb-empty')) {

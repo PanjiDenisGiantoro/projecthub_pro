@@ -14,30 +14,36 @@ class SprintWebController extends Controller
 {
     use HasPerPage;
 
-    public function index(Project $project)
+    public function index(Project $project, Request $request)
     {
-        $sprints = $project->sprints()->with(['tasks.assignee'])->orderByDesc('start_date')->get();
-        $backlog = $project->tasks()->whereNull('sprint_id')->with('assignee', 'milestone')->orderBy('sort_order')->get();
-        return view('sprints.index', compact('project', 'sprints', 'backlog'));
+        $sprints = $project->sprints()->with(['tasks.assignee'])
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->orderByDesc('start_date')
+            ->paginate($this->perPage($request), ['*'], 'sprints_page')->withQueryString();
+        $backlog = $project->tasks()->whereNull('sprint_id')->with('assignee', 'milestone')->orderBy('sort_order')
+            ->paginate($this->perPage($request, 10, 'backlog_per_page'), ['*'], 'backlog_page')->withQueryString();
+        $activeSprint = $project->sprints()->where('status', 'active')->first();
+
+        return view('sprints.index', compact('project', 'sprints', 'backlog', 'activeSprint'));
     }
 
     public function allSprints(Request $request)
     {
-        $authUser  = auth()->user();
+        $authUser = auth()->user();
         $companyId = $authUser->company_id;
 
         $companyScope = function ($q) use ($authUser, $companyId) {
             if (! $authUser->is_super_admin && $companyId) {
-                $q->whereHas('project', fn($p) => $p->where('company_id', $companyId));
+                $q->whereHas('project', fn ($p) => $p->where('company_id', $companyId));
             }
         };
 
         $query = Sprint::with(['project'])
             ->tap($companyScope)
-            ->when($request->status, fn($q) => $q->where('status', $request->status));
+            ->when($request->status, fn ($q) => $q->where('status', $request->status));
 
         if ($authUser->hasRole('client')) {
-            $query->whereHas('project', fn($p) => $p->where('client_id', $authUser->id));
+            $query->whereHas('project', fn ($p) => $p->where('client_id', $authUser->id));
         }
 
         $sprints = $query->orderByDesc('start_date')->paginate($this->perPage($request))->withQueryString();
@@ -48,10 +54,10 @@ class SprintWebController extends Controller
     public function store(Request $request, Project $project, GoogleCalendarService $calendar)
     {
         $data = $request->validate([
-            'name'       => 'required|string|max:255',
-            'goal'       => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'goal' => 'nullable|string',
             'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $data['project_id'] = $project->id;
@@ -72,19 +78,20 @@ class SprintWebController extends Controller
 
     public function show(Project $project, Sprint $sprint)
     {
-        $sprint->load(['tasks' => fn($q) => $q->with('assignee', 'milestone')->orderBy('sort_order')]);
-        $statuses = ['todo' => 'To Do', 'in_progress' => 'In Progress', 'review' => 'Review', 'done' => 'Done'];
-        return view('sprints.show', compact('project', 'sprint', 'statuses'));
+        $sprint->load(['tasks' => fn ($q) => $q->with('assignee', 'milestone')->orderBy('sort_order')]);
+        $columns = $project->boardColumns;
+
+        return view('sprints.show', compact('project', 'sprint', 'columns'));
     }
 
     public function update(Request $request, Project $project, Sprint $sprint, GoogleCalendarService $calendar)
     {
         $data = $request->validate([
-            'name'       => 'required|string|max:255',
-            'goal'       => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'goal' => 'nullable|string',
             'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'status'     => 'required|in:planned,active,completed',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|in:planned,active,completed',
         ]);
 
         // Only one sprint can be active at a time
@@ -110,6 +117,7 @@ class SprintWebController extends Controller
         // Move tasks back to backlog
         $sprint->tasks()->update(['sprint_id' => null]);
         $sprint->delete();
+
         return back()->with('success', 'Sprint dihapus.');
     }
 
@@ -117,6 +125,7 @@ class SprintWebController extends Controller
     {
         $request->validate(['task_id' => 'required|exists:tasks,id']);
         Task::where('id', $request->task_id)->where('project_id', $project->id)->update(['sprint_id' => $sprint->id]);
+
         return back()->with('success', 'Task ditambahkan ke sprint.');
     }
 
@@ -124,6 +133,7 @@ class SprintWebController extends Controller
     {
         $request->validate(['task_id' => 'required|exists:tasks,id']);
         Task::where('id', $request->task_id)->where('sprint_id', $sprint->id)->update(['sprint_id' => null]);
+
         return back()->with('success', 'Task dipindahkan ke backlog.');
     }
 

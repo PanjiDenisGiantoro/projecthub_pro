@@ -9,8 +9,21 @@
         <span class="mx-2">/</span><span class="text-gray-700">Sprints</span>
     </nav>
 
-    <div class="flex justify-between items-center mb-5">
-        <h2 class="font-semibold text-gray-800">Sprints ({{ $sprints->count() }})</h2>
+    <div class="flex justify-between items-center mb-5 flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+            <h2 class="font-semibold text-gray-800">Sprints ({{ $sprints->total() }})</h2>
+            <form method="GET" class="flex gap-2">
+                <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">Semua Status</option>
+                    @foreach(['planned'=>'Planned','active'=>'Active','completed'=>'Completed'] as $s => $sl)
+                        <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $sl }}</option>
+                    @endforeach
+                </select>
+                @if(request('status'))
+                    <a href="{{ route('sprints.index', $project) }}" class="text-sm text-gray-400 hover:text-gray-600 px-2 py-2">✕ Reset</a>
+                @endif
+            </form>
+        </div>
         @if(!auth()->user()->hasRole('client'))
         <button @click="showForm=!showForm"
                 class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
@@ -78,7 +91,12 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @if($sprint->status !== 'active' && !auth()->user()->hasRole('client'))
-                    <form method="POST" action="{{ route('sprints.update', [$project, $sprint]) }}">
+                    <form method="POST" action="{{ route('sprints.update', [$project, $sprint]) }}"
+                          @if($activeSprint)
+                          data-confirm-submit="Aktifkan &quot;{{ $sprint->name }}&quot;?"
+                          data-confirm-text="Sprint aktif saat ini, &quot;{{ $activeSprint->name }}&quot;, akan otomatis ditandai selesai."
+                          data-confirm-btn="Ya, Aktifkan"
+                          @endif>
                         @csrf @method('PUT')
                         <input type="hidden" name="name" value="{{ $sprint->name }}">
                         <input type="hidden" name="goal" value="{{ $sprint->goal }}">
@@ -105,15 +123,18 @@
         @empty
         <div class="text-center py-12 text-gray-400">
             <p class="text-3xl mb-3">🏃</p>
-            <p class="font-medium text-gray-500">Belum ada sprint. Buat sprint pertama!</p>
+            <p class="font-medium text-gray-500">{{ request('status') ? 'Tidak ada sprint dengan status ini.' : 'Belum ada sprint. Buat sprint pertama!' }}</p>
         </div>
         @endforelse
     </div>
+    @if($sprints->hasPages())
+    <div class="mb-6">{{ $sprints->links() }}</div>
+    @endif
 
     {{-- Backlog --}}
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-semibold text-gray-800">Backlog ({{ $backlog->count() }} task)</h3>
+            <h3 class="font-semibold text-gray-800">Backlog ({{ $backlog->total() }} task)</h3>
         </div>
         @if($backlog->isEmpty())
         <div class="text-center py-8 text-gray-400">
@@ -128,8 +149,8 @@
                     <p class="text-xs text-gray-400">{{ $task->milestone?->title ?? 'No Milestone' }} · {{ $task->assignee?->name ?? 'Unassigned' }}</p>
                 </div>
                 <span class="text-xs text-gray-500">{{ $task->story_points ?? '?' }} pts</span>
-                @if(!auth()->user()->hasRole('client') && $sprints->where('status','active')->first())
-                <form method="POST" action="{{ route('sprints.tasks.add', [$project, $sprints->where('status','active')->first()]) }}">
+                @if(!auth()->user()->hasRole('client') && $activeSprint)
+                <form method="POST" action="{{ route('sprints.tasks.add', [$project, $activeSprint]) }}">
                     @csrf
                     <input type="hidden" name="task_id" value="{{ $task->id }}">
                     <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 px-2 py-1 rounded">+ Sprint</button>
@@ -138,6 +159,9 @@
             </div>
             @endforeach
         </div>
+        @endif
+        @if($backlog->hasPages())
+        <div class="px-5 py-4 border-t border-gray-100">{{ $backlog->links() }}</div>
         @endif
     </div>
 </div>

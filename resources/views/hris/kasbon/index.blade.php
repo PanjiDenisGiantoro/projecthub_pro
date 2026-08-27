@@ -86,8 +86,8 @@
                     <td class="px-4 py-3 text-center">
                         @can('delete payroll')
                         @if($k->sisa == $k->jumlah)
-                        <form action="{{ route('hris.kasbon.destroy', $k) }}" method="POST"
-                              onsubmit="return confirm('Hapus data kasbon ini?')" class="inline">
+                        <form action="{{ route('hris.kasbon.destroy', $k) }}" method="POST" class="inline"
+                              data-confirm-delete="data kasbon ini">
                             @csrf @method('DELETE')
                             <button class="text-xs text-red-600 hover:text-red-800">Hapus</button>
                         </form>

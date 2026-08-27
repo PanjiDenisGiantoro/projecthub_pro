@@ -22,7 +22,7 @@
             @endif
         </form>
         @if($hasDefaults ?? false)
-        <form method="POST" action="{{ route('structural-levels.reset') }}" onsubmit="return confirm('Isi level struktural dengan set default (Staff s/d BOD)?')">
+        <form method="POST" action="{{ route('structural-levels.reset') }}" data-confirm-submit="Isi level struktural dengan set default?" data-confirm-text="Staff s/d BOD akan ditambahkan sebagai level default." data-confirm-btn="Ya, Isi Default">
             @csrf
             <button class="inline-flex items-center gap-2 bg-white border border-amber-300 text-amber-600 hover:bg-amber-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -44,7 +44,7 @@
                 </div>
                 <p class="text-gray-500 text-sm mb-4">Belum ada level struktural.</p>
                 @if($hasDefaults ?? false)
-                <form method="POST" action="{{ route('structural-levels.reset') }}" class="inline" onsubmit="return confirm('Isi level struktural dengan set default (Staff s/d BOD)?')">
+                <form method="POST" action="{{ route('structural-levels.reset') }}" class="inline" data-confirm-submit="Isi level struktural dengan set default?" data-confirm-text="Staff s/d BOD akan ditambahkan sebagai level default." data-confirm-btn="Ya, Isi Default">
                     @csrf
                     <button class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
                         Gunakan Set Default

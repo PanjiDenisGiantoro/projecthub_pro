@@ -428,7 +428,7 @@
 <footer class="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none px-4">
     <div class="pointer-events-auto flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border border-gray-100 bg-white/90 backdrop-blur shadow-lg">
         <span class="text-xs text-gray-400">Powered by</span>
-        <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-5 w-auto">
+        <img src="{{ asset('arunika_logo.png') }}" alt="Arunika Solusi Inovasi" class="h-5 w-auto">
         <span class="text-xs text-gray-400">&copy; {{ date('Y') }}</span>
     </div>
 </footer>
@@ -440,7 +440,7 @@
     {{-- Bubble button --}}
     <button @click="toggle()"
             class="fixed bottom-5 right-5 z-40 w-16 h-16 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 overflow-hidden"
-            style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 6px 20px rgba(109,40,217,0.4);border:2px solid rgba(255,255,255,0.25)">
+            style="background:var(--ai-gradient);box-shadow:0 6px 20px rgba(37,99,235,0.4);border:2px solid rgba(255,255,255,0.25)">
         <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
         <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -458,7 +458,7 @@
          style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);box-shadow:0 10px 40px rgba(109,40,217,0.25)">
 
         {{-- Header --}}
-        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:var(--ai-gradient)">
             <div class="w-9 h-9 rounded-full shrink-0 overflow-hidden" style="border:1.5px solid rgba(255,255,255,0.4)">
                 <img src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
             </div>
@@ -510,7 +510,7 @@
                                 <div class="flex gap-2 pt-1">
                                     <button @click="confirmAction(i)" :disabled="m.action.executing"
                                             class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                                            style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                                            style="background:var(--ai-gradient)">
                                         <span x-show="!m.action.executing">Konfirmasi</span>
                                         <span x-show="m.action.executing" x-cloak>Memproses...</span>
                                     </button>
@@ -535,7 +535,7 @@
                                 ? 'text-white rounded-br-sm'
                                 : 'rounded-bl-sm border'"
                              :style="m.role === 'user'
-                                ? 'background:linear-gradient(135deg,#7c3aed,#6d28d9)'
+                                ? 'background:var(--ai-gradient)'
                                 : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
                              x-text="m.content"></div>
                     </div>
@@ -564,7 +564,7 @@
                           style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d);max-height:80px"></textarea>
                 <button @click="send()" :disabled="thinking || !input.trim()"
                         class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white transition disabled:opacity-40"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                        style="background:var(--ai-gradient)">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>

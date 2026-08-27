@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Cuti & Izin</h1>
         <a href="{{ route('hris.leave.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl"
-           style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+           style="background:var(--hris-gradient)">
             + Ajukan Cuti
         </a>
     </div>
@@ -19,6 +19,18 @@
     @if(session('error'))
     <div class="bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl px-4 py-3">{{ session('error') }}</div>
     @endif
+
+    <form method="GET" class="flex gap-2">
+        <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+            <option value="">Semua Status</option>
+            @foreach(['pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','cancelled'=>'Cancelled'] as $s => $sl)
+                <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $sl }}</option>
+            @endforeach
+        </select>
+        @if(request('status'))
+            <a href="{{ route('hris.leave.index') }}" class="text-sm text-gray-400 hover:text-gray-600 px-2 py-2">✕ Reset</a>
+        @endif
+    </form>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <table class="w-full text-sm">
@@ -56,7 +68,10 @@
                             <div x-data="{ open: false }" class="relative inline-block">
                                 <button @click="open=!open" class="text-xs text-gray-500 hover:text-gray-700">Aksi ▾</button>
                                 <div x-show="open" @click.away="open=false" class="absolute right-0 mt-1 w-40 bg-white border border-gray-100 rounded-xl shadow-lg z-10">
-                                    <form action="{{ route('hris.leave.approve', $req) }}" method="POST">
+                                    <form action="{{ route('hris.leave.approve', $req) }}" method="POST"
+                                          data-confirm-submit="Setujui cuti {{ $req->user->name }}?"
+                                          data-confirm-text="{{ $req->leaveType->name }}, {{ $req->total_days }} hari ({{ $req->start_date->format('d/m/Y') }} — {{ $req->end_date->format('d/m/Y') }}). Persetujuan tidak bisa dibatalkan dari sini."
+                                          data-confirm-btn="Ya, Setujui">
                                         @csrf @method('PATCH')
                                         <button class="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50">Setujui</button>
                                     </form>
@@ -66,7 +81,8 @@
                             </div>
                             @endcan
                             @if($req->user_id === auth()->id())
-                            <form action="{{ route('hris.leave.destroy', $req) }}" method="POST" class="inline" onsubmit="return confirm('Batalkan pengajuan ini?')">
+                            <form action="{{ route('hris.leave.destroy', $req) }}" method="POST" class="inline"
+                                  data-confirm-submit="Batalkan pengajuan cuti ini?" data-confirm-btn="Ya, Batalkan">
                                 @csrf @method('DELETE')
                                 <button class="text-xs text-red-500 hover:text-red-700 ml-2">Batal</button>
                             </form>
@@ -89,7 +105,9 @@
                 </dialog>
                 @endcan
                 @empty
-                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">Belum ada pengajuan cuti.</td></tr>
+                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">
+                    {{ request('status') ? 'Tidak ada pengajuan dengan status ini.' : 'Belum ada pengajuan cuti.' }}
+                </td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -32,6 +32,11 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'company_id',
         'organization_unit_id',
         'structural_level_id',
+        'employment_type',
+        'employment_type_other',
+        'outsourcing_company_name',
+        'hire_date',
+        'contract_end_date',
         'face_descriptor',
         'email_verified_at',
     ];
@@ -50,12 +55,42 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'is_super_admin'    => 'boolean',
             'is_registered'     => 'boolean',
             'active_until'      => 'datetime',
+            'hire_date'         => 'date',
+            'contract_end_date' => 'date',
         ];
     }
 
     public function sendEmailVerificationNotification()
     {
         $this->notify(new QueuedVerifyEmail);
+    }
+
+    /** Masa kerja dalam bulan sejak hire_date, dasar hitung THR pro-rata & eligibilitas cuti tahunan. */
+    public function tenureMonths(): ?int
+    {
+        return $this->hire_date ? (int) $this->hire_date->diffInMonths(now()) : null;
+    }
+
+    public function contractDaysRemaining(): ?int
+    {
+        if (! $this->contract_end_date) {
+            return null;
+        }
+
+        return (int) now()->startOfDay()->diffInDays($this->contract_end_date->copy()->startOfDay(), false);
+    }
+
+    public function isContractExpired(): bool
+    {
+        return $this->contract_end_date !== null && $this->contract_end_date->isPast();
+    }
+
+    /** Perlu perhatian admin — kontrak habis dalam 30 hari atau sudah lewat. */
+    public function isContractExpiringSoon(): bool
+    {
+        $days = $this->contractDaysRemaining();
+
+        return $days !== null && $days <= 30;
     }
 
     public function packages()

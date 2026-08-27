@@ -1,81 +1,90 @@
 <?php
 
-use App\Http\Controllers\Web\AnalyticsWebController;
-use App\Http\Controllers\Web\BillingWebController;
-use App\Http\Controllers\Web\ChatWebController;
-use App\Http\Controllers\Web\DirectMessageWebController;
-use App\Http\Controllers\Web\ForumWebController;
+use App\Http\Controllers\DeployWebhookController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\Web\ActivityLogWebController;
 use App\Http\Controllers\Web\AiAssistantWebController;
+use App\Http\Controllers\Web\AjaxController;
+use App\Http\Controllers\Web\AnalyticsWebController;
 use App\Http\Controllers\Web\ApprovalWebController;
-use App\Http\Controllers\Web\PermissionWebController;
 use App\Http\Controllers\Web\AuthWebController;
-use App\Http\Controllers\Web\RegisterWebController;
-use App\Http\Controllers\Web\VerificationController;
+use App\Http\Controllers\Web\BillingWebController;
+use App\Http\Controllers\Web\BoardColumnTemplateWebController;
+use App\Http\Controllers\Web\BoardColumnWebController;
 use App\Http\Controllers\Web\BudgetWebController;
 use App\Http\Controllers\Web\CalendarWebController;
-use App\Http\Controllers\Web\MeetingWebController;
 use App\Http\Controllers\Web\CampaignWebController;
+use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\ClientPortalWebController;
-use App\Http\Controllers\Web\GithubWebController;
-use App\Http\Controllers\Web\TeamNotificationWebController;
 use App\Http\Controllers\Web\ClientWebController;
 use App\Http\Controllers\Web\CompanyWebController;
 use App\Http\Controllers\Web\DashboardWebController;
+use App\Http\Controllers\Web\DirectMessageWebController;
 use App\Http\Controllers\Web\ExportWebController;
-use App\Http\Controllers\Web\InvoiceWebController;
-use App\Http\Controllers\Web\KbArticleWebController;
-use App\Http\Controllers\Web\MasterDataWebController;
-use App\Http\Controllers\Web\MilestoneWebController;
-use App\Http\Controllers\Web\OrganizationUnitWebController;
-use App\Http\Controllers\Web\ProjectFileWebController;
-use App\Http\Controllers\Web\ProjectTemplateWebController;
-use App\Http\Controllers\Web\ProjectWebController;
-use App\Http\Controllers\Web\RecurringTaskWebController;
-use App\Http\Controllers\Web\ReportWebController;
-use App\Http\Controllers\Web\RequestWebController;
-use App\Http\Controllers\Web\RiskWebController;
-use App\Http\Controllers\Web\SearchWebController;
-use App\Http\Controllers\Web\SprintWebController;
-use App\Http\Controllers\Web\TaskWebController;
-use App\Http\Controllers\Web\TicketWebController;
-use App\Http\Controllers\Web\AjaxController;
-use App\Http\Controllers\Web\RoleWebController;
-use App\Http\Controllers\Web\StructuralLevelWebController;
-use App\Http\Controllers\Web\UserWebController;
+use App\Http\Controllers\Web\ForumWebController;
+use App\Http\Controllers\Web\GithubWebController;
 use App\Http\Controllers\Web\GoogleCalendarController;
-use App\Http\Controllers\Web\ProfileWebController;
 use App\Http\Controllers\Web\Hris\AbsensiController;
-use App\Http\Controllers\Web\Hris\LeaveController;
-use App\Http\Controllers\Web\Hris\OvertimeController;
-use App\Http\Controllers\Web\Hris\ReimbursementController;
-use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
-use App\Http\Controllers\Web\Hris\PayrollController;
-use App\Http\Controllers\Web\Hris\PayrollSettingController;
 use App\Http\Controllers\Web\Hris\BonusController;
+use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
 use App\Http\Controllers\Web\Hris\KasbonController;
+use App\Http\Controllers\Web\Hris\LeaveController;
 use App\Http\Controllers\Web\Hris\Master\HrisMasterController;
 use App\Http\Controllers\Web\Hris\Master\LeaveTypeController;
 use App\Http\Controllers\Web\Hris\Master\OvertimeRuleController;
-use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
 use App\Http\Controllers\Web\Hris\Master\TaxBracketController;
+use App\Http\Controllers\Web\Hris\Master\TaxPtkpController;
 use App\Http\Controllers\Web\Hris\Master\TaxTerRateController;
-use App\Http\Controllers\DeployWebhookController;
-use App\Http\Controllers\SuperAdmin\SuperAdminController;
+use App\Http\Controllers\Web\Hris\OvertimeController;
+use App\Http\Controllers\Web\Hris\PayrollController;
+use App\Http\Controllers\Web\Hris\PayrollSettingController;
+use App\Http\Controllers\Web\Hris\ReimbursementController;
+use App\Http\Controllers\Web\InvoiceWebController;
+use App\Http\Controllers\Web\KbArticleWebController;
+use App\Http\Controllers\Web\MasterDataWebController;
+use App\Http\Controllers\Web\MeetingWebController;
+use App\Http\Controllers\Web\MilestoneWebController;
+use App\Http\Controllers\Web\OrganizationUnitWebController;
+use App\Http\Controllers\Web\PermissionWebController;
+use App\Http\Controllers\Web\ProfileWebController;
+use App\Http\Controllers\Web\ProjectFileWebController;
+use App\Http\Controllers\Web\ProjectTemplateWebController;
+use App\Http\Controllers\Web\ProjectWebController;
+use App\Http\Controllers\Web\PushSubscriptionController;
+use App\Http\Controllers\Web\RecurringTaskWebController;
+use App\Http\Controllers\Web\RegisterWebController;
+use App\Http\Controllers\Web\ReportWebController;
+use App\Http\Controllers\Web\RequestWebController;
+use App\Http\Controllers\Web\RiskWebController;
+use App\Http\Controllers\Web\RoleWebController;
+use App\Http\Controllers\Web\SearchWebController;
+use App\Http\Controllers\Web\SprintWebController;
+use App\Http\Controllers\Web\StructuralLevelWebController;
+use App\Http\Controllers\Web\TaskWebController;
+use App\Http\Controllers\Web\TeamNotificationWebController;
+use App\Http\Controllers\Web\TicketWebController;
+use App\Http\Controllers\Web\UserWebController;
+use App\Http\Controllers\Web\VerificationController;
+use App\Models\Package;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // ─── Deploy Webhook (tanpa auth & CSRF, dilindungi token) ────────────────────
 Route::prefix('deploy')->name('deploy.')->group(function () {
     Route::post('/webhook', [DeployWebhookController::class, 'trigger'])->name('webhook');
-    Route::get('/log',      [DeployWebhookController::class, 'log'])->name('log');
-    Route::get('/status',   [DeployWebhookController::class, 'status'])->name('status');
+    Route::get('/log', [DeployWebhookController::class, 'log'])->name('log');
+    Route::get('/status', [DeployWebhookController::class, 'status'])->name('status');
 });
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-Route::get('/', fn() => view('landing', [
-    'pricingTiers' => \App\Models\Package::tiers()->active()->orderBy('sort_order')->with('features')->get(),
+Route::get('/', fn () => view('landing', [
+    'pricingTiers' => Package::tiers()->active()->orderBy('sort_order')->with('features')->get(),
 ]))->name('home');
 Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
+Route::get('/privacy-policy', fn () => view('legal.privacy-policy'))->name('legal.privacy');
+Route::get('/terms-of-service', fn () => view('legal.terms-of-service'))->name('legal.terms');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
@@ -132,7 +141,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/dashboard2', [DashboardWebController::class, 'v2'])->name('dashboard.v2');
 
     // Package switcher
-    Route::post('/switch-package', function (\Illuminate\Http\Request $request) {
+    Route::post('/switch-package', function (Request $request) {
         $pkg = $request->input('package');
         $valid = ['task_management', 'hris'];
         $allowed = auth()->user()->is_super_admin ? $valid : auth()->user()->activePackages();
@@ -142,6 +151,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         if (is_string($pkg) && in_array($pkg, $allowed)) {
             $request->session()->put('active_package', $pkg);
         }
+
         return redirect()->route('dashboard');
     })->name('switch.package');
 
@@ -170,6 +180,12 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('can:edit project')->group(function () {
         Route::get('/projects/{project}/edit', [ProjectWebController::class, 'edit'])->name('projects.edit');
         Route::match(['put', 'patch'], '/projects/{project}', [ProjectWebController::class, 'update'])->name('projects.update');
+
+        Route::get('/projects/{project}/board-columns', [BoardColumnWebController::class, 'index'])->name('board-columns.index');
+        Route::post('/projects/{project}/board-columns', [BoardColumnWebController::class, 'store'])->name('board-columns.store');
+        Route::put('/projects/{project}/board-columns/{column}', [BoardColumnWebController::class, 'update'])->name('board-columns.update');
+        Route::delete('/projects/{project}/board-columns/{column}', [BoardColumnWebController::class, 'destroy'])->name('board-columns.destroy');
+        Route::post('/projects/{project}/board-columns/reorder', [BoardColumnWebController::class, 'reorder'])->name('board-columns.reorder');
     });
     Route::middleware('can:access projects')->group(function () {
         Route::post('/projects/{project}/meeting', [ProjectWebController::class, 'createMeeting'])->name('projects.meeting.create');
@@ -236,12 +252,12 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('can:manage permissions')->group(function () {
         Route::get('/permissions', [PermissionWebController::class, 'index'])->name('permissions.index');
         Route::put('/permissions/{role}', [PermissionWebController::class, 'update'])->name('permissions.update');
-        Route::get('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
+        Route::post('/permissions/{role}/reset', [PermissionWebController::class, 'resetRole'])->name('permissions.reset');
     });
 
     // Activity Log (permission-gated)
     Route::middleware('can:manage permissions')->group(function () {
-        Route::get('/activity-log', [\App\Http\Controllers\Web\ActivityLogWebController::class, 'index'])->name('activity-log.index');
+        Route::get('/activity-log', [ActivityLogWebController::class, 'index'])->name('activity-log.index');
     });
 
     // Approval Policies
@@ -320,7 +336,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // AJAX cascade dropdowns
     Route::prefix('ajax')->name('ajax.')->group(function () {
-        Route::get('/companies',          [AjaxController::class, 'companies'])->name('companies');
+        Route::get('/companies', [AjaxController::class, 'companies'])->name('companies');
         Route::get('/organization-units', [AjaxController::class, 'organizationUnits'])->name('organization-units');
     });
 
@@ -386,14 +402,14 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/search', [SearchWebController::class, 'index'])->name('search.index');
 
     // Notifications
-    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
-    Route::put('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
-    Route::put('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.markRead');
 
     // Push Subscriptions
-    Route::post('/push/subscribe', [\App\Http\Controllers\Web\PushSubscriptionController::class, 'store'])->name('push.subscribe');
-    Route::delete('/push/unsubscribe', [\App\Http\Controllers\Web\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
     // Analytics
     Route::get('/analytics', [AnalyticsWebController::class, 'index'])->name('analytics.index');
@@ -468,6 +484,15 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/templates/{template}/apply', [ProjectTemplateWebController::class, 'applyForm'])->name('templates.apply');
     Route::post('/templates/{template}/apply', [ProjectTemplateWebController::class, 'applyToProject'])->name('templates.apply.post');
 
+    // Board Column Templates
+    Route::get('/board-column-templates', [BoardColumnTemplateWebController::class, 'index'])->name('board-column-templates.index');
+    Route::get('/board-column-templates/create', [BoardColumnTemplateWebController::class, 'create'])->name('board-column-templates.create');
+    Route::post('/board-column-templates', [BoardColumnTemplateWebController::class, 'store'])->name('board-column-templates.store');
+    Route::get('/board-column-templates/{template}', [BoardColumnTemplateWebController::class, 'show'])->name('board-column-templates.show');
+    Route::delete('/board-column-templates/{template}', [BoardColumnTemplateWebController::class, 'destroy'])->name('board-column-templates.destroy');
+    Route::get('/board-column-templates/{template}/apply', [BoardColumnTemplateWebController::class, 'applyForm'])->name('board-column-templates.apply');
+    Route::post('/board-column-templates/{template}/apply', [BoardColumnTemplateWebController::class, 'applyToProject'])->name('board-column-templates.apply.post');
+
     // Chat
     Route::get('/chat', [ChatWebController::class, 'index'])->name('chat.index');
     Route::get('/chat/unread', [ChatWebController::class, 'unreadCount'])->name('chat.unread');
@@ -516,65 +541,67 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::prefix('hris')->name('hris.')->middleware('package:hris')->group(function () {
 
         // Absensi
-        Route::get('absensi',                            [AbsensiController::class, 'index'])->name('absensi.index');
-        Route::post('absensi/checkin',                   [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
-        Route::post('absensi/checkout',                  [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
-        Route::get('absensi/rekap',                      [AbsensiController::class, 'rekap'])->name('absensi.rekap');
-        Route::get('absensi/setting',                    [AbsensiController::class, 'setting'])->name('absensi.setting');
-        Route::post('absensi/setting',                   [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
-        Route::get('absensi/face-enrollment',             [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
-        Route::post('absensi/enroll-face/{employee}',    [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
-        Route::delete('absensi/delete-face/{employee}',  [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
+        Route::get('absensi', [AbsensiController::class, 'index'])->name('absensi.index');
+        Route::post('absensi/checkin', [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
+        Route::post('absensi/checkout', [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
+        Route::get('absensi/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi/setting', [AbsensiController::class, 'setting'])->name('absensi.setting');
+        Route::post('absensi/setting', [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
+        Route::get('absensi/face-enrollment', [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
+        Route::post('absensi/enroll-face/{employee}', [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
+        Route::delete('absensi/delete-face/{employee}', [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
 
         // Cuti & Izin
-        Route::get('leave',                        [LeaveController::class, 'index'])->name('leave.index');
-        Route::get('leave/create',                 [LeaveController::class, 'create'])->name('leave.create');
-        Route::post('leave',                       [LeaveController::class, 'store'])->name('leave.store');
-        Route::delete('leave/{leave}',             [LeaveController::class, 'destroy'])->name('leave.destroy');
-        Route::patch('leave/{leave}/approve',      [LeaveController::class, 'approve'])->name('leave.approve');
-        Route::patch('leave/{leave}/reject',       [LeaveController::class, 'reject'])->name('leave.reject');
+        Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
+        Route::get('leave/create', [LeaveController::class, 'create'])->name('leave.create');
+        Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
+        Route::delete('leave/{leave}', [LeaveController::class, 'destroy'])->name('leave.destroy');
+        Route::patch('leave/{leave}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
+        Route::patch('leave/{leave}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
 
         // Lembur
-        Route::get('overtime',                     [OvertimeController::class, 'index'])->name('overtime.index');
-        Route::get('overtime/create',              [OvertimeController::class, 'create'])->name('overtime.create');
-        Route::post('overtime',                    [OvertimeController::class, 'store'])->name('overtime.store');
-        Route::delete('overtime/{overtime}',       [OvertimeController::class, 'destroy'])->name('overtime.destroy');
-        Route::patch('overtime/{overtime}/approve',[OvertimeController::class, 'approve'])->name('overtime.approve');
+        Route::get('overtime', [OvertimeController::class, 'index'])->name('overtime.index');
+        Route::get('overtime/create', [OvertimeController::class, 'create'])->name('overtime.create');
+        Route::post('overtime', [OvertimeController::class, 'store'])->name('overtime.store');
+        Route::delete('overtime/{overtime}', [OvertimeController::class, 'destroy'])->name('overtime.destroy');
+        Route::patch('overtime/{overtime}/approve', [OvertimeController::class, 'approve'])->name('overtime.approve');
 
         // Reimburse
-        Route::get('reimburse',                        [ReimbursementController::class, 'index'])->name('reimburse.index');
-        Route::get('reimburse/create',                 [ReimbursementController::class, 'create'])->name('reimburse.create');
-        Route::post('reimburse',                       [ReimbursementController::class, 'store'])->name('reimburse.store');
-        Route::delete('reimburse/{reimburse}',         [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
-        Route::patch('reimburse/{reimburse}/approve',  [ReimbursementController::class, 'approve'])->name('reimburse.approve');
+        Route::get('reimburse', [ReimbursementController::class, 'index'])->name('reimburse.index');
+        Route::get('reimburse/create', [ReimbursementController::class, 'create'])->name('reimburse.create');
+        Route::post('reimburse', [ReimbursementController::class, 'store'])->name('reimburse.store');
+        Route::delete('reimburse/{reimburse}', [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
+        Route::patch('reimburse/{reimburse}/approve', [ReimbursementController::class, 'approve'])->name('reimburse.approve');
 
         // Gaji Karyawan (EmployeeSalary)
-        Route::get('salary/{user}',              [EmployeeSalaryController::class, 'index'])->name('salary.index');
-        Route::get('salary/{user}/create',       [EmployeeSalaryController::class, 'create'])->name('salary.create');
-        Route::post('salary/{user}',             [EmployeeSalaryController::class, 'store'])->name('salary.store');
-        Route::get('salary/{user}/{salary}/edit',[EmployeeSalaryController::class, 'edit'])->name('salary.edit');
-        Route::put('salary/{user}/{salary}',     [EmployeeSalaryController::class, 'update'])->name('salary.update');
-        Route::delete('salary/{user}/{salary}',  [EmployeeSalaryController::class, 'destroy'])->name('salary.destroy');
+        Route::get('salary/{user}', [EmployeeSalaryController::class, 'index'])->name('salary.index');
+        Route::get('salary/{user}/create', [EmployeeSalaryController::class, 'create'])->name('salary.create');
+        Route::post('salary/{user}', [EmployeeSalaryController::class, 'store'])->name('salary.store');
+        Route::get('salary/{user}/{salary}/edit', [EmployeeSalaryController::class, 'edit'])->name('salary.edit');
+        Route::put('salary/{user}/{salary}', [EmployeeSalaryController::class, 'update'])->name('salary.update');
+        Route::delete('salary/{user}/{salary}', [EmployeeSalaryController::class, 'destroy'])->name('salary.destroy');
 
         // Payroll
-        Route::get('payroll',                        [PayrollController::class, 'index'])->name('payroll.index');
-        Route::post('payroll/generate',              [PayrollController::class, 'generate'])->name('payroll.generate');
-        Route::get('payroll/setting',                [PayrollSettingController::class, 'edit'])->name('payroll.setting');
-        Route::post('payroll/setting',                [PayrollSettingController::class, 'update'])->name('payroll.setting.save');
+        Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
+        Route::post('payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::get('payroll/setting', [PayrollSettingController::class, 'edit'])->name('payroll.setting');
+        Route::post('payroll/setting', [PayrollSettingController::class, 'update'])->name('payroll.setting.save');
+        Route::get('payroll/setting/logs', [PayrollSettingController::class, 'logs'])->name('payroll.setting.logs');
 
         // Bonus / THR
-        Route::get('bonus',                          [BonusController::class, 'index'])->name('bonus.index');
-        Route::post('bonus',                          [BonusController::class, 'store'])->name('bonus.store');
-        Route::delete('bonus/{bonus}',                [BonusController::class, 'destroy'])->name('bonus.destroy');
+        Route::get('bonus', [BonusController::class, 'index'])->name('bonus.index');
+        Route::post('bonus', [BonusController::class, 'store'])->name('bonus.store');
+        Route::delete('bonus/{bonus}', [BonusController::class, 'destroy'])->name('bonus.destroy');
+        Route::get('bonus/calculate-thr/{user}', [BonusController::class, 'calculateThr'])->name('bonus.calculateThr');
 
         // Kasbon
-        Route::get('kasbon',                          [KasbonController::class, 'index'])->name('kasbon.index');
-        Route::post('kasbon',                          [KasbonController::class, 'store'])->name('kasbon.store');
-        Route::delete('kasbon/{kasbon}',               [KasbonController::class, 'destroy'])->name('kasbon.destroy');
+        Route::get('kasbon', [KasbonController::class, 'index'])->name('kasbon.index');
+        Route::post('kasbon', [KasbonController::class, 'store'])->name('kasbon.store');
+        Route::delete('kasbon/{kasbon}', [KasbonController::class, 'destroy'])->name('kasbon.destroy');
 
-        Route::get('payroll/{payroll}',              [PayrollController::class, 'show'])->name('payroll.show');
-        Route::get('payroll/{payroll}/slip',         [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
-        Route::patch('payroll/{payroll}/finalize',   [PayrollController::class, 'finalize'])->name('payroll.finalize');
+        Route::get('payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
+        Route::get('payroll/{payroll}/slip', [PayrollController::class, 'cetakSlip'])->name('payroll.slip');
+        Route::patch('payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
 
         // Master Data HRIS
         Route::prefix('master')->name('master.')->group(function () {
@@ -585,14 +612,14 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
             });
 
             Route::middleware('can:create hris master')->group(function () {
-                Route::post('leave-types',    [LeaveTypeController::class, 'store'])->name('leave-types.store');
+                Route::post('leave-types', [LeaveTypeController::class, 'store'])->name('leave-types.store');
                 Route::post('leave-types/reset', [LeaveTypeController::class, 'resetDefault'])->name('leave-types.reset');
                 Route::post('overtime-rules', [OvertimeRuleController::class, 'store'])->name('overtime-rules.store');
                 Route::post('overtime-rules/reset', [OvertimeRuleController::class, 'resetDefault'])->name('overtime-rules.reset');
                 Route::post('tax-ptkp/reset', [TaxPtkpController::class, 'resetDefault'])->name('tax-ptkp.reset');
-                Route::post('tax-brackets',   [TaxBracketController::class, 'store'])->name('tax-brackets.store');
+                Route::post('tax-brackets', [TaxBracketController::class, 'store'])->name('tax-brackets.store');
                 Route::post('tax-brackets/reset', [TaxBracketController::class, 'resetDefault'])->name('tax-brackets.reset');
-                Route::post('tax-ter',   [TaxTerRateController::class, 'store'])->name('tax-ter.store');
+                Route::post('tax-ter', [TaxTerRateController::class, 'store'])->name('tax-ter.store');
                 Route::post('tax-ter/reset', [TaxTerRateController::class, 'resetDefault'])->name('tax-ter.reset');
             });
 
@@ -623,3 +650,4 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 // Client Portal (no auth — token based)
 Route::get('/portal/{token}', [ClientPortalWebController::class, 'view'])->name('portal.view');
 Route::post('/portal/{token}/comment', [ClientPortalWebController::class, 'comment'])->name('portal.comment');
+Route::post('/portal/{token}/milestones/{milestone}/approve', [ClientPortalWebController::class, 'approveMilestone'])->name('portal.milestone.approve');

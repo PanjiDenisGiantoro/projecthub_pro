@@ -43,7 +43,7 @@
             <div class="flex gap-3 pt-2">
                 <button type="submit"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm"
-                        style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+                        style="background:var(--hris-gradient)">
                     Simpan
                 </button>
                 <a href="{{ route('hris.master.index', ['tab' => 'tax-brackets']) }}"

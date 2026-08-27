@@ -4,6 +4,22 @@
 
 @section('content')
 
+<form method="GET" class="flex flex-wrap gap-2 mb-4">
+    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau email..."
+           class="text-sm bg-slate-800/60 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64">
+    <select name="company_id" onchange="this.form.submit()"
+            class="text-sm bg-slate-800/60 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <option value="">Semua Perusahaan</option>
+        @foreach($companies as $company)
+            <option value="{{ $company->id }}" {{ (string) request('company_id') === (string) $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
+        @endforeach
+    </select>
+    <button type="submit" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition-colors">Cari</button>
+    @if(request('search') || request('company_id'))
+        <a href="{{ route('superadmin.users') }}" class="text-sm text-slate-400 hover:text-slate-200 px-2 py-2">✕ Reset</a>
+    @endif
+</form>
+
 <div class="bg-slate-800/60 border border-white/5 rounded-2xl overflow-hidden">
     <div class="px-6 py-4 border-b border-white/5">
         <p class="text-sm text-slate-400">Total: <span class="text-white font-semibold">{{ $users->total() }}</span> user</p>
@@ -67,7 +83,9 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-slate-500">Belum ada user.</td>
+                <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                    {{ (request('search') || request('company_id')) ? 'Tidak ada user yang cocok.' : 'Belum ada user.' }}
+                </td>
             </tr>
             @endforelse
         </tbody>

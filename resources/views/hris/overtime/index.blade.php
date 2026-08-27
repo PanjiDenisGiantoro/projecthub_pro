@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold text-gray-900">Lembur</h1>
         <a href="{{ route('hris.overtime.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl"
-           style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+           style="background:var(--hris-gradient)">
             + Ajukan Lembur
         </a>
     </div>
@@ -19,6 +19,18 @@
     @if(session('error'))
     <div class="bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl px-4 py-3">{{ session('error') }}</div>
     @endif
+
+    <form method="GET" class="flex gap-2">
+        <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+            <option value="">Semua Status</option>
+            @foreach(['pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','processed'=>'Processed'] as $s => $sl)
+                <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $sl }}</option>
+            @endforeach
+        </select>
+        @if(request('status'))
+            <a href="{{ route('hris.overtime.index') }}" class="text-sm text-gray-400 hover:text-gray-600 px-2 py-2">✕ Reset</a>
+        @endif
+    </form>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <table class="w-full text-sm">
@@ -55,13 +67,17 @@
                     <td class="px-4 py-3 text-center">
                         @if($ot->status === 'pending')
                             @can('approve overtime')
-                            <form action="{{ route('hris.overtime.approve', $ot) }}" method="POST" class="inline">
+                            <form action="{{ route('hris.overtime.approve', $ot) }}" method="POST" class="inline"
+                                  data-confirm-submit="Setujui lembur {{ $ot->user->name }}?"
+                                  data-confirm-text="{{ $ot->date->locale('id')->isoFormat('ddd, D MMM Y') }} · {{ $ot->total_hours }} jam{{ $ot->total_amount > 0 ? ' · Rp ' . number_format($ot->total_amount, 0, ',', '.') : '' }}. Persetujuan tidak bisa dibatalkan dari sini."
+                                  data-confirm-btn="Ya, Setujui">
                                 @csrf @method('PATCH')
                                 <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>
                             </form>
                             @endcan
                             @if($ot->user_id === auth()->id())
-                            <form action="{{ route('hris.overtime.destroy', $ot) }}" method="POST" class="inline" onsubmit="return confirm('Hapus pengajuan ini?')">
+                            <form action="{{ route('hris.overtime.destroy', $ot) }}" method="POST" class="inline"
+                                  data-confirm-delete="pengajuan lembur ini">
                                 @csrf @method('DELETE')
                                 <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
                             </form>
@@ -70,7 +86,9 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">Belum ada data lembur.</td></tr>
+                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">
+                    {{ request('status') ? 'Tidak ada data dengan status ini.' : 'Belum ada data lembur.' }}
+                </td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -16,11 +16,13 @@ class RecurringTaskWebController extends Controller
 
     public function index(Request $request, Project $project)
     {
-        $definitions = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')
+        $definitions = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')
+            ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
+            ->orderByDesc('id')
             ->paginate($this->perPage($request))
             ->withQueryString();
         $milestones = $project->milestones()->orderBy('title')->get(['id', 'title']);
-        $users = User::orderBy('name')->get(['id', 'name']);
+        $users = User::where('company_id', $project->company_id)->orderBy('name')->get(['id', 'name']);
         return view('recurring.index', compact('project', 'definitions', 'milestones', 'users'));
     }
 
