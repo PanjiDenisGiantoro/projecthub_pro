@@ -326,7 +326,7 @@
         </header>
 
         {{-- ── Active-until warning banner ────────────────────────────────── --}}
-        @if(auth()->check() && !auth()->user()->is_super_admin && !auth()->user()->isLifetime() && !auth()->user()->isExpired())
+        @if(auth()->check() && !auth()->user()->is_super_admin && !auth()->user()->hasRole('admin') && !auth()->user()->isLifetime() && !auth()->user()->isExpired())
             @php $daysLeft = (int) now()->diffInDays(auth()->user()->active_until, false); @endphp
             @if($daysLeft <= 14)
             <div x-data="{ show: !localStorage.getItem('ph_banner_dismissed_{{ now()->toDateString() }}') }"

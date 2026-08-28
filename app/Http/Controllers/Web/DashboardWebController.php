@@ -56,12 +56,12 @@ class DashboardWebController extends Controller
                 // Distribusi status kehadiran bulan ini
                 $attendanceStatusMonth = \App\Models\Attendance::where('company_id', $companyId)
                     ->whereYear('date', now()->year)->whereMonth('date', now()->month)
-                    ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+                    ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status')->toArray();
 
                 // Distribusi status pengajuan cuti tahun ini
                 $leaveStatusYear = \App\Models\LeaveRequest::where('company_id', $companyId)
                     ->whereYear('start_date', now()->year)
-                    ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+                    ->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status')->toArray();
 
                 // Jam lembur (disetujui/diproses) per bulan, 6 bulan terakhir
                 $overtimeMonthly = collect(range(5, 0))->map(function ($monthsAgo) use ($companyId) {
@@ -177,7 +177,7 @@ class DashboardWebController extends Controller
                         'revenue' => (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', $month->year)->whereMonth('paid_at', $month->month)->sum('total'),
                         'target'  => (float) Invoice::whereHas('project', $projectFilter)->whereNotIn('status', ['cancelled'])->whereYear('issue_date', $month->year)->whereMonth('issue_date', $month->month)->sum('total'),
                     ];
-                })->values();
+                })->values()->toArray();
             });
 
             $topProjects = Project::with('client')

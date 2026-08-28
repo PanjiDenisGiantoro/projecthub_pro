@@ -23,7 +23,7 @@
     <form method="GET" class="flex gap-2">
         <select name="status" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
             <option value="">Semua Status</option>
-            @foreach(['pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','processed'=>'Processed'] as $s => $sl)
+            @foreach(['pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected','cancelled'=>'Cancelled'] as $s => $sl)
                 <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $sl }}</option>
             @endforeach
         </select>
@@ -59,7 +59,7 @@
                         <span class="text-xs px-2 py-0.5 rounded-full font-medium
                             @if($ot->status === 'approved') bg-green-100 text-green-700
                             @elseif($ot->status === 'rejected') bg-red-100 text-red-700
-                            @elseif($ot->status === 'processed') bg-blue-100 text-blue-700
+                            @elseif($ot->status === 'cancelled') bg-gray-100 text-gray-500
                             @else bg-yellow-100 text-yellow-700 @endif">
                             {{ ucfirst($ot->status) }}
                         </span>
@@ -67,23 +67,30 @@
                     <td class="px-4 py-3 text-center">
                         @if($ot->status === 'pending')
                             @can('approve overtime')
-                            <form action="{{ route('hris.overtime.approve', $ot) }}" method="POST" class="inline"
-                                  data-confirm-submit="Setujui lembur {{ $ot->user->name }}?"
-                                  data-confirm-text="{{ $ot->date->locale('id')->isoFormat('ddd, D MMM Y') }} · {{ $ot->total_hours }} jam{{ $ot->total_amount > 0 ? ' · Rp ' . number_format($ot->total_amount, 0, ',', '.') : '' }}. Persetujuan tidak bisa dibatalkan dari sini."
-                                  data-confirm-btn="Ya, Setujui">
-                                @csrf @method('PATCH')
-                                <button class="text-xs text-green-600 hover:text-green-800 mr-2">Setujui</button>
-                            </form>
+                            <div x-data="{ open: false }" class="relative inline-block">
+                                <button @click="open=!open" class="text-xs text-gray-500 hover:text-gray-700">Aksi ▾</button>
+                                <div x-show="open" @click.away="open=false" class="absolute right-0 mt-1 w-40 bg-white border border-gray-100 rounded-xl shadow-lg z-10">
+                                    <form action="{{ route('hris.overtime.approve', $ot) }}" method="POST"
+                                          data-confirm-submit="Setujui lembur {{ $ot->user->name }}?"
+                                          data-confirm-text="{{ $ot->date->locale('id')->isoFormat('ddd, D MMM Y') }} · {{ $ot->total_hours }} jam{{ $ot->total_amount > 0 ? ' · Rp ' . number_format($ot->total_amount, 0, ',', '.') : '' }}. Persetujuan tidak bisa dibatalkan dari sini."
+                                          data-confirm-btn="Ya, Setujui">
+                                        @csrf @method('PATCH')
+                                        <button class="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50">Setujui</button>
+                                    </form>
+                                    <button @click="open=false; document.getElementById('reject-overtime-{{ $ot->id }}').showModal()"
+                                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Tolak</button>
+                                </div>
+                            </div>
                             @endcan
                             @can('update overtime')
                             <button onclick="document.getElementById('edit-overtime-{{ $ot->id }}').showModal()"
-                                    class="text-xs text-blue-500 hover:text-blue-700 mr-2">Edit</button>
+                                    class="text-xs text-blue-500 hover:text-blue-700 ml-2">Edit</button>
                             @endcan
                             @if($ot->user_id === auth()->id())
                             <form action="{{ route('hris.overtime.destroy', $ot) }}" method="POST" class="inline"
-                                  data-confirm-delete="pengajuan lembur ini">
+                                  data-confirm-submit="Batalkan pengajuan lembur ini?" data-confirm-btn="Ya, Batalkan">
                                 @csrf @method('DELETE')
-                                <button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
+                                <button class="text-xs text-red-500 hover:text-red-700 ml-2">Batal</button>
                             </form>
                             @endif
                         @endif
@@ -98,6 +105,20 @@
                         @endcan
                     </td>
                 </tr>
+                {{-- Reject Modal --}}
+                @can('approve overtime')
+                <dialog id="reject-overtime-{{ $ot->id }}" class="rounded-2xl p-6 shadow-xl w-full max-w-md">
+                    <form action="{{ route('hris.overtime.reject', $ot) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <h3 class="font-bold text-gray-900 mb-3">Tolak Lembur</h3>
+                        <textarea name="rejection_reason" rows="3" required placeholder="Alasan penolakan..." class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                        <div class="flex gap-2 justify-end">
+                            <button type="button" onclick="document.getElementById('reject-overtime-{{ $ot->id }}').close()" class="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-xl">Batal</button>
+                            <button class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700">Tolak</button>
+                        </div>
+                    </form>
+                </dialog>
+                @endcan
                 {{-- Edit Modal --}}
                 @can('update overtime')
                 @if($ot->status === 'pending')

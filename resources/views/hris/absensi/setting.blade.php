@@ -260,16 +260,14 @@
                                             style="background:rgba(124,58,237,0.1);color:#7c3aed;border:1px solid rgba(124,58,237,0.2)">
                                         Perbarui
                                     </button>
-                                    <form action="{{ route('hris.absensi.delete-face', $emp) }}" method="POST" class="inline"
-                                          data-confirm-delete="{{ $emp->name }}">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all"
-                                                style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15)">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            @click="deleteFace({{ $emp->id }}, '{{ addslashes($emp->name) }}')"
+                                            class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all"
+                                            style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15)">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             @else
                                 <span class="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
@@ -454,6 +452,36 @@ function attendanceSetting() {
                 },
                 () => { this.locMsg = 'Gagal mendapatkan lokasi.'; }
             );
+        },
+
+        async deleteFace(empId, empName) {
+            const result = await Swal.fire({
+                title: 'Hapus ' + empName + '?',
+                text: 'Data yang dihapus tidak bisa dikembalikan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor:  '#6b7280',
+                confirmButtonText:  'Hapus',
+                cancelButtonText:   'Batal',
+                reverseButtons: true,
+                focusCancel: true,
+            });
+            if (!result.isConfirmed) return;
+
+            try {
+                const resp = await fetch(`/hris/absensi/delete-face/${empId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                if (!resp.ok) throw new Error('Server menolak (HTTP ' + resp.status + ')');
+                location.reload();
+            } catch (e) {
+                Swal.fire({ icon: 'error', title: 'Gagal menghapus', text: e.message, confirmButtonColor: '#7c3aed' });
+            }
         },
 
         async openEnroll(empId, empName) {

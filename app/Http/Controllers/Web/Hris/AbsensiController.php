@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Web\Hris;
 
+use App\Exports\AttendanceImportTemplateExport;
+use App\Exports\AttendancesExport;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Imports\AttendancesImport;
 use App\Models\Attendance;
 use App\Models\AttendanceSetting;
 use App\Models\User;
@@ -11,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 
 class AbsensiController extends Controller
@@ -147,6 +151,74 @@ class AbsensiController extends Controller
             ->withQueryString();
 
         return view('hris.absensi.rekap', compact('rekap', 'year', 'month'));
+    }
+
+    // ── Import / Export Excel ────────────────────────────────────────────
+    // Otorisasi lewat permission ('export absensi' / 'import absensi'), bukan
+    // hardcode role — default cuma admin yang punya (lihat PermissionSeeder),
+    // tapi company bisa meng-grant ke role lain lewat halaman /permissions.
+
+    /** Export data absensi ke Excel — filter year/month opsional (default bulan berjalan). */
+    public function export(Request $request)
+    {
+        $this->authorize('export absensi');
+        $user  = auth()->user();
+        $year  = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
+
+        $attendances = Attendance::with('user')
+            ->where('company_id', $user->company_id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->get();
+
+        return Excel::download(
+            new AttendancesExport($attendances),
+            'data-absensi-' . $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '.xlsx'
+        );
+    }
+
+    /** Template Excel siap isi buat import absensi — sheet contoh + sheet petunjuk & daftar email karyawan. */
+    public function importTemplate()
+    {
+        $this->authorize('import absensi');
+        $user = auth()->user();
+
+        $employees = User::where('company_id', $user->company_id)
+            ->where('is_active', true)
+            ->whereDoesntHave('roles', fn ($r) => $r->where('name', 'client'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return Excel::download(new AttendanceImportTemplateExport($employees), 'template-import-absensi.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $this->authorize('import absensi');
+        $user = auth()->user();
+        abort_unless($user->company_id, 403);
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ]);
+
+        $import = new AttendancesImport($user->company_id);
+        Excel::import($import, $request->file('file'));
+
+        $message = "Import selesai: {$import->created} data absensi baru, {$import->updated} data diperbarui.";
+
+        if ($import->errors) {
+            $shown = array_slice($import->errors, 0, 15);
+            $extra = count($import->errors) - count($shown);
+            $message .= ' ' . count($import->errors) . ' baris gagal diproses: ' . implode(' | ', $shown)
+                . ($extra > 0 ? " (+{$extra} baris lainnya)" : '');
+
+            return redirect()->route('hris.absensi.rekap')->with('warning', $message);
+        }
+
+        return redirect()->route('hris.absensi.rekap')->with('success', $message);
     }
 
     // ── Settings ──────────────────────────────────────────────────────────

@@ -30,6 +30,7 @@ class SendDeadlineReminders extends Command
         foreach ($tasks as $task) {
             $user = $task->assignee;
             if (!$user || !$user->email) continue;
+            if (!$user->email_notifications_enabled) continue;
 
             // Skip if already sent today
             $alreadySent = \App\Models\EmailNotificationLog::where('type', 'deadline_reminder')

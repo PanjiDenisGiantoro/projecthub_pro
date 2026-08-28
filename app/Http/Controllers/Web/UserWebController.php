@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Exports\UsersExport;
+use App\Exports\UsersImportTemplateExport;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Imports\UsersImport;
 use App\Models\CustomFieldDefinition;
 use App\Models\OrganizationUnit;
 use App\Models\Package;
@@ -14,6 +17,7 @@ use App\Models\User;
 use App\Support\EmploymentType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
@@ -110,6 +114,72 @@ class UserWebController extends Controller
             ->withQueryString();
 
         return view('users.admin-team', compact('users'));
+    }
+
+    /**
+     * Export data karyawan ke Excel. Otorisasi lewat middleware route
+     * (can:export user) — permission ini default cuma dimiliki admin, tapi
+     * company bisa meng-grant ke role lain lewat halaman /permissions.
+     */
+    public function export()
+    {
+        $authUser = auth()->user();
+
+        $query = User::with(['roles', 'structuralLevel', 'organizationUnit'])
+            ->whereDoesntHave('roles', fn($r) => $r->where('name', 'client'));
+
+        if ($authUser->company_id) {
+            $query->where('company_id', $authUser->company_id);
+        }
+
+        $users = $query->orderBy('name')->get();
+
+        return Excel::download(
+            new UsersExport($users, $this->activeCustomFields()),
+            'data-karyawan-' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
+
+    /** Template Excel siap isi buat import — sheet contoh + sheet petunjuk nilai valid. */
+    public function importTemplate()
+    {
+        $companyId = auth()->user()->company_id;
+
+        return Excel::download(
+            new UsersImportTemplateExport(
+                $this->activeCustomFields(),
+                Role::whereNotIn('name', ['client', 'tester'])->get(),
+                OrganizationUnit::where('company_id', $companyId)->orderBy('name')->get(),
+                StructuralLevel::where('company_id', $companyId)->orderBy('name')->get(),
+            ),
+            'template-import-karyawan.xlsx'
+        );
+    }
+
+    public function import(Request $request)
+    {
+        $authUser = auth()->user();
+        abort_unless($authUser->company_id, 403);
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ]);
+
+        $import = new UsersImport($authUser->company_id);
+        Excel::import($import, $request->file('file'));
+
+        $message = "Import selesai: {$import->created} user baru ditambahkan, {$import->updated} user diperbarui.";
+
+        if ($import->errors) {
+            $shown = array_slice($import->errors, 0, 15);
+            $extra = count($import->errors) - count($shown);
+            $message .= ' ' . count($import->errors) . ' baris gagal diproses: ' . implode(' | ', $shown)
+                . ($extra > 0 ? " (+{$extra} baris lainnya)" : '');
+
+            return redirect()->route('users.index')->with('warning', $message);
+        }
+
+        return redirect()->route('users.index')->with('success', $message);
     }
 
     public function create()

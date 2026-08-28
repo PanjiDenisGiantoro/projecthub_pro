@@ -10,7 +10,7 @@ class Reimbursement extends Model
     protected $fillable = [
         'user_id', 'company_id', 'category', 'title', 'description',
         'expense_date', 'amount', 'receipt', 'status',
-        'approved_by', 'approved_at', 'payroll_id',
+        'approved_by', 'approved_at', 'payroll_id', 'rejection_reason',
     ];
 
     protected $casts = [

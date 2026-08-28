@@ -84,6 +84,8 @@ return [
         'create user'         => 'Tambah User',
         'update user'         => 'Edit User',
         'delete user'         => 'Hapus User',
+        'import user'         => 'Import Data Karyawan dari Excel',
+        'export user'         => 'Export Data Karyawan ke Excel',
         'create master data'  => 'Tambah Perusahaan / Unit Organisasi / Level Struktural',
         'update master data'  => 'Edit Perusahaan / Unit Organisasi / Level Struktural',
         'delete master data'  => 'Hapus Perusahaan / Unit Organisasi / Level Struktural',
@@ -98,6 +100,8 @@ return [
         'view absensi'           => 'Lihat Rekap Absensi Semua Karyawan',
         'update absensi'         => 'Kelola Pengaturan Absensi (lokasi, wajah)',
         'manage face enrollment' => 'Kelola Pendaftaran Wajah Karyawan',
+        'import absensi'         => 'Import Data Absensi dari Excel',
+        'export absensi'         => 'Export Data Absensi ke Excel',
     ],
 
     'HRIS — Cuti & Izin' => [

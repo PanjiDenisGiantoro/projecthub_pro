@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Hris;
 
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Models\Pph21Setting;
 use App\Models\Reimbursement;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -71,15 +72,28 @@ class ReimbursementController extends Controller
 
         $reimburse = Reimbursement::create($data);
 
-        $this->notifier->notifyByPermission(
-            'approve reimbursement',
-            'reimbursement_submitted',
-            'Pengajuan Reimburse Baru',
-            "{$user->name} mengajukan reimburse \"{$reimburse->title}\" sebesar Rp" . number_format($reimburse->amount, 0, ',', '.') . ".",
-            ['reimbursement_id' => $reimburse->id],
-            companyId: $user->company_id,
-            excludeUserId: $user->id
-        );
+        $needsApproval = Pph21Setting::forCompany($user->company_id)->reimbursement_needs_approval;
+
+        if (!$needsApproval) {
+            $reimburse->update(['status' => 'approved', 'approved_at' => now()]);
+            $this->notifier->send(
+                $user->id,
+                'reimbursement_approved',
+                'Reimburse Disetujui',
+                "Pengajuan reimburse \"{$reimburse->title}\" Anda disetujui otomatis.",
+                ['reimbursement_id' => $reimburse->id]
+            );
+        } else {
+            $this->notifier->notifyByPermission(
+                'approve reimbursement',
+                'reimbursement_submitted',
+                'Pengajuan Reimburse Baru',
+                "{$user->name} mengajukan reimburse \"{$reimburse->title}\" sebesar Rp" . number_format($reimburse->amount, 0, ',', '.') . ".",
+                ['reimbursement_id' => $reimburse->id],
+                companyId: $user->company_id,
+                excludeUserId: $user->id
+            );
+        }
 
         return redirect()->route('hris.reimburse.index')->with('success', 'Pengajuan reimburse berhasil dikirim.');
     }
@@ -111,8 +125,14 @@ class ReimbursementController extends Controller
 
         abort_unless($isOwnerPending || $canForceDelete, 403);
 
+        // Batalkan punya sendiri (masih pending) = soft cancel, bukan hard delete.
+        if ($isOwnerPending && !$canForceDelete) {
+            $reimburse->update(['status' => 'cancelled']);
+            return back()->with('success', 'Pengajuan reimburse dibatalkan.');
+        }
+
         $reimburse->delete();
-        return back()->with('success', $canForceDelete && !$isOwnerPending ? 'Data reimburse dihapus.' : 'Pengajuan dihapus.');
+        return back()->with('success', 'Data reimburse dihapus.');
     }
 
     public function approve(Reimbursement $reimburse)
@@ -131,5 +151,30 @@ class ReimbursementController extends Controller
         );
 
         return back()->with('success', 'Reimburse disetujui.');
+    }
+
+    public function reject(Request $request, Reimbursement $reimburse)
+    {
+        $this->authorize('approve reimbursement');
+        abort_if($reimburse->company_id !== auth()->user()->company_id, 403);
+        abort_if($reimburse->status !== 'pending', 422, 'Status tidak valid.');
+        $request->validate(['rejection_reason' => 'required|string|max:500']);
+
+        $reimburse->update([
+            'status'           => 'rejected',
+            'approved_by'      => auth()->id(),
+            'approved_at'      => now(),
+            'rejection_reason' => $request->rejection_reason,
+        ]);
+
+        $this->notifier->send(
+            $reimburse->user_id,
+            'reimbursement_rejected',
+            'Reimburse Ditolak',
+            "Pengajuan reimburse \"{$reimburse->title}\" Anda ditolak oleh " . auth()->user()->name . ". Alasan: {$request->rejection_reason}",
+            ['reimbursement_id' => $reimburse->id]
+        );
+
+        return back()->with('success', 'Reimburse ditolak.');
     }
 }

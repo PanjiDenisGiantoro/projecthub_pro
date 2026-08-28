@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Hris;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Overtime;
+use App\Models\Pph21Setting;
 use App\Services\NotificationService;
 use App\Services\OvertimeService;
 use Carbon\Carbon;
@@ -76,15 +77,32 @@ class OvertimeController extends Controller
             'description' => $request->description,
         ]);
 
-        $this->notifier->notifyByPermission(
-            'approve overtime',
-            'overtime_submitted',
-            'Pengajuan Lembur Baru',
-            "{$user->name} mengajukan lembur {$hours} jam pada {$date->format('d M Y')}.",
-            ['overtime_id' => $overtime->id],
-            companyId: $user->company_id,
-            excludeUserId: $user->id
-        );
+        $needsApproval = Pph21Setting::forCompany($user->company_id)->overtime_needs_approval;
+
+        if (!$needsApproval) {
+            try {
+                $this->overtimeService->approve($overtime);
+                $this->notifier->send(
+                    $user->id,
+                    'overtime_approved',
+                    'Lembur Disetujui',
+                    "Pengajuan lembur Anda ({$hours} jam, {$date->format('d M Y')}) disetujui otomatis.",
+                    ['overtime_id' => $overtime->id]
+                );
+            } catch (\Exception $e) {
+                // Gagal auto-approve (mis. belum ada data gaji) — biarkan pending, approver manual yang tangani.
+            }
+        } else {
+            $this->notifier->notifyByPermission(
+                'approve overtime',
+                'overtime_submitted',
+                'Pengajuan Lembur Baru',
+                "{$user->name} mengajukan lembur {$hours} jam pada {$date->format('d M Y')}.",
+                ['overtime_id' => $overtime->id],
+                companyId: $user->company_id,
+                excludeUserId: $user->id
+            );
+        }
 
         return redirect()->route('hris.overtime.index')->with('success', 'Pengajuan lembur berhasil dikirim.');
     }
@@ -126,8 +144,34 @@ class OvertimeController extends Controller
 
         abort_unless($isOwnerPending || $canForceDelete, 403);
 
+        // Batalkan punya sendiri (masih pending) = soft cancel, bukan hard delete.
+        if ($isOwnerPending && !$canForceDelete) {
+            $overtime->update(['status' => 'cancelled']);
+            return back()->with('success', 'Pengajuan lembur dibatalkan.');
+        }
+
         $overtime->delete();
-        return back()->with('success', $canForceDelete && !$isOwnerPending ? 'Data lembur dihapus.' : 'Pengajuan lembur dihapus.');
+        return back()->with('success', 'Data lembur dihapus.');
+    }
+
+    public function reject(Request $request, Overtime $overtime)
+    {
+        $this->authorize('approve overtime');
+        abort_if($overtime->company_id !== auth()->user()->company_id, 403);
+        abort_if($overtime->status !== 'pending', 422, 'Status tidak valid.');
+        $request->validate(['rejection_reason' => 'required|string|max:500']);
+
+        $this->overtimeService->reject($overtime, auth()->user(), $request->rejection_reason);
+
+        $this->notifier->send(
+            $overtime->user_id,
+            'overtime_rejected',
+            'Lembur Ditolak',
+            "Pengajuan lembur Anda ({$overtime->total_hours} jam, {$overtime->date->format('d M Y')}) ditolak oleh " . auth()->user()->name . ". Alasan: {$request->rejection_reason}",
+            ['overtime_id' => $overtime->id]
+        );
+
+        return back()->with('success', 'Lembur ditolak.');
     }
 
     public function approve(Overtime $overtime)

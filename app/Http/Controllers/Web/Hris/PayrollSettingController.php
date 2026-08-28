@@ -41,11 +41,13 @@ class PayrollSettingController extends Controller
             'potongan_alpha_metode'  => 'required|in:proporsional,nominal',
             'potongan_alpha_nominal' => 'required_if:potongan_alpha_metode,nominal|nullable|numeric|min:0',
         ]);
-        $data['tax_tunjangan_jabatan']   = $request->boolean('tax_tunjangan_jabatan');
-        $data['tax_tunjangan_transport'] = $request->boolean('tax_tunjangan_transport');
-        $data['tax_tunjangan_makan']     = $request->boolean('tax_tunjangan_makan');
-        $data['potong_alpha']            = $request->boolean('potong_alpha');
-        $data['potongan_alpha_nominal']  = $data['potongan_alpha_nominal'] ?? 0;
+        $data['tax_tunjangan_jabatan']        = $request->boolean('tax_tunjangan_jabatan');
+        $data['tax_tunjangan_transport']      = $request->boolean('tax_tunjangan_transport');
+        $data['tax_tunjangan_makan']          = $request->boolean('tax_tunjangan_makan');
+        $data['potong_alpha']                 = $request->boolean('potong_alpha');
+        $data['potongan_alpha_nominal']       = $data['potongan_alpha_nominal'] ?? 0;
+        $data['overtime_needs_approval']      = $request->boolean('overtime_needs_approval');
+        $data['reimbursement_needs_approval'] = $request->boolean('reimbursement_needs_approval');
 
         Pph21Setting::forCompany(auth()->user()->company_id)->update($data);
 

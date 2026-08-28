@@ -4,8 +4,15 @@
 
 @section('content')
 <div class="space-y-6 pt-5">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-3">
         <h1 class="text-2xl font-bold text-gray-900">Rekap Absensi</h1>
+        @can('export absensi')
+        <a href="{{ route('hris.absensi.export', request()->only('year', 'month')) }}"
+           class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+            Export Excel
+        </a>
+        @endcan
     </div>
 
     {{-- Filter --}}

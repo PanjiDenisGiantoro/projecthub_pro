@@ -22,15 +22,19 @@ class Pph21Setting extends Model
         'tax_tunjangan_jabatan',
         'tax_tunjangan_transport',
         'tax_tunjangan_makan',
+        'overtime_needs_approval',
+        'reimbursement_needs_approval',
     ];
 
     protected $casts = [
-        'jkk_rate'                => 'float',
-        'potong_alpha'            => 'boolean',
-        'potongan_alpha_nominal'  => 'float',
-        'tax_tunjangan_jabatan'   => 'boolean',
-        'tax_tunjangan_transport' => 'boolean',
-        'tax_tunjangan_makan'     => 'boolean',
+        'jkk_rate'                     => 'float',
+        'potong_alpha'                 => 'boolean',
+        'potongan_alpha_nominal'       => 'float',
+        'tax_tunjangan_jabatan'        => 'boolean',
+        'tax_tunjangan_transport'      => 'boolean',
+        'tax_tunjangan_makan'          => 'boolean',
+        'overtime_needs_approval'      => 'boolean',
+        'reimbursement_needs_approval' => 'boolean',
     ];
 
     /** Tarif JKK (Jaminan Kecelakaan Kerja) employer per kelas risiko, sesuai PP 82/2019. */
@@ -54,6 +58,7 @@ class Pph21Setting extends Model
                 'method', 'payment_scheme', 'jkk_rate',
                 'potong_alpha', 'potongan_alpha_metode', 'potongan_alpha_nominal',
                 'tax_tunjangan_jabatan', 'tax_tunjangan_transport', 'tax_tunjangan_makan',
+                'overtime_needs_approval', 'reimbursement_needs_approval',
             ])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()

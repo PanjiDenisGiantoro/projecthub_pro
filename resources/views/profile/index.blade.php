@@ -89,6 +89,29 @@
             </div>
         </div>
 
+        {{-- Email Notification --}}
+        <div id="email-notifications" class="px-6 py-5 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Notifikasi Email</h3>
+            <form method="POST" action="{{ route('profile.email-notifications') }}"
+                  x-data="{ enabled: {{ $user->email_notifications_enabled ? 'true' : 'false' }} }">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="email_notifications_enabled" :value="enabled ? 0 : 1">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Aktifkan Notifikasi Email</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Terima email pengingat deadline tugas dan pemberitahuan penting lainnya.</p>
+                    </div>
+                    <button type="submit"
+                            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors"
+                            :class="enabled ? 'bg-blue-600' : 'bg-gray-300'">
+                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                              :class="enabled ? 'translate-x-6' : 'translate-x-1'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
         {{-- Google Calendar --}}
         <div class="px-6 py-5 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-700 mb-4">Google Calendar</h3>

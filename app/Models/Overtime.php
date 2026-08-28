@@ -10,7 +10,7 @@ class Overtime extends Model
     protected $fillable = [
         'user_id', 'company_id', 'date', 'day_type', 'start_time', 'end_time',
         'total_hours', 'upah_sejam', 'total_amount', 'breakdown', 'description',
-        'status', 'approved_by', 'approved_at',
+        'status', 'approved_by', 'approved_at', 'rejection_reason',
     ];
 
     protected $casts = [

@@ -62,7 +62,7 @@ class OvertimeService
         return 'weekday';
     }
 
-    public function approve(Overtime $overtime, User $approver): void
+    public function approve(Overtime $overtime, ?User $approver = null): void
     {
         $salary = $overtime->user->salaries()->latest('effective_date')->first();
         $result = $this->hitung(
@@ -74,11 +74,21 @@ class OvertimeService
 
         $overtime->update([
             'status'       => 'approved',
-            'approved_by'  => $approver->id,
+            'approved_by'  => $approver?->id,
             'approved_at'  => now(),
             'upah_sejam'   => $result['upah_sejam'],
             'total_amount' => $result['total'],
             'breakdown'    => $result['breakdown'],
+        ]);
+    }
+
+    public function reject(Overtime $overtime, User $approver, string $reason): void
+    {
+        $overtime->update([
+            'status'           => 'rejected',
+            'approved_by'      => $approver->id,
+            'approved_at'      => now(),
+            'rejection_reason' => $reason,
         ]);
     }
 }

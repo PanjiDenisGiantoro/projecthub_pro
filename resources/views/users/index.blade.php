@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="py-4"
-     x-data="{ logsOpen: false, logsLoading: false, logsLoaded: false }"
+     x-data="{ logsOpen: false, logsLoading: false, logsLoaded: false, importOpen: false }"
      x-init="$watch('logsOpen', value => {
          if (!value || logsLoaded) return;
          logsLoading = true;
@@ -34,6 +34,18 @@
             Field Kustom
         </a>
         @endif
+        @can('export user')
+        <a href="{{ route('users.export', request()->query()) }}" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+            Export Excel
+        </a>
+        @endcan
+        @can('import user')
+        <button type="button" @click="importOpen = true" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-5-4 5M12 3v12"/></svg>
+            Import Excel
+        </button>
+        @endcan
         @if($isAdmin)
         <button type="button" @click="logsOpen = !logsOpen"
                 class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
@@ -239,5 +251,43 @@
             @endif
         </div>
     </div>
+
+    {{-- Modal Import Excel --}}
+    @can('import user')
+    <div x-show="importOpen" x-cloak
+         class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+         style="display: none;">
+        <div @click.outside="importOpen = false" x-show="importOpen" x-transition
+             class="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <form method="POST" action="{{ route('users.import') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="font-semibold text-gray-800">Import Data Karyawan</h3>
+                    <button type="button" @click="importOpen = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="px-5 py-4 space-y-3">
+                    <p class="text-sm text-gray-500">
+                        Unggah file Excel (.xlsx/.xls/.csv) berisi data karyawan. Email yang sudah terdaftar akan diperbarui, email baru akan dibuatkan user baru.
+                    </p>
+                    <a href="{{ route('users.import.template') }}" class="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download Template Import
+                    </a>
+                    <div>
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                               class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error('file') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div class="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
+                    <button type="button" @click="importOpen = false" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endcan
 </div>
 @endsection

@@ -161,6 +161,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/profile/avatar', [ProfileWebController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
+    Route::put('/profile/email-notifications', [ProfileWebController::class, 'updateEmailNotifications'])->name('profile.email-notifications');
 
     // Google Calendar (connect terpisah dari login, scope Calendar events)
     Route::get('/google-calendar/connect', [GoogleCalendarController::class, 'connect'])->name('google-calendar.connect');
@@ -357,6 +358,13 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     });
     Route::middleware('can:delete user')->group(function () {
         Route::resource('users', UserWebController::class)->only(['destroy']);
+    });
+    Route::middleware('can:export user')->group(function () {
+        Route::get('/users-export', [UserWebController::class, 'export'])->name('users.export');
+    });
+    Route::middleware('can:import user')->group(function () {
+        Route::get('/users-import/template', [UserWebController::class, 'importTemplate'])->name('users.import.template');
+        Route::post('/users-import', [UserWebController::class, 'import'])->name('users.import');
     });
 
     // Field Kustom Karyawan (per company, admin only — authorize di controller)
@@ -564,6 +572,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('absensi/face-enrollment/logs', [AbsensiController::class, 'faceEnrollmentLogs'])->name('absensi.face-enrollment.logs');
         Route::post('absensi/enroll-face/{employee}', [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
         Route::delete('absensi/delete-face/{employee}', [AbsensiController::class, 'deleteFace'])->name('absensi.delete-face');
+        Route::get('absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
+        Route::get('absensi/import/template', [AbsensiController::class, 'importTemplate'])->name('absensi.import.template');
+        Route::post('absensi/import', [AbsensiController::class, 'import'])->name('absensi.import');
 
         // Cuti & Izin
         Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
@@ -581,6 +592,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::put('overtime/{overtime}', [OvertimeController::class, 'update'])->name('overtime.update');
         Route::delete('overtime/{overtime}', [OvertimeController::class, 'destroy'])->name('overtime.destroy');
         Route::patch('overtime/{overtime}/approve', [OvertimeController::class, 'approve'])->name('overtime.approve');
+        Route::patch('overtime/{overtime}/reject', [OvertimeController::class, 'reject'])->name('overtime.reject');
 
         // Reimburse
         Route::get('reimburse', [ReimbursementController::class, 'index'])->name('reimburse.index');
@@ -589,6 +601,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::put('reimburse/{reimburse}', [ReimbursementController::class, 'update'])->name('reimburse.update');
         Route::delete('reimburse/{reimburse}', [ReimbursementController::class, 'destroy'])->name('reimburse.destroy');
         Route::patch('reimburse/{reimburse}/approve', [ReimbursementController::class, 'approve'])->name('reimburse.approve');
+        Route::patch('reimburse/{reimburse}/reject', [ReimbursementController::class, 'reject'])->name('reimburse.reject');
 
         // Gaji Karyawan (EmployeeSalary)
         Route::get('salary/{user}', [EmployeeSalaryController::class, 'index'])->name('salary.index');

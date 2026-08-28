@@ -174,6 +174,24 @@
             </div>
         </div>
 
+        <div class="rounded-2xl border-2 border-gray-200 p-5">
+            <p class="font-semibold text-gray-900">Persetujuan Pengajuan</p>
+            <p class="text-sm text-gray-500 mt-0.5 mb-3">Tentukan apakah pengajuan Lembur & Reimburse butuh persetujuan admin dulu, atau langsung disetujui otomatis saat diajukan.</p>
+
+            <div class="space-y-2.5">
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="overtime_needs_approval" value="1"
+                           @checked(old('overtime_needs_approval', $setting->overtime_needs_approval)) class="accent-blue-600">
+                    Lembur perlu persetujuan admin
+                </label>
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <input type="checkbox" name="reimbursement_needs_approval" value="1"
+                           @checked(old('reimbursement_needs_approval', $setting->reimbursement_needs_approval)) class="accent-blue-600">
+                    Reimburse perlu persetujuan admin
+                </label>
+            </div>
+        </div>
+
         <button type="submit"
                 class="w-full py-2.5 rounded-xl font-semibold text-white text-sm"
                 style="background:var(--hris-gradient)">

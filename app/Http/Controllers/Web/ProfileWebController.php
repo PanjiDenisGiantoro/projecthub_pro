@@ -47,6 +47,21 @@ class ProfileWebController extends Controller
         return back()->with('success', 'Foto profil berhasil dihapus.');
     }
 
+    public function updateEmailNotifications(Request $request)
+    {
+        $request->validate([
+            'email_notifications_enabled' => ['required', 'boolean'],
+        ]);
+
+        auth()->user()->update([
+            'email_notifications_enabled' => $request->boolean('email_notifications_enabled'),
+        ]);
+
+        return back()->with('success', $request->boolean('email_notifications_enabled')
+            ? 'Notifikasi email diaktifkan.'
+            : 'Notifikasi email dinonaktifkan.');
+    }
+
     public function updatePassword(Request $request)
     {
         $request->validate([
