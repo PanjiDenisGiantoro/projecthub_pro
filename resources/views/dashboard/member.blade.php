@@ -292,7 +292,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 class="font-semibold text-gray-800">Recent Tickets</h2>
-                <a href="{{ route('tickets.index') }}"
+                <a href="{{ route('tickets.all') }}"
                    class="text-xs font-medium text-blue-600 hover:text-blue-800">Semua Tiket</a>
             </div>
             <div class="overflow-x-auto">
