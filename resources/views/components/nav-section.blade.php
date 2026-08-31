@@ -1,9 +1,14 @@
-@props(['title', 'defaultOpen' => false, 'class' => 'pt-2 pb-1'])
+@props(['title', 'defaultOpen' => false, 'active' => false, 'class' => 'pt-2 pb-1'])
 <div {{ $attributes->merge(['class' => $class]) }}
      x-data="{ open: {{ $defaultOpen ? 'true' : 'false' }} }">
     <button type="button" @click="open = !open"
             class="w-full flex items-center justify-between gap-1 px-3 pb-1.5 group">
-        <span class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">{{ $title }}</span>
+        <span class="flex items-center gap-1.5">
+            @if($active)
+            <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:var(--ph-nav-act-fg)"></span>
+            @endif
+            <span class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--ph-section-label)">{{ $title }}</span>
+        </span>
         <span class="w-3.5 h-3.5 shrink-0 grid place-items-center rounded-full border transition-colors"
               :style="open ? 'color:var(--ph-nav-act-fg);border-color:var(--ph-nav-act-fg)' : 'color:var(--ph-section-label);border-color:var(--ph-section-label)'">
             <svg x-show="!open" class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

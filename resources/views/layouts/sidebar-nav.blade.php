@@ -266,7 +266,8 @@
 {{-- ── ORGANIZATION & ACCESS ──────────────────────────────────────────── --}}
 @canany(['manage permissions', 'access master data'])
 <x-nav-section title="Organization & Access"
-    :default-open="request()->routeIs('companies.*', 'roles.*', 'permissions.*')">
+    :default-open="request()->routeIs('companies.*', 'roles.*', 'permissions.*')"
+    :active="request()->routeIs('companies.*', 'roles.*', 'permissions.*')">
 
     {{-- Perusahaan (Companies) --}}
     @can('access master data')
@@ -552,7 +553,8 @@
 {{-- ══ Organisasi & Akses (HRIS) ══════════════════════════════════════════ --}}
 @if(auth()->user()->canAny(['access master data', 'create master data', 'update master data', 'delete master data', 'manage permissions']))
 <x-nav-section title="Organisasi & Akses" class="pt-3"
-    :default-open="request()->routeIs('master.index', 'companies.*', 'organization-units.*', 'structural-levels.*', 'roles.*', 'permissions.*')">
+    :default-open="request()->routeIs('master.index', 'companies.*', 'organization-units.*', 'structural-levels.*', 'roles.*', 'permissions.*')"
+    :active="request()->routeIs('master.index', 'companies.*', 'organization-units.*', 'structural-levels.*', 'roles.*', 'permissions.*')">
 
     @can('access master data')
     <a href="{{ route('master.index') }}"
