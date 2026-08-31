@@ -145,7 +145,7 @@ class TicketWebController extends Controller
             'project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
             'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
         ]);
-        $developers = User::role('member')->where('is_active', true)->where('company_id', $ticket->project->company_id)->get();
+        $developers = User::role(['member', 'admin'])->where('is_active', true)->where('company_id', $ticket->project->company_id)->get();
         $relatableTickets = $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']);
         return view('tickets.show', compact('ticket', 'developers', 'relatableTickets'));
     }
