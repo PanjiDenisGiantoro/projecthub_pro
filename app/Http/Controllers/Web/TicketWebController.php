@@ -15,6 +15,7 @@ use App\Services\NotificationService;
 use App\Services\SlaService;
 use App\Services\TeamNotifier;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TicketWebController extends Controller
 {
@@ -144,7 +145,7 @@ class TicketWebController extends Controller
             'project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
             'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
         ]);
-        $developers = User::role('member')->where('is_active', true)->get();
+        $developers = User::role('member')->where('is_active', true)->where('company_id', $ticket->project->company_id)->get();
         $relatableTickets = $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']);
         return view('tickets.show', compact('ticket', 'developers', 'relatableTickets'));
     }
@@ -277,26 +278,32 @@ class TicketWebController extends Controller
         }
     }
 
-    public function assign(Request $request, BugTicket $ticket)
+    public function update(Request $request, BugTicket $ticket)
     {
-        $request->validate(['assignee_id' => 'required|exists:users,id']);
-        $old = $ticket->assignee_id;
-        $ticket->update(['assignee_id' => $request->assignee_id, 'status' => 'assigned']);
-        TicketHistory::create(['ticket_id' => $ticket->id, 'actor_id' => auth()->id(), 'field_changed' => 'assignee_id', 'old_value' => $old, 'new_value' => $request->assignee_id]);
-        $this->notifier->send($request->assignee_id, 'ticket_assigned', 'Tiket Ditugaskan', "Tiket \"{$ticket->title}\" ditugaskan ke Anda.", ['ticket_id' => $ticket->id]);
-        return back()->with('success', 'Tiket di-assign.');
-    }
+        $request->validate([
+            'status'      => 'nullable|in:open,assigned,in_progress,pending_review,resolved,closed,reopened',
+            'assignee_id' => ['nullable', Rule::exists('users', 'id')->where('company_id', $ticket->project->company_id)],
+        ]);
 
-    public function updateStatus(Request $request, BugTicket $ticket)
-    {
-        $request->validate(['status' => 'required|in:open,assigned,in_progress,pending_review,resolved,closed,reopened']);
-        $old     = $ticket->status;
-        $updates = ['status' => $request->status];
-        if ($request->status === 'resolved') $updates['resolved_at'] = now();
-        if ($request->status === 'closed')   $updates['closed_at']   = now();
+        $oldStatus   = $ticket->status;
+        $oldAssignee = $ticket->assignee_id;
+        $updates     = $request->only('status', 'assignee_id');
+
+        if (($updates['status'] ?? null) === 'resolved') $updates['resolved_at'] = now();
+        if (($updates['status'] ?? null) === 'closed')   $updates['closed_at']   = now();
+
         $ticket->update($updates);
-        TicketHistory::create(['ticket_id' => $ticket->id, 'actor_id' => auth()->id(), 'field_changed' => 'status', 'old_value' => $old, 'new_value' => $request->status]);
-        return back()->with('success', 'Status diperbarui.');
+
+        if ($request->filled('status') && $oldStatus !== $ticket->status) {
+            TicketHistory::create(['ticket_id' => $ticket->id, 'actor_id' => auth()->id(), 'field_changed' => 'status', 'old_value' => $oldStatus, 'new_value' => $ticket->status]);
+        }
+
+        if ($request->filled('assignee_id') && $oldAssignee !== $ticket->assignee_id) {
+            TicketHistory::create(['ticket_id' => $ticket->id, 'actor_id' => auth()->id(), 'field_changed' => 'assignee_id', 'old_value' => $oldAssignee, 'new_value' => $ticket->assignee_id]);
+            $this->notifier->send($ticket->assignee_id, 'ticket_assigned', 'Tiket Ditugaskan', "Tiket \"{$ticket->title}\" ditugaskan ke Anda.", ['ticket_id' => $ticket->id]);
+        }
+
+        return back()->with('success', 'Tiket diperbarui.');
     }
 
     public function addComment(Request $request, BugTicket $ticket)

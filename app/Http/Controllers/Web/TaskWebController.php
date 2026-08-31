@@ -28,7 +28,7 @@ class TaskWebController extends Controller
 
         $tasks = $query->latest()->paginate($this->perPage($request))->withQueryString();
         $milestones = $project->milestones()->get();
-        $developers = User::role('member')->where('is_active', true)->get();
+        $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
 
         return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers'));
     }
@@ -121,8 +121,9 @@ class TaskWebController extends Controller
         // causer) baru di-load lewat logs() saat panel riwayat dibuka user (lazy load),
         // biar halaman detail task tidak ikut berat setiap kali dibuka.
         $logsCount = $task->activitiesAsSubject()->count();
+        $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
 
-        return view('tasks.show', compact('project', 'task', 'runningLog', 'logsCount'));
+        return view('tasks.show', compact('project', 'task', 'runningLog', 'logsCount', 'developers'));
     }
 
     public function addComment(Request $request, Project $project, Task $task)
@@ -169,6 +170,7 @@ class TaskWebController extends Controller
     {
         $request->validate([
             'completion_notes' => 'nullable|string|max:2000|required_if:status,done',
+            'assigned_to' => ['nullable', Rule::exists('users', 'id')->where('company_id', $project->company_id)],
         ]);
 
         $old = $task->status;

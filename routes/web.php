@@ -230,8 +230,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/projects/{project}/tickets/create', [TicketWebController::class, 'create'])->name('tickets.create');
     Route::post('/projects/{project}/tickets', [TicketWebController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{ticket}', [TicketWebController::class, 'show'])->name('tickets.show');
-    Route::put('/tickets/{ticket}/assign', [TicketWebController::class, 'assign'])->name('tickets.assign');
-    Route::put('/tickets/{ticket}/status', [TicketWebController::class, 'updateStatus'])->name('tickets.status');
+    Route::put('/tickets/{ticket}', [TicketWebController::class, 'update'])->name('tickets.update');
     Route::post('/tickets/{ticket}/comments', [TicketWebController::class, 'addComment'])->name('tickets.comment');
     Route::put('/tickets/{ticket}/reopen', [TicketWebController::class, 'reopen'])->name('tickets.reopen');
     Route::post('/tickets/{ticket}/details', [TicketWebController::class, 'updateDetails'])->name('tickets.details');

@@ -333,18 +333,34 @@
             </div>
             @endif
 
-            {{-- Update Status --}}
+            {{-- Update Task --}}
             @if(!$user->hasRole('client'))
             <div class="bg-white rounded-xl border border-gray-200 p-5">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Status</h4>
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Update Task</h4>
                 <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="space-y-3"
                       x-data="{ status: '{{ old('status', $task->status) }}' }">
                     @csrf @method('PUT')
-                    <select name="status" x-model="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
-                            <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
-                        @endforeach
-                    </select>
+
+                    @if($user->hasRole(['admin','member']) && $task->status !== 'done')
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Assigned to</label>
+                        <select name="assigned_to" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">— Tidak ada —</option>
+                            @foreach($developers as $dev)
+                                <option value="{{ $dev->id }}" {{ $task->assigned_to === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                        <select name="status" x-model="status" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @foreach(['todo'=>'To Do','in_progress'=>'In Progress','review'=>'Review','done'=>'Done'] as $s => $sl)
+                                <option value="{{ $s }}" {{ $task->status === $s ? 'selected' : '' }}>{{ $sl }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">
                             Deskripsi Penyelesaian <span class="text-red-500" x-show="status === 'done'">*</span>
@@ -354,25 +370,8 @@
                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('completion_notes', $task->completion_notes) }}</textarea>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
-                        Simpan Status
+                        Simpan
                     </button>
-                </form>
-            </div>
-            @endif
-
-            {{-- Re-assign --}}
-            @if($user->hasRole(['admin','member']) && $task->status !== 'done')
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3">Re-assign</h4>
-                <form method="POST" action="{{ route('tasks.update', [$project, $task]) }}" class="flex gap-2">
-                    @csrf @method('PUT')
-                    <select name="assigned_to" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">— Tidak ada —</option>
-                        @foreach(\App\Models\User::role('member')->get() as $dev)
-                            <option value="{{ $dev->id }}" {{ $task->assigned_to === $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg transition-colors">OK</button>
                 </form>
             </div>
             @endif
