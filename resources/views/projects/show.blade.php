@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $project->name)
+@section('page-title', $project->name)
 
 @push('head')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
@@ -48,10 +49,10 @@
     @php
         $statusConfig = [
             'draft'     => ['label' => 'Draft',      'class' => 'bg-gray-100 text-gray-700',   'dot' => 'bg-gray-400'],
-            'active'    => ['label' => 'Aktif',      'class' => 'bg-green-100 text-green-700', 'dot' => 'bg-green-500'],
+            'active'    => ['label' => 'Active',     'class' => 'bg-green-100 text-green-700', 'dot' => 'bg-green-500'],
             'on_hold'   => ['label' => 'On Hold',    'class' => 'bg-yellow-100 text-yellow-700','dot' => 'bg-yellow-500'],
-            'completed' => ['label' => 'Selesai',    'class' => 'bg-blue-100 text-blue-700',   'dot' => 'bg-blue-500'],
-            'cancelled' => ['label' => 'Dibatalkan', 'class' => 'bg-red-100 text-red-700',     'dot' => 'bg-red-500'],
+            'completed' => ['label' => 'Completed',  'class' => 'bg-blue-100 text-blue-700',   'dot' => 'bg-blue-500'],
+            'cancelled' => ['label' => 'Cancelled',  'class' => 'bg-red-100 text-red-700',     'dot' => 'bg-red-500'],
         ];
         $sc       = $statusConfig[$project->status] ?? ['label' => ucfirst($project->status), 'class' => 'bg-gray-100 text-gray-700', 'dot' => 'bg-gray-400'];
         $progress = $project->progress ?? 0;
@@ -59,7 +60,6 @@
         $doneTasks  = $project->tasks()->where('status', 'done')->count();
 
         // Sisa hari = total hari kerja dari task, sprint, dan ticket yang belum beres
-        // (dijumlahkan, bukan cuma satu tanggal selesai proyek yang statis).
         $today = now()->startOfDay();
 
         $openTaskDays = $project->tasks()->where('status', '!=', 'done')->whereNotNull('due_date')->pluck('due_date')
@@ -81,16 +81,16 @@
             ['key' => 'overview',   'label' => 'Overview',   'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
             ['key' => 'timesheet',  'label' => 'Timesheet',  'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
             ['key' => 'tasks',      'label' => 'Tasks',      'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'],
-            ['key' => 'milestones', 'label' => 'Milestone',  'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
+            ['key' => 'milestones', 'label' => 'Milestones', 'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
             ['key' => 'sprints',    'label' => 'Sprints',    'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>'],
             ['key' => 'recurring',  'label' => 'Recurring',  'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>'],
-            ['key' => 'team',       'label' => 'Tim',        'group' => 'Team',          'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>'],
+            ['key' => 'team',       'label' => 'Team',       'group' => 'Team',          'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>'],
             ['key' => 'tickets',    'label' => 'Tickets',    'group' => 'Issues',        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'],
-            ['key' => 'files',      'label' => 'File Arsip', 'group' => 'Documents',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
+            ['key' => 'files',      'label' => 'Files',      'group' => 'Documents',     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>'],
             ['key' => 'kb',         'label' => 'Knowledge Base', 'group' => 'Documents', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>'],
             ['key' => 'portal',     'label' => 'Portal',     'group' => 'Tools',         'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>'],
-            ['key' => 'budget',     'label' => 'Modal Budget', 'group' => 'Tools',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
-            ['key' => 'notif',      'label' => 'Integrasi Notifikasi', 'group' => 'Communication', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>'],
+            ['key' => 'budget',     'label' => 'Budget',     'group' => 'Tools',         'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
+            ['key' => 'notif',      'label' => 'Notifications', 'group' => 'Communication', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>'],
             ['key' => 'chat',       'label' => 'Chat',       'group' => 'Communication', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>'],
         ];
         $groupedTabs = collect($tabs)->groupBy('group');
@@ -98,7 +98,7 @@
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
-        <a href="{{ route('projects.index') }}" class="hover:text-blue-600 transition">Proyek</a>
+        <a href="{{ route('projects.index') }}" class="hover:text-blue-600 transition">Projects</a>
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         <span class="text-gray-600 truncate max-w-[200px]">{{ $project->name }}</span>
     </div>
@@ -167,12 +167,20 @@
                             {{ $project->manager->name }}
                         </span>
                         @endif
-                        @if($project->start_date || $project->end_date)
+                        @if($project->start_date && $project->end_date)
                         <span class="flex items-center gap-1">
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '?' }}
-                            –
-                            {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : '?' }}
+                            {{ \Carbon\Carbon::parse($project->start_date)->format('d M Y') }} – {{ \Carbon\Carbon::parse($project->end_date)->format('d M Y') }}
+                        </span>
+                        @elseif($project->start_date)
+                        <span class="flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Started {{ \Carbon\Carbon::parse($project->start_date)->format('d M Y') }}
+                        </span>
+                        @elseif($project->end_date)
+                        <span class="flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Due {{ \Carbon\Carbon::parse($project->end_date)->format('d M Y') }}
                         </span>
                         @endif
                     </div>
@@ -189,7 +197,7 @@
                             @csrf
                             <button type="submit"
                                     class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
-                                Buat Meeting
+                                Create Meeting
                             </button>
                         </form>
                     @endif
@@ -200,7 +208,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
                         </svg>
-                        Edit proyek
+                        Edit Project
                     </a>
                     @endif
                 </div>
@@ -210,7 +218,7 @@
         {{-- Progress --}}
         <div class="px-4 sm:px-6 pb-5">
             <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                <span class="font-medium text-gray-700">Progress Keseluruhan</span>
+                <span class="font-medium text-gray-700">Overall Progress</span>
                 <span class="font-semibold {{ $progress >= 100 ? 'text-green-600' : ($progress >= 70 ? 'text-blue-600' : 'text-gray-600') }}">{{ $progress }}%</span>
             </div>
             <div class="w-full bg-gray-100 rounded-full h-2">
@@ -223,27 +231,27 @@
         {{-- Quick stats --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-gray-400 mb-1">Total Task</p>
+                <p class="text-xs text-gray-400 mb-1">Total Tasks</p>
                 <p class="text-xl font-bold text-gray-800">{{ $totalTasks }}</p>
             </div>
             <div class="bg-green-50 rounded-xl border border-green-100 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-green-600/70 mb-1">Selesai</p>
+                <p class="text-xs text-green-600/70 mb-1">Completed</p>
                 <p class="text-xl font-bold text-green-700">{{ $doneTasks }}</p>
             </div>
             <div class="bg-blue-50 rounded-xl border border-blue-100 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-blue-600/70 mb-1">Anggota</p>
+                <p class="text-xs text-blue-600/70 mb-1">Members</p>
                 <p class="text-xl font-bold text-blue-700">{{ $project->members->count() }}</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
                 @if($daysLeft === null)
-                    <p class="text-xs text-gray-400 mb-1">Sisa Hari Kerja</p>
+                    <p class="text-xs text-gray-400 mb-1">Working Days Left</p>
                     <p class="text-xl font-bold text-gray-400">—</p>
                 @elseif($daysLeft === 0)
-                    <p class="text-xs text-orange-400 mb-1">Sisa Hari Kerja</p>
-                    <p class="text-xl font-bold text-orange-600">Jatuh tempo</p>
+                    <p class="text-xs text-orange-400 mb-1">Working Days Left</p>
+                    <p class="text-xl font-bold text-orange-600">Due Today</p>
                 @else
-                    <p class="text-xs text-gray-400 mb-1">Sisa Hari Kerja</p>
-                    <p class="text-xl font-bold text-blue-700">{{ $daysLeft }}h</p>
+                    <p class="text-xs text-gray-400 mb-1">Working Days Left</p>
+                    <p class="text-xl font-bold text-blue-700">{{ $daysLeft }}d</p>
                 @endif
             </div>
         </div>
@@ -255,14 +263,14 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {{-- Description --}}
             <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-base font-semibold text-gray-900 mb-3">Deskripsi</h2>
+                <h2 class="text-base font-semibold text-gray-900 mb-3">Description</h2>
                 <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                    {{ $project->description ?: 'Tidak ada deskripsi.' }}
+                    {{ $project->description ?: 'No description provided.' }}
                 </p>
             </div>
             {{-- Info Sidebar --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                <h2 class="text-base font-semibold text-gray-900">Informasi</h2>
+                <h2 class="text-base font-semibold text-gray-900">Information</h2>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Budget</p>
                     <p class="text-sm font-medium text-gray-800">
@@ -270,20 +278,20 @@
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Tanggal Mulai</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Start Date</p>
                     <p class="text-sm font-medium text-gray-800">
                         {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '-' }}
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Tanggal Selesai</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">End Date</p>
                     <p class="text-sm font-medium text-gray-800">
                         {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : '-' }}
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Anggota</p>
-                    <p class="text-sm font-medium text-gray-800">{{ $project->members->count() }} orang</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Members</p>
+                    <p class="text-sm font-medium text-gray-800">{{ $project->members->count() }} members</p>
                 </div>
             </div>
         </div>
@@ -319,7 +327,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5h18M3 12h18M3 16.5h18"/>
                     </svg>
-                    Kelola di Tampilan Tabel
+                    Manage in Table View
                 </a>
                 @if(!auth()->user()->hasRole('client'))
                 <a x-show="taskView==='kanban'" x-cloak
@@ -329,14 +337,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    Kelola Kolom
+                    Manage Columns
                 </a>
                 <button @click="showAddTask = !showAddTask"
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Tambah Task
+                    Add Task
                 </button>
                 @endif
             </div>
@@ -349,14 +357,14 @@
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                     <div class="lg:col-span-2">
-                        <input type="text" name="title" placeholder="Judul task *" required
+                        <input type="text" name="title" placeholder="Task title *" required
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="low">Rendah</option>
-                            <option value="medium" selected>Sedang</option>
-                            <option value="high">Tinggi</option>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
                             <option value="urgent">Urgent</option>
                         </select>
                     </div>
@@ -385,14 +393,14 @@
                         </select>
                     </div>
                     <div>
-                        <input type="number" name="estimated_hours" min="1" placeholder="Estimasi (jam)"
+                        <input type="number" name="estimated_hours" min="1" placeholder="Estimate (hours)"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">Simpan Task</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">Save Task</button>
                     <button type="button" @click="showAddTask = false"
-                            class="px-4 py-2 bg-white text-gray-600 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">Batal</button>
+                            class="px-4 py-2 bg-white text-gray-600 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
                 </div>
             </form>
         </div>
@@ -434,11 +442,11 @@
                     <div class="flex items-center gap-2 shrink-0">
                         @if($taskDays !== null)
                             @if($taskOverdue)
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{{ abs($taskDays) }}h lalu</span>
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{{ abs($taskDays) }}d ago</span>
                             @elseif($taskDays <= 3)
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">{{ $taskDays === 0 ? 'Hari ini' : $taskDays.'h lagi' }}</span>
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">{{ $taskDays === 0 ? 'Today' : $taskDays.'d left' }}</span>
                             @else
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $taskDays }}h lagi</span>
+                                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $taskDays }}d left</span>
                             @endif
                         @endif
                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $tSc[$task->status] ?? 'bg-gray-100 text-gray-600' }}">
@@ -456,13 +464,13 @@
                         <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
                             <div class="h-1.5 rounded-full {{ $tPct >= 100 ? 'bg-red-400' : 'bg-blue-400' }}" style="width: {{ $tPct }}%"></div>
                         </div>
-                        <span class="text-xs text-gray-400">{{ round($task->totalMinutes()/60,1) }}j / {{ $task->estimated_hours }}j</span>
+                        <span class="text-xs text-gray-400">{{ round($task->totalMinutes()/60,1) }}h / {{ $task->estimated_hours }}h</span>
                     </div>
                 </div>
                 @endif
             </div>
             @empty
-            <div class="bg-white rounded-xl border border-gray-200 px-6 py-10 text-center text-sm text-gray-400">Belum ada task.</div>
+            <div class="bg-white rounded-xl border border-gray-200 px-6 py-10 text-center text-sm text-gray-400">No tasks yet.</div>
             @endforelse
         </div>
 
@@ -520,13 +528,13 @@
                             @endif
                         </div>
                         @empty
-                        <div class="py-4 text-center text-xs text-gray-400 kb-empty">Kosong</div>
+                        <div class="py-4 text-center text-xs text-gray-400 kb-empty">Empty</div>
                         @endforelse
                     </div>
                 </div>
                 @empty
                 <div class="col-span-full text-center text-sm text-gray-400 py-10">
-                    Proyek ini belum punya kolom board. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Kelola kolom board</a>
+                    This project does not have board columns yet. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Manage board columns</a>
                 </div>
                 @endforelse
             </div>
@@ -540,7 +548,7 @@
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="kbModalCancel()"></div>
         <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-fade-in">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-gray-900">Update Status Task</h3>
+                <h3 class="text-base font-semibold text-gray-900">Update Task Status</h3>
                 <button onclick="kbModalCancel()" class="text-gray-400 hover:text-gray-600 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -560,11 +568,11 @@
 
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                    Catatan Penyelesaian
-                    <span class="text-gray-400 font-normal">(opsional)</span>
+                    Completion Notes
+                    <span class="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <textarea id="kb-modal-notes" rows="4"
-                          placeholder="Deskripsikan apa yang sudah dikerjakan, hambatan, atau catatan penting lainnya..."
+                          placeholder="Describe what has been completed, roadblocks, or other important notes..."
                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
             </div>
 
@@ -572,11 +580,11 @@
                 <button id="kb-modal-submit"
                         onclick="kbModalSubmit()"
                         class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                    Simpan
+                    Save
                 </button>
                 <button onclick="kbModalCancel()"
                         class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                    Batal
+                    Cancel
                 </button>
             </div>
         </div>
@@ -603,7 +611,7 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                Tambah Milestone
+                Add Milestone
             </button>
             @endif
         </div>
@@ -615,7 +623,7 @@
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                     <div class="lg:col-span-2">
-                        <input type="text" name="title" placeholder="Nama milestone *" required
+                        <input type="text" name="title" placeholder="Milestone title *" required
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
@@ -631,7 +639,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Assignee (PIC)</label>
                         <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">— Tidak ditugaskan —</option>
+                            <option value="">— Unassigned —</option>
                             @foreach($developers as $dev)
                                 <option value="{{ $dev->id }}">{{ $dev->name }}</option>
                             @endforeach
@@ -647,13 +655,13 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <textarea name="description" rows="2" placeholder="Deskripsi (opsional)"
+                    <textarea name="description" rows="2" placeholder="Description (optional)"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
                 <div class="flex gap-2">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">Simpan Milestone</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">Save Milestone</button>
                     <button type="button" @click="showAddMilestone = false"
-                            class="px-4 py-2 bg-white text-gray-600 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">Batal</button>
+                            class="px-4 py-2 bg-white text-gray-600 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
                 </div>
             </form>
         </div>
@@ -664,7 +672,7 @@
             $mSc = ['pending'=>'bg-gray-100 text-gray-600','in_progress'=>'bg-blue-100 text-blue-700','completed'=>'bg-green-100 text-green-700'];
         @endphp
         @if($project->milestones->isEmpty())
-            <div class="bg-white rounded-xl border border-gray-200 px-6 py-10 text-center text-sm text-gray-400">Belum ada milestone.</div>
+            <div class="bg-white rounded-xl border border-gray-200 px-6 py-10 text-center text-sm text-gray-400">No milestones yet.</div>
         @else
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($project->milestones as $ms)
@@ -724,9 +732,9 @@
                                         <span class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600">Overdue</span>
                                     @endif
                                     @if($ms->isClientApproved())
-                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700" title="Disetujui klien pada {{ $ms->client_approved_at->format('d M Y H:i') }}">
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700" title="Approved by client on {{ $ms->client_approved_at->format('d M Y H:i') }}">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                            Disetujui Klien
+                                            Client Approved
                                         </span>
                                     @endif
                                 </div>
@@ -737,9 +745,9 @@
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z"/></svg>
                                     </button>
                                     <form method="POST" action="{{ route('milestones.destroy', [$project, $ms]) }}"
-                                          data-confirm-delete="{{ $ms->title }}" data-confirm-label="Hapus Milestone">
+                                          data-confirm-delete="{{ $ms->title }}" data-confirm-label="Delete Milestone">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                        <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a1 1 0 00-1-1h-4a1 1 0 00-1 1H5"/></svg>
                                         </button>
                                     </form>
@@ -751,16 +759,16 @@
                             <div class="flex items-center gap-2 text-xs flex-wrap">
                                 @if($mTotal > 0)
                                 <span class="flex items-center gap-1 text-gray-500">
-                                    <span class="w-2 h-2 rounded-full bg-green-500"></span> {{ $mDone }} selesai
+                                    <span class="w-2 h-2 rounded-full bg-green-500"></span> {{ $mDone }} completed
                                 </span>
                                 <span class="flex items-center gap-1 text-gray-500">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> {{ $mInProg }} progress
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> {{ $mInProg }} in progress
                                 </span>
                                 <span class="flex items-center gap-1 text-gray-500">
-                                    <span class="w-2 h-2 rounded-full bg-gray-300"></span> {{ $mTodo }} todo
+                                    <span class="w-2 h-2 rounded-full bg-gray-300"></span> {{ $mTodo }} to-do
                                 </span>
                                 @else
-                                <span class="text-gray-400">Belum ada task</span>
+                                <span class="text-gray-400">No tasks yet</span>
                                 @endif
                             </div>
 
@@ -778,13 +786,13 @@
                             @if($mDays !== null)
                             <div class="mt-1.5">
                                 @if($mOverdue)
-                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{{ abs($mDays) }} hari terlambat</span>
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{{ abs($mDays) }} days overdue</span>
                                 @elseif($mDays === 0)
-                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">Deadline hari ini!</span>
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">Due today!</span>
                                 @elseif($mDays <= 7)
-                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">{{ $mDays }} hari lagi</span>
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">{{ $mDays }} days left</span>
                                 @else
-                                    <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $mDays }} hari lagi</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ $mDays }} days left</span>
                                 @endif
                             </div>
                             @endif
@@ -800,7 +808,7 @@
                                     <form method="POST" action="{{ route('milestones.meeting.create', [$project, $ms]) }}">
                                         @csrf
                                         <button type="submit" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
-                                            Buat Meeting
+                                            Create Meeting
                                         </button>
                                     </form>
                                 @endif
@@ -819,7 +827,7 @@
                             <div class="h-full bg-blue-400 transition-all" style="width: {{ round($mInProg/$mTotal*100) }}%"></div>
                             @endif
                         </div>
-                        <div class="text-xs text-gray-400 mt-1">{{ $mDone }}/{{ $mTotal }} task selesai</div>
+                        <div class="text-xs text-gray-400 mt-1">{{ $mDone }}/{{ $mTotal }} tasks completed</div>
                     </div>
                     @endif
 
@@ -853,7 +861,7 @@
                     <form method="POST" action="{{ route('milestones.update', [$project, $ms]) }}" class="space-y-3">
                         @csrf @method('PUT')
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Nama Milestone <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Milestone Name <span class="text-red-500">*</span></label>
                             <input type="text" name="title" value="{{ $ms->title }}" required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
@@ -873,7 +881,7 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Assignee (PIC)</label>
                                 <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">— Tidak ditugaskan —</option>
+                                    <option value="">— Unassigned —</option>
                                     @foreach($developers as $dev)
                                         <option value="{{ $dev->id }}" {{ $ms->assigned_to == $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
                                     @endforeach
@@ -889,14 +897,14 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
                             <textarea name="description" rows="2"
                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ $ms->description }}</textarea>
                         </div>
                         <div class="flex gap-2 pt-1">
-                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition">Simpan</button>
+                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition">Save</button>
                             <button type="button" @click="editing = false"
-                                    class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium px-4 py-2 rounded-lg transition">Batal</button>
+                                    class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium px-4 py-2 rounded-lg transition">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -913,18 +921,18 @@
     <div x-show="tab === 'tickets'" x-cloak>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 class="text-base font-semibold text-gray-900">Tiket Terkini</h2>
+                <h2 class="text-base font-semibold text-gray-900">Recent Tickets</h2>
                 <div class="flex gap-2">
                     <a href="{{ route('tickets.create', $project) }}"
                        class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition">
                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        Buat Tiket
+                        Create Ticket
                     </a>
                     <a href="{{ route('tickets.index', $project) }}"
                        class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-50 transition">
-                        Lihat Semua
+                        View All
                     </a>
                 </div>
             </div>
@@ -933,9 +941,9 @@
                 <table class="min-w-full divide-y divide-gray-100">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Judul</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Title</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Reporter</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Prioritas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Priority</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
                             <th class="px-6 py-3"></th>
                         </tr>
@@ -948,13 +956,13 @@
                                     'medium' => 'bg-blue-100 text-blue-700',
                                     'high'   => 'bg-orange-100 text-orange-700',
                                     'urgent' => 'bg-red-100 text-red-700',
-                                ][$ticket->priority ?? 'medium'] ?? 'bg-gray-100 text-gray-600';
+                                						][$ticket->priority ?? 'medium'] ?? 'bg-gray-100 text-gray-600';
                                 $tStatusClass = [
                                     'open'        => 'bg-blue-100 text-blue-700',
                                     'in_progress' => 'bg-yellow-100 text-yellow-700',
                                     'resolved'    => 'bg-green-100 text-green-700',
                                     'closed'      => 'bg-gray-100 text-gray-600',
-                                ][$ticket->status ?? 'open'] ?? 'bg-gray-100 text-gray-600';
+                                						][$ticket->status ?? 'open'] ?? 'bg-gray-100 text-gray-600';
                             @endphp
                             <tr class="hover:bg-gray-50 transition cursor-pointer"
                                 onclick="window.location='{{ route('tickets.show', $ticket) }}'">
@@ -985,7 +993,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">
-                                    Belum ada tiket.
+                                    No tickets yet.
                                 </td>
                             </tr>
                         @endforelse
@@ -996,7 +1004,7 @@
     </div>
 
     {{-- ============================================================
-         TAB: TIM
+         TAB: TEAM
     ============================================================ --}}
     <div x-show="tab === 'team'" x-cloak
          x-data="{ showAddMember: false }">
@@ -1007,8 +1015,8 @@
             <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <div>
-                        <h2 class="text-base font-semibold text-gray-900">Anggota Tim</h2>
-                        <p class="text-xs text-gray-400 mt-0.5">{{ $project->members->count() }} anggota aktif</p>
+                        <h2 class="text-base font-semibold text-gray-900">Team Members</h2>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ $project->members->count() }} active members</p>
                     </div>
                     @if(!auth()->user()->hasRole('client'))
                     <button @click="showAddMember = !showAddMember"
@@ -1017,7 +1025,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        <span x-text="showAddMember ? 'Tutup Form' : 'Tambah Anggota'"></span>
+                        <span x-text="showAddMember ? 'Close Form' : 'Add Member'"></span>
                     </button>
                     @endif
                 </div>
@@ -1038,7 +1046,7 @@
                             @if(!auth()->user()->hasRole('client'))
                             <form method="POST" action="{{ route('projects.members.remove', [$project, $member->user]) }}"
                                   class="opacity-0 group-hover:opacity-100 transition-opacity"
-                                  data-confirm-delete="{{ $member->user->name }} dari tim" data-confirm-label="Hapus dari Tim">
+                                  data-confirm-delete="{{ $member->user->name }} from team" data-confirm-label="Remove from Team">
                                 @csrf @method('DELETE')
                                 <button type="submit"
                                         class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -1051,8 +1059,8 @@
                     @empty
                     <li class="px-6 py-12 text-center">
                         <svg class="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <p class="text-sm text-gray-400">Belum ada anggota tim.</p>
-                        <p class="text-xs text-gray-300 mt-1">Klik "Tambah Anggota" untuk mulai.</p>
+                        <p class="text-sm text-gray-400">No team members yet.</p>
+                        <p class="text-xs text-gray-300 mt-1">Click "Add Member" to get started.</p>
                     </li>
                     @endforelse
                 </ul>
@@ -1067,8 +1075,8 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-6 sticky top-4">
                     <div class="flex items-center justify-between mb-5">
                         <div>
-                            <h3 class="text-sm font-semibold text-gray-900">Tambah Anggota</h3>
-                            <p class="text-xs text-gray-400 mt-0.5">Tambahkan developer ke tim proyek ini</p>
+                            <h3 class="text-sm font-semibold text-gray-900">Add Member</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Add developers to this project team</p>
                         </div>
                         <button @click="showAddMember = false" class="text-gray-400 hover:text-gray-600 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1081,7 +1089,7 @@
                         {{-- Anggota --}}
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                                Anggota <span class="text-red-500">*</span>
+                                Members <span class="text-red-500">*</span>
                             </label>
                             <select id="member-select" name="user_id[]" required multiple
                                     class="w-full"
@@ -1105,7 +1113,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                             </svg>
-                            Tambahkan ke Tim
+                            Add to Team
                         </button>
                     </form>
                 </div>
@@ -1123,7 +1131,7 @@
             <h2 class="text-base font-semibold text-gray-900 mb-3">Knowledge Base</h2>
             <a href="{{ route('kb.index', $project) }}"
                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                Buka Knowledge Base &rarr;
+                Open Knowledge Base &rarr;
             </a>
         </div>
     </div>
@@ -1161,7 +1169,7 @@
             <div class="flex items-start justify-between mb-4">
                 <h2 class="text-base font-semibold text-gray-900">Budget Tracking</h2>
                 <a href="{{ route('budget.index', $project) }}"
-                   class="text-sm text-blue-600 hover:text-blue-800 font-medium">Kelola →</a>
+                   class="text-sm text-blue-600 hover:text-blue-800 font-medium">Manage →</a>
             </div>
             @if($project->budget)
             <div class="grid grid-cols-3 gap-4 mb-4">
@@ -1170,17 +1178,17 @@
                     <p class="font-semibold text-gray-800 text-sm">Rp {{ number_format($project->budget, 0, ',', '.') }}</p>
                 </div>
                 <div class="bg-red-50 rounded-lg p-3">
-                    <p class="text-xs text-gray-400 mb-0.5">Terpakai</p>
+                    <p class="text-xs text-gray-400 mb-0.5">Spent</p>
                     <p class="font-semibold text-red-600 text-sm">Rp {{ number_format($budgetUsed, 0, ',', '.') }}</p>
                 </div>
                 <div class="bg-green-50 rounded-lg p-3">
-                    <p class="text-xs text-gray-400 mb-0.5">Sisa</p>
+                    <p class="text-xs text-gray-400 mb-0.5">Remaining</p>
                     <p class="font-semibold text-green-600 text-sm">Rp {{ number_format($project->budget - $budgetUsed, 0, ',', '.') }}</p>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Penggunaan anggaran</span>
+                    <span>Budget usage</span>
                     <span class="{{ $budgetPct >= 90 ? 'text-red-600 font-bold' : '' }}">{{ $budgetPct }}%</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2">
@@ -1189,7 +1197,7 @@
                 </div>
             </div>
             @else
-            <p class="text-sm text-gray-400">Budget belum diset. <a href="{{ route('budget.index', $project) }}" class="text-blue-600 hover:underline">Kelola anggaran →</a></p>
+            <p class="text-sm text-gray-400">Budget not set. <a href="{{ route('budget.index', $project) }}" class="text-blue-600 hover:underline">Manage budget →</a></p>
             @endif
         </div>
     </div>
@@ -1207,16 +1215,16 @@
     <div x-show="tab === 'portal'" x-cloak>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-base font-semibold text-gray-900 mb-4">Client Portal</h2>
-            <p class="text-sm text-gray-500 mb-4">{{ $project->portalTokens()->count() }} portal link dibuat. Bagikan link khusus kepada klien untuk melihat progress proyek.</p>
+            <p class="text-sm text-gray-500 mb-4">{{ $project->portalTokens()->count() }} portal link created. Share a private link with clients to view project progress.</p>
             <a href="{{ route('portal.index', $project) }}"
                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                Kelola Portal Link &rarr;
+                Manage Portal Links &rarr;
             </a>
         </div>
     </div>
 
     {{-- ============================================================
-         TAB: NOTIFIKASI TIM (SLACK/DISCORD)
+         TAB: NOTIFICATIONS (SLACK/DISCORD)
     ============================================================ --}}
     <div x-show="tab === 'notif'" x-cloak>
         @include('projects.partials.notifications-content')
@@ -1317,7 +1325,7 @@
         const url   = `/projects/${projectId}/tasks/${taskId}/move`;
 
         btn.disabled    = true;
-        btn.textContent = 'Menyimpan...';
+        btn.textContent = 'Saving...';
 
         fetch(url, {
             method: 'PATCH',
@@ -1332,19 +1340,19 @@
         .then(data => {
             if (data.ok) {
                 _closeModal(false);
-                _toast('Status task berhasil diperbarui.', 'success');
+                _toast('Task status updated successfully.', 'success');
             } else {
                 _closeModal(true);
-                _toast('Gagal memperbarui status.', 'error');
+                _toast('Failed to update status.', 'error');
             }
         })
         .catch(() => {
             _closeModal(true);
-            _toast('Terjadi kesalahan jaringan.', 'error');
+            _toast('A network error occurred.', 'error');
         })
         .finally(() => {
             btn.disabled    = false;
-            btn.textContent = 'Simpan';
+            btn.textContent = 'Save';
         });
     };
 
@@ -1382,7 +1390,7 @@
             if (count === 0 && !col.querySelector('.kb-empty')) {
                 const ph = document.createElement('div');
                 ph.className   = 'py-4 text-center text-xs text-gray-400 kb-empty';
-                ph.textContent = 'Kosong';
+                ph.textContent = 'Empty';
                 col.appendChild(ph);
             }
         });
@@ -1409,7 +1417,7 @@
 <script>
 $(function () {
     $('#member-select').select2({
-        placeholder: '— Pilih Anggota —',
+        placeholder: '— Select Members —',
         allowClear: true,
         width: '100%',
     });

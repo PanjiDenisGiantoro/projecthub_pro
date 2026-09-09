@@ -1,20 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar Proyek')
+@section('title', 'Projects')
+@section('page-title', 'Projects')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Proyek</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
         @if(!auth()->user()->hasRole('client'))
             <a href="{{ route('projects.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition cursor-pointer">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                Buat Proyek
+                Create Project
             </a>
         @endif
     </div>
@@ -26,28 +27,28 @@
                 type="text"
                 name="search"
                 value="{{ request('search') }}"
-                placeholder="Cari nama proyek..."
+                placeholder="Search project name..."
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
         </div>
         <div>
             <select name="status"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Semua Status</option>
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="">All Status</option>
                 <option value="draft"       {{ request('status') === 'draft'       ? 'selected' : '' }}>Draft</option>
-                <option value="active"      {{ request('status') === 'active'      ? 'selected' : '' }}>Aktif</option>
+                <option value="active"      {{ request('status') === 'active'      ? 'selected' : '' }}>Active</option>
                 <option value="on_hold"     {{ request('status') === 'on_hold'     ? 'selected' : '' }}>On Hold</option>
-                <option value="completed"   {{ request('status') === 'completed'   ? 'selected' : '' }}>Selesai</option>
-                <option value="cancelled"   {{ request('status') === 'cancelled'   ? 'selected' : '' }}>Dibatalkan</option>
+                <option value="completed"   {{ request('status') === 'completed'   ? 'selected' : '' }}>Completed</option>
+                <option value="cancelled"   {{ request('status') === 'cancelled'   ? 'selected' : '' }}>Cancelled</option>
             </select>
         </div>
         <button type="submit"
-                class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+                class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 transition cursor-pointer">
             Filter
         </button>
         @if(request('search') || request('status'))
             <a href="{{ route('projects.index') }}"
-               class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+               class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition cursor-pointer">
                 Reset
             </a>
         @endif
@@ -60,11 +61,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
             </svg>
-            <p class="text-lg font-medium">Belum ada proyek</p>
+            <p class="text-lg font-medium">No projects found</p>
             @if(!auth()->user()->hasRole('client'))
-                <p class="text-sm mt-1">Mulai dengan membuat proyek baru.</p>
+                <p class="text-sm mt-1">Get started by creating a new project.</p>
             @else
-                <p class="text-sm mt-1">Belum ada proyek yang ditugaskan ke Anda.</p>
+                <p class="text-sm mt-1">No projects assigned to you yet.</p>
             @endif
         </div>
     @else
@@ -73,10 +74,10 @@
                 @php
                     $statusConfig = [
                         'draft'     => ['label' => 'Draft',      'class' => 'bg-gray-100 text-gray-700'],
-                        'active'    => ['label' => 'Aktif',      'class' => 'bg-green-100 text-green-700'],
+                        'active'    => ['label' => 'Active',     'class' => 'bg-green-100 text-green-700'],
                         'on_hold'   => ['label' => 'On Hold',    'class' => 'bg-yellow-100 text-yellow-700'],
-                        'completed' => ['label' => 'Selesai',    'class' => 'bg-blue-100 text-blue-700'],
-                        'cancelled' => ['label' => 'Dibatalkan', 'class' => 'bg-red-100 text-red-700'],
+                        'completed' => ['label' => 'Completed', 'class' => 'bg-blue-100 text-blue-700'],
+                        'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-red-100 text-red-700'],
                     ];
                     $sc = $statusConfig[$project->status] ?? ['label' => ucfirst($project->status), 'class' => 'bg-gray-100 text-gray-700'];
                     $progress = $project->progress ?? 0;
@@ -104,7 +105,7 @@
                             <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
-                            <span class="truncate">Lead Project: <span class="font-medium text-gray-700">{{ $project->manager->name ?? '-' }}</span></span>
+                            <span class="truncate">Project Lead: <span class="font-medium text-gray-700">{{ $project->manager->name ?? '-' }}</span></span>
                         </div>
 
                         {{-- Progress Bar --}}
@@ -131,8 +132,8 @@
 
                     <div class="px-5 py-3 border-t border-gray-100">
                         <a href="{{ route('projects.show', $project) }}"
-                           class="text-sm font-medium text-blue-600 hover:text-blue-800 transition">
-                            Lihat Detail &rarr;
+                           class="text-sm font-medium text-blue-600 hover:text-blue-800 transition cursor-pointer">
+                            View Details &rarr;
                         </a>
                     </div>
                 </div>

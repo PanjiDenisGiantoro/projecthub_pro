@@ -80,8 +80,12 @@ class OrganizationUnit extends Model
      * rekursif) berdasarkan kolom `order` per grup sibling. Menghindari sort
      * berbasis string pada `code` yang keliru untuk "1.10" vs "1.2".
      */
-    public static function orderedTree(int $companyId, array $exceptIds = []): \Illuminate\Support\Collection
+    public static function orderedTree(?int $companyId, array $exceptIds = []): \Illuminate\Support\Collection
     {
+        if ($companyId === null) {
+            return collect();
+        }
+
         $byParent = static::where('company_id', $companyId)
             ->when($exceptIds, fn($q) => $q->whereNotIn('id', $exceptIds))
             ->orderBy('order')

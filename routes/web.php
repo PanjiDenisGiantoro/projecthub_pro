@@ -88,7 +88,7 @@ Route::get('/privacy-policy', fn () => view('legal.privacy-policy'))->name('lega
 Route::get('/terms-of-service', fn () => view('legal.terms-of-service'))->name('legal.terms');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', 'check.active', /* 'verified', */ 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
@@ -136,7 +136,7 @@ Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function
 Route::post('/billing/notification', [BillingWebController::class, 'notification'])->name('billing.notification');
 
 // ─── Authenticated ────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
+Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
     Route::get('/dashboard2', [DashboardWebController::class, 'v2'])->name('dashboard.v2');
@@ -279,17 +279,19 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     });
 
     // Customer Requests — 'create request' (punya route literal /requests/create)
-    // harus terdaftar SEBELUM 'access requests' (punya wildcard /requests/{request}).
+    // harus terdaftar SEBELUM 'access requests' (punya wildcard /requests/{customerRequest}).
     Route::middleware('can:create request')->group(function () {
-        Route::resource('requests', RequestWebController::class)->only(['create', 'store']);
+        Route::get('/requests/create', [RequestWebController::class, 'create'])->name('requests.create');
+        Route::post('/requests', [RequestWebController::class, 'store'])->name('requests.store');
     });
     Route::middleware('can:access requests')->group(function () {
-        Route::resource('requests', RequestWebController::class)->only(['index', 'show']);
+        Route::get('/requests', [RequestWebController::class, 'index'])->name('requests.index');
+        Route::get('/requests/{customerRequest}', [RequestWebController::class, 'show'])->name('requests.show');
     });
     Route::middleware('can:approve request')->group(function () {
-        Route::put('/requests/{request}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
-        Route::put('/requests/{request}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
-        Route::put('/requests/{request}/complete', [RequestWebController::class, 'complete'])->name('requests.complete');
+        Route::put('/requests/{customerRequest}/approve', [RequestWebController::class, 'approve'])->name('requests.approve');
+        Route::put('/requests/{customerRequest}/reject', [RequestWebController::class, 'reject'])->name('requests.reject');
+        Route::put('/requests/{customerRequest}/complete', [RequestWebController::class, 'complete'])->name('requests.complete');
     });
 
     // Campaigns & Leads — grup 'create'/'update' (punya route literal /create) harus

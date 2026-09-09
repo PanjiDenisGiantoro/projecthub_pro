@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Baru')
-@section('page-title', 'Dashboard Baru')
+@section('title', 'Dashboard')
+@section('page-title', 'Dashboard')
 
 @section('content')
 @php
     $tabs = [
-        'upcoming' => ['label' => 'Belum Mulai', 'count' => $stats['todo']],
-        'ongoing'  => ['label' => 'Berjalan',    'count' => $stats['in_progress'] + $stats['review']],
-        'complete' => ['label' => 'Selesai',     'count' => $stats['done_tasks']],
+        'upcoming' => ['label' => 'To Do',       'count' => $stats['todo']],
+        'ongoing'  => ['label' => 'In Progress', 'count' => $stats['in_progress'] + $stats['review']],
+        'complete' => ['label' => 'Completed',   'count' => $stats['done_tasks']],
     ];
     $pendingToday = $todaySchedule->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isFuture())->count();
     $maxHours = max(1, $weeklyHours->max('hours'));
@@ -20,14 +20,14 @@
         };
     };
     $dueLabel = function ($task) {
-        if ($task->status === 'done') return ['text' => 'Selesai', 'cls' => 'text-emerald-600 bg-emerald-50'];
+        if ($task->status === 'done') return ['text' => 'Completed', 'cls' => 'text-emerald-600 bg-emerald-50'];
         $d = $task->daysRemaining();
-        if ($d === null) return ['text' => 'Tanpa tenggat', 'cls' => 'text-slate-500 bg-slate-100'];
-        if ($d < 0) return ['text' => 'Terlambat ' . abs($d) . ' hari', 'cls' => 'text-red-600 bg-red-50'];
-        if ($d === 0) return ['text' => 'Jatuh tempo hari ini', 'cls' => 'text-amber-600 bg-amber-50'];
-        return ['text' => 'Jatuh tempo ' . $d . ' hari lagi', 'cls' => 'text-amber-600 bg-amber-50'];
+        if ($d === null) return ['text' => 'No due date', 'cls' => 'text-slate-500 bg-slate-100'];
+        if ($d < 0) return ['text' => abs($d) . ' days overdue', 'cls' => 'text-red-600 bg-red-50'];
+        if ($d === 0) return ['text' => 'Due today', 'cls' => 'text-amber-600 bg-amber-50'];
+        return ['text' => 'Due in ' . $d . ' days', 'cls' => 'text-amber-600 bg-amber-50'];
     };
-    $dayLabels = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    $dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 @endphp
 
 <div class="space-y-6 pt-5 pb-4" x-data="{ tab: 'ongoing' }" style="font-family:'Plus Jakarta Sans',Inter,sans-serif">
@@ -35,11 +35,11 @@
     <div class="flex items-center justify-between gap-3 flex-wrap">
         <p class="text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 rounded-full px-3 py-1.5 inline-flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            Preview desain dashboard baru
+            Dashboard v2 preview
         </p>
         <a href="{{ route('dashboard') }}" class="text-xs font-semibold text-slate-500 hover:text-slate-700 inline-flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Kembali ke dashboard lama
+            Back to default dashboard
         </a>
     </div>
 
@@ -57,7 +57,7 @@
                         <form method="GET" action="{{ route('dashboard.v2') }}" class="mb-3">
                             <select name="company_id" onchange="this.form.submit()"
                                     class="text-xs font-semibold text-slate-700 bg-white/80 border border-orange-200 rounded-lg px-3 py-1.5 focus:outline-none cursor-pointer">
-                                <option value="" {{ empty($selectedCompanyId) ? 'selected' : '' }}>Semua Company</option>
+                                <option value="" {{ empty($selectedCompanyId) ? 'selected' : '' }}>All Companies</option>
                                 @foreach($companies as $company)
                                     <option value="{{ $company->id }}" {{ (int) $selectedCompanyId === $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
                                 @endforeach
@@ -65,17 +65,17 @@
                         </form>
                         @endif
                         <h1 class="text-2xl sm:text-[28px] font-extrabold text-slate-900 tracking-tight leading-tight">
-                            Atur Setiap Meeting<br class="hidden sm:block"> Lebih Cepat
+                            Organize Every Meeting<br class="hidden sm:block"> Faster
                         </h1>
                         <p class="text-sm text-slate-600 mt-2 flex items-center gap-1.5">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Anda punya <strong class="text-slate-900">{{ $pendingToday }} jadwal</strong> yang menunggu hari ini
+                            You have <strong class="text-slate-900">{{ $pendingToday }} events</strong> scheduled for today
                         </p>
                         <a href="{{ route('meetings.index') }}"
                            class="mt-5 inline-flex items-center gap-2 w-fit px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:-translate-y-0.5"
                            style="background:linear-gradient(135deg,#f97316,#ea580c)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Meeting Baru
+                            New Meeting
                         </a>
                     </div>
                     <div class="flex sm:justify-end items-end">
@@ -98,7 +98,7 @@
 
             {{-- ── Performance Metrics ──────────────────────────────────── --}}
             <div>
-                <h2 class="text-sm font-bold text-slate-800 mb-3">Metrik Performa</h2>
+                <h2 class="text-sm font-bold text-slate-800 mb-3">Performance Metrics</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
@@ -107,7 +107,7 @@
                             </div>
                         </div>
                         <p class="text-2xl font-extrabold text-slate-900">{{ $stats['completion_rate'] }}%</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Tingkat Penyelesaian Task</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Task Completion Rate</p>
                     </div>
                     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
@@ -116,7 +116,7 @@
                             </div>
                         </div>
                         <p class="text-2xl font-extrabold text-slate-900">{{ $stats['done_this_week'] }}</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Task Selesai Minggu Ini</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Tasks Completed This Week</p>
                     </div>
                     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
@@ -125,7 +125,7 @@
                             </div>
                         </div>
                         <p class="text-2xl font-extrabold text-slate-900">{{ $stats['collaborations'] }}</p>
-                        <p class="text-xs text-slate-500 mt-0.5">{{ $isManager ? 'Kolaborasi Tim' : 'Proyek Dikerjakan' }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $isManager ? 'Team Collaboration' : 'Active Projects' }}</p>
                     </div>
                 </div>
             </div>
@@ -133,9 +133,9 @@
             {{-- ── Jadwal Hari Ini + Ringkasan Meeting ──────────────────── --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Jadwal Hari Ini</h3>
+                    <h3 class="text-sm font-bold text-slate-800 mb-4">Today's Schedule</h3>
                     @if($todaySchedule->isEmpty())
-                        <p class="text-xs text-slate-400 py-6 text-center">Tidak ada jadwal meeting hari ini.</p>
+                        <p class="text-xs text-slate-400 py-6 text-center">No meetings scheduled for today.</p>
                     @else
                         <div class="space-y-3">
                             @foreach($todaySchedule as $m)
@@ -153,18 +153,18 @@
 
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                     <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Meeting Bulan Ini</h3>
+                        <h3 class="text-sm font-bold text-slate-800">Meetings This Month</h3>
                         <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
                     <p class="text-3xl font-extrabold text-slate-900 mt-2">{{ $meetingStats['total'] }}</p>
                     <div class="flex items-center gap-6 mt-3">
                         <div>
                             <p class="text-base font-bold text-slate-800">{{ $meetingStats['past'] }}</p>
-                            <p class="text-[11px] text-slate-500">Sudah Berlangsung</p>
+                            <p class="text-[11px] text-slate-500">Completed</p>
                         </div>
                         <div>
                             <p class="text-base font-bold text-slate-800">{{ $meetingStats['upcoming'] }}</p>
-                            <p class="text-[11px] text-slate-500">Akan Datang</p>
+                            <p class="text-[11px] text-slate-500">Upcoming</p>
                         </div>
                     </div>
                     <div class="mt-4 h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -176,15 +176,15 @@
             {{-- ── Meeting Mendatang + Jam Kerja ────────────────────────── --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Meeting Mendatang</h3>
+                    <h3 class="text-sm font-bold text-slate-800 mb-4">Upcoming Meetings</h3>
                     @if($upcomingMeetings->isEmpty())
-                        <p class="text-xs text-slate-400 py-6 text-center">Belum ada meeting terjadwal.</p>
+                        <p class="text-xs text-slate-400 py-6 text-center">No meetings scheduled yet.</p>
                     @else
                         <div class="space-y-3">
                             @foreach($upcomingMeetings as $m)
                                 <div class="flex items-center gap-3 rounded-xl border border-slate-100 p-3 hover:border-orange-200 transition">
                                     <div class="w-11 h-11 rounded-xl flex flex-col items-center justify-center shrink-0 bg-orange-50 border border-orange-100">
-                                        <span class="text-[10px] font-semibold text-orange-500 uppercase leading-none">{{ $m['startsAt'] ? $m['startsAt']->locale('id')->isoFormat('MMM') : '-' }}</span>
+                                        <span class="text-[10px] font-semibold text-orange-500 uppercase leading-none">{{ $m['startsAt'] ? $m['startsAt']->format('M') : '-' }}</span>
                                         <span class="text-sm font-extrabold text-orange-700 leading-none mt-0.5">{{ $m['startsAt'] ? $m['startsAt']->format('d') : '-' }}</span>
                                     </div>
                                     <div class="flex-1 min-w-0">
@@ -196,7 +196,7 @@
                                            class="shrink-0 text-[11px] font-semibold text-white px-3 py-1.5 rounded-lg transition"
                                            style="background:linear-gradient(135deg,#f97316,#ea580c)">Join</a>
                                     @else
-                                        <a href="{{ $m['url'] }}" class="shrink-0 text-[11px] font-semibold text-orange-600 hover:text-orange-700 px-2">Lihat</a>
+                                        <a href="{{ $m['url'] }}" class="shrink-0 text-[11px] font-semibold text-orange-600 hover:text-orange-700 px-2">View</a>
                                     @endif
                                 </div>
                             @endforeach
@@ -206,11 +206,11 @@
 
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-slate-800">Jam Kerja 7 Hari</h3>
+                        <h3 class="text-sm font-bold text-slate-800">7-Day Working Hours</h3>
                     </div>
-                    <p class="text-2xl font-extrabold text-slate-900 mt-2">{{ $totalHoursWeek }} <span class="text-sm font-medium text-slate-400">jam</span></p>
+                    <p class="text-2xl font-extrabold text-slate-900 mt-2">{{ $totalHoursWeek }} <span class="text-sm font-medium text-slate-400">hours</span></p>
                     <div class="flex items-center gap-4 mt-1 mb-4">
-                        <p class="text-[11px] text-slate-500">Rata-rata {{ $avgHoursDay }} jam/hari</p>
+                        <p class="text-[11px] text-slate-500">Average {{ $avgHoursDay }} hrs/day</p>
                     </div>
                     <div class="flex items-end gap-2 h-20">
                         @foreach($weeklyHours as $d)
@@ -226,14 +226,14 @@
             {{-- ── Activity Heatmap ─────────────────────────────────────── --}}
             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-bold text-slate-800">Aktivitas Penyelesaian Task <span class="text-slate-400 font-normal">(4 minggu terakhir)</span></h3>
+                    <h3 class="text-sm font-bold text-slate-800">Task Completion Activity <span class="text-slate-400 font-normal">(last 4 weeks)</span></h3>
                     <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                        <span>Sedikit</span>
+                        <span>Less</span>
                         <span class="w-3 h-3 rounded-sm bg-slate-100"></span>
                         <span class="w-3 h-3 rounded-sm bg-orange-200"></span>
                         <span class="w-3 h-3 rounded-sm bg-orange-400"></span>
                         <span class="w-3 h-3 rounded-sm bg-orange-600"></span>
-                        <span>Banyak</span>
+                        <span>More</span>
                     </div>
                 </div>
                 <div class="grid grid-cols-7 gap-2 mb-2">
@@ -249,7 +249,7 @@
                                     $c = $day['count'];
                                     $cls = $c === 0 ? 'bg-slate-100' : ($c === 1 ? 'bg-orange-200' : ($c <= 3 ? 'bg-orange-400' : 'bg-orange-600'));
                                 @endphp
-                                <div class="aspect-square rounded-md {{ $cls }}" title="{{ $day['date']->locale('id')->isoFormat('D MMM') }} &middot; {{ $c }} task selesai"></div>
+                                <div class="aspect-square rounded-md {{ $cls }}" title="{{ $day['date']->format('j M') }} &middot; {{ $c }} tasks completed"></div>
                             @endforeach
                         </div>
                     @endforeach
@@ -260,7 +260,7 @@
 
         {{-- ═══════════ Kolom Kanan — Task Summary ═══════════ --}}
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 xl:sticky xl:top-20">
-            <h2 class="text-sm font-bold text-slate-800 mb-4">Ringkasan Task</h2>
+            <h2 class="text-sm font-bold text-slate-800 mb-4">Task Summary</h2>
 
             <div class="flex items-center gap-1 p-1 rounded-xl bg-slate-100 mb-4">
                 @foreach($tabs as $key => $t)
@@ -309,7 +309,7 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="text-xs text-slate-400 py-8 text-center">Tidak ada task di kategori ini.</p>
+                            <p class="text-xs text-slate-400 py-8 text-center">No tasks in this category.</p>
                         @endforelse
                     </div>
                 @endforeach

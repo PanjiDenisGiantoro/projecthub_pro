@@ -1,22 +1,22 @@
 @extends('layouts.app')
-@section('title', 'Kolom Board: ' . $project->name)
-@section('page-title', 'Kolom Board')
+@section('title', 'Board Columns: ' . $project->name)
+@section('page-title', 'Board Columns')
 
 @section('content')
 <div class="py-4 max-w-2xl">
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
-        <span class="mx-2">/</span><span class="text-gray-700">Kolom Board</span>
+        <span class="mx-2">/</span><span class="text-gray-700">Board Columns</span>
     </nav>
 
     <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-gray-500">Kolom yang tampil di papan Kanban tab Tasks proyek ini.</p>
-        <a href="{{ route('board-column-templates.index') }}" class="text-sm text-blue-600 hover:text-blue-800">Pakai template &rarr;</a>
+        <p class="text-sm text-gray-500">Columns displayed on the Kanban board in the Tasks tab for this project.</p>
+        <a href="{{ route('board-column-templates.index') }}" class="text-sm text-blue-600 hover:text-blue-800">Use template &rarr;</a>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
         @if($columns->count() > 1)
-        <p class="text-xs text-gray-400 mb-2">Seret <svg class="w-3 h-3 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg> untuk mengubah urutan kolom di papan Kanban.</p>
+        <p class="text-xs text-gray-400 mb-2">Drag <svg class="w-3 h-3 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg> to reorder columns on the Kanban board.</p>
         @endif
         <div class="space-y-2 mb-5" id="column-list">
             @forelse($columns as $column)
@@ -24,7 +24,7 @@
                 <form method="POST" action="{{ route('board-columns.update', [$project, $column]) }}"
                       class="flex items-center gap-2 px-3 py-2 rounded-lg border {{ \App\Support\BoardColumnPalette::header($column->color) }}">
                     @csrf @method('PUT')
-                    <span class="text-gray-400 cursor-grab active:cursor-grabbing shrink-0" title="Seret untuk urutkan">
+                    <span class="text-gray-400 cursor-grab active:cursor-grabbing shrink-0" title="Drag to reorder">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
                     </span>
                     <span class="w-2.5 h-2.5 rounded-full shrink-0 {{ \App\Support\BoardColumnPalette::dot($column->color) }}"></span>
@@ -36,32 +36,32 @@
                     </select>
                     <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap">
                         <input type="checkbox" name="is_done" value="1" {{ $column->is_done ? 'checked' : '' }}>
-                        Selesai
+                        Done
                     </label>
                     <span class="text-xs text-gray-400 whitespace-nowrap">{{ $column->tasks_count }} task</span>
-                    <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 px-2">Simpan</button>
+                    <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 px-2">Save</button>
                 </form>
                 @if($column->tasks_count === 0)
                 <form method="POST" action="{{ route('board-columns.destroy', [$project, $column]) }}" class="flex justify-end -mt-1 mb-1"
-                      data-confirm-delete="kolom {{ $column->name }}" data-confirm-label="Hapus Kolom">
+                      data-confirm-delete="column {{ $column->name }}" data-confirm-label="Delete Column">
                     @csrf @method('DELETE')
-                    <button type="submit" class="text-xs text-red-400 hover:text-red-600 px-2">Hapus kolom ini</button>
+                    <button type="submit" class="text-xs text-red-400 hover:text-red-600 px-2">Delete this column</button>
                 </form>
                 @endif
             </div>
             @empty
-            <p class="text-sm text-gray-400 text-center py-6">Belum ada kolom. Tambahkan di bawah atau pakai template.</p>
+            <p class="text-sm text-gray-400 text-center py-6">No columns yet. Add one below or use a template.</p>
             @endforelse
         </div>
 
         <form method="POST" action="{{ route('board-columns.store', $project) }}" class="flex items-end gap-2 pt-4 border-t border-gray-100">
             @csrf
             <div class="flex-1">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Nama Kolom Baru</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">New Column Name</label>
                 <input type="text" name="name" required placeholder="e.g. Testing" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Warna</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Color</label>
                 <select name="color" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                     @foreach($colors as $color)
                     <option value="{{ $color }}">{{ ucfirst($color) }}</option>
@@ -70,13 +70,13 @@
             </div>
             <label class="flex items-center gap-1 text-xs text-gray-500 pb-2.5 whitespace-nowrap">
                 <input type="checkbox" name="is_done" value="1">
-                Selesai
+                Done
             </label>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">+ Kolom</button>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">+ Column</button>
         </form>
     </div>
 
-    <a href="{{ route('projects.edit', $project) }}" class="text-sm text-gray-600 hover:text-gray-800">&larr; Kembali ke pengaturan proyek</a>
+    <a href="{{ route('projects.edit', $project) }}" class="text-sm text-gray-600 hover:text-gray-800">&larr; Back to project settings</a>
 </div>
 
 @push('scripts')
@@ -122,7 +122,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
             body: JSON.stringify({ order: order }),
-        }).catch(function () { /* urutan tetap tersimpan lokal; coba lagi saat reload berikutnya */ });
+        }).catch(function () { /* order remains saved locally */ });
     });
 })();
 </script>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Profil Saya')
-@section('page-title', 'Profil Saya')
+@section('title', 'My Profile')
+@section('page-title', 'My Profile')
 
 @section('content')
 <div class="max-w-2xl mx-auto py-6 space-y-5">
@@ -34,14 +34,14 @@
 
         {{-- Avatar Upload --}}
         <div class="px-6 py-5 border-b border-gray-100">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Ubah Foto Profil</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Change Profile Picture</h3>
 
             <form method="POST" action="{{ route('profile.avatar') }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
                     <div class="flex-1 w-full">
-                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Pilih foto baru</label>
+                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Select new photo</label>
                         <input type="file" name="avatar" accept="image/*"
                                class="block w-full text-sm text-gray-500
                                       file:mr-3 file:py-2 file:px-4
@@ -50,11 +50,11 @@
                                       file:bg-blue-50 file:text-blue-700
                                       hover:file:bg-blue-100
                                       cursor-pointer transition-colors">
-                        <p class="text-xs text-gray-400 mt-1.5">Format: JPG, PNG, GIF, WEBP &bull; Maks. 2 MB</p>
+                        <p class="text-xs text-gray-400 mt-1.5">Format: JPG, PNG, GIF, WEBP &bull; Max. 2 MB</p>
                     </div>
                     <button type="submit"
-                            class="shrink-0 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
-                        Simpan Foto
+                            class="shrink-0 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm cursor-pointer">
+                        Save Photo
                     </button>
                 </div>
             </form>
@@ -64,8 +64,8 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit"
-                        class="text-xs text-red-500 hover:text-red-700 hover:underline transition-colors">
-                    Hapus foto profil
+                        class="text-xs text-red-500 hover:text-red-700 hover:underline transition-colors cursor-pointer">
+                    Remove profile picture
                 </button>
             </form>
             @endif
@@ -73,15 +73,15 @@
 
         {{-- Push Notification --}}
         <div class="px-6 py-5 border-b border-gray-100" x-data="notificationToggle()" x-init="init()">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Notifikasi Push</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Push Notifications</h3>
             <div class="flex items-center justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-gray-700">Aktifkan Notifikasi Push</p>
-                    <p class="text-xs text-gray-400 mt-0.5" x-show="pushAvailable">Dapatkan notifikasi browser untuk tiket, tugas, dan aktivitas lain.</p>
-                    <p class="text-xs text-red-400 mt-0.5" x-show="!pushAvailable">Browser ini tidak mendukung push notification.</p>
+                    <p class="text-sm font-medium text-gray-700">Enable Push Notifications</p>
+                    <p class="text-xs text-gray-400 mt-0.5" x-show="pushAvailable">Receive browser notifications for tickets, tasks, and other activities.</p>
+                    <p class="text-xs text-red-400 mt-0.5" x-show="!pushAvailable">This browser does not support push notifications.</p>
                 </div>
                 <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
-                        class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
+                        class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-40 cursor-pointer"
                         :class="enabled ? 'bg-blue-600' : 'bg-gray-300'">
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="enabled ? 'translate-x-6' : 'translate-x-1'"></span>
@@ -91,7 +91,7 @@
 
         {{-- Email Notification --}}
         <div id="email-notifications" class="px-6 py-5 border-b border-gray-100">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Notifikasi Email</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Email Notifications</h3>
             <form method="POST" action="{{ route('profile.email-notifications') }}"
                   x-data="{ enabled: {{ $user->email_notifications_enabled ? 'true' : 'false' }} }">
                 @csrf
@@ -99,11 +99,11 @@
                 <input type="hidden" name="email_notifications_enabled" :value="enabled ? 0 : 1">
                 <div class="flex items-center justify-between gap-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-700">Aktifkan Notifikasi Email</p>
-                        <p class="text-xs text-gray-400 mt-0.5">Terima email pengingat deadline tugas dan pemberitahuan penting lainnya.</p>
+                        <p class="text-sm font-medium text-gray-700">Enable Email Notifications</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Receive email reminders for task deadlines and important updates.</p>
                     </div>
                     <button type="submit"
-                            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors"
+                            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer"
                             :class="enabled ? 'bg-blue-600' : 'bg-gray-300'">
                         <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                               :class="enabled ? 'translate-x-6' : 'translate-x-1'"></span>
@@ -118,25 +118,25 @@
             <div class="flex items-center justify-between gap-4">
                 <div>
                     @if($googleToken)
-                        <p class="text-sm font-medium text-gray-700">Terhubung</p>
-                        <p class="text-xs text-gray-400 mt-0.5">Anda bisa membuat meeting Google Meet dari Sprint & Milestone.</p>
+                        <p class="text-sm font-medium text-gray-700">Connected</p>
+                        <p class="text-xs text-gray-400 mt-0.5">You can create Google Meet meetings from Sprints & Milestones.</p>
                     @else
-                        <p class="text-sm font-medium text-gray-700">Belum terhubung</p>
-                        <p class="text-xs text-gray-400 mt-0.5">Hubungkan akun Google untuk membuat jadwal & link Google Meet otomatis.</p>
+                        <p class="text-sm font-medium text-gray-700">Not connected</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Connect your Google account to automatically schedule meetings & generate Google Meet links.</p>
                     @endif
                 </div>
                 @if($googleToken)
                     <form method="POST" action="{{ route('google-calendar.disconnect') }}"
-                          data-confirm-submit="Putuskan sambungan Google Calendar?" data-confirm-btn="Ya, Putuskan">
+                          data-confirm-submit="Disconnect Google Calendar?" data-confirm-btn="Yes, Disconnect">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
-                            Putuskan Sambungan
+                        <button type="submit" class="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 cursor-pointer">
+                            Disconnect
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('google-calendar.connect') }}" class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-                        Hubungkan Google Calendar
+                    <a href="{{ route('google-calendar.connect') }}" class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 cursor-pointer">
+                        Connect Google Calendar
                     </a>
                 @endif
             </div>
@@ -144,7 +144,7 @@
 
         {{-- Change Password --}}
         <div class="px-6 py-5 border-b border-gray-100">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Ubah Password</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Change Password</h3>
 
             <form method="POST" action="{{ route('profile.password') }}" class="space-y-3">
                 @csrf
@@ -155,19 +155,19 @@
                 @enderror
 
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Password saat ini</label>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Current password</label>
                     <input type="password" name="current_password" required
                            class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1">
-                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Password baru</label>
+                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">New password</label>
                         <input type="password" name="password" required
                                class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('password') border-red-400 @enderror">
                     </div>
                     <div class="flex-1">
-                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Konfirmasi password baru</label>
+                        <label class="block text-xs text-gray-500 mb-1.5 font-medium">Confirm new password</label>
                         <input type="password" name="password_confirmation" required
                                class="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
@@ -175,8 +175,8 @@
 
                 <div class="flex justify-end">
                     <button type="submit"
-                            class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
-                        Simpan Password
+                            class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm cursor-pointer">
+                        Save Password
                     </button>
                 </div>
             </form>
@@ -184,10 +184,10 @@
 
         {{-- User Info --}}
         <div class="px-6 py-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Informasi Akun</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">Account Information</h3>
             <dl class="space-y-3">
                 <div class="flex items-center gap-4 py-2 border-b border-gray-50">
-                    <dt class="text-sm text-gray-400 w-28 shrink-0">Nama Lengkap</dt>
+                    <dt class="text-sm text-gray-400 w-28 shrink-0">Full Name</dt>
                     <dd class="text-sm font-medium text-gray-800">{{ $user->name }}</dd>
                 </div>
                 <div class="flex items-center gap-4 py-2 border-b border-gray-50">
@@ -204,7 +204,7 @@
                 </div>
                 @if($user->organizationUnit)
                 <div class="flex items-center gap-4 py-2 border-b border-gray-50">
-                    <dt class="text-sm text-gray-400 w-28 shrink-0">Unit Organisasi</dt>
+                    <dt class="text-sm text-gray-400 w-28 shrink-0">Organization Unit</dt>
                     <dd class="text-sm font-medium text-gray-800">{{ $user->organizationUnit->name }}</dd>
                 </div>
                 @endif
@@ -219,11 +219,11 @@
                     <dd>
                         @if($user->is_active)
                             <span class="inline-flex items-center gap-1.5 text-xs font-medium text-green-700">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Aktif
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
                             </span>
                         @else
                             <span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
-                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Nonaktif
+                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Inactive
                             </span>
                         @endif
                     </dd>

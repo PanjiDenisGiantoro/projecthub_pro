@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Saya')
+@section('title', 'My Dashboard')
 
-@section('page-title', 'Dashboard Saya')
+@section('page-title', 'My Dashboard')
 
 @section('content')
 <div class="space-y-6 pt-4">
@@ -15,7 +15,7 @@
         {{-- Pending Requests --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Request Pending</span>
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pending Requests</span>
                 <div class="w-9 h-9 rounded-lg bg-yellow-50 flex items-center justify-center">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -24,13 +24,13 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ $stats['pending_requests'] }}</p>
-            <p class="mt-2 text-xs text-gray-500">Menunggu respon tim</p>
+            <p class="mt-2 text-xs text-gray-500">Awaiting team response</p>
         </div>
 
         {{-- Open Tickets --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Tiket Terbuka</span>
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Open Tickets</span>
                 <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
                     <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -39,13 +39,13 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ $stats['open_tickets'] }}</p>
-            <p class="mt-2 text-xs text-gray-500">Bug / laporan aktif</p>
+            <p class="mt-2 text-xs text-gray-500">Active bugs / issues</p>
         </div>
 
         {{-- Unpaid Invoices --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Invoice Belum Dibayar</span>
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Unpaid Invoices</span>
                 <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
                     <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,7 +54,7 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-orange-600">{{ $stats['unpaid_invoices'] }}</p>
-            <p class="mt-2 text-xs text-gray-500">Perlu segera dibayar</p>
+            <p class="mt-2 text-xs text-gray-500">Payment required</p>
         </div>
 
     </div>
@@ -64,10 +64,10 @@
     ============================================================ --}}
     <div>
         <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-gray-800">Proyek Saya</h2>
+            <h2 class="font-semibold text-gray-800">My Projects</h2>
             <a href="{{ route('projects.index') }}"
                class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                Lihat semua →
+                View all →
             </a>
         </div>
 
@@ -77,7 +77,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
                 </svg>
-                <p class="text-gray-500 text-sm">Belum ada proyek yang terdaftar</p>
+                <p class="text-gray-500 text-sm">No registered projects yet</p>
             </div>
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -92,10 +92,10 @@
                         ];
                         $statusLabels = [
                             'draft'     => 'Draft',
-                            'active'    => 'Aktif',
+                            'active'    => 'Active',
                             'on_hold'   => 'On Hold',
-                            'completed' => 'Selesai',
-                            'cancelled' => 'Batal',
+                            'completed' => 'Completed',
+                            'cancelled' => 'Cancelled',
                         ];
                         $progressBarColors = [
                             'draft'     => 'bg-gray-400',
@@ -143,7 +143,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
                                 </svg>
-                                <span>{{ $completedMilestones }}/{{ $totalMilestones }} milestone selesai</span>
+                                <span>{{ $completedMilestones }}/{{ $totalMilestones }} milestones completed</span>
                             </div>
                         @endif
 
@@ -166,7 +166,7 @@
                         {{-- CTA --}}
                         <a href="{{ route('projects.show', $project->id) }}"
                            class="w-full text-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors">
-                            Lihat Detail
+                            View Details
                         </a>
                     </div>
                 @endforeach
@@ -179,18 +179,18 @@
     ============================================================ --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b border-gray-100 gap-3">
-            <h2 class="font-semibold text-gray-800">Request Terbaru</h2>
+            <h2 class="font-semibold text-gray-800">Recent Requests</h2>
             <div class="flex items-center gap-2">
                 <a href="{{ route('requests.index') }}"
                    class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                    Lihat semua →
+                    View all →
                 </a>
                 <a href="{{ route('requests.create') }}"
                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Buat Request
+                    New Request
                 </a>
             </div>
         </div>
@@ -199,10 +199,10 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100 bg-gray-50">
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Subjek</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Proyek</th>
+                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Subject</th>
+                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Project</th>
                         <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
-                        <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Tanggal</th>
+                        <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Date</th>
                         <th class="px-3 py-3"></th>
                     </tr>
                 </thead>
@@ -218,10 +218,10 @@
                             ];
                             $reqStatusLabels = [
                                 'pending'     => 'Pending',
-                                'in_review'   => 'Direview',
-                                'approved'    => 'Disetujui',
-                                'rejected'    => 'Ditolak',
-                                'completed'   => 'Selesai',
+                                'in_review'   => 'In Review',
+                                'approved'    => 'Approved',
+                                'rejected'    => 'Rejected',
+                                'completed'   => 'Completed',
                             ];
                             $rsc = $reqStatusClasses[$request->status] ?? 'bg-gray-100 text-gray-600';
                             $rsl = $reqStatusLabels[$request->status] ?? ucfirst($request->status ?? 'pending');
@@ -247,7 +247,7 @@
                             <td class="px-3 py-3 text-right">
                                 <a href="{{ route('requests.show', $request->id) }}"
                                    class="text-blue-600 hover:text-blue-800 text-xs font-medium">
-                                    Detail
+                                    Details
                                 </a>
                             </td>
                         </tr>
@@ -259,10 +259,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"/>
                                     </svg>
-                                    <p class="text-sm">Belum ada request</p>
+                                    <p class="text-sm">No requests yet</p>
                                     <a href="{{ route('requests.create') }}"
                                        class="mt-2 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
-                                        Buat Request Pertama
+                                        Create First Request
                                     </a>
                                 </div>
                             </td>

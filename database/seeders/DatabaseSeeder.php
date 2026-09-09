@@ -22,28 +22,28 @@ class DatabaseSeeder extends Seeder
         // Create default users
         $admin = User::updateOrCreate(
             ['email' => 'admin@projecthub.pro'],
-            ['name' => 'Admin ProjectHub', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+            ['name' => 'Admin ProjectHub', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta', 'email_verified_at' => now()]
         );
         $admin->syncRoles(['admin']);
 
         $member = User::updateOrCreate(
             ['email' => 'member@projecthub.pro'],
-            ['name' => 'Member One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+            ['name' => 'Member One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta', 'email_verified_at' => now()]
         );
         $member->syncRoles(['member']);
 
         $client = User::updateOrCreate(
             ['email' => 'client@projecthub.pro'],
-            ['name' => 'Client One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta']
+            ['name' => 'Client One', 'password' => 'password', 'is_active' => true, 'timezone' => 'Asia/Jakarta', 'email_verified_at' => now()]
         );
         $client->syncRoles(['client']);
 
         // Default SLA policies (global)
         $slaPolicies = [
-            ['priority' => 'critical', 'response_minutes' => 30,   'resolution_minutes' => 240,   'escalation_at_percent' => 75],
-            ['priority' => 'high',     'response_minutes' => 120,  'resolution_minutes' => 1440,  'escalation_at_percent' => 75],
-            ['priority' => 'medium',   'response_minutes' => 240,  'resolution_minutes' => 4320,  'escalation_at_percent' => 75],
-            ['priority' => 'low',      'response_minutes' => 1440, 'resolution_minutes' => 10080, 'escalation_at_percent' => 75],
+            ['priority' => 'critical', 'response_minutes' => 30, 'resolution_minutes' => 240, 'escalation_at_percent' => 75],
+            ['priority' => 'high', 'response_minutes' => 120, 'resolution_minutes' => 1440, 'escalation_at_percent' => 75],
+            ['priority' => 'medium', 'response_minutes' => 240, 'resolution_minutes' => 4320, 'escalation_at_percent' => 75],
+            ['priority' => 'low', 'response_minutes' => 1440, 'resolution_minutes' => 10080, 'escalation_at_percent' => 75],
         ];
 
         foreach ($slaPolicies as $policy) {
@@ -77,7 +77,7 @@ class DatabaseSeeder extends Seeder
         $this->command->table(
             ['Role', 'Email', 'Password'],
             [
-                ['admin',  'admin@projecthub.pro',  'password'],
+                ['admin', 'admin@projecthub.pro', 'password'],
                 ['member', 'member@projecthub.pro', 'password'],
                 ['client', 'client@projecthub.pro', 'password'],
             ]

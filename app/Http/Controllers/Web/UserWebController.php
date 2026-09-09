@@ -241,7 +241,7 @@ class UserWebController extends Controller
         })->pluck('id');
         $user->packages()->sync($companyPackageIds);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
     public function edit(User $user)
@@ -276,9 +276,10 @@ class UserWebController extends Controller
             ...$this->customFieldValidationRules($customFields),
         ]);
 
+        $isAdminRole = $request->role === 'admin' || $user->hasRole('admin') || $user->is_super_admin;
         $data = [
             ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id'),
-            'is_active' => $request->boolean('is_active'),
+            'is_active' => $isAdminRole ? true : $request->boolean('is_active'),
         ];
 
         // Kalau tidak ada field kustom aktif, form tidak menampilkan blok ini sama
@@ -319,16 +320,16 @@ class UserWebController extends Controller
             ProjectMember::firstOrCreate(['project_id' => $projectId, 'user_id' => $user->id]);
         }
 
-        return redirect()->route('users.index')->with('success', 'User diperbarui.');
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {
-            return back()->withErrors(['Tidak bisa menghapus akun sendiri.']);
+            return back()->withErrors(['Cannot delete your own account.']);
         }
         $user->delete();
-        return redirect()->route('users.index')->with('success', 'User dihapus.');
+        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 
     /** Field kustom aktif milik company user yang login, urut sesuai sort_order. */

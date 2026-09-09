@@ -56,47 +56,47 @@ class RequestWebController extends Controller
             'status'      => 'waiting_approval',
         ]);
 
-        $this->notifier->notifyByRole('member', 'request_needs_approval', 'Request Perlu Approval', "Customer mengajukan: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
+        $this->notifier->notifyByRole('member', 'request_needs_approval', 'Request Needs Approval', "Customer submitted: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
 
-        return redirect()->route('requests.show', $cr)->with('success', 'Request berhasil dikirim.');
+        return redirect()->route('requests.show', $cr)->with('success', 'Request submitted successfully.');
     }
 
-    public function show(CustomerRequest $request)
+    public function show(CustomerRequest $customerRequest)
     {
-        abort_if(auth()->user()->hasRole('client') && $request->customer_id !== auth()->id(), 403);
+        abort_if(auth()->user()->hasRole('client') && $customerRequest->customer_id !== auth()->id(), 403);
 
-        $request->load(['project', 'customer', 'reviewer', 'approver']);
-        return view('requests.show', ['customerRequest' => $request]);
+        $customerRequest->load(['project', 'customer', 'reviewer', 'approver']);
+        return view('requests.show', compact('customerRequest'));
     }
 
     public function approve(Request $request, CustomerRequest $customerRequest)
     {
         if ($customerRequest->status !== 'waiting_approval') {
-            return back()->with('error', 'Request tidak sedang menunggu approval.');
+            return back()->with('error', 'Request is not waiting for approval.');
         }
         $customerRequest->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
-        $this->notifier->send($customerRequest->customer_id, 'request_approved', 'Request Disetujui', "Request Anda \"{$customerRequest->title}\" disetujui.", ['request_id' => $customerRequest->id]);
-        return back()->with('success', 'Request disetujui.');
+        $this->notifier->send($customerRequest->customer_id, 'request_approved', 'Request Approved', "Your request \"{$customerRequest->title}\" has been approved.", ['request_id' => $customerRequest->id]);
+        return back()->with('success', 'Request approved.');
     }
 
     public function reject(Request $request, CustomerRequest $customerRequest)
     {
         if ($customerRequest->status !== 'waiting_approval') {
-            return back()->with('error', 'Request tidak sedang menunggu approval.');
+            return back()->with('error', 'Request is not waiting for approval.');
         }
         $request->validate(['rejection_reason' => 'required|string']);
         $customerRequest->update(['status' => 'rejected', 'rejection_reason' => $request->rejection_reason, 'approved_by' => auth()->id()]);
-        $this->notifier->send($customerRequest->customer_id, 'request_rejected', 'Request Ditolak', "Request Anda \"{$customerRequest->title}\" ditolak. Alasan: {$request->rejection_reason}", ['request_id' => $customerRequest->id]);
-        return back()->with('success', 'Request ditolak.');
+        $this->notifier->send($customerRequest->customer_id, 'request_rejected', 'Request Rejected', "Your request \"{$customerRequest->title}\" has been rejected. Reason: {$request->rejection_reason}", ['request_id' => $customerRequest->id]);
+        return back()->with('success', 'Request rejected.');
     }
 
     public function complete(CustomerRequest $customerRequest)
     {
         if ($customerRequest->status !== 'approved') {
-            return back()->with('error', 'Request harus disetujui dulu sebelum ditandai selesai.');
+            return back()->with('error', 'Request must be approved before being marked as done.');
         }
         $customerRequest->update(['status' => 'done', 'completed_by' => auth()->id(), 'completed_at' => now()]);
-        $this->notifier->send($customerRequest->customer_id, 'request_done', 'Request Selesai', "Request Anda \"{$customerRequest->title}\" sudah selesai dikerjakan.", ['request_id' => $customerRequest->id]);
-        return back()->with('success', 'Request ditandai selesai.');
+        $this->notifier->send($customerRequest->customer_id, 'request_done', 'Request Completed', "Your request \"{$customerRequest->title}\" has been completed.", ['request_id' => $customerRequest->id]);
+        return back()->with('success', 'Request marked as done.');
     }
 }

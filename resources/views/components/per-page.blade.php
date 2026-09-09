@@ -9,9 +9,9 @@
             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
         @endif
     @endforeach
-    <label for="{{ $paramName }}-select" class="whitespace-nowrap">Tampilkan</label>
+    <label for="{{ $paramName }}-select" class="whitespace-nowrap">Show</label>
     <select id="{{ $paramName }}-select" name="{{ $paramName }}" onchange="this.form.submit()"
-            class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
         @foreach($options as $n)
             <option value="{{ $n }}" {{ (int) request($paramName, 10) === $n ? 'selected' : '' }}>{{ $n }}</option>
         @endforeach

@@ -23,7 +23,7 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-gray-800">{{ $stats['todo'] }}</p>
-            <p class="mt-2 text-xs text-gray-500">Tasks belum dimulai</p>
+            <p class="mt-2 text-xs text-gray-500">Tasks not started</p>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
@@ -37,12 +37,12 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-blue-600">{{ $stats['in_progress'] }}</p>
-            <p class="mt-2 text-xs text-gray-500">Sedang dikerjakan</p>
+            <p class="mt-2 text-xs text-gray-500">Currently in progress</p>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Done Minggu Ini</span>
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Done This Week</span>
                 <div class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
                     <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -51,12 +51,12 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-green-600">{{ $stats['done_week'] }}</p>
-            <p class="mt-2 text-xs text-gray-500">Diselesaikan 7 hari terakhir</p>
+            <p class="mt-2 text-xs text-gray-500">Completed in last 7 days</p>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Jam Minggu Ini</span>
+                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Hours This Week</span>
                 <div class="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
                     <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -65,7 +65,7 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-purple-600">{{ $stats['hours_week'] }}<span class="text-base font-medium text-gray-500">h</span></p>
-            <p class="mt-2 text-xs text-gray-500">Total jam kerja</p>
+            <p class="mt-2 text-xs text-gray-500">Total tracked hours</p>
         </div>
 
     </div>
@@ -103,7 +103,7 @@
                     <button @click="filter = 'all'"
                             :class="filter === 'all' ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'"
                             class="px-3 py-1 text-xs font-medium rounded-md transition-all">
-                        Semua
+                        All
                     </button>
                     <button @click="filter = 'todo'"
                             :class="filter === 'todo' ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'"
@@ -123,7 +123,7 @@
                 </div>
                 <a href="{{ route('projects.index') }}"
                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
-                    Lihat Semua
+                    View All
                 </a>
             </div>
         </div>
@@ -132,7 +132,7 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100 bg-gray-50">
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Proyek</th>
+                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Project</th>
                         <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Task</th>
                         <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Priority</th>
                         <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Due Date</th>
@@ -207,7 +207,7 @@
                             <td class="px-3 py-3 text-right">
                                 <a href="{{ route('tasks.show', [$task->project_id, $task->id]) }}"
                                    class="text-blue-600 hover:text-blue-800 text-xs font-medium">
-                                    Detail
+                                    Details
                                 </a>
                             </td>
                         </tr>
@@ -219,7 +219,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                     </svg>
-                                    <p class="text-sm">Tidak ada task yang ditugaskan</p>
+                                    <p class="text-sm">No tasks assigned to you</p>
                                 </div>
                             </td>
                         </tr>
@@ -238,13 +238,13 @@
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 class="font-semibold text-gray-800">Recent Campaigns</h2>
                 <a href="{{ route('campaigns.index') }}"
-                   class="text-xs font-medium text-blue-600 hover:text-blue-800">Semua Kampanye</a>
+                   class="text-xs font-medium text-blue-600 hover:text-blue-800">All Campaigns</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50">
-                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nama</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Name</th>
                             <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Channel</th>
                             <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
                         </tr>
@@ -278,7 +278,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-5 py-8 text-center text-sm text-gray-400">Belum ada kampanye</td>
+                                <td colspan="3" class="px-5 py-8 text-center text-sm text-gray-400">No campaigns yet</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -293,14 +293,14 @@
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 class="font-semibold text-gray-800">Recent Tickets</h2>
                 <a href="{{ route('tickets.all') }}"
-                   class="text-xs font-medium text-blue-600 hover:text-blue-800">Semua Tiket</a>
+                   class="text-xs font-medium text-blue-600 hover:text-blue-800">All Tickets</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50">
-                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Tiket</th>
-                            <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Proyek</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Ticket</th>
+                            <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Project</th>
                             <th class="text-left px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
                         </tr>
                     </thead>
@@ -330,7 +330,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-5 py-8 text-center text-sm text-gray-400">Tidak ada tiket open saat ini</td>
+                                <td colspan="3" class="px-5 py-8 text-center text-sm text-gray-400">No open tickets at this time</td>
                             </tr>
                         @endforelse
                     </tbody>

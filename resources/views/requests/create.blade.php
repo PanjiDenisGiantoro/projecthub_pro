@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Buat Request')
-@section('page-title', 'Ajukan Request Baru')
+@section('title', 'Create Request')
+@section('page-title', 'Submit New Request')
 
 @section('content')
 <div class="py-4 max-w-2xl">
@@ -10,25 +10,25 @@
               @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Proyek <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Project <span class="text-red-500">*</span></label>
                 <select name="project_id" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">— Pilih Proyek —</option>
+                    <option value="">— Select Project —</option>
                     @foreach($projects as $p)
                         <option value="{{ $p->id }}" {{ old('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Judul <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
                 <input type="text" name="title" value="{{ old('title') }}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-red-500">*</span></label>
                 <textarea name="description" rows="5" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description') }}</textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                     <select name="type" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @foreach(['feature_request'=>'Feature Request','bug_report'=>'Bug Report','change_request'=>'Change Request','general_inquiry'=>'General Inquiry'] as $v => $l)
                             <option value="{{ $v }}" {{ old('type') === $v ? 'selected' : '' }}>{{ $l }}</option>
@@ -36,20 +36,20 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Prioritas</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
                     <select name="priority" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach(['low','medium','high','urgent'] as $p)
-                            <option value="{{ $p }}" {{ old('priority','medium') === $p ? 'selected' : '' }}>{{ ucfirst($p) }}</option>
+                        @foreach(['low'=>'Low','medium'=>'Medium','high'=>'High','urgent'=>'Urgent'] as $p => $pLabel)
+                            <option value="{{ $p }}" {{ old('priority','medium') === $p ? 'selected' : '' }}>{{ $pLabel }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="submit" :disabled="submitting" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span x-show="!submitting">Kirim Request</span>
-                    <span x-show="submitting" x-cloak>Mengirim...</span>
+                    <span x-show="!submitting">Submit Request</span>
+                    <span x-show="submitting" x-cloak>Submitting...</span>
                 </button>
-                <a href="{{ route('requests.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
+                <a href="{{ route('requests.index') }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Cancel</a>
             </div>
         </form>
     </div>

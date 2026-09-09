@@ -1,5 +1,5 @@
 <p class="text-sm text-gray-500 mb-5 max-w-2xl">
-    Hubungkan channel Slack/Discord untuk dapat notifikasi otomatis saat ada task baru, task selesai, atau tiket baru di proyek ini.
+    Connect your Slack or Discord channel to receive automated notifications when new tasks are created, tasks are completed, or new tickets are opened in this project.
 </p>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -12,7 +12,7 @@
             </div>
             <div>
                 <h2 class="text-base font-semibold text-gray-900">Slack</h2>
-                <p class="text-xs text-gray-500">{{ $project->hasSlackIntegration() ? 'Terhubung' : 'Belum terhubung' }}</p>
+                <p class="text-xs text-gray-500">{{ $project->hasSlackIntegration() ? 'Connected' : 'Not connected' }}</p>
             </div>
         </div>
 
@@ -25,11 +25,11 @@
                     <input type="url" name="webhook_url" required placeholder="https://hooks.slack.com/services/..."
                            class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     <p class="text-xs text-gray-400 mt-1">
-                        Buat di Slack → App Directory → cari "Incoming Webhooks" → Add to Slack → pilih channel → copy Webhook URL.
+                        Create in Slack → App Directory → search "Incoming Webhooks" → Add to Slack → select channel → copy Webhook URL.
                     </p>
                 </div>
                 <button type="submit" class="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors" style="background:#4A154B">
-                    Hubungkan Slack
+                    Connect Slack
                 </button>
             </form>
         @else
@@ -38,14 +38,14 @@
                     @csrf
                     <input type="hidden" name="provider" value="slack">
                     <button type="submit" class="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
-                        Kirim Test
+                        Send Test
                     </button>
                 </form>
-                <form method="POST" action="{{ route('team-notifications.destroy', $project) }}" data-confirm-submit="Putuskan integrasi Slack?" data-confirm-btn="Ya, Putuskan">
+                <form method="POST" action="{{ route('team-notifications.destroy', $project) }}" data-confirm-submit="Disconnect Slack integration?" data-confirm-btn="Yes, Disconnect">
                     @csrf @method('DELETE')
                     <input type="hidden" name="provider" value="slack">
                     <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition">
-                        Putuskan
+                        Disconnect
                     </button>
                 </form>
             </div>
@@ -60,7 +60,7 @@
             </div>
             <div>
                 <h2 class="text-base font-semibold text-gray-900">Discord</h2>
-                <p class="text-xs text-gray-500">{{ $project->hasDiscordIntegration() ? 'Terhubung' : 'Belum terhubung' }}</p>
+                <p class="text-xs text-gray-500">{{ $project->hasDiscordIntegration() ? 'Connected' : 'Not connected' }}</p>
             </div>
         </div>
 
@@ -73,11 +73,11 @@
                     <input type="url" name="webhook_url" required placeholder="https://discord.com/api/webhooks/..."
                            class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     <p class="text-xs text-gray-400 mt-1">
-                        Buat di Discord → Server Settings → Integrations → Webhooks → New Webhook → pilih channel → Copy Webhook URL.
+                        Create in Discord → Server Settings → Integrations → Webhooks → New Webhook → select channel → Copy Webhook URL.
                     </p>
                 </div>
                 <button type="submit" class="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors" style="background:#5865F2">
-                    Hubungkan Discord
+                    Connect Discord
                 </button>
             </form>
         @else
@@ -86,14 +86,14 @@
                     @csrf
                     <input type="hidden" name="provider" value="discord">
                     <button type="submit" class="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
-                        Kirim Test
+                        Send Test
                     </button>
                 </form>
-                <form method="POST" action="{{ route('team-notifications.destroy', $project) }}" data-confirm-submit="Putuskan integrasi Discord?" data-confirm-btn="Ya, Putuskan">
+                <form method="POST" action="{{ route('team-notifications.destroy', $project) }}" data-confirm-submit="Disconnect Discord integration?" data-confirm-btn="Yes, Disconnect">
                     @csrf @method('DELETE')
                     <input type="hidden" name="provider" value="discord">
                     <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-2 rounded-lg border border-red-200 hover:bg-red-50 transition">
-                        Putuskan
+                        Disconnect
                     </button>
                 </form>
             </div>
@@ -104,6 +104,6 @@
 
 @if($project->hasSlackIntegration() || $project->hasDiscordIntegration())
 <div class="mt-5 bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
-    Notifikasi otomatis terkirim saat: task baru dibuat, task ditandai selesai, dan tiket baru dibuka.
+    Automated notifications will be sent when: a new task is created, a task is marked done, and a new ticket is opened.
 </div>
 @endif

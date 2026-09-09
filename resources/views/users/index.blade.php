@@ -16,22 +16,22 @@
      })">
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <form method="GET" class="flex gap-2 flex-1 flex-wrap">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / email / field kustom..."
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name / email / custom field..."
                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56">
             @if($isAdmin)
-            <select name="role" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Semua Role</option>
+            <select name="role" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <option value="">All Roles</option>
                 @foreach($roles as $role)
                     <option value="{{ $role->name }}" {{ request('role') === $role->name ? 'selected' : '' }}>{{ \App\Support\RoleLabel::for($role->name) }}</option>
                 @endforeach
             </select>
             @endif
-            <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg transition-colors">Filter</button>
+            <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer">Filter</button>
         </form>
         @if(auth()->user()->hasRole('admin') || auth()->user()->is_super_admin)
         <a href="{{ route('custom-fields.index') }}" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-            Field Kustom
+            Custom Fields
         </a>
         @endif
         @can('export user')
@@ -41,16 +41,16 @@
         </a>
         @endcan
         @can('import user')
-        <button type="button" @click="importOpen = true" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
+        <button type="button" @click="importOpen = true" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-5-4 5M12 3v12"/></svg>
             Import Excel
         </button>
         @endcan
         @if($isAdmin)
         <button type="button" @click="logsOpen = !logsOpen"
-                class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors">
+                class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Log Aktivitas
+            Activity Logs
             @if($logsCount)
             <span class="badge bg-gray-100 text-gray-600">{{ $logsCount }}</span>
             @endif
@@ -60,7 +60,7 @@
         @if($canCreate)
         <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-            Tambah User
+            Add User
         </a>
         @endif
     </div>
@@ -69,7 +69,7 @@
     @if($isAdmin)
     <div x-show="logsOpen" x-cloak x-transition class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
         <div class="max-h-96 overflow-y-auto">
-            <p x-show="logsLoading" class="px-4 py-6 text-center text-xs text-gray-400">Memuat log...</p>
+            <p x-show="logsLoading" class="px-4 py-6 text-center text-xs text-gray-400">Loading logs...</p>
             <div x-show="!logsLoading" x-ref="userLogList" class="divide-y divide-gray-100"></div>
         </div>
     </div>
@@ -84,7 +84,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs text-gray-500">Total User</p>
+                <p class="text-xs text-gray-500">Total Users</p>
                 <p class="text-xl font-bold text-gray-800">{{ $totalUsers }}</p>
             </div>
         </div>
@@ -95,7 +95,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs text-gray-500">Aktif</p>
+                <p class="text-xs text-gray-500">Active</p>
                 <p class="text-xl font-bold text-gray-800">{{ $activeUsers }}</p>
             </div>
         </div>
@@ -106,7 +106,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs text-gray-500">Nonaktif</p>
+                <p class="text-xs text-gray-500">Inactive</p>
                 <p class="text-xl font-bold text-gray-800">{{ $inactiveUsers }}</p>
             </div>
         </div>
@@ -116,20 +116,20 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">Nama</th>
+                    <th class="px-4 py-3 text-left">Name</th>
                     <th class="px-4 py-3 text-left">Email</th>
                     <th class="px-4 py-3 text-left">Role</th>
-                    <th class="px-4 py-3 text-left">Proyek</th>
+                    <th class="px-4 py-3 text-left">Projects</th>
                     @if(session('active_package') === 'hris')
-                    <th class="px-4 py-3 text-left">Level Struktural</th>
-                    <th class="px-4 py-3 text-left">Departemen</th>
-                    <th class="px-4 py-3 text-left">Tipe Karyawan</th>
+                    <th class="px-4 py-3 text-left">Structural Level</th>
+                    <th class="px-4 py-3 text-left">Department</th>
+                    <th class="px-4 py-3 text-left">Employment Type</th>
                     @endif
                     @foreach($customFields as $cf)
                     <th class="px-4 py-3 text-left">{{ $cf->label }}</th>
                     @endforeach
                     <th class="px-4 py-3 text-left">Status</th>
-                    <th class="px-4 py-3 text-left">Bergabung</th>
+                    <th class="px-4 py-3 text-left">Joined</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -146,7 +146,7 @@
                             </div>
                             <span class="font-medium text-gray-800">{{ $u->name }}</span>
                             @if($u->id === auth()->id())
-                                <span class="badge bg-gray-100 text-gray-500 text-xs">Anda</span>
+                                <span class="badge bg-gray-100 text-gray-500 text-xs">You</span>
                             @endif
                         </div>
                     </td>
@@ -190,11 +190,11 @@
                         @endif
                         @if($u->contract_end_date)
                             @if($u->isContractExpired())
-                                <p class="text-xs text-red-600 font-medium mt-0.5">Kontrak berakhir {{ $u->contract_end_date->format('d M Y') }}</p>
+                                <p class="text-xs text-red-600 font-medium mt-0.5">Contract ended {{ $u->contract_end_date->format('d M Y') }}</p>
                             @elseif($u->isContractExpiringSoon())
-                                <p class="text-xs text-amber-600 font-medium mt-0.5">Berakhir {{ $u->contract_end_date->format('d M Y') }} ({{ $u->contractDaysRemaining() }}h lagi)</p>
+                                <p class="text-xs text-amber-600 font-medium mt-0.5">Expires {{ $u->contract_end_date->format('d M Y') }} ({{ $u->contractDaysRemaining() }}d left)</p>
                             @else
-                                <p class="text-xs text-gray-400 mt-0.5">s/d {{ $u->contract_end_date->format('d M Y') }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">until {{ $u->contract_end_date->format('d M Y') }}</p>
                             @endif
                         @endif
                     </td>
@@ -203,7 +203,7 @@
                     @php $cfVal = $u->custom_fields[$cf->key] ?? null; @endphp
                     <td class="px-4 py-3 text-gray-600 text-xs">
                         @if($cf->type === 'checkbox')
-                            <span class="{{ $cfVal ? 'text-green-600' : 'text-gray-400' }}">{{ $cfVal ? 'Ya' : 'Tidak' }}</span>
+                            <span class="{{ $cfVal ? 'text-green-600' : 'text-gray-400' }}">{{ $cfVal ? 'Yes' : 'No' }}</span>
                         @elseif($cfVal !== null && $cfVal !== '')
                             {{ $cfVal }}
                         @else
@@ -213,7 +213,7 @@
                     @endforeach
                     <td class="px-4 py-3">
                         <span class="badge {{ $u->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                            {{ $u->is_active ? 'Aktif' : 'Nonaktif' }}
+                            {{ $u->is_active ? 'Active' : 'Inactive' }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-500">{{ $u->created_at->format('d M Y') }}</td>
@@ -225,14 +225,14 @@
                             @endif
                             @can('view payroll')
                             @if(Route::has('hris.salary.index') && session('active_package') === 'hris')
-                            <a href="{{ route('hris.salary.index', $u) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Gaji</a>
+                            <a href="{{ route('hris.salary.index', $u) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Salary</a>
                             @endif
                             @endcan
                             @if($canDelete && $u->id !== auth()->id())
                             <form method="POST" action="{{ route('users.destroy', $u) }}"
-                                  data-confirm-delete="{{ $u->name }}" data-confirm-label="Hapus User">
+                                  data-confirm-delete="{{ $u->name }}" data-confirm-label="Delete User">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Hapus</button>
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-sm cursor-pointer">Delete</button>
                             </form>
                             @endif
                         </div>
@@ -240,7 +240,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="{{ (session('active_package') === 'hris' ? 10 : 7) + $customFields->count() }}" class="px-4 py-8 text-center text-gray-400">Tidak ada user ditemukan.</td></tr>
+                <tr><td colspan="{{ (session('active_package') === 'hris' ? 10 : 7) + $customFields->count() }}" class="px-4 py-8 text-center text-gray-400">No users found.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -262,18 +262,18 @@
             <form method="POST" action="{{ route('users.import') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="font-semibold text-gray-800">Import Data Karyawan</h3>
-                    <button type="button" @click="importOpen = false" class="text-gray-400 hover:text-gray-600">
+                    <h3 class="font-semibold text-gray-800">Import Employee Data</h3>
+                    <button type="button" @click="importOpen = false" class="text-gray-400 hover:text-gray-600 cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 <div class="px-5 py-4 space-y-3">
                     <p class="text-sm text-gray-500">
-                        Unggah file Excel (.xlsx/.xls/.csv) berisi data karyawan. Email yang sudah terdaftar akan diperbarui, email baru akan dibuatkan user baru.
+                        Upload an Excel file (.xlsx/.xls/.csv) with employee data. Existing registered emails will be updated; new emails will create new user accounts.
                     </p>
                     <a href="{{ route('users.import.template') }}" class="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
-                        Download Template Import
+                        Download Import Template
                     </a>
                     <div>
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" required
@@ -282,8 +282,8 @@
                     </div>
                 </div>
                 <div class="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
-                    <button type="button" @click="importOpen = false" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">Import</button>
+                    <button type="button" @click="importOpen = false" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg cursor-pointer">Import</button>
                 </div>
             </form>
         </div>

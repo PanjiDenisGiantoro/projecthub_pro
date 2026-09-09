@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Dashboard HRIS')
-@section('page-title', 'Dashboard HRIS')
+@section('title', 'HRIS Dashboard')
+@section('page-title', 'HRIS Dashboard')
 
 @section('content')
 <div class="space-y-6 pt-5">
@@ -9,10 +9,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">
-                Selamat datang, {{ auth()->user()->name }} 👋
+                Welcome, {{ auth()->user()->name }} 👋
             </h1>
             <p class="text-sm text-gray-500 mt-0.5">
-                {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }}
+                {{ \Carbon\Carbon::now()->format('l, F j, Y') }}
                 &mdash; Human Resource Information System
             </p>
         </div>
@@ -23,7 +23,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
-            Data Karyawan
+            Employees
         </a>
         @endcan
     </div>
@@ -40,7 +40,7 @@
                 </div>
             </div>
             <p class="text-2xl font-bold text-gray-900">{{ number_format($totalKaryawan) }}</p>
-            <p class="text-xs text-gray-500 mt-0.5">Total Karyawan</p>
+            <p class="text-xs text-gray-500 mt-0.5">Total Employees</p>
         </div>
 
         {{-- Total Departemen --}}
@@ -53,7 +53,7 @@
                 </div>
             </div>
             <p class="text-2xl font-bold text-gray-900">{{ number_format($totalDept) }}</p>
-            <p class="text-xs text-gray-500 mt-0.5">Departemen</p>
+            <p class="text-xs text-gray-500 mt-0.5">Departments</p>
         </div>
 
         {{-- Absensi Hari Ini --}}
@@ -66,7 +66,7 @@
                 </div>
             </div>
             <p class="text-2xl font-bold text-gray-900">{{ number_format($hadirHariIni) }}</p>
-            <p class="text-xs text-gray-500 mt-0.5">Hadir Hari Ini</p>
+            <p class="text-xs text-gray-500 mt-0.5">Present Today</p>
         </a>
 
         {{-- Cuti Pending --}}
@@ -79,7 +79,7 @@
                 </div>
             </div>
             <p class="text-2xl font-bold text-gray-900">{{ number_format($cutiPending) }}</p>
-            <p class="text-xs text-gray-500 mt-0.5">Pengajuan Cuti</p>
+            <p class="text-xs text-gray-500 mt-0.5">Leave Requests</p>
         </a>
     </div>
 
@@ -96,15 +96,15 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">Tren Kehadiran</h3>
-                        <p class="text-sm text-slate-400 mt-0.5">14 hari terakhir</p>
+                        <h3 class="text-lg font-bold text-slate-900">Attendance Trends</h3>
+                        <p class="text-sm text-slate-400 mt-0.5">Last 14 days</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Hadir</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>Izin</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>Sakit</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>Alpha</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Present</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>Permit</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>Sick</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>Absent</span>
                 </div>
             </div>
             <div class="px-6 pb-6" style="height:260px">
@@ -122,8 +122,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900">Status Kehadiran</h3>
-                    <p class="text-sm text-slate-400 mt-0.5">Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM Y') }}</p>
+                    <h3 class="text-lg font-bold text-slate-900">Attendance Status</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">{{ \Carbon\Carbon::now()->format('F Y') }}</p>
                 </div>
             </div>
             <div class="px-6 pb-2" style="height:165px;position:relative">
@@ -131,11 +131,11 @@
             </div>
             <div class="px-6 pb-6 space-y-2.5" id="attendanceStatusLegend">
                 @foreach([
-                    ['#059669','Hadir', $attendance_status_month['hadir'] ?? 0],
-                    ['#d97706','Izin',  $attendance_status_month['izin'] ?? 0],
-                    ['#0ea5e9','Sakit', $attendance_status_month['sakit'] ?? 0],
-                    ['#ef4444','Alpha', $attendance_status_month['alpha'] ?? 0],
-                    ['#7c3aed','Cuti',  $attendance_status_month['cuti'] ?? 0],
+                    ['#059669','Present', $attendance_status_month['hadir'] ?? 0],
+                    ['#d97706','Permit',  $attendance_status_month['izin'] ?? 0],
+                    ['#0ea5e9','Sick',    $attendance_status_month['sakit'] ?? 0],
+                    ['#ef4444','Absent',  $attendance_status_month['alpha'] ?? 0],
+                    ['#7c3aed','Leave',   $attendance_status_month['cuti'] ?? 0],
                 ] as [$col,$label,$val])
                 <div class="flex items-center gap-2 text-[13px]">
                     <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{{ $col }}"></span>
@@ -160,8 +160,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900">Cuti &amp; Izin</h3>
-                    <p class="text-sm text-slate-400 mt-0.5">Status pengajuan tahun ini</p>
+                    <h3 class="text-lg font-bold text-slate-900">Leave &amp; Permits</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">Application status this year</p>
                 </div>
             </div>
             <div class="px-6 pb-2" style="height:150px;position:relative">
@@ -170,9 +170,9 @@
             <div class="px-6 pb-6 space-y-2.5">
                 @foreach([
                     ['#d97706','Pending',   $leave_status_year['pending'] ?? 0],
-                    ['#059669','Disetujui', $leave_status_year['approved'] ?? 0],
-                    ['#ef4444','Ditolak',   $leave_status_year['rejected'] ?? 0],
-                    ['#94a3b8','Dibatalkan',$leave_status_year['cancelled'] ?? 0],
+                    ['#059669','Approved',  $leave_status_year['approved'] ?? 0],
+                    ['#ef4444','Rejected',  $leave_status_year['rejected'] ?? 0],
+                    ['#94a3b8','Cancelled', $leave_status_year['cancelled'] ?? 0],
                 ] as [$col,$label,$val])
                 <div class="flex items-center gap-2 text-[13px]">
                     <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{{ $col }}"></span>
@@ -192,8 +192,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900">Lembur</h3>
-                    <p class="text-sm text-slate-400 mt-0.5">Jam disetujui · 6 bulan</p>
+                    <h3 class="text-lg font-bold text-slate-900">Overtime</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">Approved hours · 6 months</p>
                 </div>
             </div>
             <div class="px-6 pb-6" style="height:200px">
@@ -210,8 +210,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900">Reimburse</h3>
-                    <p class="text-sm text-slate-400 mt-0.5">Per kategori · bulan ini</p>
+                    <h3 class="text-lg font-bold text-slate-900">Reimbursement</h3>
+                    <p class="text-sm text-slate-400 mt-0.5">By category · this month</p>
                 </div>
             </div>
             <div class="px-6 pb-6" style="height:200px">
@@ -223,16 +223,16 @@
 
     {{-- Modul Core HRIS --}}
     <div>
-        <h2 class="text-sm font-semibold text-gray-700 mb-3">Modul Core HRIS</h2>
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Core HRIS Modules</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             @php
             $modules = [
-                ['label' => 'Absensi',       'route' => 'hris.absensi.index',  'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'emerald'],
-                ['label' => 'Penggajian',    'route' => 'hris.payroll.index',  'perm' => 'view payroll',   'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'blue'],
-                ['label' => 'Pengaturan Penggajian', 'route' => 'hris.payroll.setting', 'perm' => 'update payroll', 'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',                                                        'color' => 'orange'],
-                ['label' => 'Cuti & Izin',   'route' => 'hris.leave.index',    'perm' => null,             'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',                                                                 'color' => 'amber'],
-                ['label' => 'Lembur',        'route' => 'hris.overtime.index', 'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'red'],
-                ['label' => 'Reimburse',     'route' => 'hris.reimburse.index','perm' => null,             'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',         'color' => 'teal'],
+                ['label' => 'Attendance',       'route' => 'hris.absensi.index',  'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'emerald'],
+                ['label' => 'Payroll',          'route' => 'hris.payroll.index',  'perm' => 'view payroll',   'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'blue'],
+                ['label' => 'Payroll Settings', 'route' => 'hris.payroll.setting', 'perm' => 'update payroll', 'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',                                                        'color' => 'orange'],
+                ['label' => 'Leave & Permits',   'route' => 'hris.leave.index',    'perm' => null,             'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',                                                                 'color' => 'amber'],
+                ['label' => 'Overtime',         'route' => 'hris.overtime.index', 'perm' => null,             'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                              'color' => 'red'],
+                ['label' => 'Reimbursement',    'route' => 'hris.reimburse.index','perm' => null,             'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',         'color' => 'teal'],
             ];
             $colorMap = [
                 'emerald' => ['bg' => 'bg-emerald-50', 'icon' => 'text-emerald-500', 'border' => 'border-emerald-100'],
@@ -261,7 +261,7 @@
 
     {{-- Menu Pendukung --}}
     <div>
-        <h2 class="text-sm font-semibold text-gray-700 mb-3">Menu Pendukung</h2>
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Supporting Modules</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
             {{-- Data Karyawan --}}
@@ -274,8 +274,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Data Karyawan</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Kelola data, role, dan akses karyawan</p>
+                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Employees</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Manage employee data, roles, and permissions</p>
                 </div>
                 <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -293,8 +293,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Struktur Organisasi</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Kelola cabang, divisi, dan departemen</p>
+                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Organization Structure</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Manage branches, divisions, and departments</p>
                 </div>
                 <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -312,8 +312,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Level Struktural</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Jabatan dan hierarki organisasi</p>
+                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Structural Levels</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Job positions and organizational hierarchy</p>
                 </div>
                 <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-400 ml-auto shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -341,10 +341,10 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: data.map(d => d.label),
                 datasets: [
-                    { label: 'Hadir', data: data.map(d => d.hadir), backgroundColor: '#059669', borderRadius: 3 },
-                    { label: 'Izin',  data: data.map(d => d.izin),  backgroundColor: '#fbbf24', borderRadius: 3 },
-                    { label: 'Sakit', data: data.map(d => d.sakit), backgroundColor: '#38bdf8', borderRadius: 3 },
-                    { label: 'Alpha', data: data.map(d => d.alpha), backgroundColor: '#f87171', borderRadius: 3 },
+                    { label: 'Present', data: data.map(d => d.hadir), backgroundColor: '#059669', borderRadius: 3 },
+                    { label: 'Permit',  data: data.map(d => d.izin),  backgroundColor: '#fbbf24', borderRadius: 3 },
+                    { label: 'Sick',    data: data.map(d => d.sakit), backgroundColor: '#38bdf8', borderRadius: 3 },
+                    { label: 'Absent',  data: data.map(d => d.alpha), backgroundColor: '#f87171', borderRadius: 3 },
                 ]
             },
             options: {
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function () {
         new Chart(ctx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Hadir', 'Izin', 'Sakit', 'Alpha', 'Cuti'],
+                labels: ['Present', 'Permit', 'Sick', 'Absent', 'Leave'],
                 datasets: [{
                     data: [
                         {{ $attendance_status_month['hadir'] ?? 0 }},
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
         new Chart(ctx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Pending', 'Disetujui', 'Ditolak', 'Dibatalkan'],
+                labels: ['Pending', 'Approved', 'Rejected', 'Cancelled'],
                 datasets: [{
                     data: [
                         {{ $leave_status_year['pending'] ?? 0 }},
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: data.map(d => d.month),
                 datasets: [{
-                    label: 'Jam Lembur',
+                    label: 'Overtime Hours',
                     data: data.map(d => d.hours),
                     backgroundColor: '#f87171',
                     borderRadius: 6,
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(15,23,42,0.9)', cornerRadius: 8, padding: 12,
-                        callbacks: { label: c => ` ${c.parsed.y} jam` }
+                        callbacks: { label: c => ` ${c.parsed.y} hours` }
                     }
                 },
                 scales: {
@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 },
                 scales: {
-                    x: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8', callback: v => 'Rp ' + (v / 1000) + 'rb' } },
+                    x: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8', callback: v => 'Rp ' + (v / 1000) + 'k' } },
                     y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } }
                 }
             }
