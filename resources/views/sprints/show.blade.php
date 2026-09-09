@@ -80,7 +80,8 @@
                      ondragend="this.classList.remove('opacity-50')"
                      class="group bg-white rounded-lg border border-gray-200 p-3 cursor-grab active:cursor-grabbing hover:shadow-sm">
                     <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-medium text-gray-800 leading-snug">{{ $task->title }}</p>
+                        <a href="{{ route('tasks.show', [$project, $task]) }}"
+                           class="text-sm font-medium text-gray-800 hover:text-blue-600 leading-snug">{{ $task->title }}</a>
                         @if(!auth()->user()->hasRole('client'))
                         <form method="POST" action="{{ route('sprints.tasks.remove', [$project, $sprint]) }}"
                               data-confirm-submit="Keluarkan task &quot;{{ $task->title }}&quot; dari sprint ini ke backlog?" data-confirm-btn="Ya, Keluarkan"

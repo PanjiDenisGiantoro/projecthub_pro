@@ -219,6 +219,44 @@ class AiAssistantWebController extends Controller
     }
 
     /**
+     * llama3.2:1b kadang tidak mengisi field "tool_calls" resmi dari Ollama
+     * sama sekali dan malah nge-echo balik SKEMA tool (bukan pemanggilan
+     * sungguhan) sebagai teks biasa di message.content — persis kayak JSON
+     * yang kita kirim di toolDefinitions(), lengkap dengan "parameters"/
+     * "properties"/"required" tapi TANPA argumen yang benar-benar diisi.
+     * Dibedakan dari tool call sungguhan (yang punya "arguments" terisi)
+     * lewat cek ini, supaya JSON mentah itu tidak pernah nyasar ke user.
+     */
+    private function extractLeakedToolCall(string $content): ?array
+    {
+        $trimmed = trim($content);
+        if ($trimmed === '' || $trimmed[0] !== '{') {
+            return null;
+        }
+
+        $decoded = json_decode($trimmed, true);
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        $fn   = $decoded['function'] ?? $decoded;
+        $name = $fn['name'] ?? null;
+        $args = $fn['arguments'] ?? null;
+
+        if (!$name || !is_array($args)) {
+            return null;
+        }
+
+        return ['name' => $name, 'arguments' => $args];
+    }
+
+    private function looksLikeRawJson(string $content): bool
+    {
+        $trimmed = trim($content);
+        return $trimmed !== '' && $trimmed[0] === '{' && json_decode($trimmed) !== null;
+    }
+
+    /**
      * Jalur tool-calling (non-streaming) — sama seperti sebelumnya, ditambah
      * keep_alive supaya konsisten dengan jalur streaming (lihat chatStreaming()).
      */
@@ -246,6 +284,16 @@ class AiAssistantWebController extends Controller
         }
 
         $toolCalls = $response->json('message.tool_calls', []);
+        $content   = $response->json('message.content', '');
+
+        if (empty($toolCalls)) {
+            $leaked = $this->extractLeakedToolCall($content);
+            if ($leaked) {
+                $toolCalls = [['function' => $leaked]];
+            } elseif ($this->looksLikeRawJson($content)) {
+                $content = 'Maaf, saya kurang paham maksudnya. Bisa tolong diulang dengan kalimat lain?';
+            }
+        }
 
         if (!empty($toolCalls)) {
             $call = $toolCalls[0]['function'] ?? null;
@@ -292,7 +340,7 @@ class AiAssistantWebController extends Controller
         }
 
         return response()->json([
-            'reply' => $response->json('message.content', ''),
+            'reply' => $content,
         ]);
     }
 

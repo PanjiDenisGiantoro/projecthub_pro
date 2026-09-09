@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,1222 +13,1323 @@
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>(function(){var m=localStorage.getItem('flovig_mode')||'light';document.documentElement.setAttribute('data-mode',m);})();</script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script>(function () { var m = localStorage.getItem('flovig_mode') || 'light'; document.documentElement.setAttribute('data-mode', m); })();</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     @stack('head')
 </head>
-<body class="h-full font-sans antialiased" style="background-color:var(--fl-page)"
-      x-data="{
+
+<body class="h-full font-sans antialiased" style="background-color:var(--fl-page)" x-data="{
           sidebarOpen: false,
           sidebarCollapsed: {{ (request()->routeIs('projects.*') || request()->is('projects*')) ? 'true' : 'false' }}
       }">
 
-{{-- Page Loading Overlay --}}
-<div id="page-loader" class="fixed inset-0 z-[9999] overflow-hidden" style="background-color:#ffffff">
-    <div id="page-loader-icon" class="absolute inset-0 flex items-center justify-center">
-        <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-72 sm:w-80 h-auto object-contain">
-    </div>
-</div>
-
-<div class="flex h-full">
-
-    {{-- ── Desktop Sidebar ────────────────────────────────────────────────── --}}
-    <aside class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 ph-sidebar transition-all duration-300"
-           :class="sidebarCollapsed ? 'sidebar-collapsed lg:w-20' : 'lg:w-64'"
-           style="z-index:20">
-
-        {{-- Logo & Hamburger --}}
-        <div class="flex items-center h-16 shrink-0 ph-side-divider-b transition-all duration-300"
-             :class="sidebarCollapsed ? 'justify-center px-0' : 'px-5'">
-            {{-- Expanded: Full logo --}}
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 overflow-hidden" title="Flovig" x-show="!sidebarCollapsed">
-                <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
-            </a>
-            {{-- Collapsed: Icon logo --}}
-            <a href="{{ route('dashboard') }}" class="flex items-center justify-center" title="Flovig" x-show="sidebarCollapsed" x-cloak>
-                <img src="{{ asset('flovig_icon.png') }}" alt="Flovig" class="w-9 h-9 object-contain shrink-0 rounded-lg">
-            </a>
-            {{-- Hamburger: only visible when expanded --}}
-            <button type="button"
-                    @click="sidebarCollapsed = !sidebarCollapsed"
-                    class="fl-bell-btn cursor-pointer p-2 rounded-xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0 ml-auto"
-                    title="Collapse Sidebar"
-                    x-show="!sidebarCollapsed">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
+    {{-- Page Loading Overlay --}}
+    <div id="page-loader" class="fixed inset-0 z-[9999] overflow-hidden" style="background-color:#ffffff">
+        <div id="page-loader-icon" class="absolute inset-0 flex items-center justify-center">
+            <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..."
+                class="w-72 sm:w-80 h-auto object-contain">
         </div>
+    </div>
 
-        {{-- Nav --}}
-        <nav class="flex-1 overflow-y-auto py-4 space-y-0.5 scrollbar-hide transition-all duration-300"
-             :class="sidebarCollapsed ? 'px-0' : 'px-3'">
-            {{-- Expand arrow: only visible when collapsed, above the first nav icon --}}
-            <div x-show="sidebarCollapsed" x-cloak class="flex justify-center mb-2">
-                <button type="button"
-                        @click="sidebarCollapsed = false"
-                        class="sidebar-expand-btn cursor-pointer w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200"
-                        title="Expand Sidebar">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+    <div class="flex h-full">
+
+        {{-- ── Desktop Sidebar ────────────────────────────────────────────────── --}}
+        <aside class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 ph-sidebar transition-all duration-300"
+            :class="sidebarCollapsed ? 'sidebar-collapsed lg:w-20' : 'lg:w-64'" style="z-index:20">
+
+            {{-- Logo & Hamburger --}}
+            <div class="flex items-center h-16 shrink-0 ph-side-divider-b transition-all duration-300"
+                :class="sidebarCollapsed ? 'justify-center px-0' : 'px-5'">
+                {{-- Expanded: Full logo --}}
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 overflow-hidden" title="Flovig"
+                    x-show="!sidebarCollapsed">
+                    <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
+                </a>
+                {{-- Collapsed: Icon logo --}}
+                <a href="{{ route('dashboard') }}" class="flex items-center justify-center" title="Flovig"
+                    x-show="sidebarCollapsed" x-cloak>
+                    <img src="{{ asset('flovig_icon.png') }}" alt="Flovig"
+                        class="w-9 h-9 object-contain shrink-0 rounded-lg">
+                </a>
+                {{-- Hamburger: only visible when expanded --}}
+                <button type="button" @click="sidebarCollapsed = !sidebarCollapsed"
+                    class="fl-bell-btn cursor-pointer p-2 rounded-xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0 ml-auto"
+                    title="Collapse Sidebar" x-show="!sidebarCollapsed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
             </div>
-            @include('layouts.sidebar-nav')
-        </nav>
 
-        {{-- User section --}}
-        <div class="px-3 py-3 shrink-0 ph-side-divider-t">
-            <div x-data="{ userMenuOpen: false }" class="relative">
-                <button @click="userMenuOpen = !userMenuOpen"
+            {{-- Nav --}}
+            <nav class="flex-1 overflow-y-auto py-4 space-y-0.5 scrollbar-hide transition-all duration-300"
+                :class="sidebarCollapsed ? 'px-0' : 'px-3'">
+                {{-- Expand arrow: only visible when collapsed, above the first nav icon --}}
+                <div x-show="sidebarCollapsed" x-cloak class="flex justify-center mb-2">
+                    <button type="button" @click="sidebarCollapsed = false"
+                        class="sidebar-expand-btn cursor-pointer w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200"
+                        title="Expand Sidebar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+                @include('layouts.sidebar-nav')
+            </nav>
+
+            {{-- User section --}}
+            <div class="px-3 py-3 shrink-0 ph-side-divider-t">
+                <div x-data="{ userMenuOpen: false }" class="relative">
+                    <button @click="userMenuOpen = !userMenuOpen"
                         class="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl ph-user-btn group text-left">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
+                                class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-blue-400 transition-all shrink-0">
+                        @else
+                            <div
+                                class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[13px] font-semibold truncate leading-tight"
+                                style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
+                            <p class="text-[11px] truncate capitalize leading-tight mt-0.5"
+                                style="color:var(--ph-user-role)">
+                                {{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
+                        </div>
+                        <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200"
+                            style="color:var(--ph-user-chev)" :class="userMenuOpen ? 'rotate-180' : ''" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    {{-- Dropdown --}}
+                    <div x-show="userMenuOpen" x-cloak @click.away="userMenuOpen = false"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-1"
+                        class="absolute bottom-full mb-2 rounded-2xl overflow-hidden z-50 transition-all duration-200"
+                        :class="sidebarCollapsed ? 'left-2 w-64' : 'left-0 right-0'"
+                        style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+
+                        <div class="px-4 py-3 ph-drop-divider-b">
+                            <p class="text-[13px] font-semibold truncate" style="color:var(--ph-user-name)">
+                                {{ auth()->user()->name }}</p>
+                            <p class="text-[11px] truncate" style="color:var(--ph-drop-email)">
+                                {{ auth()->user()->email }}</p>
+                        </div>
+                        <div class="p-1.5">
+                            <a href="{{ route('profile') }}" class="ph-drop-link">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                My Profile
+                            </a>
+                            @if(auth()->user()->is_super_admin)
+                                <a href="{{ route('superadmin.dashboard') }}" class="ph-drop-link">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    Superadmin
+                                </a>
+                            @endif
+                        </div>
+                        <div class="p-1.5 ph-drop-divider-t" x-data="notificationToggle()" x-init="init()">
+                            <div class="flex items-center justify-between gap-2 px-3 py-2">
+                                <span class="flex items-center gap-2.5 text-[13px]" style="color:var(--ph-user-name)">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    </svg>
+                                    Notifications
+                                </span>
+                                <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
+                                    class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
+                                    :class="enabled ? 'bg-blue-600' : 'bg-gray-400/50'">
+                                    <span
+                                        class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+                                        :class="enabled ? 'translate-x-4' : 'translate-x-0.5'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-1.5 ph-drop-divider-t">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    Sign out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        {{-- ── Mobile Sidebar Overlay ──────────────────────────────────────────── --}}
+        <div x-show="sidebarOpen" x-cloak @click="sidebarOpen=false"
+            class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"></div>
+
+        <aside x-show="sidebarOpen" x-cloak class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:hidden ph-sidebar"
+            style="box-shadow:4px 0 30px rgba(0,0,0,0.3)">
+            <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
+                <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
+                <button @click="sidebarOpen=false" class="ml-auto ph-close-btn shrink-0 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 scrollbar-hide">
+                @include('layouts.sidebar-nav')
+            </nav>
+            <div class="px-3 py-3 shrink-0 ph-side-divider-t">
+                <div class="flex items-center gap-3 px-3 py-2">
                     @if(auth()->user()->avatar)
-                        <img src="{{ Storage::url(auth()->user()->avatar) }}"
-                             alt="{{ auth()->user()->name }}"
-                             class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-blue-400 transition-all shrink-0">
+                        <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
+                            class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 shrink-0">
                     @else
-                        <div class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
+                        <div
+                            class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                         </div>
                     @endif
                     <div class="flex-1 min-w-0">
-                        <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
+                        <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">
+                            {{ auth()->user()->name }}</p>
+                        <p class="text-[11px] truncate capitalize leading-tight mt-0.5"
+                            style="color:var(--ph-user-role)">
+                            {{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
                     </div>
-                    <svg class="w-3.5 h-3.5 shrink-0 transition-transform duration-200"
-                         style="color:var(--ph-user-chev)"
-                         :class="userMenuOpen ? 'rotate-180' : ''"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    @if(auth()->user()->is_super_admin)
+                        <a href="{{ route('superadmin.dashboard') }}"
+                            class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-500/10 transition-colors shrink-0"
+                            title="Superadmin">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                            class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors shrink-0 cursor-pointer"
+                            title="Sign out">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        {{-- ── Main Content ────────────────────────────────────────────────────── --}}
+        <div class="flex-1 flex flex-col min-h-0 transition-all duration-300"
+            :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'">
+
+            {{-- Top bar --}}
+            <header class="fl-topbar sticky top-0 z-30 flex items-center h-16 px-5 gap-3 shrink-0">
+                <button type="button" @click="sidebarOpen = true"
+                    class="fl-hamburger lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer" title="Open Menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
 
-                {{-- Dropdown --}}
-                <div x-show="userMenuOpen" x-cloak @click.away="userMenuOpen = false"
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 -translate-y-1"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     x-transition:leave="transition ease-in duration-100"
-                     x-transition:leave-start="opacity-100 translate-y-0"
-                     x-transition:leave-end="opacity-0 -translate-y-1"
-                     class="absolute bottom-full mb-2 rounded-2xl overflow-hidden z-50 transition-all duration-200"
-                     :class="sidebarCollapsed ? 'left-2 w-64' : 'left-0 right-0'"
-                     style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+                <h1
+                    class="fl-topbar-title text-[14px] tracking-tight shrink-0 truncate max-w-[12rem] sm:max-w-none font-semibold">
+                    @yield('page-title', View::getSection('title') ? trim(str_replace('— Flovig', '', View::getSection('title'))) : 'Dashboard')
+                </h1>
 
-                    <div class="px-4 py-3 ph-drop-divider-b">
-                        <p class="text-[13px] font-semibold truncate" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                        <p class="text-[11px] truncate" style="color:var(--ph-drop-email)">{{ auth()->user()->email }}</p>
-                    </div>
-                    <div class="p-1.5">
-                        <a href="{{ route('profile') }}" class="ph-drop-link">
-                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                            My Profile
-                        </a>
-                        @if(auth()->user()->is_super_admin)
-                            <a href="{{ route('superadmin.dashboard') }}" class="ph-drop-link">
-                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                </svg>
-                                Superadmin
-                            </a>
-                        @endif
-                    </div>
-                    <div class="p-1.5 ph-drop-divider-t" x-data="notificationToggle()" x-init="init()">
-                        <div class="flex items-center justify-between gap-2 px-3 py-2">
-                            <span class="flex items-center gap-2.5 text-[13px]" style="color:var(--ph-user-name)">
-                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                </svg>
-                                Notifications
-                            </span>
-                            <button type="button" @click="toggle()" :disabled="loading || !pushAvailable"
-                                    class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40"
-                                    :class="enabled ? 'bg-blue-600' : 'bg-gray-400/50'">
-                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
-                                      :class="enabled ? 'translate-x-4' : 'translate-x-0.5'"></span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-1.5 ph-drop-divider-t">
-                        <form method="POST" action="{{ route('logout') }}">
+                {{-- Package switcher — visible when user has both packages or is super admin --}}
+                @php
+                    $userPackages = auth()->user()->is_super_admin
+                        ? ['task_management', 'hris']
+                        : auth()->user()->activePackages();
+                    if (auth()->user()->hasRole('client')) {
+                        $userPackages = array_values(array_diff($userPackages, ['hris']));
+                    }
+                @endphp
+                @if(count($userPackages) > 1)
+                    <div class="fl-pkg-switcher hidden sm:flex items-center rounded-full p-0.5 shrink-0 ml-2">
+                        @php $activePkg = session('active_package', $userPackages[0] ?? 'task_management'); @endphp
+                        <form method="POST" action="{{ route('switch.package') }}" class="contents">
                             @csrf
+                            <input type="hidden" name="package" value="task_management">
                             <button type="submit"
-                                    class="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors cursor-pointer">
-                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                class="fl-pkg-btn {{ $activePkg === 'task_management' ? 'fl-pkg-active' : '' }} flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                 </svg>
-                                Sign out
+                                <span class="hidden md:inline">Task</span>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('switch.package') }}" class="contents">
+                            @csrf
+                            <input type="hidden" name="package" value="hris">
+                            <button type="submit"
+                                class="fl-pkg-btn {{ $activePkg === 'hris' ? 'fl-pkg-active' : '' }} flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span class="hidden md:inline">HRIS</span>
                             </button>
                         </form>
                     </div>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    {{-- ── Mobile Sidebar Overlay ──────────────────────────────────────────── --}}
-    <div x-show="sidebarOpen" x-cloak @click="sidebarOpen=false"
-         class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"></div>
-
-    <aside x-show="sidebarOpen" x-cloak
-           class="fixed inset-y-0 left-0 z-50 w-64 flex flex-col lg:hidden ph-sidebar"
-           style="box-shadow:4px 0 30px rgba(0,0,0,0.3)">
-        <div class="flex items-center gap-3 px-5 h-16 shrink-0 ph-side-divider-b">
-            <img src="{{ asset('flovig_logo.png') }}" alt="Flovig" class="h-7 w-auto object-contain shrink-0">
-            <button @click="sidebarOpen=false" class="ml-auto ph-close-btn shrink-0 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 scrollbar-hide">
-            @include('layouts.sidebar-nav')
-        </nav>
-        <div class="px-3 py-3 shrink-0 ph-side-divider-t">
-            <div class="flex items-center gap-3 px-3 py-2">
-                @if(auth()->user()->avatar)
-                    <img src="{{ Storage::url(auth()->user()->avatar) }}"
-                         alt="{{ auth()->user()->name }}"
-                         class="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 shrink-0">
-                @else
-                    <div class="fl-avatar w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                    </div>
                 @endif
-                <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-semibold truncate leading-tight" style="color:var(--ph-user-name)">{{ auth()->user()->name }}</p>
-                    <p class="text-[11px] truncate capitalize leading-tight mt-0.5" style="color:var(--ph-user-role)">{{ \App\Support\RoleLabel::for(auth()->user()->getRoleNames()->first()) }}</p>
-                </div>
-                @if(auth()->user()->is_super_admin)
-                    <a href="{{ route('superadmin.dashboard') }}" class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-500/10 transition-colors shrink-0" title="Superadmin">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </a>
-                @endif
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors shrink-0 cursor-pointer" title="Sign out">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </aside>
 
-    {{-- ── Main Content ────────────────────────────────────────────────────── --}}
-    <div class="flex-1 flex flex-col min-h-0 transition-all duration-300"
-         :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'">
+                <div class="flex-1"></div>
 
-        {{-- Top bar --}}
-        <header class="fl-topbar sticky top-0 z-30 flex items-center h-16 px-5 gap-3 shrink-0">
-            <button type="button"
-                    @click="sidebarOpen = true"
-                    class="fl-hamburger lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer"
-                    title="Open Menu">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
-
-            <h1 class="fl-topbar-title text-[14px] tracking-tight shrink-0 truncate max-w-[12rem] sm:max-w-none font-semibold">
-                @yield('page-title', View::getSection('title') ? trim(str_replace('— Flovig', '', View::getSection('title'))) : 'Dashboard')
-            </h1>
-
-            {{-- Package switcher — visible when user has both packages or is super admin --}}
-            @php
-                $userPackages = auth()->user()->is_super_admin
-                    ? ['task_management', 'hris']
-                    : auth()->user()->activePackages();
-                if (auth()->user()->hasRole('client')) {
-                    $userPackages = array_values(array_diff($userPackages, ['hris']));
-                }
-            @endphp
-            @if(count($userPackages) > 1)
-            <div class="fl-pkg-switcher hidden sm:flex items-center rounded-full p-0.5 shrink-0 ml-2">
-                @php $activePkg = session('active_package', $userPackages[0] ?? 'task_management'); @endphp
-                <form method="POST" action="{{ route('switch.package') }}" class="contents">
-                    @csrf
-                    <input type="hidden" name="package" value="task_management">
-                    <button type="submit"
-                            class="fl-pkg-btn {{ $activePkg === 'task_management' ? 'fl-pkg-active' : '' }} flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer">
-                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                        </svg>
-                        <span class="hidden md:inline">Task</span>
-                    </button>
-                </form>
-                <form method="POST" action="{{ route('switch.package') }}" class="contents">
-                    @csrf
-                    <input type="hidden" name="package" value="hris">
-                    <button type="submit"
-                            class="fl-pkg-btn {{ $activePkg === 'hris' ? 'fl-pkg-active' : '' }} flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer">
-                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <span class="hidden md:inline">HRIS</span>
-                    </button>
-                </form>
-            </div>
-            @endif
-
-            <div class="flex-1"></div>
-
-            {{-- 1. Global Search Input --}}
-            @can('access search')
-            <form method="GET" action="{{ route('search.index') }}" class="hidden sm:flex items-center">
-                <div class="relative">
-                    <input type="text" name="q" placeholder="Global Search" value="{{ request('q') }}"
-                           class="fl-search-input w-52 pl-9 pr-3 py-2 border rounded-xl text-sm transition-all">
-                    <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:var(--fl-search-ph)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </div>
-            </form>
-            {{-- Mobile Search Icon --}}
-            <div class="sm:hidden relative group flex items-center">
-                <a href="{{ route('search.index') }}"
-                   class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('search.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </a>
-                <span class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Global Search
-                </span>
-            </div>
-            @endcan
-
-            {{-- 2. Meetings --}}
-            @can('access meetings')
-            <div class="relative group flex items-center">
-                <a href="{{ route('meetings.index') }}"
-                   class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('meetings.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                </a>
-                <span class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Meetings
-                </span>
-            </div>
-            @endcan
-
-            {{-- 3. Chat (Proyek + Pesan + Forum) --}}
-            @php
-                $chatUser = auth()->user();
-                $chatProjectUnread = \App\Models\ProjectMessage::whereHas('project', function($q) use ($chatUser) {
-                    if ($chatUser->hasRole(['admin','member'])) return;
-                    $q->where('manager_id', $chatUser->id)
-                      ->orWhere('client_id', $chatUser->id)
-                      ->orWhereHas('members', fn($m) => $m->where('user_id', $chatUser->id));
-                })->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))->count();
-
-                $chatConversationIds = \App\Models\Conversation::where('user_one_id', $chatUser->id)->orWhere('user_two_id', $chatUser->id)->pluck('id');
-                $chatDmUnread = \App\Models\DirectMessage::withTrashed()
-                    ->whereIn('conversation_id', $chatConversationIds)
-                    ->where('user_id', '!=', $chatUser->id)
-                    ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
-                    ->count();
-
-                $chatForumIds = $chatUser->hasRole(['admin','member'])
-                    ? \App\Models\Forum::where('company_id', $chatUser->company_id)->pluck('id')
-                    : \App\Models\Forum::whereHas('members', fn($q) => $q->where('user_id', $chatUser->id))->pluck('id');
-                $chatForumUnread = \App\Models\ForumMessage::withTrashed()
-                    ->whereIn('forum_id', $chatForumIds)
-                    ->where('user_id', '!=', $chatUser->id)
-                    ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
-                    ->count();
-
-                $chatUnread = $chatProjectUnread + $chatDmUnread + $chatForumUnread;
-            @endphp
-            <div class="relative group flex items-center">
-                <a href="{{ route('chat.index') }}"
-                   class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('chat.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    @if($chatUnread > 0)
-                    <span class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold leading-none">
-                        {{ $chatUnread > 99 ? '99+' : $chatUnread }}
-                    </span>
-                    @endif
-                </a>
-                <span class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Chat
-                </span>
-            </div>
-
-            {{-- 4. Calendar --}}
-            @can('access calendar')
-            <div class="relative group flex items-center">
-                <a href="{{ route('calendar.index') }}"
-                   class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('calendar.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </a>
-                <span class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Calendar
-                </span>
-            </div>
-            @endcan
-
-            {{-- 5. Notification --}}
-            <div x-data="notificationBell()" x-init="init()" class="relative group flex items-center">
-                <button @click="open = !open" class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    <span x-show="unreadCount > 0" x-cloak
-                          class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
-                          x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
-                </button>
-                <span x-show="!open" class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Notification
-                </span>
-
-                <div x-show="open" x-cloak @click.away="open = false"
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 -translate-y-1"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl overflow-hidden z-50"
-                     style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
-                    <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
-                        <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifications</p>
-                        <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer">Mark all as read</button>
-                    </div>
-                    <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak class="px-4 py-2.5 ph-drop-divider-b">
-                        <button @click="subscribePush()" class="w-full text-[11.5px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                {{-- 1. Global Search Input --}}
+                @can('access search')
+                    <form method="GET" action="{{ route('search.index') }}" class="hidden sm:flex items-center">
+                        <div class="relative">
+                            <input type="text" name="q" placeholder="Global Search" value="{{ request('q') }}"
+                                class="fl-search-input w-52 pl-9 pr-3 py-2 border rounded-xl text-sm transition-all">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                                style="color:var(--fl-search-ph)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            Enable push notifications
+                        </div>
+                    </form>
+                    {{-- Mobile Search Icon --}}
+                    <div class="sm:hidden relative group flex items-center">
+                        <a href="{{ route('search.index') }}"
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('search.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </a>
+                        <span
+                            class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                            Global Search
+                        </span>
+                    </div>
+                @endcan
+
+                {{-- 2. Meetings --}}
+                @can('access meetings')
+                    <div class="relative group flex items-center">
+                        <a href="{{ route('meetings.index') }}"
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('meetings.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </a>
+                        <span
+                            class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                            Meetings
+                        </span>
+                    </div>
+                @endcan
+
+                {{-- 3. Chat (Proyek + Pesan + Forum) --}}
+                @php
+                    $chatUser = auth()->user();
+                    $chatProjectUnread = \App\Models\ProjectMessage::whereHas('project', function ($q) use ($chatUser) {
+                        if ($chatUser->hasRole(['admin', 'member']))
+                            return;
+                        $q->where('manager_id', $chatUser->id)
+                            ->orWhere('client_id', $chatUser->id)
+                            ->orWhereHas('members', fn($m) => $m->where('user_id', $chatUser->id));
+                    })->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))->count();
+
+                    $chatConversationIds = \App\Models\Conversation::where('user_one_id', $chatUser->id)->orWhere('user_two_id', $chatUser->id)->pluck('id');
+                    $chatDmUnread = \App\Models\DirectMessage::withTrashed()
+                        ->whereIn('conversation_id', $chatConversationIds)
+                        ->where('user_id', '!=', $chatUser->id)
+                        ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
+                        ->count();
+
+                    $chatForumIds = $chatUser->hasRole(['admin', 'member'])
+                        ? \App\Models\Forum::where('company_id', $chatUser->company_id)->pluck('id')
+                        : \App\Models\Forum::whereHas('members', fn($q) => $q->where('user_id', $chatUser->id))->pluck('id');
+                    $chatForumUnread = \App\Models\ForumMessage::withTrashed()
+                        ->whereIn('forum_id', $chatForumIds)
+                        ->where('user_id', '!=', $chatUser->id)
+                        ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
+                        ->count();
+
+                    $chatUnread = $chatProjectUnread + $chatDmUnread + $chatForumUnread;
+                @endphp
+                <div class="relative group flex items-center">
+                    <a href="{{ route('chat.index') }}"
+                        class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('chat.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        @if($chatUnread > 0)
+                            <span
+                                class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold leading-none">
+                                {{ $chatUnread > 99 ? '99+' : $chatUnread }}
+                            </span>
+                        @endif
+                    </a>
+                    <span
+                        class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                        Chat
+                    </span>
+                </div>
+
+                {{-- 4. Calendar --}}
+                @can('access calendar')
+                    <div class="relative group flex items-center">
+                        <a href="{{ route('calendar.index') }}"
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('calendar.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </a>
+                        <span
+                            class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                            Calendar
+                        </span>
+                    </div>
+                @endcan
+
+                {{-- 5. Notification --}}
+                <div x-data="notificationBell()" x-init="init()" class="relative group flex items-center">
+                    <button @click="open = !open"
+                        class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span x-show="unreadCount > 0" x-cloak
+                            class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
+                            x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
+                    </button>
+                    <span x-show="!open"
+                        class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                        Notification
+                    </span>
+
+                    <div x-show="open" x-cloak @click.away="open = false"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl overflow-hidden z-50"
+                        style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+                        <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
+                            <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifications</p>
+                            <button @click="markAllRead()" x-show="unreadCount > 0"
+                                class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer">Mark all as
+                                read</button>
+                        </div>
+                        <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak
+                            class="px-4 py-2.5 ph-drop-divider-b">
+                            <button @click="subscribePush()"
+                                class="w-full text-[11.5px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                Enable push notifications
+                            </button>
+                        </div>
+                        <div class="max-h-80 overflow-y-auto">
+                            <template x-if="items.length === 0">
+                                <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">No
+                                    notifications yet.</p>
+                            </template>
+                            <template x-for="n in items" :key="n.id">
+                                <button @click="markRead(n)"
+                                    class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors cursor-pointer"
+                                    :class="!n.read_at ? 'bg-blue-500/5' : ''">
+                                    <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)"
+                                        x-text="n.title"></p>
+                                    <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message">
+                                    </p>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 6. Dark Mode --}}
+                <div class="relative group flex items-center">
+                    <button id="fl-mode-toggle" class="fl-mode-toggle cursor-pointer" title="Dark Mode">
+                        {{-- Sun icon: shown in dark mode → click to go light --}}
+                        <svg id="fl-icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {{-- Moon icon: shown in light mode → click to go dark --}}
+                        <svg id="fl-icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                    <span
+                        class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                        Dark Mode
+                    </span>
+                </div>
+
+                {{-- 7. Profile --}}
+                <div class="relative group flex items-center">
+                    <a href="{{ route('profile') }}" class="group flex items-center shrink-0 cursor-pointer">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
+                                class="w-9 h-9 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
+                        @else
+                            <div
+                                class="fl-avatar w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                    </a>
+                    <span
+                        class="pointer-events-none absolute top-full mt-1.5 right-0 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
+                        Profile
+                    </span>
+                </div>
+            </header>
+
+            {{-- ── Active-until warning banner ────────────────────────────────── --}}
+            @if(auth()->check() && !auth()->user()->is_super_admin && !auth()->user()->hasRole('admin') && !auth()->user()->isLifetime() && !auth()->user()->isExpired())
+                @php $daysLeft = (int) now()->diffInDays(auth()->user()->active_until, false); @endphp
+                @if($daysLeft <= 14)
+                    <div x-data="{ show: !localStorage.getItem('ph_banner_dismissed_{{ now()->toDateString() }}') }"
+                        x-show="show" x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
+                        class="fl-warn-banner flex items-center gap-3 px-5 py-3 text-sm font-medium shrink-0 border-b {{ $daysLeft <= 3 ? 'fl-err-banner bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
+                        <svg class="w-4 h-4 shrink-0 {{ $daysLeft <= 3 ? 'text-red-500' : 'text-amber-500' }}" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        @if($daysLeft <= 0)
+                            <span>Your account active period <strong>expires today</strong>. Please contact your administrator to
+                                renew.</span>
+                        @elseif($daysLeft === 1)
+                            <span>Your account active period <strong>expires tomorrow</strong>. Please contact your
+                                administrator.</span>
+                        @else
+                            <span>Your account active period will expire in <strong>{{ $daysLeft }} days</strong>
+                                ({{ auth()->user()->active_until->format('d M Y') }}).
+                                Please contact your administrator to renew.
+                            </span>
+                        @endif
+                        <button
+                            @click="show = false; localStorage.setItem('ph_banner_dismissed_{{ now()->toDateString() }}', '1')"
+                            class="ml-auto shrink-0 p-1 rounded-lg hover:bg-black/10 transition-colors cursor-pointer"
+                            title="Close alert">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
-                    <div class="max-h-80 overflow-y-auto">
-                        <template x-if="items.length === 0">
-                            <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">No notifications yet.</p>
-                        </template>
-                        <template x-for="n in items" :key="n.id">
-                            <button @click="markRead(n)" class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors cursor-pointer" :class="!n.read_at ? 'bg-blue-500/5' : ''">
-                                <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)" x-text="n.title"></p>
-                                <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message"></p>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-
-            {{-- 6. Dark Mode --}}
-            <div class="relative group flex items-center">
-                <button id="fl-mode-toggle" class="fl-mode-toggle cursor-pointer" title="Dark Mode">
-                    {{-- Sun icon: shown in dark mode → click to go light --}}
-                    <svg id="fl-icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    {{-- Moon icon: shown in light mode → click to go dark --}}
-                    <svg id="fl-icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                    </svg>
-                </button>
-                <span class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Dark Mode
-                </span>
-            </div>
-
-            {{-- 7. Profile --}}
-            <div class="relative group flex items-center">
-                <a href="{{ route('profile') }}" class="group flex items-center shrink-0 cursor-pointer">
-                    @if(auth()->user()->avatar)
-                        <img src="{{ Storage::url(auth()->user()->avatar) }}"
-                             alt="{{ auth()->user()->name }}"
-                             class="w-9 h-9 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
-                    @else
-                        <div class="fl-avatar w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                        </div>
-                    @endif
-                </a>
-                <span class="pointer-events-none absolute top-full mt-1.5 right-0 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                    Profile
-                </span>
-            </div>
-        </header>
-
-        {{-- ── Active-until warning banner ────────────────────────────────── --}}
-        @if(auth()->check() && !auth()->user()->is_super_admin && !auth()->user()->hasRole('admin') && !auth()->user()->isLifetime() && !auth()->user()->isExpired())
-            @php $daysLeft = (int) now()->diffInDays(auth()->user()->active_until, false); @endphp
-            @if($daysLeft <= 14)
-            <div x-data="{ show: !localStorage.getItem('ph_banner_dismissed_{{ now()->toDateString() }}') }"
-                 x-show="show"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 -translate-y-2"
-                 class="fl-warn-banner flex items-center gap-3 px-5 py-3 text-sm font-medium shrink-0 border-b {{ $daysLeft <= 3 ? 'fl-err-banner bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
-                <svg class="w-4 h-4 shrink-0 {{ $daysLeft <= 3 ? 'text-red-500' : 'text-amber-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                </svg>
-                @if($daysLeft <= 0)
-                    <span>Your account active period <strong>expires today</strong>. Please contact your administrator to renew.</span>
-                @elseif($daysLeft === 1)
-                    <span>Your account active period <strong>expires tomorrow</strong>. Please contact your administrator.</span>
-                @else
-                    <span>Your account active period will expire in <strong>{{ $daysLeft }} days</strong>
-                        ({{ auth()->user()->active_until->format('d M Y') }}).
-                        Please contact your administrator to renew.
-                    </span>
                 @endif
-                <button @click="show = false; localStorage.setItem('ph_banner_dismissed_{{ now()->toDateString() }}', '1')"
-                        class="ml-auto shrink-0 p-1 rounded-lg hover:bg-black/10 transition-colors cursor-pointer"
-                        title="Close alert">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
             @endif
-        @endif
 
-        {{-- Flash messages --}}
-        @if(session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({ toast:true, position:'top-end', icon:'success', title:@json(session('success')), showConfirmButton:false, timer:3500, timerProgressBar:true, background:'#4f46e5', color:'#fff', iconColor:'#fff', customClass:{popup:'swal-toast-popup'} });
-            });
-        </script>
-        @endif
-        @if(session('danger'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({ toast:true, position:'top-end', icon:'error', title:@json(session('danger')), showConfirmButton:false, timer:4000, timerProgressBar:true, background:'#dc2626', color:'#fff', iconColor:'#fff', customClass:{popup:'swal-toast-popup'} });
-            });
-        </script>
-        @endif
-        @if(session('warning'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({ toast:true, position:'top-end', icon:'warning', title:@json(session('warning')), showConfirmButton:false, timer:4000, timerProgressBar:true, background:'#d97706', color:'#fff', iconColor:'#fff', customClass:{popup:'swal-toast-popup'} });
-            });
-        </script>
-        @endif
-        @if(session('info'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({ toast:true, position:'top-end', icon:'info', title:@json(session('info')), showConfirmButton:false, timer:3500, timerProgressBar:true, background:'#4f46e5', color:'#fff', iconColor:'#fff', customClass:{popup:'swal-toast-popup'} });
-            });
-        </script>
-        @endif
-        @if(session('error'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({ icon:'error', title:'An Error Occurred', text:@json(session('error')), confirmButtonColor:'#6366f1', confirmButtonText:'Close' });
-            });
-        </script>
-        @endif
-        @if($errors->any())
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({ icon:'error', title:'Please Check Again', html:'<ul class="text-left text-sm space-y-1 mt-1">@foreach($errors->all() as $e)<li>• {{ $e }}</li>@endforeach</ul>', confirmButtonColor:'#6366f1', confirmButtonText:'Close' });
-            });
-        </script>
-        @endif
-
-        {{-- Page content --}}
-        <main class="@yield('main-class', 'flex-1 px-6 pb-8 overflow-auto')">
-            @if(auth()->check() && ! auth()->user()->is_super_admin && auth()->user()->isCompanyExpiringSoon())
-                @php $daysLeft = auth()->user()->companyDaysRemaining(); @endphp
-                <div class="mt-4 mb-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-2">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span>
-                        @if($daysLeft <= 0)
-                            Your company subscription expires <strong>today</strong>.
-                        @else
-                            Your company subscription will expire in <strong>{{ $daysLeft }} days</strong>.
-                        @endif
-                        Contact admin for renewal to prevent access interruption.
-                    </span>
-                </div>
+            {{-- Flash messages --}}
+            @if(session('success'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 3500, timerProgressBar: true, background: '#4f46e5', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                    });
+                </script>
             @endif
-            @yield('content')
-        </main>
+            @if(session('danger'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: @json(session('danger')), showConfirmButton: false, timer: 4000, timerProgressBar: true, background: '#dc2626', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                    });
+                </script>
+            @endif
+            @if(session('warning'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: @json(session('warning')), showConfirmButton: false, timer: 4000, timerProgressBar: true, background: '#d97706', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                    });
+                </script>
+            @endif
+            @if(session('info'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: @json(session('info')), showConfirmButton: false, timer: 3500, timerProgressBar: true, background: '#4f46e5', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                    });
+                </script>
+            @endif
+            @if(session('error'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({ icon: 'error', title: 'An Error Occurred', text: @json(session('error')), confirmButtonColor: '#6366f1', confirmButtonText: 'Close' });
+                    });
+                </script>
+            @endif
+            @if($errors->any())
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({ icon: 'error', title: 'Please Check Again', html: '<ul class="text-left text-sm space-y-1 mt-1">@foreach($errors->all() as $e)<li>• {{ $e }}</li>@endforeach</ul>', confirmButtonColor: '#6366f1', confirmButtonText: 'Close' });
+                    });
+                </script>
+            @endif
 
+            {{-- Page content --}}
+            <main class="@yield('main-class', 'flex-1 px-6 pb-8 overflow-auto')">
+                @if(auth()->check() && !auth()->user()->is_super_admin && auth()->user()->isCompanyExpiringSoon())
+                    @php $daysLeft = auth()->user()->companyDaysRemaining(); @endphp
+                    <div
+                        class="mt-4 mb-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-2">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>
+                            @if($daysLeft <= 0)
+                                Your company subscription expires <strong>today</strong>.
+                            @else
+                                Your company subscription will expire in <strong>{{ $daysLeft }} days</strong>.
+                            @endif
+                            Contact admin for renewal to prevent access interruption.
+                        </span>
+                    </div>
+                @endif
+                @yield('content')
+            </main>
+
+        </div>
     </div>
-</div>
 
-<footer class="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none px-4">
-    <div class="pointer-events-auto flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border border-gray-100 bg-white/90 backdrop-blur shadow-lg">
-        <span class="text-xs text-gray-400">Powered by</span>
-        <img src="{{ asset('arunika_logo.png') }}" alt="Arunika Solusi Inovasi" class="h-5 w-auto">
-        <span class="text-xs text-gray-400">&copy; {{ date('Y') }}</span>
-    </div>
-</footer>
+    <footer class="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none px-4">
+        <div
+            class="pointer-events-auto flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border border-gray-100 bg-white/90 backdrop-blur shadow-lg">
+            <span class="text-xs text-gray-400">Powered by</span>
+            <img src="{{ asset('arunika_logo.png') }}" alt="Arunika Solusi Inovasi" class="h-5 w-auto">
+            <span class="text-xs text-gray-400">&copy; {{ date('Y') }}</span>
+        </div>
+    </footer>
 
-{{-- ═══════════════════════════════════════
-     AI Assistant — floating widget
-═══════════════════════════════════════ --}}
-<div x-data="aiAssistantWidget()" x-cloak>
-    {{-- Bubble button --}}
-    <button @click="toggle()"
+    {{-- ═══════════════════════════════════════
+    AI Assistant — floating widget
+    ═══════════════════════════════════════ --}}
+    <div x-data="aiAssistantWidget()" x-cloak>
+        {{-- Bubble button --}}
+        <button @click="toggle()"
             class="fixed bottom-5 right-5 z-40 w-16 h-16 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 overflow-hidden"
             style="background:var(--ai-gradient);box-shadow:0 6px 20px rgba(37,99,235,0.4);border:2px solid rgba(255,255,255,0.25)">
-        <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
-        <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-    </button>
+            <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="Runa" class="w-full h-full object-cover">
+            <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
 
-    {{-- Panel --}}
-    <div x-show="open" x-cloak x-transition
-         class="fixed bottom-24 right-5 z-40 rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
-         :class="minimized
+        {{-- Panel --}}
+        <div x-show="open" x-cloak x-transition
+            class="fixed bottom-24 right-5 z-40 rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
+            :class="minimized
             ? 'w-[min(360px,calc(100vw-2.5rem))] h-auto'
             : (expanded
                 ? 'w-[min(640px,calc(100vw-2.5rem))] h-[min(85vh,calc(100vh-6rem))]'
                 : 'w-[min(360px,calc(100vw-2.5rem))] h-[min(520px,calc(100vh-8rem))]')"
-         style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);box-shadow:0 10px 40px rgba(109,40,217,0.25)">
+            style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);box-shadow:0 10px 40px rgba(109,40,217,0.25)">
 
-        {{-- Header --}}
-        <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:var(--ai-gradient)">
-            <div class="w-9 h-9 rounded-full shrink-0 overflow-hidden" style="border:1.5px solid rgba(255,255,255,0.4)">
-                <img src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-white">AI Assistant</p>
-                <p class="text-[10px] text-white/70">Self-hosted · not sent to third parties</p>
-            </div>
-            <button @click="minimized = !minimized" :title="minimized ? 'Maximize' : 'Minimize'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer">
-                <svg x-show="!minimized" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
-                </svg>
-                <svg x-show="minimized" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
-                </svg>
-            </button>
-            <button x-show="!minimized" @click="expanded = !expanded" :title="expanded ? 'Minimize' : 'Expand size'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer">
-                <svg x-show="!expanded" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                </svg>
-                <svg x-show="expanded" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V5m0 4H5m4 0L4 4m11 5V5m0 4h4m-4 0l5-5M9 15v4m0-4H5m4 0l-5 5m11-5v4m0-4h4m-4 0l5 5"/>
-                </svg>
-            </button>
-            <button x-show="!minimized" @click="clearHistory()" title="Clear history" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </button>
-        </div>
-
-        {{-- Messages --}}
-        <div x-show="!minimized" class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea" style="background:var(--fl-search-bg,#f9fafb)">
-            <div x-show="messages.length === 0" class="text-center py-8">
-                <p class="text-sm" style="color:var(--fl-text-muted,#6b7280)">Hello! How can I help you today?</p>
-            </div>
-
-            <template x-for="(m, i) in messages" :key="i">
-                <div>
-                    {{-- Action suggestion card --}}
-                    <template x-if="m.action">
-                        <div class="rounded-2xl border p-3 space-y-2" style="background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.25)">
-                            <p class="text-xs font-bold uppercase tracking-wide" style="color:#7c3aed">Suggested Action</p>
-                            <p class="text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)" x-text="m.action.label"></p>
-                            <div class="text-xs space-y-0.5" style="color:var(--fl-text-muted,#6b7280)">
-                                <p><strong>Name:</strong> <span x-text="m.action.args.name"></span></p>
-                                <p x-show="m.action.args.description"><strong>Description:</strong> <span x-text="m.action.args.description"></span></p>
-                            </div>
-                            <template x-if="m.action.status === 'pending'">
-                                <div class="flex gap-2 pt-1">
-                                    <button @click="confirmAction(i)" :disabled="m.action.executing"
-                                            class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50 cursor-pointer"
-                                            style="background:var(--ai-gradient)">
-                                        <span x-show="!m.action.executing">Confirm</span>
-                                        <span x-show="m.action.executing" x-cloak>Processing...</span>
-                                    </button>
-                                    <button @click="cancelAction(i)" :disabled="m.action.executing"
-                                            class="px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
-                                            style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);color:var(--fl-text-muted,#6b7280)">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </template>
-                            <p x-show="m.action.status === 'done'" class="text-xs font-medium" style="color:#10b981" x-text="m.action.resultMessage"></p>
-                            <a x-show="m.action.status === 'done' && m.action.url" :href="m.action.url" class="text-xs font-semibold underline" style="color:#7c3aed">Open project →</a>
-                            <p x-show="m.action.status === 'error'" class="text-xs font-medium" style="color:#ef4444" x-text="m.action.resultMessage"></p>
-                            <p x-show="m.action.status === 'cancelled'" class="text-xs italic" style="color:var(--fl-text-muted,#6b7280)">Cancelled.</p>
-                            <span x-show="m.ts" class="block text-[10px]" style="color:var(--fl-text-muted,#9ca3af)" x-text="formatTs(m.ts)"></span>
-                        </div>
-                    </template>
-
-                    {{-- Plain text bubble --}}
-                    <div x-show="!m.action" class="flex flex-col" :class="m.role === 'user' ? 'items-end' : 'items-start'">
-                        <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
-                             :class="m.role === 'user'
-                                ? 'text-white rounded-br-sm'
-                                : 'rounded-bl-sm border'"
-                             :style="m.role === 'user'
-                                ? 'background:var(--ai-gradient)'
-                                : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
-                             x-text="m.content"></div>
-                        <span x-show="m.ts" class="text-[10px] mt-0.5 px-1" style="color:var(--fl-text-muted,#9ca3af)" x-text="formatTs(m.ts)"></span>
-                    </div>
+            {{-- Header --}}
+            <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:var(--ai-gradient)">
+                <div class="w-9 h-9 rounded-full shrink-0 overflow-hidden"
+                    style="border:1.5px solid rgba(255,255,255,0.4)">
+                    <img src="{{ asset('images/runa.png') }}" alt="Runa" class="w-full h-full object-cover">
                 </div>
-            </template>
-
-            <div x-show="thinking" class="flex justify-start">
-                <div class="px-3 py-2 rounded-2xl rounded-bl-sm border flex items-center gap-1"
-                     style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe)">
-                    <span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#a78bfa;animation-delay:0ms"></span>
-                    <span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#a78bfa;animation-delay:150ms"></span>
-                    <span class="w-1.5 h-1.5 rounded-full animate-bounce" style="background:#a78bfa;animation-delay:300ms"></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-white">AI Assistant</p>
+                    <p class="text-[10px] text-white/70">Self-hosted · not sent to third parties</p>
                 </div>
-            </div>
-        </div>
-
-        {{-- Input --}}
-        <div x-show="!minimized" class="p-3 border-t shrink-0" style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
-            <div class="flex gap-2 items-end">
-                <textarea x-model="input"
-                          x-ref="aiInput"
-                          @keydown.enter="if(!$event.shiftKey){$event.preventDefault();send();}"
-                          rows="1"
-                          placeholder="Ask something…"
-                          class="flex-1 px-3 py-2 text-sm rounded-xl border outline-none resize-none transition"
-                          style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d);max-height:80px"></textarea>
-                <button @click="send()" :disabled="thinking || !input.trim()"
-                        class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white transition disabled:opacity-40 cursor-pointer"
-                        style="background:var(--ai-gradient)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                <button @click="minimized = !minimized" :title="minimized ? 'Maximize' : 'Minimize'"
+                    class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                    <svg x-show="!minimized" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                    </svg>
+                    <svg x-show="minimized" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                </button>
+                <button x-show="!minimized" @click="expanded = !expanded" :title="expanded ? 'Minimize' : 'Expand size'"
+                    class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                    <svg x-show="!expanded" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <svg x-show="expanded" x-cloak class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 9V5m0 4H5m4 0L4 4m11 5V5m0 4h4m-4 0l5-5M9 15v4m0-4H5m4 0l-5 5m11-5v4m0-4h4m-4 0l5 5" />
+                    </svg>
+                </button>
+                <button x-show="!minimized" @click="clearHistory()" title="Clear history"
+                    class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                 </button>
             </div>
+
+            {{-- Messages --}}
+            <div x-show="!minimized" class="flex-1 overflow-y-auto px-4 py-4 space-y-3" x-ref="aiMsgArea"
+                style="background:var(--fl-search-bg,#f9fafb)">
+                <div x-show="messages.length === 0" class="text-center py-8">
+                    <p class="text-sm" style="color:var(--fl-text-muted,#6b7280)">Hello! How can I help you today?</p>
+                </div>
+
+                <template x-for="(m, i) in messages" :key="i">
+                    <div>
+                        {{-- Action suggestion card --}}
+                        <template x-if="m.action">
+                            <div class="rounded-2xl border p-3 space-y-2"
+                                style="background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.25)">
+                                <p class="text-xs font-bold uppercase tracking-wide" style="color:#7c3aed">Suggested
+                                    Action</p>
+                                <p class="text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)"
+                                    x-text="m.action.label"></p>
+                                <div class="text-xs space-y-0.5" style="color:var(--fl-text-muted,#6b7280)">
+                                    <p><strong>Name:</strong> <span x-text="m.action.args.name"></span></p>
+                                    <p x-show="m.action.args.description"><strong>Description:</strong> <span
+                                            x-text="m.action.args.description"></span></p>
+                                </div>
+                                <template x-if="m.action.status === 'pending'">
+                                    <div class="flex gap-2 pt-1">
+                                        <button @click="confirmAction(i)" :disabled="m.action.executing"
+                                            class="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50 cursor-pointer"
+                                            style="background:var(--ai-gradient)">
+                                            <span x-show="!m.action.executing">Confirm</span>
+                                            <span x-show="m.action.executing" x-cloak>Processing...</span>
+                                        </button>
+                                        <button @click="cancelAction(i)" :disabled="m.action.executing"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+                                            style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe);color:var(--fl-text-muted,#6b7280)">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </template>
+                                <p x-show="m.action.status === 'done'" class="text-xs font-medium" style="color:#10b981"
+                                    x-text="m.action.resultMessage"></p>
+                                <a x-show="m.action.status === 'done' && m.action.url" :href="m.action.url"
+                                    class="text-xs font-semibold underline" style="color:#7c3aed">Open project →</a>
+                                <p x-show="m.action.status === 'error'" class="text-xs font-medium"
+                                    style="color:#ef4444" x-text="m.action.resultMessage"></p>
+                                <p x-show="m.action.status === 'cancelled'" class="text-xs italic"
+                                    style="color:var(--fl-text-muted,#6b7280)">Cancelled.</p>
+                                <span x-show="m.ts" class="block text-[10px]" style="color:var(--fl-text-muted,#9ca3af)"
+                                    x-text="formatTs(m.ts)"></span>
+                            </div>
+                        </template>
+
+                        {{-- Plain text bubble --}}
+                        <div x-show="!m.action" class="flex flex-col"
+                            :class="m.role === 'user' ? 'items-end' : 'items-start'">
+                            <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
+                                :class="m.role === 'user'
+                                ? 'text-white rounded-br-sm'
+                                : 'rounded-bl-sm border'"
+                                :style="m.role === 'user'
+                                ? 'background:var(--ai-gradient)'
+                                : 'background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)'"
+                                x-text="m.content"></div>
+                            <span x-show="m.ts" class="text-[10px] mt-0.5 px-1"
+                                style="color:var(--fl-text-muted,#9ca3af)" x-text="formatTs(m.ts)"></span>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="thinking" class="flex justify-start">
+                    <div class="px-3 py-2 rounded-2xl rounded-bl-sm border flex items-center gap-1"
+                        style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe)">
+                        <span class="w-1.5 h-1.5 rounded-full animate-bounce"
+                            style="background:#a78bfa;animation-delay:0ms"></span>
+                        <span class="w-1.5 h-1.5 rounded-full animate-bounce"
+                            style="background:#a78bfa;animation-delay:150ms"></span>
+                        <span class="w-1.5 h-1.5 rounded-full animate-bounce"
+                            style="background:#a78bfa;animation-delay:300ms"></span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Input --}}
+            <div x-show="!minimized" class="p-3 border-t shrink-0"
+                style="border-color:var(--fl-card-border,#ede9fe);background:var(--fl-card-bg,#fff)">
+                <div class="flex gap-2 items-end">
+                    <textarea x-model="input" x-ref="aiInput"
+                        @keydown.enter="if(!$event.shiftKey){$event.preventDefault();send();}" rows="1"
+                        placeholder="Ask something…"
+                        class="flex-1 px-3 py-2 text-sm rounded-xl border outline-none resize-none transition"
+                        style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d);max-height:80px"></textarea>
+                    <button @click="send()" :disabled="thinking || !input.trim()"
+                        class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white transition disabled:opacity-40 cursor-pointer"
+                        style="background:var(--ai-gradient)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-@stack('modals')
-@stack('scripts')
+    @stack('modals')
+    @stack('scripts')
 
-<script>
-function aiAssistantWidget() {
-    return {
-        open: false,
-        minimized: false,
-        expanded: false,
-        input: '',
-        messages: [],
-        thinking: false,
-        storageKey: 'ph_ai_assistant_history',
-        csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+    <script>
+        function aiAssistantWidget() {
+            return {
+                open: false,
+                minimized: false,
+                expanded: false,
+                input: '',
+                messages: [],
+                thinking: false,
+                storageKey: 'ph_ai_assistant_history',
+                csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
 
-        init() {
-            try {
-                const raw = localStorage.getItem(this.storageKey);
-                this.messages = raw ? JSON.parse(raw) : [];
-            } catch (_) { this.messages = []; }
-        },
+                init() {
+                    try {
+                        const raw = localStorage.getItem(this.storageKey);
+                        this.messages = raw ? JSON.parse(raw) : [];
+                    } catch (_) { this.messages = []; }
+                },
 
-        toggle() {
-            this.open = !this.open;
-            if (this.open) {
-                this.minimized = false;
-                this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
-            }
-        },
-
-        clearHistory() {
-            if (this.messages.length && !confirm('Clear AI chat history?')) return;
-            this.messages = [];
-            localStorage.removeItem(this.storageKey);
-        },
-
-        save() {
-            try { localStorage.setItem(this.storageKey, JSON.stringify(this.messages)); } catch (_) {}
-        },
-
-        scrollBottom() {
-            const el = this.$refs.aiMsgArea;
-            if (el) el.scrollTop = el.scrollHeight;
-        },
-
-        formatTs(ts) {
-            if (!ts) return '';
-            const d = new Date(ts);
-            const datePart = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-            const timePart = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            return datePart + ' · ' + timePart;
-        },
-
-        async send() {
-            const text = this.input.trim();
-            if (!text || this.thinking) return;
-
-            this.messages.push({ role: 'user', content: text, ts: Date.now() });
-            this.input = '';
-            this.thinking = true;
-            this.$nextTick(() => this.scrollBottom());
-
-            try {
-                const history = this.messages.slice(-20).map(m => ({ role: m.role, content: m.content }));
-                const res = await fetch('{{ route('ai.chat') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': this.csrf,
-                    },
-                    body: JSON.stringify({ messages: history }),
-                });
-
-                if (res.redirected || res.status === 401 || res.status === 419) {
-                    this.messages.push({ role: 'assistant', content: 'Your session has expired. Please refresh the page and sign in again.', ts: Date.now() });
-                    return;
-                }
-
-                const contentType = res.headers.get('Content-Type') || '';
-
-                if (contentType.includes('text/html')) {
-                    this.messages.push({ role: 'assistant', content: 'An unexpected error occurred. Please refresh the page.', ts: Date.now() });
-                } else if (contentType.includes('application/json')) {
-                    const data = await res.json();
-                    if (res.ok && data.action) {
-                        this.messages.push({
-                            role: 'assistant',
-                            content: '(suggested action: ' + data.action.label + ')',
-                            action: { ...data.action, status: 'pending', executing: false },
-                            ts: Date.now(),
-                        });
-                    } else if (res.ok) {
-                        this.messages.push({ role: 'assistant', content: data.reply || '(no response)', ts: Date.now() });
-                    } else {
-                        this.messages.push({ role: 'assistant', content: data.error || 'An error occurred.', ts: Date.now() });
+                toggle() {
+                    this.open = !this.open;
+                    if (this.open) {
+                        this.minimized = false;
+                        this.$nextTick(() => { this.scrollBottom(); this.$refs.aiInput?.focus(); });
                     }
-                } else if (res.ok && res.body) {
-                    const msg = { role: 'assistant', content: '', ts: Date.now() };
-                    this.messages.push(msg);
-                    const idx = this.messages.length - 1;
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder();
-                    this.thinking = false;
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        this.messages[idx].content += decoder.decode(value, { stream: true });
+                },
+
+                clearHistory() {
+                    if (this.messages.length && !confirm('Clear AI chat history?')) return;
+                    this.messages = [];
+                    localStorage.removeItem(this.storageKey);
+                },
+
+                save() {
+                    try { localStorage.setItem(this.storageKey, JSON.stringify(this.messages)); } catch (_) { }
+                },
+
+                scrollBottom() {
+                    const el = this.$refs.aiMsgArea;
+                    if (el) el.scrollTop = el.scrollHeight;
+                },
+
+                formatTs(ts) {
+                    if (!ts) return '';
+                    const d = new Date(ts);
+                    const datePart = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+                    const timePart = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    return datePart + ' · ' + timePart;
+                },
+
+                async send() {
+                    const text = this.input.trim();
+                    if (!text || this.thinking) return;
+
+                    this.messages.push({ role: 'user', content: text, ts: Date.now() });
+                    this.input = '';
+                    this.thinking = true;
+                    this.$nextTick(() => this.scrollBottom());
+
+                    try {
+                        const history = this.messages.slice(-20).map(m => ({ role: m.role, content: m.content }));
+                        const res = await fetch('{{ route('ai.chat') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': this.csrf,
+                            },
+                            body: JSON.stringify({ messages: history }),
+                        });
+
+                        if (res.redirected || res.status === 401 || res.status === 419) {
+                            this.messages.push({ role: 'assistant', content: 'Your session has expired. Please refresh the page and sign in again.', ts: Date.now() });
+                            return;
+                        }
+
+                        const contentType = res.headers.get('Content-Type') || '';
+
+                        if (contentType.includes('text/html')) {
+                            this.messages.push({ role: 'assistant', content: 'An unexpected error occurred. Please refresh the page.', ts: Date.now() });
+                        } else if (contentType.includes('application/json')) {
+                            const data = await res.json();
+                            if (res.ok && data.action) {
+                                this.messages.push({
+                                    role: 'assistant',
+                                    content: '(suggested action: ' + data.action.label + ')',
+                                    action: { ...data.action, status: 'pending', executing: false },
+                                    ts: Date.now(),
+                                });
+                            } else if (res.ok) {
+                                this.messages.push({ role: 'assistant', content: data.reply || '(no response)', ts: Date.now() });
+                            } else {
+                                this.messages.push({ role: 'assistant', content: data.error || 'An error occurred.', ts: Date.now() });
+                            }
+                        } else if (res.ok && res.body) {
+                            const msg = { role: 'assistant', content: '', ts: Date.now() };
+                            this.messages.push(msg);
+                            const idx = this.messages.length - 1;
+                            const reader = res.body.getReader();
+                            const decoder = new TextDecoder();
+                            this.thinking = false;
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                if (done) break;
+                                this.messages[idx].content += decoder.decode(value, { stream: true });
+                                this.$nextTick(() => this.scrollBottom());
+                            }
+                            if (!this.messages[idx].content) {
+                                this.messages[idx].content = '(no response)';
+                            }
+                        } else {
+                            this.messages.push({ role: 'assistant', content: 'An error occurred.', ts: Date.now() });
+                        }
+                    } catch (e) {
+                        this.messages.push({ role: 'assistant', content: 'Failed to connect to AI Assistant.', ts: Date.now() });
+                    } finally {
+                        this.thinking = false;
+                        this.save();
                         this.$nextTick(() => this.scrollBottom());
                     }
-                    if (!this.messages[idx].content) {
-                        this.messages[idx].content = '(no response)';
+                },
+
+                cancelAction(i) {
+                    this.messages[i].action.status = 'cancelled';
+                    this.save();
+                },
+
+                async confirmAction(i) {
+                    const action = this.messages[i].action;
+                    action.executing = true;
+                    try {
+                        const res = await fetch('{{ route('ai.execute-action') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': this.csrf,
+                            },
+                            body: JSON.stringify({ tool: action.tool, args: action.args }),
+                        });
+
+                        if (res.redirected || res.status === 401 || res.status === 419) {
+                            action.status = 'error';
+                            action.resultMessage = 'Your session has expired. Please refresh the page and sign in again.';
+                            return;
+                        }
+
+                        const data = await res.json();
+                        if (res.ok) {
+                            action.status = 'done';
+                            action.resultMessage = data.message;
+                            action.url = data.url ?? null;
+                        } else {
+                            action.status = 'error';
+                            action.resultMessage = data.error || 'Failed to execute action.';
+                        }
+                    } catch (e) {
+                        action.status = 'error';
+                        action.resultMessage = 'Failed to connect to server.';
+                    } finally {
+                        action.executing = false;
+                        this.save();
+                        this.$nextTick(() => this.scrollBottom());
                     }
-                } else {
-                    this.messages.push({ role: 'assistant', content: 'An error occurred.', ts: Date.now() });
-                }
-            } catch (e) {
-                this.messages.push({ role: 'assistant', content: 'Failed to connect to AI Assistant.', ts: Date.now() });
-            } finally {
-                this.thinking = false;
-                this.save();
-                this.$nextTick(() => this.scrollBottom());
+                },
+            };
+        }
+    </script>
+
+    <script>
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = atob(base64);
+            return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+        }
+
+        function notificationBell() {
+            return {
+                open: false,
+                items: [],
+                unreadCount: 0,
+                csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+                vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
+                pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
+                pushPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'denied',
+                init() {
+                    this.refreshCount();
+                    this.$watch('open', (v) => { if (v) this.loadNotifications(); });
+                    setInterval(() => this.refreshCount(), 30000);
+                },
+                async subscribePush() {
+                    if (!this.pushAvailable) { alert('This browser does not support push notifications.'); return; }
+                    if (!this.vapidKey) { alert('VAPID key is not configured on the server.'); return; }
+                    try {
+                        const permission = await Notification.requestPermission();
+                        this.pushPermission = permission;
+                        if (permission !== 'granted') { alert('Notification permission was denied. Please check browser site settings.'); return; }
+                        const registration = await navigator.serviceWorker.register('/sw.js');
+                        await navigator.serviceWorker.ready;
+                        const subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
+                        });
+                        const res = await fetch('{{ route('push.subscribe') }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                            body: JSON.stringify(subscription.toJSON()),
+                        });
+                        if (!res.ok) throw new Error('Server rejected subscription (HTTP ' + res.status + ')');
+                        alert('Push notifications enabled successfully.');
+                    } catch (e) {
+                        console.error('subscribePush failed:', e);
+                        alert('Failed to enable push notifications: ' + e.message);
+                    }
+                },
+                async refreshCount() {
+                    const res = await fetch('{{ route('notifications.unreadCount') }}');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    this.unreadCount = data.count;
+                },
+                async loadNotifications() {
+                    const res = await fetch('{{ route('notifications.index') }}');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    this.items = data.data ?? [];
+                },
+                async markRead(n) {
+                    if (!n.read_at) {
+                        await fetch(`/notifications/${n.id}/read`, {
+                            method: 'PUT',
+                            headers: { 'X-CSRF-TOKEN': this.csrf },
+                        });
+                        n.read_at = new Date().toISOString();
+                        this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    }
+                    if (n.data?.project_id) {
+                        window.location.href = `/projects/${n.data.project_id}`;
+                    }
+                },
+                async markAllRead() {
+                    await fetch('{{ route('notifications.markAllRead') }}', {
+                        method: 'PUT',
+                        headers: { 'X-CSRF-TOKEN': this.csrf },
+                    });
+                    this.items.forEach(n => n.read_at = n.read_at ?? new Date().toISOString());
+                    this.unreadCount = 0;
+                },
             }
-        },
+        }
 
-        cancelAction(i) {
-            this.messages[i].action.status = 'cancelled';
-            this.save();
-        },
+        function notificationToggle() {
+            return {
+                enabled: false,
+                loading: false,
+                csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+                vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
+                pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
+                async init() {
+                    if (!this.pushAvailable) return;
+                    try {
+                        const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+                        const subscription = await registration?.pushManager.getSubscription();
+                        this.enabled = !!subscription && Notification.permission === 'granted';
+                    } catch (e) {
+                        console.error('notificationToggle init failed:', e);
+                    }
+                },
+                async toggle() {
+                    if (!this.pushAvailable) { alert('This browser does not support push notifications.'); return; }
+                    this.loading = true;
+                    try {
+                        if (!this.enabled) {
+                            await this.subscribe();
+                        } else {
+                            await this.unsubscribe();
+                        }
+                    } catch (e) {
+                        console.error('notificationToggle failed:', e);
+                        alert('Failed to update notification settings: ' + e.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async subscribe() {
+                    if (!this.vapidKey) { alert('VAPID key is not configured on the server.'); return; }
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') { alert('Notification permission was denied. Please check browser site settings.'); return; }
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    await navigator.serviceWorker.ready;
+                    const subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
+                    });
+                    const res = await fetch('{{ route('push.subscribe') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                        body: JSON.stringify(subscription.toJSON()),
+                    });
+                    if (!res.ok) throw new Error('Server rejected subscription (HTTP ' + res.status + ')');
+                    this.enabled = true;
+                },
+                async unsubscribe() {
+                    const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+                    const subscription = await registration?.pushManager.getSubscription();
+                    if (subscription) {
+                        const endpoint = subscription.endpoint;
+                        await subscription.unsubscribe();
+                        const res = await fetch('{{ route('push.unsubscribe') }}', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
+                            body: JSON.stringify({ endpoint }),
+                        });
+                        if (!res.ok) throw new Error('Server rejected unsubscribe (HTTP ' + res.status + ')');
+                    }
+                    this.enabled = false;
+                },
+            }
+        }
 
-        async confirmAction(i) {
-            const action = this.messages[i].action;
-            action.executing = true;
-            try {
-                const res = await fetch('{{ route('ai.execute-action') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': this.csrf,
-                    },
-                    body: JSON.stringify({ tool: action.tool, args: action.args }),
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form[data-confirm-delete]').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const name = form.dataset.confirmDelete || 'this item';
+                    const label = form.dataset.confirmLabel || 'Delete';
+                    Swal.fire({
+                        title: 'Delete ' + name + '?',
+                        text: 'Deleted data cannot be recovered.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: label,
+                        cancelButtonText: 'Cancel',
+                        reverseButtons: true,
+                        focusCancel: true,
+                    }).then(function (result) {
+                        if (result.isConfirmed) { form.submit(); }
+                    });
                 });
+            });
+            document.querySelectorAll('form[data-confirm-submit]').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const title = form.dataset.confirmSubmit || 'Save changes?';
+                    const text = form.dataset.confirmText || '';
+                    const btn = form.dataset.confirmBtn || 'Yes, Save';
+                    Swal.fire({
+                        title, text, icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#6366f1',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: btn,
+                        cancelButtonText: 'Cancel',
+                        reverseButtons: true,
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            form.removeAttribute('data-confirm-submit');
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
-                if (res.redirected || res.status === 401 || res.status === 419) {
-                    action.status = 'error';
-                    action.resultMessage = 'Your session has expired. Please refresh the page and sign in again.';
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .swal-toast-popup {
+            font-size: 1rem !important;
+            min-width: 340px !important;
+            padding: 0.85rem 1.25rem !important;
+        }
+
+        .swal-toast-popup .swal2-title {
+            font-size: 0.975rem !important;
+            font-weight: 600 !important;
+        }
+
+        #page-loader-icon {
+            transition: opacity .35s ease;
+        }
+
+        #page-loader.hidden #page-loader-icon {
+            opacity: 0;
+        }
+
+        #page-loader.hidden {
+            pointer-events: none;
+        }
+    </style>
+    <script>
+        window.addEventListener('load', function () {
+            var loader = document.getElementById('page-loader');
+            if (!loader) return;
+
+            loader.classList.add('hidden');
+            setTimeout(function () { loader.style.display = 'none'; }, 650);
+        });
+    </script>
+
+    {{-- ── Flovig Dark / Light Mode Toggle ────────────────────────────── --}}
+    <script>
+        (function () {
+            var toggle = document.getElementById('fl-mode-toggle');
+            var iconSun = document.getElementById('fl-icon-sun');
+            var iconMoon = document.getElementById('fl-icon-moon');
+
+            function applyIcons(mode) {
+                if (mode === 'dark') {
+                    iconSun.classList.remove('hidden');   // sun = "switch to light"
+                    iconMoon.classList.add('hidden');
+                } else {
+                    iconMoon.classList.remove('hidden');  // moon = "switch to dark"
+                    iconSun.classList.add('hidden');
+                }
+            }
+
+            var currentMode = document.documentElement.getAttribute('data-mode') || 'light';
+            applyIcons(currentMode);
+
+            if (toggle) {
+                toggle.addEventListener('click', function () {
+                    var cur = document.documentElement.getAttribute('data-mode') || 'light';
+                    var next = cur === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-mode', next);
+                    localStorage.setItem('flovig_mode', next);
+                    applyIcons(next);
+                });
+            }
+        })();
+    </script>
+
+    {{-- ── Floating Tooltip for Collapsed Sidebar ────────────────────────────── --}}
+    <div id="fl-sidebar-tooltip"
+        class="pointer-events-none fixed z-[99999] opacity-0 transition-opacity duration-150 whitespace-nowrap px-2.5 py-1 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-xl border border-white/10 hidden">
+    </div>
+    <script>
+        (function () {
+            var tooltip = document.getElementById('fl-sidebar-tooltip');
+            if (!tooltip) return;
+
+            var currentTarget = null;
+
+            document.addEventListener('mouseover', function (e) {
+                var aside = document.querySelector('aside.sidebar-collapsed');
+                if (!aside) {
+                    hideTooltip();
                     return;
                 }
 
-                const data = await res.json();
-                if (res.ok) {
-                    action.status = 'done';
-                    action.resultMessage = data.message;
-                    action.url = data.url ?? null;
-                } else {
-                    action.status = 'error';
-                    action.resultMessage = data.error || 'Failed to execute action.';
+                var link = e.target.closest('.sidebar-collapsed .ph-nav-link, .sidebar-collapsed .sidebar-expand-btn');
+                if (!link) {
+                    hideTooltip();
+                    return;
                 }
-            } catch (e) {
-                action.status = 'error';
-                action.resultMessage = 'Failed to connect to server.';
-            } finally {
-                action.executing = false;
-                this.save();
-                this.$nextTick(() => this.scrollBottom());
-            }
-        },
-    };
-}
-</script>
 
-<script>
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = atob(base64);
-    return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
-}
+                currentTarget = link;
+                var text = link.getAttribute('data-title') || link.getAttribute('title') || link.textContent.trim();
+                if (!text) return;
 
-function notificationBell() {
-    return {
-        open: false,
-        items: [],
-        unreadCount: 0,
-        csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
-        vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
-        pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
-        pushPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'denied',
-        init() {
-            this.refreshCount();
-            this.$watch('open', (v) => { if (v) this.loadNotifications(); });
-            setInterval(() => this.refreshCount(), 30000);
-        },
-        async subscribePush() {
-            if (!this.pushAvailable) { alert('This browser does not support push notifications.'); return; }
-            if (!this.vapidKey) { alert('VAPID key is not configured on the server.'); return; }
-            try {
-                const permission = await Notification.requestPermission();
-                this.pushPermission = permission;
-                if (permission !== 'granted') { alert('Notification permission was denied. Please check browser site settings.'); return; }
-                const registration = await navigator.serviceWorker.register('/sw.js');
-                await navigator.serviceWorker.ready;
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
-                });
-                const res = await fetch('{{ route('push.subscribe') }}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
-                    body: JSON.stringify(subscription.toJSON()),
-                });
-                if (!res.ok) throw new Error('Server rejected subscription (HTTP ' + res.status + ')');
-                alert('Push notifications enabled successfully.');
-            } catch (e) {
-                console.error('subscribePush failed:', e);
-                alert('Failed to enable push notifications: ' + e.message);
-            }
-        },
-        async refreshCount() {
-            const res = await fetch('{{ route('notifications.unreadCount') }}');
-            if (!res.ok) return;
-            const data = await res.json();
-            this.unreadCount = data.count;
-        },
-        async loadNotifications() {
-            const res = await fetch('{{ route('notifications.index') }}');
-            if (!res.ok) return;
-            const data = await res.json();
-            this.items = data.data ?? [];
-        },
-        async markRead(n) {
-            if (!n.read_at) {
-                await fetch(`/notifications/${n.id}/read`, {
-                    method: 'PUT',
-                    headers: { 'X-CSRF-TOKEN': this.csrf },
-                });
-                n.read_at = new Date().toISOString();
-                this.unreadCount = Math.max(0, this.unreadCount - 1);
-            }
-            if (n.data?.project_id) {
-                window.location.href = `/projects/${n.data.project_id}`;
-            }
-        },
-        async markAllRead() {
-            await fetch('{{ route('notifications.markAllRead') }}', {
-                method: 'PUT',
-                headers: { 'X-CSRF-TOKEN': this.csrf },
-            });
-            this.items.forEach(n => n.read_at = n.read_at ?? new Date().toISOString());
-            this.unreadCount = 0;
-        },
-    }
-}
-
-function notificationToggle() {
-    return {
-        enabled: false,
-        loading: false,
-        csrf: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
-        vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
-        pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
-        async init() {
-            if (!this.pushAvailable) return;
-            try {
-                const registration = await navigator.serviceWorker.getRegistration('/sw.js');
-                const subscription = await registration?.pushManager.getSubscription();
-                this.enabled = !!subscription && Notification.permission === 'granted';
-            } catch (e) {
-                console.error('notificationToggle init failed:', e);
-            }
-        },
-        async toggle() {
-            if (!this.pushAvailable) { alert('This browser does not support push notifications.'); return; }
-            this.loading = true;
-            try {
-                if (!this.enabled) {
-                    await this.subscribe();
-                } else {
-                    await this.unsubscribe();
+                if (link.hasAttribute('title')) {
+                    link.dataset.flOrigTitle = link.getAttribute('title');
+                    link.removeAttribute('title');
                 }
-            } catch (e) {
-                console.error('notificationToggle failed:', e);
-                alert('Failed to update notification settings: ' + e.message);
-            } finally {
-                this.loading = false;
-            }
-        },
-        async subscribe() {
-            if (!this.vapidKey) { alert('VAPID key is not configured on the server.'); return; }
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') { alert('Notification permission was denied. Please check browser site settings.'); return; }
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(this.vapidKey),
-            });
-            const res = await fetch('{{ route('push.subscribe') }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
-                body: JSON.stringify(subscription.toJSON()),
-            });
-            if (!res.ok) throw new Error('Server rejected subscription (HTTP ' + res.status + ')');
-            this.enabled = true;
-        },
-        async unsubscribe() {
-            const registration = await navigator.serviceWorker.getRegistration('/sw.js');
-            const subscription = await registration?.pushManager.getSubscription();
-            if (subscription) {
-                const endpoint = subscription.endpoint;
-                await subscription.unsubscribe();
-                const res = await fetch('{{ route('push.unsubscribe') }}', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf },
-                    body: JSON.stringify({ endpoint }),
-                });
-                if (!res.ok) throw new Error('Server rejected unsubscribe (HTTP ' + res.status + ')');
-            }
-            this.enabled = false;
-        },
-    }
-}
 
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('form[data-confirm-delete]').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const name  = form.dataset.confirmDelete || 'this item';
-            const label = form.dataset.confirmLabel  || 'Delete';
-            Swal.fire({
-                title: 'Delete ' + name + '?',
-                text: 'Deleted data cannot be recovered.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor:  '#6b7280',
-                confirmButtonText:  label,
-                cancelButtonText:   'Cancel',
-                reverseButtons: true,
-                focusCancel: true,
-            }).then(function (result) {
-                if (result.isConfirmed) { form.submit(); }
+                tooltip.textContent = text;
+                tooltip.style.display = 'block';
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.left = '0px';
+                tooltip.style.top = '0px';
+
+                var rect = link.getBoundingClientRect();
+                var tooltipRect = tooltip.getBoundingClientRect();
+
+                var top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                var left = rect.right + 10;
+
+                tooltip.style.top = Math.max(8, top) + 'px';
+                tooltip.style.left = left + 'px';
+                tooltip.style.visibility = 'visible';
+                tooltip.classList.remove('opacity-0', 'hidden');
+                tooltip.classList.add('opacity-100');
             });
-        });
-    });
-    document.querySelectorAll('form[data-confirm-submit]').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const title = form.dataset.confirmSubmit || 'Save changes?';
-            const text  = form.dataset.confirmText   || '';
-            const btn   = form.dataset.confirmBtn    || 'Yes, Save';
-            Swal.fire({
-                title, text, icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#6366f1',
-                cancelButtonColor:  '#6b7280',
-                confirmButtonText: btn,
-                cancelButtonText: 'Cancel',
-                reverseButtons: true,
-            }).then(function (result) {
-                if (result.isConfirmed) {
-                    form.removeAttribute('data-confirm-submit');
-                    form.submit();
+
+            document.addEventListener('mouseout', function (e) {
+                if (!currentTarget) return;
+                var related = e.relatedTarget;
+                if (related && currentTarget.contains(related)) return;
+
+                hideTooltip();
+            });
+
+            window.addEventListener('scroll', hideTooltip, true);
+
+            function hideTooltip() {
+                if (currentTarget) {
+                    if (currentTarget.dataset.flOrigTitle) {
+                        currentTarget.setAttribute('title', currentTarget.dataset.flOrigTitle);
+                        delete currentTarget.dataset.flOrigTitle;
+                    }
+                    currentTarget = null;
                 }
-            });
-        });
-    });
-});
-</script>
-
-
-<style>
-[x-cloak] { display: none !important; }
-.swal-toast-popup {
-    font-size: 1rem !important;
-    min-width: 340px !important;
-    padding: 0.85rem 1.25rem !important;
-}
-.swal-toast-popup .swal2-title {
-    font-size: 0.975rem !important;
-    font-weight: 600 !important;
-}
-#page-loader-icon {
-    transition: opacity .35s ease;
-}
-#page-loader.hidden #page-loader-icon {
-    opacity: 0;
-}
-#page-loader.hidden {
-    pointer-events: none;
-}
-</style>
-<script>
-window.addEventListener('load', function () {
-    var loader = document.getElementById('page-loader');
-    if (!loader) return;
-
-    loader.classList.add('hidden');
-    setTimeout(function () { loader.style.display = 'none'; }, 650);
-});
-</script>
-
-{{-- ── Flovig Dark / Light Mode Toggle ────────────────────────────── --}}
-<script>
-(function () {
-    var toggle  = document.getElementById('fl-mode-toggle');
-    var iconSun = document.getElementById('fl-icon-sun');
-    var iconMoon= document.getElementById('fl-icon-moon');
-
-    function applyIcons(mode) {
-        if (mode === 'dark') {
-            iconSun.classList.remove('hidden');   // sun = "switch to light"
-            iconMoon.classList.add('hidden');
-        } else {
-            iconMoon.classList.remove('hidden');  // moon = "switch to dark"
-            iconSun.classList.add('hidden');
-        }
-    }
-
-    var currentMode = document.documentElement.getAttribute('data-mode') || 'light';
-    applyIcons(currentMode);
-
-    if (toggle) {
-        toggle.addEventListener('click', function () {
-            var cur  = document.documentElement.getAttribute('data-mode') || 'light';
-            var next = cur === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-mode', next);
-            localStorage.setItem('flovig_mode', next);
-            applyIcons(next);
-        });
-    }
-})();
-</script>
-
-{{-- ── Floating Tooltip for Collapsed Sidebar ────────────────────────────── --}}
-<div id="fl-sidebar-tooltip" class="pointer-events-none fixed z-[99999] opacity-0 transition-opacity duration-150 whitespace-nowrap px-2.5 py-1 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-xl border border-white/10 hidden"></div>
-<script>
-(function() {
-    var tooltip = document.getElementById('fl-sidebar-tooltip');
-    if (!tooltip) return;
-
-    var currentTarget = null;
-
-    document.addEventListener('mouseover', function(e) {
-        var aside = document.querySelector('aside.sidebar-collapsed');
-        if (!aside) {
-            hideTooltip();
-            return;
-        }
-
-        var link = e.target.closest('.sidebar-collapsed .ph-nav-link, .sidebar-collapsed .sidebar-expand-btn');
-        if (!link) {
-            hideTooltip();
-            return;
-        }
-
-        currentTarget = link;
-        var text = link.getAttribute('data-title') || link.getAttribute('title') || link.textContent.trim();
-        if (!text) return;
-
-        if (link.hasAttribute('title')) {
-            link.dataset.flOrigTitle = link.getAttribute('title');
-            link.removeAttribute('title');
-        }
-
-        tooltip.textContent = text;
-        tooltip.style.display = 'block';
-        tooltip.style.visibility = 'hidden';
-        tooltip.style.left = '0px';
-        tooltip.style.top = '0px';
-
-        var rect = link.getBoundingClientRect();
-        var tooltipRect = tooltip.getBoundingClientRect();
-
-        var top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
-        var left = rect.right + 10;
-
-        tooltip.style.top = Math.max(8, top) + 'px';
-        tooltip.style.left = left + 'px';
-        tooltip.style.visibility = 'visible';
-        tooltip.classList.remove('opacity-0', 'hidden');
-        tooltip.classList.add('opacity-100');
-    });
-
-    document.addEventListener('mouseout', function(e) {
-        if (!currentTarget) return;
-        var related = e.relatedTarget;
-        if (related && currentTarget.contains(related)) return;
-
-        hideTooltip();
-    });
-
-    window.addEventListener('scroll', hideTooltip, true);
-
-    function hideTooltip() {
-        if (currentTarget) {
-            if (currentTarget.dataset.flOrigTitle) {
-                currentTarget.setAttribute('title', currentTarget.dataset.flOrigTitle);
-                delete currentTarget.dataset.flOrigTitle;
+                if (tooltip) {
+                    tooltip.classList.remove('opacity-100');
+                    tooltip.classList.add('opacity-0');
+                    setTimeout(function () {
+                        if (!currentTarget) tooltip.style.display = 'none';
+                    }, 150);
+                }
             }
-            currentTarget = null;
-        }
-        if (tooltip) {
-            tooltip.classList.remove('opacity-100');
-            tooltip.classList.add('opacity-0');
-            setTimeout(function() {
-                if (!currentTarget) tooltip.style.display = 'none';
-            }, 150);
-        }
-    }
-})();
-</script>
+        })();
+    </script>
 </body>
+
 </html>

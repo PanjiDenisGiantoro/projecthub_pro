@@ -98,7 +98,7 @@ return [
 
     'HRIS — Absensi' => [
         'view absensi'           => 'Lihat Rekap Absensi Semua Karyawan',
-        'update absensi'         => 'Kelola Pengaturan Absensi (lokasi, wajah)',
+        'update absensi'         => 'Kelola Pengaturan Absensi (lokasi, wajah, shift)',
         'manage face enrollment' => 'Kelola Pendaftaran Wajah Karyawan',
         'import absensi'         => 'Import Data Absensi dari Excel',
         'export absensi'         => 'Export Data Absensi ke Excel',

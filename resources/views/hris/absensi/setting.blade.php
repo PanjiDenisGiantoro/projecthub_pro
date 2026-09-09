@@ -338,6 +338,258 @@
     </aside>
     </div>
 
+    {{-- ── SHIFT KERJA SECTION ─────────────────────────────────────────── --}}
+    <div class="rounded-2xl overflow-hidden border transition-all"
+         style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe)">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color:var(--fl-card-border,#ede9fe)">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                     style="background:rgba(245,158,11,0.12)">
+                    <svg class="w-5 h-5" style="color:#f59e0b" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-[15px]" style="color:var(--fl-text-h,#1a0a3d)">Shift Kerja</p>
+                    <p class="text-xs mt-0.5" style="color:var(--fl-text-muted,#6b7280)">Atur jam masuk, jam pulang, dan toleransi keterlambatan per shift. Shift ini bisa dipilih di halaman data karyawan.</p>
+                </div>
+            </div>
+            <button type="button" @click="openShiftModal()"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold shrink-0 transition-all"
+                    style="background:var(--hris-gradient);color:#fff;box-shadow:0 2px 8px rgba(109,40,217,0.3)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Tambah Shift
+            </button>
+        </div>
+
+        <div class="p-6">
+            @if($shifts->isEmpty())
+            <p class="text-sm text-center py-6" style="color:var(--fl-text-muted,#6b7280)">Belum ada shift kerja. Tambahkan shift pertama untuk mulai mengatur jam kerja karyawan.</p>
+            @else
+            <div class="space-y-2">
+                @foreach($shifts as $shift)
+                <div class="flex flex-wrap items-center gap-3 px-4 py-3.5 rounded-xl border transition-all"
+                     style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe)">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                         style="background:rgba(245,158,11,0.12);color:#f59e0b">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+
+                    <div class="flex-1 min-w-[180px]">
+                        <p class="text-sm font-semibold truncate flex items-center gap-1.5" style="color:var(--fl-text-h,#1a0a3d)">
+                            {{ $shift->name }}
+                            @if($shift->isSplit())
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style="background:rgba(124,58,237,0.1);color:#7c3aed">Split</span>
+                            @endif
+                            @if($shift->hasCustomDayHours())
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style="background:rgba(37,99,235,0.1);color:#2563eb">Jam beda per hari</span>
+                            @endif
+                        </p>
+                        <p class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs mt-1" style="color:var(--fl-text-muted,#6b7280)">
+                            @if($shift->hasCustomDayHours())
+                            <span>{{ $shift->hoursSummary() }}</span>
+                            @else
+                            <span>{{ $shift->sessionsLabel() }}</span>
+                            <span style="color:var(--fl-text-subtle,#c4b5fd)">&middot;</span>
+                            <span>{{ $shift->workingDaysLabel() }}</span>
+                            @endif
+                            <span style="color:var(--fl-text-subtle,#c4b5fd)">&middot;</span>
+                            <span>Toleransi telat {{ $shift->tolerance_minutes }} menit</span>
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0 ml-auto">
+                        {{-- Toggle aktif/nonaktif --}}
+                        <form action="{{ route('hris.absensi.shifts.toggle', $shift) }}" method="POST">
+                            @csrf @method('PATCH')
+                            <button type="submit"
+                                    class="text-xs px-2.5 py-1.5 rounded-full font-semibold whitespace-nowrap"
+                                    style="{{ $shift->is_active ? 'background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)' : 'background:rgba(107,114,128,0.1);color:#6b7280;border:1px solid rgba(107,114,128,0.2)' }}">
+                                {{ $shift->is_active ? 'Aktif' : 'Nonaktif' }}
+                            </button>
+                        </form>
+                        <button type="button"
+                                @click="openShiftModal({{ $shift->id }}, '{{ addslashes($shift->name) }}', '{{ substr($shift->start_time, 0, 5) }}', '{{ substr($shift->end_time, 0, 5) }}', {{ $shift->tolerance_minutes }}, {{ $shift->workingDays->pluck('day_of_week')->values()->toJson() }}, '{{ $shift->break_start_time ? substr($shift->break_start_time, 0, 5) : '' }}', '{{ $shift->break_end_time ? substr($shift->break_end_time, 0, 5) : '' }}', {{ $shift->workingDays->filter(fn($wd) => $wd->start_time)->mapWithKeys(fn($wd) => [$wd->day_of_week => ['start' => substr($wd->start_time, 0, 5), 'end' => substr($wd->end_time, 0, 5)]])->toJson() }})"
+                                class="text-xs px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all"
+                                style="background:rgba(124,58,237,0.1);color:#7c3aed;border:1px solid rgba(124,58,237,0.2)">
+                            Ubah
+                        </button>
+                        <form action="{{ route('hris.absensi.shifts.destroy', $shift) }}" method="POST"
+                              onsubmit="return confirm('Hapus shift {{ addslashes($shift->name) }}? Karyawan yang memakai shift ini akan menjadi Tidak Ditentukan.');">
+                            @csrf @method('DELETE')
+                            <button type="submit"
+                                    class="text-xs p-1.5 rounded-lg font-medium transition-all"
+                                    style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15)">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Shift modal (tambah/ubah) --}}
+    <div x-show="shiftModalOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
+        <div class="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+             style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe)"
+             @click.stop>
+            <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color:var(--fl-card-border,#ede9fe)">
+                <p class="font-semibold" style="color:var(--fl-text-h,#1a0a3d)" x-text="shiftEditId ? 'Ubah Shift' : 'Tambah Shift'"></p>
+                <button type="button" @click="shiftModalOpen = false" class="p-1.5 rounded-lg transition-all" style="color:var(--fl-text-muted,#6b7280)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form :action="shiftEditId ? '{{ url('hris/absensi/shifts') }}/' + shiftEditId : '{{ route('hris.absensi.shifts.store') }}'"
+                  method="POST" class="p-6 space-y-4">
+                @csrf
+                <template x-if="shiftEditId"><input type="hidden" name="_method" value="PUT"></template>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Nama Shift</label>
+                    <input type="text" name="name" x-model="shiftName" required placeholder="cth: Shift Pagi"
+                           class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
+                           style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Jam Masuk</label>
+                        <input type="time" name="start_time" x-model="shiftStart" required
+                               class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
+                               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Jam Pulang</label>
+                        <input type="time" name="end_time" x-model="shiftEnd" required
+                               class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
+                               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                    </div>
+                </div>
+
+                {{--
+                Shift Split disembunyikan dulu dari UI (data & logic backend tetap jalan
+                buat shift split yang sudah ada) — tinggal hapus komentar ini buat
+                nampilin lagi toggle & field jeda-nya.
+                <div>
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" :checked="shiftIsSplit" @change="toggleShiftSplit()" class="rounded" style="accent-color:#7c3aed">
+                        <span class="text-xs font-semibold" style="color:var(--fl-text-muted,#6b7280)">Shift Split (2 sesi kerja dengan jeda panjang, cth: kurir/outlet)</span>
+                    </label>
+                </div>
+
+                <div x-show="shiftIsSplit" x-cloak class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Jeda Mulai</label>
+                        <input type="time" name="break_start_time" x-model="shiftBreakStart" :required="shiftIsSplit"
+                               class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
+                               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Jeda Selesai</label>
+                        <input type="time" name="break_end_time" x-model="shiftBreakEnd" :required="shiftIsSplit"
+                               class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
+                               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                    </div>
+                    <p class="text-xs col-span-2 -mt-1" style="color:var(--fl-text-subtle,#9ca3af)">Sesi 1: Jam Masuk &rarr; Jeda Mulai. Sesi 2: Jeda Selesai &rarr; Jam Pulang.</p>
+                </div>
+                --}}
+
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold" style="color:var(--fl-text-muted,#6b7280)">Hari Kerja</label>
+                        <div class="flex gap-2 text-[11px]">
+                            <button type="button" @click="shiftDays = [1,2,3,4,5]" class="font-medium" style="color:#7c3aed">Sen-Jum</button>
+                            <button type="button" @click="shiftDays = [1,2,3,4,5,6]" class="font-medium" style="color:#7c3aed">Sen-Sab</button>
+                            <button type="button" @click="shiftDays = [0,1,2,3,4,5,6]" class="font-medium" style="color:#7c3aed">Setiap Hari</button>
+                        </div>
+                    </div>
+                    <div class="flex gap-1.5">
+                        @foreach(['Min','Sen','Sel','Rab','Kam','Jum','Sab'] as $i => $label)
+                        <button type="button"
+                                @click="shiftDays.includes({{ $i }}) ? shiftDays = shiftDays.filter(d => d !== {{ $i }}) : shiftDays.push({{ $i }})"
+                                class="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+                                :style="shiftDays.includes({{ $i }}) ? 'background:var(--hris-gradient);color:#fff' : 'background:var(--fl-search-bg,#f5f3ff);color:var(--fl-text-muted,#6b7280);border:1px solid var(--fl-card-border,#ede9fe)'">
+                            {{ $label }}
+                        </button>
+                        @endforeach
+                    </div>
+                    <template x-for="day in shiftDays" :key="day">
+                        <input type="hidden" name="working_days[]" :value="day">
+                    </template>
+                </div>
+
+                <div x-show="shiftDays.length" x-cloak>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Jam Kerja per Hari (opsional)</label>
+                    <p class="text-xs mb-2" style="color:var(--fl-text-subtle,#9ca3af)">Biarkan default kalau jam kerja hari itu sama dengan Jam Masuk/Jam Pulang di atas. Atur jam khusus kalau beda, cth: Sabtu setengah hari.</p>
+                    <div class="space-y-1.5">
+                        <template x-for="day in shiftDays.slice().sort((a,b) => a-b)" :key="day">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold w-8 shrink-0" style="color:var(--fl-text-muted,#6b7280)" x-text="shiftDayLabels[day]"></span>
+                                <template x-if="!shiftDayTimes[day]">
+                                    <button type="button" @click="toggleDayCustomHours(day)"
+                                            class="text-xs font-medium" style="color:#7c3aed">
+                                        + Atur jam khusus
+                                    </button>
+                                </template>
+                                <template x-if="shiftDayTimes[day]">
+                                    <div class="flex items-center gap-1.5 flex-1">
+                                        <input type="time" :name="'day_times[' + day + '][start]'" x-model="shiftDayTimes[day].start"
+                                               class="fl-setting-input flex-1 px-2 py-1.5 text-xs rounded-lg border transition-all"
+                                               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                                        <span class="text-xs" style="color:var(--fl-text-subtle,#9ca3af)">&ndash;</span>
+                                        <input type="time" :name="'day_times[' + day + '][end]'" x-model="shiftDayTimes[day].end"
+                                               class="fl-setting-input flex-1 px-2 py-1.5 text-xs rounded-lg border transition-all"
+                                               style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                                        <button type="button" @click="toggleDayCustomHours(day)"
+                                                class="text-xs font-medium shrink-0" style="color:#ef4444">
+                                            Hapus
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:var(--fl-text-muted,#6b7280)">Toleransi Keterlambatan (menit)</label>
+                    <input type="number" name="tolerance_minutes" x-model="shiftTolerance" min="0" max="180" required
+                           class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
+                           style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                    <p class="text-xs mt-1" style="color:var(--fl-text-subtle,#9ca3af)">Karyawan masih dianggap tepat waktu selama check-in dalam rentang toleransi ini setelah jam masuk.</p>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                            class="flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all"
+                            style="background:var(--hris-gradient);color:#fff;box-shadow:0 4px 12px rgba(109,40,217,0.3)">
+                        Simpan
+                    </button>
+                    <button type="button" @click="shiftModalOpen = false"
+                            class="px-5 py-2.5 rounded-xl font-medium text-sm transition-all"
+                            style="background:var(--fl-search-bg,#f5f3ff);color:var(--fl-text-muted,#6b7280);border:1px solid var(--fl-card-border,#ede9fe)">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- ── Face Enrollment Modal ──────────────────────────────────────────── --}}
 <div x-show="enrollOpen" x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -431,6 +683,18 @@ function attendanceSetting() {
         maxDistance:     {{ $setting->max_distance_meters }},
         threshold:       {{ $setting->face_recognition_threshold }},
         locMsg:          '',
+        shiftModalOpen:  false,
+        shiftEditId:     null,
+        shiftName:       '',
+        shiftStart:      '08:00',
+        shiftEnd:        '17:00',
+        shiftIsSplit:    false,
+        shiftBreakStart: '',
+        shiftBreakEnd:   '',
+        shiftTolerance:  15,
+        shiftDays:       [1,2,3,4,5],
+        shiftDayTimes:   {}, // { [dayOfWeek]: { start, end } } — jam custom per hari (opsional)
+        shiftDayLabels:  ['Min','Sen','Sel','Rab','Kam','Jum','Sab'],
         enrollOpen:      false,
         enrollId:        null,
         enrollName:      '',
@@ -440,6 +704,36 @@ function attendanceSetting() {
         enrollStream:    null,
         faceApiLoaded:   false,
         detectionLoop:   null,
+
+        openShiftModal(id = null, name = '', start = '08:00', end = '17:00', tolerance = 15, days = [1,2,3,4,5], breakStart = '', breakEnd = '', dayTimes = {}) {
+            this.shiftEditId    = id;
+            this.shiftName      = name;
+            this.shiftStart     = start;
+            this.shiftEnd       = end;
+            this.shiftIsSplit   = !!(breakStart && breakEnd);
+            this.shiftBreakStart = breakStart;
+            this.shiftBreakEnd   = breakEnd;
+            this.shiftTolerance = tolerance;
+            this.shiftDays      = days;
+            this.shiftDayTimes  = dayTimes;
+            this.shiftModalOpen = true;
+        },
+
+        toggleShiftSplit() {
+            this.shiftIsSplit = !this.shiftIsSplit;
+            if (!this.shiftIsSplit) {
+                this.shiftBreakStart = '';
+                this.shiftBreakEnd   = '';
+            }
+        },
+
+        toggleDayCustomHours(day) {
+            if (this.shiftDayTimes[day]) {
+                delete this.shiftDayTimes[day];
+            } else {
+                this.shiftDayTimes[day] = { start: this.shiftStart, end: this.shiftEnd };
+            }
+        },
 
         async getMyLocation() {
             if (!navigator.geolocation) { this.locMsg = 'GPS tidak tersedia'; return; }

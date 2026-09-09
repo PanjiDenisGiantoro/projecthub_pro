@@ -130,11 +130,15 @@
                     @if(!auth()->user()->hasRole('client'))
                     <td class="px-4 py-3 text-right">
                         <div class="flex gap-3 justify-end items-center">
+                            @if($def->last_generated_at?->isToday())
+                            <span class="text-xs text-gray-400" title="Task untuk hari ini sudah dibuat">Sudah digenerate hari ini</span>
+                            @else
                             <form method="POST" action="{{ route('recurring.generateNow', [$project, $def]) }}"
                                   data-confirm-submit="Buat task dari definisi &quot;{{ $def->title }}&quot; sekarang?" data-confirm-btn="Ya, Generate">
                                 @csrf
                                 <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Generate Sekarang</button>
                             </form>
+                            @endif
                             <form method="POST" action="{{ route('recurring.destroy', [$project, $def]) }}"
                                   data-confirm-delete="{{ $def->title }}">
                                 @csrf @method('DELETE')
