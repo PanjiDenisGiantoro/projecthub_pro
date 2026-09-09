@@ -3,6 +3,8 @@
 @section('page-title', 'Edit User')
 
 @push('head')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/filepond@4/dist/filepond.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/filepond-plugin-image-preview@4/dist/filepond-plugin-image-preview.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 <style>
 .select2-container--default .select2-selection--single {
@@ -57,8 +59,32 @@
 @section('content')
 <div class="py-4 max-w-lg">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('users.update', $user) }}" class="space-y-5">
+        <form method="POST" action="{{ route('users.update', $user) }}" enctype="multipart/form-data" class="space-y-5">
             @csrf @method('PUT')
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Foto User</label>
+                <div class="flex items-start gap-4">
+                    @if($user->avatar)
+                        <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}"
+                             class="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0">
+                    @else
+                        <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg border border-gray-200 shrink-0">
+                            {{ strtoupper(substr($user->name, 0, 2)) }}
+                        </div>
+                    @endif
+                    <div class="flex-1">
+                        <input type="file" name="avatar" class="filepond-avatar-input">
+                        @error('avatar') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                        @if($user->avatar)
+                        <label class="mt-2 inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 cursor-pointer">
+                            <input type="checkbox" name="remove_avatar" value="1" class="w-3.5 h-3.5 text-red-600 rounded">
+                            Hapus foto saat ini
+                        </label>
+                        @endif
+                    </div>
+                </div>
+            </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
@@ -140,6 +166,7 @@
             </div>
             @endif
 
+            @if(session('active_package') !== 'hris')
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Proyek</label>
                 <select name="project_ids[]" id="select-projects" multiple style="width:100%">
@@ -151,6 +178,7 @@
                 </select>
                 <p class="mt-1 text-xs text-gray-400">Opsional. Anggota tim proyek akan disesuaikan dengan pilihan ini.</p>
             </div>
+            @endif
 
             @if(session('active_package') === 'hris')
             <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
@@ -166,6 +194,19 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Shift Kerja</label>
+                    <select name="shift_id" id="sel-shift" class="w-full">
+                        <option value="">— Tidak Ditentukan —</option>
+                        @foreach($shifts as $shift)
+                            <option value="{{ $shift->id }}" {{ old('shift_id', $user->shift_id) == $shift->id ? 'selected' : '' }}>
+                                {{ $shift->name }} ({{ $shift->timeRangeLabel() }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-gray-400">Atur daftar shift di halaman Pengaturan Absensi.</p>
                 </div>
             </div>
             @endif
@@ -190,11 +231,30 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/filepond-plugin-file-validate-size@2/dist/filepond-plugin-file-validate-size.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/filepond-plugin-image-preview@4/dist/filepond-plugin-image-preview.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/filepond@4/dist/filepond.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    FilePond.registerPlugin(FilePondPluginFileValidateSize, FilePondPluginImagePreview);
+
+    var avatarInput = document.querySelector('.filepond-avatar-input');
+    if (avatarInput) {
+        FilePond.create(avatarInput, {
+            allowMultiple: false,
+            maxFiles: 1,
+            maxFileSize: '2MB',
+            instantUpload: false,
+            storeAsFile: true,
+            labelIdle: 'Seret foto ke sini atau <span class="filepond--label-action">Pilih Foto</span>',
+        });
+    }
+});
+
 $(function () {
-    $('#select-role, #select-level, #sel-org-unit').select2({
+    $('#select-role, #select-level, #sel-org-unit, #sel-shift').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',

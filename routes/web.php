@@ -27,6 +27,7 @@ use App\Http\Controllers\Web\ForumWebController;
 use App\Http\Controllers\Web\GithubWebController;
 use App\Http\Controllers\Web\GoogleCalendarController;
 use App\Http\Controllers\Web\Hris\AbsensiController;
+use App\Http\Controllers\Web\Hris\AttendanceApiController;
 use App\Http\Controllers\Web\Hris\BonusController;
 use App\Http\Controllers\Web\Hris\EmployeeSalaryController;
 use App\Http\Controllers\Web\Hris\KasbonController;
@@ -564,9 +565,21 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('absensi/checkin', [AbsensiController::class, 'checkIn'])->name('absensi.checkin');
         Route::post('absensi/checkout', [AbsensiController::class, 'checkOut'])->name('absensi.checkout');
         Route::get('absensi/rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
+        Route::get('absensi/kalender', [AbsensiController::class, 'calendar'])->name('absensi.calendar');
         Route::get('absensi/setting', [AbsensiController::class, 'setting'])->name('absensi.setting');
         Route::post('absensi/setting', [AbsensiController::class, 'saveSetting'])->name('absensi.setting.save');
         Route::get('absensi/setting/logs', [AbsensiController::class, 'settingLogs'])->name('absensi.setting.logs');
+        Route::post('absensi/shifts', [AbsensiController::class, 'storeShift'])->name('absensi.shifts.store');
+        Route::put('absensi/shifts/{shift}', [AbsensiController::class, 'updateShift'])->name('absensi.shifts.update');
+        Route::patch('absensi/shifts/{shift}/toggle', [AbsensiController::class, 'toggleShift'])->name('absensi.shifts.toggle');
+        Route::delete('absensi/shifts/{shift}', [AbsensiController::class, 'destroyShift'])->name('absensi.shifts.destroy');
+        Route::get('absensi/jadwal', [AbsensiController::class, 'schedule'])->name('absensi.schedule');
+        Route::post('absensi/jadwal/cell', [AbsensiController::class, 'saveScheduleCell'])->name('absensi.schedule.cell');
+        Route::post('absensi/jadwal/bulk', [AbsensiController::class, 'bulkSetSchedule'])->name('absensi.schedule.bulk');
+        Route::get('absensi/libur', [AbsensiController::class, 'holidays'])->name('absensi.holidays');
+        Route::post('absensi/libur', [AbsensiController::class, 'storeHoliday'])->name('absensi.holidays.store');
+        Route::delete('absensi/libur/{holiday}', [AbsensiController::class, 'destroyHoliday'])->name('absensi.holidays.destroy');
+        Route::post('absensi/libur/import', [AbsensiController::class, 'importHolidays'])->name('absensi.holidays.import');
         Route::get('absensi/face-enrollment', [AbsensiController::class, 'faceEnrollment'])->name('absensi.face-enrollment');
         Route::get('absensi/face-enrollment/logs', [AbsensiController::class, 'faceEnrollmentLogs'])->name('absensi.face-enrollment.logs');
         Route::post('absensi/enroll-face/{employee}', [AbsensiController::class, 'enrollFace'])->name('absensi.enroll-face');
@@ -574,6 +587,17 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::get('absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
         Route::get('absensi/import/template', [AbsensiController::class, 'importTemplate'])->name('absensi.import.template');
         Route::post('absensi/import', [AbsensiController::class, 'import'])->name('absensi.import');
+
+        // Integrasi API Absensi (tarik data dari mesin fingerprint / HRIS eksternal)
+        Route::prefix('absensi/integration')->name('absensi.integration.')->group(function () {
+            Route::get('/', [AttendanceApiController::class, 'index'])->name('index');
+            Route::post('/', [AttendanceApiController::class, 'store'])->name('store');
+            Route::put('/{source}', [AttendanceApiController::class, 'update'])->name('update');
+            Route::delete('/{source}', [AttendanceApiController::class, 'destroy'])->name('destroy');
+            Route::post('/{source}/test', [AttendanceApiController::class, 'test'])->name('test');
+            Route::post('/{source}/sync', [AttendanceApiController::class, 'sync'])->name('sync');
+            Route::get('/{source}/logs', [AttendanceApiController::class, 'logs'])->name('logs');
+        });
 
         // Cuti & Izin
         Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');

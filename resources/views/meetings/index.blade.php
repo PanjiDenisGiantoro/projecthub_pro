@@ -33,6 +33,14 @@
         <div class="flex gap-2 flex-wrap items-center">
             <form method="GET" class="flex gap-2 flex-wrap">
                 <input type="hidden" name="category" value="{{ $category }}">
+                @if(auth()->user()->is_super_admin)
+                <select name="company" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Semua Company</option>
+                    @foreach($companies as $c)
+                        <option value="{{ $c->id }}" {{ (string) $companyId === (string) $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                    @endforeach
+                </select>
+                @endif
                 <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Proyek</option>
                     @foreach($projects as $p)
@@ -60,7 +68,7 @@
         @foreach($tabs as $key => $label)
             @php
                 $isActive = $category === $key;
-                $qs = http_build_query(array_filter(['category' => $key, 'when' => $when, 'project' => $projectId]));
+                $qs = http_build_query(array_filter(['category' => $key, 'when' => $when, 'project' => $projectId, 'company' => $companyId]));
             @endphp
             <a href="{{ route('meetings.index') }}?{{ $qs }}"
                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors

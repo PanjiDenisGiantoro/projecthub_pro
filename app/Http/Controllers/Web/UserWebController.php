@@ -12,10 +12,12 @@ use App\Models\OrganizationUnit;
 use App\Models\Package;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\Shift;
 use App\Models\StructuralLevel;
 use App\Models\User;
 use App\Support\EmploymentType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
@@ -133,9 +135,17 @@ class UserWebController extends Controller
         }
 
         $users = $query->orderBy('name')->get();
+        $roles = Role::whereNotIn('name', ['client', 'tester'])->get();
+
+        $organizationUnits = $authUser->company_id
+            ? OrganizationUnit::where('company_id', $authUser->company_id)->orderBy('name')->get()
+            : collect();
+        $structuralLevels = $authUser->company_id
+            ? StructuralLevel::where('company_id', $authUser->company_id)->orderBy('name')->get()
+            : collect();
 
         return Excel::download(
-            new UsersExport($users, $this->activeCustomFields()),
+            new UsersExport($users, $this->activeCustomFields(), $roles, $organizationUnits, $structuralLevels),
             'data-karyawan-' . now()->format('Y-m-d') . '.xlsx'
         );
     }
@@ -188,8 +198,9 @@ class UserWebController extends Controller
         $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
+        $shifts            = Shift::where('company_id', auth()->user()->company_id)->where('is_active', true)->orderBy('start_time')->get();
         $customFields      = $this->activeCustomFields();
-        return view('users.create', compact('roles', 'structuralLevels', 'organizationUnits', 'projects', 'customFields'));
+        return view('users.create', compact('roles', 'structuralLevels', 'organizationUnits', 'projects', 'shifts', 'customFields'));
     }
 
     public function store(Request $request)
@@ -203,9 +214,13 @@ class UserWebController extends Controller
             'role'                      => 'required|exists:roles,name|not_in:client',
             'structural_level_id'       => 'nullable|exists:structural_levels,id',
             'organization_unit_id'      => 'nullable|exists:organization_units,id',
+            'shift_id'                  => ['nullable', Rule::exists('shifts', 'id')->where('company_id', auth()->user()->company_id)],
             'employment_type'           => ['nullable', Rule::in(array_keys(EmploymentType::LABELS))],
             'employment_type_other'     => 'nullable|string|max:100|required_if:employment_type,lainnya',
-            'outsourcing_company_name'  => 'nullable|string|max:255|required_unless:employment_type,tetap,kontrak',
+            'outsourcing_company_name'  => [
+                'nullable', 'string', 'max:255',
+                Rule::requiredIf(fn () => $request->filled('employment_type') && ! in_array($request->employment_type, ['tetap', 'kontrak'], true)),
+            ],
             'hire_date'                 => 'nullable|date',
             'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
             'project_ids'               => 'nullable|array',
@@ -221,6 +236,7 @@ class UserWebController extends Controller
             'is_active'                 => $request->boolean('is_active', true),
             'structural_level_id'       => $request->structural_level_id,
             'organization_unit_id'      => $request->organization_unit_id,
+            'shift_id'                  => $request->shift_id,
             'employment_type'           => $request->employment_type ?? EmploymentType::TETAP,
             'employment_type_other'     => EmploymentType::requiresCustomLabel($request->employment_type) ? $request->employment_type_other : null,
             'outsourcing_company_name'  => EmploymentType::requiresSourceCompany($request->employment_type) ? $request->outsourcing_company_name : null,
@@ -250,10 +266,13 @@ class UserWebController extends Controller
         $structuralLevels  = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects          = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
+        $shifts            = Shift::where('company_id', auth()->user()->company_id)
+            ->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $user->shift_id))
+            ->orderBy('start_time')->get();
         $selectedProjectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id')->toArray();
         $customFields      = $this->activeCustomFields();
 
-        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'organizationUnits', 'projects', 'selectedProjectIds', 'customFields'));
+        return view('users.edit', compact('user', 'roles', 'structuralLevels', 'organizationUnits', 'projects', 'shifts', 'selectedProjectIds', 'customFields'));
     }
 
     public function update(Request $request, User $user)
@@ -266,20 +285,37 @@ class UserWebController extends Controller
             'role'                      => 'required|exists:roles,name',
             'structural_level_id'       => 'nullable|exists:structural_levels,id',
             'organization_unit_id'      => 'nullable|exists:organization_units,id',
+            'shift_id'                  => ['nullable', Rule::exists('shifts', 'id')->where('company_id', auth()->user()->company_id)],
             'employment_type'           => ['nullable', Rule::in(array_keys(EmploymentType::LABELS))],
             'employment_type_other'     => 'nullable|string|max:100|required_if:employment_type,lainnya',
-            'outsourcing_company_name'  => 'nullable|string|max:255|required_unless:employment_type,tetap,kontrak',
+            'outsourcing_company_name'  => [
+                'nullable', 'string', 'max:255',
+                Rule::requiredIf(fn () => $request->filled('employment_type') && ! in_array($request->employment_type, ['tetap', 'kontrak'], true)),
+            ],
             'hire_date'                 => 'nullable|date',
             'contract_end_date'         => 'nullable|date|after_or_equal:hire_date|required_if:employment_type,kontrak',
             'project_ids'               => 'nullable|array',
             'project_ids.*'             => [Rule::exists('projects', 'id')->where('company_id', auth()->user()->company_id)],
+            'avatar'                    => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,gif,webp'],
             ...$this->customFieldValidationRules($customFields),
         ]);
 
         $data = [
-            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id'),
+            ...$request->only('name', 'email', 'timezone', 'structural_level_id', 'organization_unit_id', 'shift_id'),
             'is_active' => $request->boolean('is_active'),
         ];
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        } elseif ($request->boolean('remove_avatar')) {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $data['avatar'] = null;
+        }
 
         // Kalau tidak ada field kustom aktif, form tidak menampilkan blok ini sama
         // sekali — jangan timpa custom_fields yang sudah ada (mis. dari saat field-nya
@@ -307,16 +343,21 @@ class UserWebController extends Controller
         $user->update($data);
         $user->syncRoles([$request->role]);
 
-        $companyProjectIds = Project::where('company_id', auth()->user()->company_id)->pluck('id');
-        $selectedProjectIds = $request->input('project_ids', []);
+        // Field ini tidak ditampilkan untuk company dengan paket HRIS aktif
+        // (proyek tidak relevan di konteks HRIS) — jangan sentuh keanggotaan
+        // proyek yang sudah ada kalau form tidak mengirim field ini sama sekali.
+        if (session('active_package') !== 'hris') {
+            $companyProjectIds = Project::where('company_id', auth()->user()->company_id)->pluck('id');
+            $selectedProjectIds = $request->input('project_ids', []);
 
-        ProjectMember::where('user_id', $user->id)
-            ->whereIn('project_id', $companyProjectIds)
-            ->whereNotIn('project_id', $selectedProjectIds)
-            ->delete();
+            ProjectMember::where('user_id', $user->id)
+                ->whereIn('project_id', $companyProjectIds)
+                ->whereNotIn('project_id', $selectedProjectIds)
+                ->delete();
 
-        foreach ($selectedProjectIds as $projectId) {
-            ProjectMember::firstOrCreate(['project_id' => $projectId, 'user_id' => $user->id]);
+            foreach ($selectedProjectIds as $projectId) {
+                ProjectMember::firstOrCreate(['project_id' => $projectId, 'user_id' => $user->id]);
+            }
         }
 
         return redirect()->route('users.index')->with('success', 'User diperbarui.');

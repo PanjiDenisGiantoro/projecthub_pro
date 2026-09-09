@@ -38,16 +38,34 @@
                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Tanggal</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Masuk</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Pulang</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Durasi</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($rekap as $row)
+                @php
+                    $mins = $row->workMinutes();
+                    $noteParts = $row->notes ? explode('; ', $row->notes) : [];
+                    $lateNotes = array_filter($noteParts, fn ($n) => str_contains($n, 'Telat'));
+                    $earlyOutNotes = array_filter($noteParts, fn ($n) => str_contains($n, 'Pulang cepat'));
+                @endphp
                 <tr>
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $row->user->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $row->date->locale('id')->isoFormat('ddd, D MMM') }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $row->check_in ?? '—' }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $row->check_out ?? '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {{ $row->check_in ?? '—' }}
+                        @if($row->check_in_2)<span class="block text-xs text-gray-400">+ {{ $row->check_in_2 }} (sesi 2)</span>@endif
+                        @foreach($lateNotes as $note)<span class="block text-xs font-medium text-amber-600">{{ $note }}</span>@endforeach
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {{ $row->check_out ?? '—' }}
+                        @if($row->check_out_2)<span class="block text-xs text-gray-400">+ {{ $row->check_out_2 }} (sesi 2)</span>@endif
+                        @foreach($earlyOutNotes as $note)<span class="block text-xs font-medium text-amber-600">{{ $note }}</span>@endforeach
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">
+                        @if($mins > 0){{ intdiv($mins, 60) }}j {{ $mins % 60 }}m @else — @endif
+                    </td>
                     <td class="px-4 py-3">
                         <span class="text-xs px-2 py-0.5 rounded-full font-medium
                             @if($row->status === 'hadir') bg-green-100 text-green-700
@@ -60,7 +78,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 text-sm">Tidak ada data.</td></tr>
+                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">Tidak ada data.</td></tr>
                 @endforelse
             </tbody>
         </table>

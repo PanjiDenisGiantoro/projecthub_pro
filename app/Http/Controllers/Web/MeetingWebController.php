@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\BugTicket;
+use App\Models\Company;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Sprint;
@@ -19,11 +20,21 @@ class MeetingWebController extends Controller
         $when     = $request->input('when', 'upcoming'); // upcoming|past|all
         $projId   = $request->input('project');
 
-        $user       = auth()->user();
-        $isCustomer = $user->hasRole('client');
+        $user         = auth()->user();
+        $isCustomer   = $user->hasRole('client');
+        $isSuperAdmin = (bool) $user->is_super_admin;
+
+        // Project sudah punya global scope per-company untuk user biasa (lihat
+        // Project::booted()) — cuma super admin yang bisa melihat lintas company,
+        // makanya filter "company" ini cuma berlaku (dan ditampilkan) buat mereka.
+        $companyId = $isSuperAdmin ? $request->input('company') : null;
 
         $scopeToClient = function ($q) use ($isCustomer, $user) {
             if ($isCustomer) $q->where('client_id', $user->id);
+        };
+
+        $scopeToCompany = function ($q) use ($companyId) {
+            if ($companyId) $q->where('company_id', $companyId);
         };
 
         // Always query every category so tab badge counts stay accurate
@@ -35,6 +46,7 @@ class MeetingWebController extends Controller
             $q = Project::query()
                 ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'));
             $scopeToClient($q);
+            $scopeToCompany($q);
             if ($projId) $q->where('id', $projId);
 
             $q->get()->each(fn($p) => $meetings->push([
@@ -55,6 +67,7 @@ class MeetingWebController extends Controller
             $q = Sprint::with(['project', 'meetingOrganizer'])
                 ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'));
             if ($isCustomer) $q->whereHas('project', $scopeToClient);
+            if ($companyId) $q->whereHas('project', $scopeToCompany);
             if ($projId) $q->where('project_id', $projId);
 
             $q->get()->each(fn($s) => $meetings->push([
@@ -75,6 +88,7 @@ class MeetingWebController extends Controller
             $q = Milestone::with(['project', 'meetingOrganizer'])
                 ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'));
             if ($isCustomer) $q->whereHas('project', $scopeToClient);
+            if ($companyId) $q->whereHas('project', $scopeToCompany);
             if ($projId) $q->where('project_id', $projId);
 
             $q->get()->each(fn($m) => $meetings->push([
@@ -96,6 +110,7 @@ class MeetingWebController extends Controller
                 ->whereNull('deleted_at')
                 ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'));
             if ($isCustomer) $q->whereHas('project', $scopeToClient);
+            if ($companyId) $q->whereHas('project', $scopeToCompany);
             if ($projId) $q->where('project_id', $projId);
 
             $q->get()->each(fn($t) => $meetings->push([
@@ -116,6 +131,7 @@ class MeetingWebController extends Controller
             $q = BugTicket::with(['project'])
                 ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'));
             if ($isCustomer) $q->whereHas('project', $scopeToClient);
+            if ($companyId) $q->whereHas('project', $scopeToCompany);
             if ($projId) $q->where('project_id', $projId);
 
             $q->get()->each(fn($t) => $meetings->push([
@@ -159,7 +175,10 @@ class MeetingWebController extends Controller
 
         $projects = $isCustomer
             ? Project::where('client_id', $user->id)->orderBy('name')->get(['id', 'name'])
-            : Project::orderBy('name')->get(['id', 'name']);
+            : Project::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                ->orderBy('name')->get(['id', 'name']);
+
+        $companies = $isSuperAdmin ? Company::orderBy('name')->get(['id', 'name']) : collect();
 
         return view('meetings.index', [
             'meetings'  => $meetings,
@@ -168,6 +187,8 @@ class MeetingWebController extends Controller
             'when'      => $when,
             'projects'  => $projects,
             'projectId' => $projId,
+            'companies' => $companies,
+            'companyId' => $companyId,
         ]);
     }
 

@@ -107,9 +107,14 @@
         <div class="p-6">
             {{-- Status today --}}
             @if($attendance)
-            <div class="grid grid-cols-2 gap-3 mb-5">
+            @php
+                $noteParts = $attendance->notes ? explode('; ', $attendance->notes) : [];
+                $lateNotes = array_filter($noteParts, fn ($n) => str_contains($n, 'Telat'));
+                $earlyOutNotes = array_filter($noteParts, fn ($n) => str_contains($n, 'Pulang cepat'));
+            @endphp
+            <div class="grid grid-cols-2 gap-3 {{ $isSplitShift ? 'mb-2' : 'mb-5' }}">
                 <div class="rounded-xl p-4 text-center" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15)">
-                    <p class="text-xs font-semibold mb-1" style="color:rgba(16,185,129,0.8)">CHECK IN</p>
+                    <p class="text-xs font-semibold mb-1" style="color:rgba(16,185,129,0.8)">{{ $isSplitShift ? 'CHECK IN SESI 1' : 'CHECK IN' }}</p>
                     <p class="text-2xl font-extrabold" style="color:#10b981">{{ $attendance->check_in ?? '—' }}</p>
                     @if($attendance->distance_in !== null)
                     <p class="text-xs mt-1" style="color:rgba(16,185,129,0.6)">{{ $attendance->distance_in }}m dari kantor</p>
@@ -120,22 +125,66 @@
                         Wajah Terverifikasi
                     </span>
                     @endif
+                    @foreach($lateNotes as $note)
+                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full" style="background:rgba(245,158,11,0.15);color:#d97706">
+                        {{ $note }}
+                    </span>
+                    @endforeach
                 </div>
                 <div class="rounded-xl p-4 text-center" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15)">
-                    <p class="text-xs font-semibold mb-1" style="color:rgba(59,130,246,0.8)">CHECK OUT</p>
+                    <p class="text-xs font-semibold mb-1" style="color:rgba(59,130,246,0.8)">{{ $isSplitShift ? 'CHECK OUT SESI 1' : 'CHECK OUT' }}</p>
                     <p class="text-2xl font-extrabold" style="color:#3b82f6">{{ $attendance->check_out ?? '—' }}</p>
                     @if($attendance->check_out)
                     <p class="text-xs mt-1" style="color:rgba(59,130,246,0.6)">
                         {{ intdiv($attendance->workMinutes(), 60) }}j {{ $attendance->workMinutes() % 60 }}m kerja
                     </p>
                     @endif
+                    @foreach($earlyOutNotes as $note)
+                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full" style="background:rgba(245,158,11,0.15);color:#d97706">
+                        {{ $note }}
+                    </span>
+                    @endforeach
+                </div>
+            </div>
+            @if($isSplitShift && $attendance->check_in_2)
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="rounded-xl p-4 text-center" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15)">
+                    <p class="text-xs font-semibold mb-1" style="color:rgba(16,185,129,0.8)">CHECK IN SESI 2</p>
+                    <p class="text-2xl font-extrabold" style="color:#10b981">{{ $attendance->check_in_2 }}</p>
+                </div>
+                <div class="rounded-xl p-4 text-center" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15)">
+                    <p class="text-xs font-semibold mb-1" style="color:rgba(59,130,246,0.8)">CHECK OUT SESI 2</p>
+                    <p class="text-2xl font-extrabold" style="color:#3b82f6">{{ $attendance->check_out_2 ?? '—' }}</p>
                 </div>
             </div>
             @endif
+            @endif
 
-            @if(!$attendance)
-            {{-- === CHECK-IN FLOW === --}}
-            <p class="text-sm mb-4" style="color:var(--fl-text-muted,#6b7280)">Anda belum check-in hari ini.</p>
+            @if($attendanceState === 'day_off')
+            {{-- === HARI LIBUR SESUAI SHIFT === --}}
+            <div class="flex items-center gap-3 py-4 px-4 rounded-xl" style="background:rgba(107,114,128,0.08);border:1px solid rgba(107,114,128,0.15)">
+                <svg class="w-5 h-5 shrink-0" style="color:#6b7280" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-sm font-semibold" style="color:#6b7280">
+                    @if($todayHoliday)
+                    Hari ini libur: {{ $todayHoliday->name }}.
+                    @elseif($todayShift)
+                    Hari ini hari libur sesuai shift kerja Anda ({{ $todayShift->name }}: {{ $todayShift->workingDaysLabel() }}).
+                    @else
+                    Hari ini hari libur sesuai jadwal shift Anda.
+                    @endif
+                </p>
+            </div>
+            @elseif($attendanceState === 'checkin_1' || $attendanceState === 'checkin_2')
+            {{-- === CHECK-IN FLOW (sesi 1, atau sesi 2 buat shift split) === --}}
+            <p class="text-sm mb-4" style="color:var(--fl-text-muted,#6b7280)">
+                @if($attendanceState === 'checkin_2')
+                Sesi 1 selesai. Anda belum check-in sesi 2 hari ini.
+                @else
+                Anda belum check-in hari ini.
+                @endif
+            </p>
 
             {{-- Step indicators --}}
             @if($setting->is_location_enabled || $setting->is_face_recognition_enabled)
@@ -347,7 +396,7 @@
                         style="background:var(--hris-gradient);box-shadow:0 4px 16px rgba(109,40,217,0.35)"
                         :class="canCheckIn ? 'hover:-translate-y-0.5 active:translate-y-0' : ''">
                     <span x-show="!checkingIn">
-                        {{ $setting->is_location_enabled || $setting->is_face_recognition_enabled ? 'Check In Sekarang' : 'Check In Sekarang' }}
+                        {{ $attendanceState === 'checkin_2' ? 'Check In Sesi 2 Sekarang' : 'Check In Sekarang' }}
                     </span>
                     <span x-show="checkingIn" class="flex items-center justify-center gap-2">
                         <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -359,8 +408,11 @@
                 </button>
             </form>
 
-            @elseif(!$attendance->check_out)
-            {{-- === CHECK-OUT FLOW === --}}
+            @elseif($attendanceState === 'checkout_1' || $attendanceState === 'checkout_2')
+            {{-- === CHECK-OUT FLOW (sesi 1, atau sesi 2 buat shift split) === --}}
+            @if($attendanceState === 'checkout_2')
+            <p class="text-sm mb-4" style="color:var(--fl-text-muted,#6b7280)">Anda sudah check-in sesi 2. Jangan lupa check-out setelah selesai.</p>
+            @endif
 
             {{-- Location panel for checkout --}}
             @if($setting->is_location_enabled && $setting->require_location_for_checkout)
@@ -424,7 +476,7 @@
                         :disabled="!canCheckOut"
                         class="w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
                         style="background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 4px 16px rgba(37,99,235,0.35)">
-                    Check Out Sekarang
+                    {{ $attendanceState === 'checkout_2' ? 'Check Out Sesi 2 Sekarang' : 'Check Out Sekarang' }}
                 </button>
             </form>
 
@@ -481,8 +533,14 @@
                         <td class="px-4 py-3 text-xs font-medium" style="color:var(--fl-text-body,#374151)">
                             {{ $row->date->locale('id')->isoFormat('ddd, D MMM') }}
                         </td>
-                        <td class="px-4 py-3 text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)">{{ $row->check_in ?? '—' }}</td>
-                        <td class="px-4 py-3 text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)">{{ $row->check_out ?? '—' }}</td>
+                        <td class="px-4 py-3 text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)">
+                            {{ $row->check_in ?? '—' }}
+                            @if($row->check_in_2)<span class="block text-xs font-normal" style="color:var(--fl-text-muted,#6b7280)">+ {{ $row->check_in_2 }}</span>@endif
+                        </td>
+                        <td class="px-4 py-3 text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)">
+                            {{ $row->check_out ?? '—' }}
+                            @if($row->check_out_2)<span class="block text-xs font-normal" style="color:var(--fl-text-muted,#6b7280)">+ {{ $row->check_out_2 }}</span>@endif
+                        </td>
                         <td class="px-4 py-3 text-xs" style="color:var(--fl-text-muted,#6b7280)">
                             @if($mins > 0){{ intdiv($mins,60) }}j {{ $mins%60 }}m @else — @endif
                         </td>

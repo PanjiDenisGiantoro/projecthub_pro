@@ -31,7 +31,12 @@ class AttendancesExport implements FromCollection, WithHeadings, WithMapping, Wi
 
     public function headings(): array
     {
-        return ['Nama Karyawan', 'Email Karyawan', 'Tanggal', 'Jam Masuk', 'Jam Keluar', 'Status', 'Catatan'];
+        return [
+            'Nama Karyawan', 'Email Karyawan', 'Tanggal',
+            'Jam Masuk', 'Jam Keluar',
+            'Jam Masuk Sesi 2', 'Jam Keluar Sesi 2',
+            'Durasi Kerja (menit)', 'Status', 'Catatan',
+        ];
     }
 
     public function map($attendance): array
@@ -42,6 +47,9 @@ class AttendancesExport implements FromCollection, WithHeadings, WithMapping, Wi
             $attendance->date?->format('Y-m-d'),
             $attendance->check_in,
             $attendance->check_out,
+            $attendance->check_in_2,
+            $attendance->check_out_2,
+            $attendance->workMinutes(),
             self::STATUS_LABELS[$attendance->status] ?? $attendance->status,
             $attendance->notes,
         ];

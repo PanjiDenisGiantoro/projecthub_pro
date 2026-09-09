@@ -154,6 +154,7 @@
             </div>
             @endif
 
+            @if(session('active_package') !== 'hris')
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Proyek</label>
                 <select name="project_ids[]" id="select-projects" multiple style="width:100%">
@@ -165,6 +166,7 @@
                 </select>
                 <p class="mt-1 text-xs text-gray-400">Opsional. User langsung ditambahkan sebagai anggota tim di proyek yang dipilih.</p>
             </div>
+            @endif
 
             @if(session('active_package') === 'hris')
             <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
@@ -180,6 +182,19 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Shift Kerja</label>
+                    <select name="shift_id" id="sel-shift" class="w-full">
+                        <option value="">— Tidak Ditentukan —</option>
+                        @foreach($shifts as $shift)
+                            <option value="{{ $shift->id }}" {{ old('shift_id') == $shift->id ? 'selected' : '' }}>
+                                {{ $shift->name }} ({{ $shift->timeRangeLabel() }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-gray-400">Atur daftar shift di halaman Pengaturan Absensi.</p>
                 </div>
             </div>
             @endif
@@ -205,7 +220,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
-    $('#select-role, #select-level, #sel-org-unit').select2({
+    $('#select-role, #select-level, #sel-org-unit, #sel-shift').select2({
         placeholder: '— Pilih —',
         allowClear: true,
         width: '100%',

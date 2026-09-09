@@ -424,12 +424,39 @@
 
     {{-- Absensi --}}
     <a href="{{ route('hris.absensi.index') }}"
-       class="{{ request()->routeIs('hris.absensi.*') ? $active : $inactive }}">
+       class="{{ request()->routeIs('hris.absensi.*') && !request()->routeIs('hris.absensi.schedule', 'hris.absensi.holidays', 'hris.absensi.calendar') ? $active : $inactive }}">
         <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
         </svg>
         Absensi
     </a>
+
+    <a href="{{ route('hris.absensi.calendar') }}"
+       class="{{ request()->routeIs('hris.absensi.calendar') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h.01"/>
+        </svg>
+        Kalender Saya
+    </a>
+
+    @can('update absensi')
+    <a href="{{ route('hris.absensi.schedule') }}"
+       class="{{ request()->routeIs('hris.absensi.schedule') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zM9 16h.01M12 16h.01M15 16h.01M9 13h.01M12 13h.01M15 13h.01"/>
+        </svg>
+        Jadwal Shift
+    </a>
+
+    <a href="{{ route('hris.absensi.holidays') }}"
+       class="{{ request()->routeIs('hris.absensi.holidays') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.5 14.5l5-5m0 5l-5-5"/>
+        </svg>
+        Hari Libur
+    </a>
+    @endcan
 </x-nav-section>
 
 {{-- Pengajuan --}}
@@ -515,7 +542,7 @@
 {{-- Konfigurasi — admin only --}}
 @canany(['update absensi', 'manage face enrollment', 'view hris master', 'create hris master', 'update hris master', 'delete hris master'])
 <x-nav-section title="Konfigurasi"
-    :default-open="request()->routeIs('hris.absensi.setting', 'hris.absensi.face-enrollment', 'hris.master.*')">
+    :default-open="request()->routeIs('hris.absensi.setting', 'hris.absensi.integration.*', 'hris.absensi.face-enrollment', 'hris.master.*')">
 
     @can('update absensi')
     <a href="{{ route('hris.absensi.setting') }}"
@@ -524,6 +551,14 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
         </svg>
         Konfigurasi Absensi
+    </a>
+
+    <a href="{{ route('hris.absensi.integration.index') }}"
+       class="{{ request()->routeIs('hris.absensi.integration.*') ? $active : $inactive }}">
+        <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Integrasi API Absensi
     </a>
     @endcan
 

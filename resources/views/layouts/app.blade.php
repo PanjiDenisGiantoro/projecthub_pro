@@ -441,7 +441,7 @@
     <button @click="toggle()"
             class="fixed bottom-5 right-5 z-40 w-16 h-16 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5 overflow-hidden"
             style="background:var(--ai-gradient);box-shadow:0 6px 20px rgba(37,99,235,0.4);border:2px solid rgba(255,255,255,0.25)">
-        <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
+        <img x-show="!open" src="{{ asset('images/runa.png') }}" alt="Runa" class="w-full h-full object-cover">
         <svg x-show="open" x-cloak class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
@@ -460,10 +460,10 @@
         {{-- Header --}}
         <div class="flex items-center gap-3 px-4 py-3 shrink-0" style="background:var(--ai-gradient)">
             <div class="w-9 h-9 rounded-full shrink-0 overflow-hidden" style="border:1.5px solid rgba(255,255,255,0.4)">
-                <img src="{{ asset('images/runa.png') }}" alt="AI Assistant" class="w-full h-full object-cover">
+                <img src="{{ asset('images/runa.png') }}" alt="Runa" class="w-full h-full object-cover">
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-white">AI Assistant</p>
+                <p class="text-sm font-bold text-white">Runa</p>
                 <p class="text-[10px] text-white/70">Self-hosted · tidak dikirim ke pihak ketiga</p>
             </div>
             <button @click="minimized = !minimized" :title="minimized ? 'Perbesar' : 'Minimize'" class="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition">

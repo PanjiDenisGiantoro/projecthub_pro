@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Hris;
 
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Models\Holiday;
 use App\Models\Overtime;
 use App\Models\Pph21Setting;
 use App\Services\NotificationService;
@@ -70,7 +71,7 @@ class OvertimeController extends Controller
             'user_id'     => $user->id,
             'company_id'  => $user->company_id,
             'date'        => $request->date,
-            'day_type'    => OvertimeService::dayType($date),
+            'day_type'    => OvertimeService::dayType($date, Holiday::datesForCompany($user->company_id)),
             'start_time'  => $request->start_time,
             'end_time'    => $request->end_time,
             'total_hours' => $hours,
@@ -126,7 +127,7 @@ class OvertimeController extends Controller
 
         $overtime->update([
             'date'        => $request->date,
-            'day_type'    => OvertimeService::dayType($date),
+            'day_type'    => OvertimeService::dayType($date, Holiday::datesForCompany($overtime->company_id)),
             'start_time'  => $request->start_time,
             'end_time'    => $request->end_time,
             'total_hours' => round($start->diffInMinutes($end) / 60, 2),

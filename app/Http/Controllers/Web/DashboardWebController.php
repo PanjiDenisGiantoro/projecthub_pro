@@ -27,7 +27,10 @@ class DashboardWebController extends Controller
         // ── HRIS Dashboard ──────────────────────────────────────────────────
         if ($activePkg === 'hris' && !$user->hasRole('client') && ($user->is_super_admin || $user->hasPackage('hris'))) {
             $companyId      = $user->company_id;
-            $totalKaryawan  = User::where('company_id', $companyId)->where('is_super_admin', false)->count();
+            $totalKaryawan  = User::where('company_id', $companyId)
+                ->where('is_super_admin', false)
+                ->whereDoesntHave('roles', fn($r) => $r->where('name', 'client'))
+                ->count();
             $totalDept      = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
             $hadirHariIni   = \App\Models\Attendance::where('company_id', $companyId)->whereDate('date', now()->toDateString())->where('status', 'hadir')->count();
             $cutiPending    = \App\Models\LeaveRequest::where('company_id', $companyId)->where('status', 'pending')->count();

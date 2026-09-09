@@ -141,9 +141,13 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
-                                {{ strtoupper(substr($u->name,0,2)) }}
-                            </div>
+                            @if($u->avatar)
+                                <img src="{{ Storage::url($u->avatar) }}" alt="{{ $u->name }}" class="w-8 h-8 rounded-full object-cover shrink-0">
+                            @else
+                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                    {{ strtoupper(substr($u->name,0,2)) }}
+                                </div>
+                            @endif
                             <span class="font-medium text-gray-800">{{ $u->name }}</span>
                             @if($u->id === auth()->id())
                                 <span class="badge bg-gray-100 text-gray-500 text-xs">Anda</span>

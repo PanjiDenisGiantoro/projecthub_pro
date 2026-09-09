@@ -35,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'company_id',
         'organization_unit_id',
         'structural_level_id',
+        'shift_id',
         'employment_type',
         'employment_type_other',
         'outsourcing_company_name',
@@ -242,6 +243,46 @@ class User extends Authenticatable implements MustVerifyEmailContract
     public function structuralLevel()
     {
         return $this->belongsTo(StructuralLevel::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    public function shiftSchedules()
+    {
+        return $this->hasMany(ShiftSchedule::class);
+    }
+
+    /** Shift efektif user di tanggal tsb — override jadwal bulanan kalau ada, kalau tidak fallback ke shift default (profil). */
+    public function effectiveShiftOn(\Carbon\Carbon $date): ?Shift
+    {
+        $override = $this->shiftSchedules()->with('shift.workingDays')->whereDate('date', $date)->first();
+        if ($override) {
+            return $override->shift;
+        }
+
+        return $this->shift;
+    }
+
+    /**
+     * True kalau user libur di tanggal tsb. Urutan prioritas: override jadwal shift
+     * (eksplisit, buat kasus tim yang tetap masuk pas libur nasional mis. CS/kurir) →
+     * kalender hari libur perusahaan → hari kerja shift defaultnya.
+     */
+    public function isDayOffOn(\Carbon\Carbon $date): bool
+    {
+        $override = $this->shiftSchedules()->whereDate('date', $date)->first();
+        if ($override) {
+            return $override->shift_id === null;
+        }
+
+        if (Holiday::where('company_id', $this->company_id)->whereDate('date', $date)->exists()) {
+            return true;
+        }
+
+        return $this->shift && !$this->shift->isWorkingDay($date->dayOfWeek);
     }
 
     public function company()
