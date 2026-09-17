@@ -64,6 +64,10 @@ use App\Http\Controllers\Web\SearchWebController;
 use App\Http\Controllers\Web\SprintWebController;
 use App\Http\Controllers\Web\StructuralLevelWebController;
 use App\Http\Controllers\Web\TaskWebController;
+use App\Http\Controllers\Web\TaskMemberWebController;
+use App\Http\Controllers\Web\TaskChecklistWebController;
+use App\Http\Controllers\Web\TaskAttachmentWebController;
+use App\Http\Controllers\Web\LabelWebController;
 use App\Http\Controllers\Web\TeamNotificationWebController;
 use App\Http\Controllers\Web\TicketWebController;
 use App\Http\Controllers\Web\UserWebController;
@@ -212,15 +216,43 @@ Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
         Route::get('/projects/{project}/tasks', [TaskWebController::class, 'index'])->name('tasks.index');
         Route::post('/projects/{project}/tasks', [TaskWebController::class, 'store'])->name('tasks.store');
         Route::get('/projects/{project}/tasks/{task}', [TaskWebController::class, 'show'])->name('tasks.show');
+        Route::get('/projects/{project}/tasks/{task}/detail', [TaskWebController::class, 'detail'])->name('tasks.detail'); // JSON for modal
         Route::put('/projects/{project}/tasks/{task}', [TaskWebController::class, 'update'])->name('tasks.update');
         Route::delete('/projects/{project}/tasks/{task}', [TaskWebController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('/projects/{project}/tasks/{task}/move', [TaskWebController::class, 'moveStatus'])->name('tasks.move');
         Route::post('/projects/{project}/tasks/{task}/meeting', [TaskWebController::class, 'createMeeting'])->name('tasks.meeting.create');
         Route::post('/projects/{project}/tasks/{task}/comments', [TaskWebController::class, 'addComment'])->name('tasks.comment');
         Route::get('/projects/{project}/tasks/{task}/logs', [TaskWebController::class, 'logs'])->name('tasks.logs');
+        Route::post('/projects/{project}/tasks/reorder', [TaskWebController::class, 'reorderCards'])->name('tasks.reorder');
+
+        // Labels
+        Route::get('/projects/{project}/labels', [LabelWebController::class, 'index'])->name('labels.index');
+        Route::post('/projects/{project}/labels', [LabelWebController::class, 'store'])->name('labels.store');
+        Route::put('/projects/{project}/labels/{label}', [LabelWebController::class, 'update'])->name('labels.update');
+        Route::delete('/projects/{project}/labels/{label}', [LabelWebController::class, 'destroy'])->name('labels.destroy');
+        Route::post('/projects/{project}/tasks/{task}/labels/{label}', [LabelWebController::class, 'attachToTask'])->name('tasks.labels.attach');
+        Route::delete('/projects/{project}/tasks/{task}/labels/{label}', [LabelWebController::class, 'detachFromTask'])->name('tasks.labels.detach');
+
+        // Task Members (multi-assign)
+        Route::post('/projects/{project}/tasks/{task}/members', [TaskMemberWebController::class, 'add'])->name('tasks.members.add');
+        Route::delete('/projects/{project}/tasks/{task}/members/{user}', [TaskMemberWebController::class, 'remove'])->name('tasks.members.remove');
+
+        // Checklists
+        Route::post('/projects/{project}/tasks/{task}/checklists', [TaskChecklistWebController::class, 'storeGroup'])->name('task-checklists.store');
+        Route::put('/projects/{project}/tasks/{task}/checklists/{checklist}', [TaskChecklistWebController::class, 'updateGroup'])->name('task-checklists.update');
+        Route::delete('/projects/{project}/tasks/{task}/checklists/{checklist}', [TaskChecklistWebController::class, 'destroyGroup'])->name('task-checklists.destroy');
+        Route::post('/projects/{project}/tasks/{task}/checklists/{checklist}/items', [TaskChecklistWebController::class, 'storeItem'])->name('task-checklist-items.store');
+        Route::put('/projects/{project}/tasks/{task}/checklists/{checklist}/items/{item}', [TaskChecklistWebController::class, 'updateItem'])->name('task-checklist-items.update');
+        Route::delete('/projects/{project}/tasks/{task}/checklists/{checklist}/items/{item}', [TaskChecklistWebController::class, 'destroyItem'])->name('task-checklist-items.destroy');
+
+        // Attachments & Cover
+        Route::post('/projects/{project}/tasks/{task}/attachments', [TaskAttachmentWebController::class, 'store'])->name('tasks.attachments.store');
+        Route::delete('/projects/{project}/tasks/{task}/attachments/{attachment}', [TaskAttachmentWebController::class, 'destroy'])->name('tasks.attachments.destroy');
+        Route::post('/projects/{project}/tasks/{task}/cover', [TaskAttachmentWebController::class, 'updateCover'])->name('tasks.cover.update');
     });
     // {task} tanpa {project} di URL — otorisasi dicek manual di controller
     Route::post('/tasks/{task}/time-logs', [TaskWebController::class, 'storeTimeLog'])->name('tasks.timelog.store');
+
 
     // Aktivitas Kerja (list lintas proyek: Task / Sprint / Recurring / Ticket)
     Route::get('/tasks', [TaskWebController::class, 'allTasks'])->name('tasks.all');

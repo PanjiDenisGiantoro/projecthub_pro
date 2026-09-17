@@ -84,7 +84,7 @@ class ProjectWebController extends Controller
             'client', 'manager',
             'members.user',
             'milestones' => fn ($q) => $q->with(['assignee', 'tasks'])->orderByDesc('created_at'),
-            'tasks' => fn ($q) => $q->with('assignee')->orderByDesc('created_at'),
+            'tasks' => fn ($q) => $q->with(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'milestone', 'boardColumn'])->withCount(['comments', 'attachments'])->orderBy('sort_order'),
         ]);
         $slaPolicies = app(SlaService::class);
         $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
@@ -138,8 +138,12 @@ class ProjectWebController extends Controller
 
         $timesheetData = $this->buildTimesheetData($project, $request);
 
+        $columns = $project->boardColumns()->orderBy('sort_order')->get();
+        $projectLabels = $project->labels()->orderBy('name')->get();
+        $assignableUsers = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
+
         return view('projects.show', array_merge(
-            compact('project', 'developers', 'companyUsers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers', 'backlog', 'sprintList', 'recurringDefinitions', 'recurringMilestones', 'recurringUsers', 'recentFiles', 'recentFilesTotal'),
+            compact('project', 'developers', 'companyUsers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers', 'backlog', 'sprintList', 'recurringDefinitions', 'recurringMilestones', 'recurringUsers', 'recentFiles', 'recentFilesTotal', 'columns', 'projectLabels', 'assignableUsers'),
             $timesheetData
         ));
     }

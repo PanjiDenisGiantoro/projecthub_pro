@@ -23,14 +23,25 @@ class TaskWebController extends Controller
 
     public function index(Request $request, Project $project)
     {
-        $query = $project->tasks()->with(['assignee', 'milestone'])
-            ->when($request->status, fn ($q) => $q->where('status', $request->status));
+        $query = $project->tasks()->with([
+            'assignee',
+            'members',
+            'labels',
+            'checklists.items',
+            'attachments',
+            'milestone',
+            'boardColumn',
+        ])->withCount(['comments', 'attachments'])
+          ->when($request->status, fn ($q) => $q->where('status', $request->status));
 
-        $tasks = $query->latest()->paginate($this->perPage($request))->withQueryString();
+        $tasks = $query->orderBy('sort_order')->paginate($this->perPage($request))->withQueryString();
         $milestones = $project->milestones()->get();
         $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
+        $columns = $project->boardColumns()->orderBy('sort_order')->get();
+        $projectLabels = $project->labels()->orderBy('name')->get();
+        $assignableUsers = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
 
-        return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers'));
+        return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers', 'columns', 'projectLabels', 'assignableUsers'));
     }
 
     public function allTasks(Request $request)
@@ -68,23 +79,39 @@ class TaskWebController extends Controller
             'title' => 'required|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
             'milestone_id' => 'nullable|exists:milestones,id',
+            'sprint_id' => 'nullable|exists:sprints,id',
+            'board_column_id' => 'nullable|exists:board_columns,id',
             'start_date' => 'nullable|date',
             'due_date' => 'nullable|date',
-            'priority' => 'in:low,medium,high,urgent',
+            'priority' => 'nullable|in:low,medium,high,urgent',
             'estimated_hours' => 'nullable|integer|min:1',
         ]);
 
-        $todoColumn = BoardColumn::where('project_id', $project->id)
-            ->where('is_done', false)
-            ->orderBy('sort_order')
-            ->first();
+        $column = null;
+        if ($request->filled('board_column_id')) {
+            $column = BoardColumn::where('project_id', $project->id)->find($request->board_column_id);
+        }
+        if (!$column) {
+            $column = BoardColumn::where('project_id', $project->id)
+                ->where('is_done', false)
+                ->orderBy('sort_order')
+                ->first();
+        }
+
+        $nextSort = (int) $project->tasks()->where('board_column_id', $column?->id)->max('sort_order') + 1;
 
         $task = $project->tasks()->create([
-            ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'priority', 'start_date', 'due_date', 'estimated_hours'),
-            'status' => $todoColumn->slug ?? 'todo',
-            'board_column_id' => $todoColumn->id ?? null,
+            ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'sprint_id', 'priority', 'start_date', 'due_date', 'estimated_hours'),
+            'priority' => $request->priority ?: 'medium',
+            'status' => $column?->slug ?? 'todo',
+            'board_column_id' => $column?->id ?? null,
+            'sort_order' => $nextSort,
             'created_by' => auth()->id(),
         ]);
+
+        if ($request->has('member_ids')) {
+            $task->members()->sync($request->input('member_ids', []));
+        }
 
         if ($project->meeting_auto_create) {
             try {
@@ -109,6 +136,14 @@ class TaskWebController extends Controller
         }
 
         $this->teamNotifier->notify($project, '🆕 Task Baru', "\"{$task->title}\" ditambahkan oleh ".auth()->user()->name.'.');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Task berhasil dibuat.',
+                'task' => $task->load(['assignee', 'members', 'labels', 'checklists.items', 'attachments'])
+            ], 201);
+        }
 
         return back()->with('success', 'Task berhasil dibuat.');
     }
@@ -174,17 +209,30 @@ class TaskWebController extends Controller
         ]);
 
         $old = $task->status;
-        $data = $request->only('title', 'description', 'completion_notes', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours');
+        $data = $request->only('title', 'description', 'completion_notes', 'assigned_to', 'milestone_id', 'status', 'priority', 'start_date', 'due_date', 'estimated_hours', 'board_column_id', 'cover_image_path');
 
-        // Kalau status diubah lewat form edit (bukan drag-drop kanban), board_column_id juga
-        // harus ikut disinkronkan — kalau tidak, task-nya "hilang" dari kolom board karena
-        // masih nunjuk ke kolom lama sementara statusnya sudah berubah.
-        if ($request->filled('status') && $request->status !== $old) {
+        if ($request->filled('board_column_id') && !$request->filled('status')) {
+            $col = BoardColumn::where('project_id', $project->id)->find($request->board_column_id);
+            if ($col) {
+                $data['status'] = $col->slug;
+            }
+        } elseif ($request->filled('status') && $request->status !== $old && !$request->filled('board_column_id')) {
             $column = BoardColumn::where('project_id', $project->id)->where('slug', $request->status)->first();
             $data['board_column_id'] = $column->id ?? $task->board_column_id;
         }
 
         $task->update($data);
+
+        if ($request->has('member_ids')) {
+            $task->members()->sync($request->input('member_ids', []));
+            if (!empty($request->member_ids) && empty($task->assigned_to)) {
+                $task->update(['assigned_to' => $request->member_ids[0]]);
+            }
+        }
+
+        if ($request->has('label_ids')) {
+            $task->labels()->sync($request->input('label_ids', []));
+        }
 
         if (($task->wasChanged('due_date') || $task->wasChanged('start_date')) && $task->google_event_id) {
             try {
@@ -202,6 +250,14 @@ class TaskWebController extends Controller
             if ($task->status === 'done') {
                 $this->teamNotifier->notify($project, '✅ Task Selesai', "\"{$task->title}\" ditandai selesai oleh ".auth()->user()->name.'.');
             }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Task diperbarui.',
+                'task' => $task->fresh(['members', 'labels', 'checklists.items', 'attachments'])
+            ]);
         }
 
         return back()->with('success', 'Task diperbarui.');
@@ -275,5 +331,58 @@ class TaskWebController extends Controller
         }
 
         return back()->with('success', 'Waktu dicatat.');
+    }
+
+    /**
+     * Reorder cards within a bucket (persist sort_order).
+     * Accepts: { order: [taskId1, taskId2, ...], board_column_id: X }
+     */
+    public function reorderCards(Request $request, Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $request->validate([
+            'order'          => 'required|array',
+            'order.*'        => 'integer',
+            'board_column_id'=> 'required|integer|exists:board_columns,id',
+        ]);
+
+        foreach ($request->order as $index => $taskId) {
+            $project->tasks()
+                ->where('id', $taskId)
+                ->where('board_column_id', $request->board_column_id)
+                ->update(['sort_order' => $index]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Return full task data as JSON for the modal.
+     */
+    public function detail(Project $project, Task $task)
+    {
+        $this->authorize('view', $project);
+        abort_if($task->project_id !== $project->id, 404);
+
+        $task->load([
+            'assignee',
+            'milestone',
+            'creator',
+            'boardColumn',
+            'members',
+            'labels',
+            'checklists.items',
+            'attachments.creator',
+            'comments.user',
+            'comments.attachments',
+        ]);
+
+        $logsCount = $task->activitiesAsSubject()->count();
+
+        return response()->json([
+            'task'      => $task,
+            'logsCount' => $logsCount,
+        ]);
     }
 }

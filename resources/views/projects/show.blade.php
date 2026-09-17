@@ -4,6 +4,7 @@
 @section('page-title', $project->name)
 
 @push('head')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 <style>
 .select2-container--default .select2-selection--multiple {
@@ -475,127 +476,98 @@
         </div>
 
         {{-- KANBAN VIEW --}}
-        <div x-show="taskView==='kanban'" x-cloak>
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" id="kanban-board">
-                @forelse($project->boardColumns as $kCol)
-                @php $kTasks = $project->tasks->where('board_column_id', $kCol->id); @endphp
-                <div class="flex flex-col min-h-48">
-                    <div class="flex items-center gap-2 px-3 py-2.5 rounded-t-xl border border-b-0 {{ \App\Support\BoardColumnPalette::header($kCol->color) }}">
-                        <span class="w-2.5 h-2.5 rounded-full {{ \App\Support\BoardColumnPalette::dot($kCol->color) }}"></span>
-                        <span class="text-sm font-semibold text-gray-700">{{ $kCol->name }}</span>
-                        <span class="ml-auto bg-white text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-200 kb-count" id="kb-count-{{ $kCol->id }}">{{ $kTasks->count() }}</span>
-                    </div>
-                    <div class="flex-1 border border-t-0 border-gray-200 rounded-b-xl bg-gray-50/80 p-2 space-y-2 min-h-16 kb-col transition-all"
-                         id="kb-col-{{ $kCol->id }}"
-                         data-column-id="{{ $kCol->id }}"
-                         data-column-name="{{ $kCol->name }}"
-                         data-column-color="{{ $kCol->color }}"
-                         ondragover="event.preventDefault(); kbDragOver(this)"
-                         ondragleave="kbDragLeave(this)"
-                         ondrop="kbDrop(event, {{ $kCol->id }})">
-                        @forelse($kTasks as $task)
-                        @php
-                            $kOver = $task->isOverdue();
-                            $kPl   = $tPlb[$task->priority] ?? 'border-l-gray-300';
-                        @endphp
-                        <div class="bg-white rounded-lg border border-gray-200 border-l-4 {{ $kPl }} p-3 hover:shadow-sm transition-shadow cursor-grab active:cursor-grabbing kb-card"
-                             draggable="true"
-                             data-task-id="{{ $task->id }}"
-                             data-task-title="{{ addslashes($task->title) }}"
-                             data-column-id="{{ $kCol->id }}"
-                             ondragstart="kbDragStart(event)"
-                             ondragend="kbDragEnd(event)">
-                            <a href="{{ route('tasks.show', [$project, $task]) }}"
-                               class="text-sm font-medium text-gray-800 hover:text-blue-600 leading-snug block mb-1.5">{{ $task->title }}</a>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="text-xs px-1.5 py-0.5 rounded {{ $tPc[$task->priority] ?? '' }}">{{ ucfirst($task->priority) }}</span>
-                                @if($kOver)
-                                    <span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-600">Overdue</span>
-                                @endif
-                            </div>
-                            @if($task->assignee)
-                            <div class="flex items-center gap-1.5 mt-2">
-                                <div class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center shrink-0">
-                                    {{ strtoupper(substr($task->assignee->name,0,1)) }}
-                                </div>
-                                <span class="text-xs text-gray-500">{{ $task->assignee->name }}</span>
-                            </div>
-                            @endif
-                            @if($task->due_date)
-                            <div class="mt-1.5 text-xs {{ $kOver ? 'text-red-500' : 'text-gray-400' }}">
-                                {{ $task->due_date->format('d M Y') }}
-                            </div>
-                            @endif
+        <div x-show="taskView==='kanban'" x-cloak class="pt-2">
+            <div id="project-detail-kanban-columns"
+                 class="flex gap-4 overflow-x-auto pb-6 pt-1 items-start min-h-[calc(100vh-320px)] scrollbar-thin">
+
+                @forelse($columns as $col)
+                @php
+                    $colTasks = $project->tasks->where('board_column_id', $col->id)->sortBy('sort_order');
+                @endphp
+                <div class="kanban-column w-80 shrink-0 bg-gray-50/90 dark:bg-gray-850/80 rounded-2xl border border-gray-200/80 dark:border-gray-750 flex flex-col max-h-[calc(100vh-250px)] shadow-xs transition-shadow"
+                     data-column-id="{{ $col->id }}"
+                     data-column-slug="{{ $col->slug }}">
+
+                    {{-- Column Header --}}
+                    <div class="p-3.5 border-b border-gray-200/70 dark:border-gray-750 flex items-center justify-between gap-2 shrink-0">
+                        <div class="flex items-center gap-2 min-w-0">
+                            {{-- Drag handle for bucket --}}
+                            <span class="bucket-drag-handle cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400 p-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+                            </span>
+
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $col->color ?: '#3b82f6' }}"></span>
+
+                            <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-200 truncate">
+                                {{ $col->name }}
+                            </h3>
+
+                            <span class="column-counter text-[11px] font-semibold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/80 dark:border-gray-700 px-2 py-0.5 rounded-full">
+                                {{ $colTasks->count() }}
+                            </span>
                         </div>
-                        @empty
-                        <div class="py-4 text-center text-xs text-gray-400 kb-empty">Empty</div>
-                        @endforelse
                     </div>
+
+                    {{-- Cards Droppable Container --}}
+                    <div id="detail-cards-column-{{ $col->id }}"
+                         data-column-id="{{ $col->id }}"
+                         class="project-detail-cards-dropzone p-3 space-y-2.5 overflow-y-auto flex-1 min-h-[150px] scrollbar-thin">
+                        @foreach($colTasks as $task)
+                            @include('sprints._kanban_card', ['task' => $task, 'col' => $col])
+                        @endforeach
+                    </div>
+
+                    {{-- Inline Add Task in Bucket --}}
+                    @if(!auth()->user()->hasRole('client'))
+                    <div class="p-2.5 border-t border-gray-200/60 dark:border-gray-750 shrink-0"
+                         x-data="{ adding: false, taskTitle: '', isSubmitting: false }">
+                        <template x-if="!adding">
+                            <button type="button"
+                                    @click="adding = true; $nextTick(() => $refs.inlineInput.focus())"
+                                    class="w-full py-2 px-3 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-blue-600 hover:bg-white dark:hover:bg-gray-800 transition flex items-center justify-center gap-1.5 border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Tambah Task
+                            </button>
+                        </template>
+
+                        <template x-if="adding">
+                            <div class="space-y-2 bg-white dark:bg-gray-800 p-2.5 rounded-xl border border-blue-200 dark:border-blue-900 shadow-sm">
+                                <textarea x-ref="inlineInput"
+                                          x-model="taskTitle"
+                                          @keydown.enter.prevent="submitDetailInlineTask({{ $col->id }})"
+                                          @keydown.escape="adding = false; taskTitle = ''"
+                                          rows="2"
+                                          placeholder="Tulis judul task dan tekan Enter..."
+                                          class="w-full text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <button type="button"
+                                            @click="adding = false; taskTitle = ''"
+                                            class="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700">
+                                        Batal
+                                    </button>
+                                    <button type="button"
+                                            @click="submitDetailInlineTask({{ $col->id }})"
+                                            :disabled="isSubmitting || !taskTitle.trim()"
+                                            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs disabled:opacity-50">
+                                        Tambah
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    @endif
                 </div>
                 @empty
-                <div class="col-span-full text-center text-sm text-gray-400 py-10">
-                    This project does not have board columns yet. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Manage board columns</a>
+                <div class="col-span-full text-center text-sm text-gray-400 py-16 w-full">
+                    Proyek ini belum memiliki kolom board.
                 </div>
                 @endforelse
             </div>
         </div>
     </div>
 
-    {{-- ============================================================
-         KANBAN MODAL — Status Update
-    ============================================================ --}}
-    <div id="kb-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden" aria-modal="true" role="dialog">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="kbModalCancel()"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-gray-900">Update Task Status</h3>
-                <button onclick="kbModalCancel()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p class="text-xs text-gray-500 mb-0.5">Task</p>
-                <p class="text-sm font-medium text-gray-800" id="kb-modal-title">—</p>
-            </div>
-
-            <div class="flex items-center gap-2 mb-4">
-                <span class="text-xs text-gray-500">Status:</span>
-                <span id="kb-modal-old-status" class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium"></span>
-                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                <span id="kb-modal-new-status" class="text-xs px-2 py-0.5 rounded-full font-medium"></span>
-            </div>
-
-            <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                    Completion Notes
-                    <span class="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <textarea id="kb-modal-notes" rows="4"
-                          placeholder="Describe what has been completed, roadblocks, or other important notes..."
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
-            </div>
-
-            <div class="flex gap-3">
-                <button id="kb-modal-submit"
-                        onclick="kbModalSubmit()"
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                    Save
-                </button>
-                <button onclick="kbModalCancel()"
-                        class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-
-    {{-- Kanban Toast --}}
-    <div id="kb-toast" class="fixed bottom-6 right-6 z-50 hidden">
-        <div class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white" id="kb-toast-inner">
-            <span id="kb-toast-msg"></span>
-        </div>
-    </div>
+    {{-- Include Task Detail Modal --}}
+    @include('sprints._task_modal')
 
     {{-- ============================================================
          TAB: MILESTONES
@@ -1247,166 +1219,129 @@
 @push('scripts')
 <script>
 (function () {
-    // Column label/color now come from data-column-name/data-column-color
-    // attributes rendered server-side (App\Support\BoardColumnPalette) —
-    // this map only resolves a color KEY to a badge class for the modal,
-    // it no longer needs to know the set of possible statuses/columns.
-    const COLOR_BADGE = {
-        gray: 'bg-gray-100 text-gray-600', blue: 'bg-blue-100 text-blue-700',
-        purple: 'bg-purple-100 text-purple-700', green: 'bg-green-100 text-green-700',
-        red: 'bg-red-100 text-red-700', amber: 'bg-amber-100 text-amber-700',
-        pink: 'bg-pink-100 text-pink-700', indigo: 'bg-indigo-100 text-indigo-700',
-        teal: 'bg-teal-100 text-teal-700', slate: 'bg-slate-100 text-slate-700',
-    };
+    const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
-    // --- drag state ---
-    let _card      = null;
-    let _originCol = null;
-    let _newColumnId = null;
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropzones = document.querySelectorAll('.project-detail-cards-dropzone');
+        dropzones.forEach(zone => {
+            new Sortable(zone, {
+                group: 'detail-cards',
+                animation: 180,
+                ghostClass: 'opacity-30',
+                chosenClass: 'scale-[1.02]',
+                onEnd: async (evt) => {
+                    const card = evt.item;
+                    const taskId = card.dataset.taskId;
+                    const targetCol = evt.to;
+                    const targetColumnId = targetCol.dataset.columnId;
 
-    window.kbDragStart = function (e) {
-        _card      = e.currentTarget;
-        _originCol = _card.closest('.kb-col');
-        e.dataTransfer.effectAllowed = 'move';
-        setTimeout(() => _card.classList.add('opacity-40', 'scale-95'), 0);
-    };
+                    const cardElements = Array.from(targetCol.querySelectorAll('.kanban-card'));
+                    const order = cardElements.map(el => parseInt(el.dataset.taskId, 10));
 
-    window.kbDragEnd = function (e) {
-        _card && _card.classList.remove('opacity-40', 'scale-95');
-        document.querySelectorAll('.kb-col').forEach(c => _clearDropStyle(c));
-    };
+                    if (evt.from !== evt.to) {
+                        try {
+                            await fetch(`/projects/{{ $project->id }}/tasks/${taskId}/move`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': CSRF,
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({ board_column_id: targetColumnId })
+                            });
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    }
 
-    window.kbDragOver = function (col) {
-        col.classList.add('ring-2', 'ring-blue-400', 'bg-blue-50');
-    };
+                    try {
+                        await fetch(`/projects/{{ $project->id }}/tasks/reorder`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': CSRF,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                order: order,
+                                board_column_id: targetColumnId
+                            })
+                        });
+                    } catch (err) {
+                        console.error(err);
+                    }
 
-    window.kbDragLeave = function (col) {
-        _clearDropStyle(col);
-    };
-
-    window.kbDrop = function (e, newColumnId) {
-        e.preventDefault();
-        const col = document.getElementById('kb-col-' + newColumnId);
-        _clearDropStyle(col);
-
-        if (!_card || String(_card.dataset.columnId) === String(newColumnId)) return;
-
-        _newColumnId = newColumnId;
-
-        // Optimistic move
-        _removeEmpty(col);
-        col.appendChild(_card);
-        _card.dataset.columnId = newColumnId;
-        _updateCounts();
-
-        // Show modal
-        document.getElementById('kb-modal-title').textContent = _card.dataset.taskTitle;
-
-        const oldBadge = document.getElementById('kb-modal-old-status');
-        oldBadge.textContent = _originCol ? _originCol.dataset.columnName : '';
-        oldBadge.className   = 'text-xs px-2 py-0.5 rounded-full font-medium ' + (COLOR_BADGE[_originCol?.dataset.columnColor] || 'bg-gray-100 text-gray-600');
-
-        const newBadge = document.getElementById('kb-modal-new-status');
-        newBadge.textContent = col.dataset.columnName;
-        newBadge.className   = 'text-xs px-2 py-0.5 rounded-full font-medium ' + (COLOR_BADGE[col.dataset.columnColor] || 'bg-gray-100 text-gray-600');
-
-        document.getElementById('kb-modal-notes').value = '';
-        document.getElementById('kb-modal').classList.remove('hidden');
-        setTimeout(() => document.getElementById('kb-modal-notes').focus(), 100);
-    };
-
-    window.kbModalSubmit = function () {
-        if (!_card) return;
-
-        const btn   = document.getElementById('kb-modal-submit');
-        const notes = document.getElementById('kb-modal-notes').value.trim();
-        const taskId = _card.dataset.taskId;
-        const projectId = '{{ $project->id }}';
-        const url   = `/projects/${projectId}/tasks/${taskId}/move`;
-
-        btn.disabled    = true;
-        btn.textContent = 'Saving...';
-
-        fetch(url, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ board_column_id: _newColumnId, notes: notes }),
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                _closeModal(false);
-                _toast('Task status updated successfully.', 'success');
-            } else {
-                _closeModal(true);
-                _toast('Failed to update status.', 'error');
-            }
-        })
-        .catch(() => {
-            _closeModal(true);
-            _toast('A network error occurred.', 'error');
-        })
-        .finally(() => {
-            btn.disabled    = false;
-            btn.textContent = 'Save';
+                    document.querySelectorAll('#project-detail-kanban-columns .kanban-column').forEach(col => {
+                        const count = col.querySelectorAll('.kanban-card').length;
+                        const counter = col.querySelector('.column-counter');
+                        if (counter) counter.textContent = count;
+                    });
+                }
+            });
         });
-    };
 
-    window.kbModalCancel = function () {
-        _closeModal(true);
-    };
+        const columnsContainer = document.getElementById('project-detail-kanban-columns');
+        if (columnsContainer) {
+            new Sortable(columnsContainer, {
+                handle: '.bucket-drag-handle',
+                animation: 180,
+                ghostClass: 'opacity-40',
+                onEnd: async () => {
+                    const colElements = Array.from(columnsContainer.querySelectorAll('.kanban-column'));
+                    const colOrder = colElements.map(el => parseInt(el.dataset.columnId, 10));
 
-    // --- helpers ---
-    function _closeModal(revert) {
-        document.getElementById('kb-modal').classList.add('hidden');
-        if (revert && _card && _originCol) {
-            _removeEmpty(_originCol);
-            _originCol.appendChild(_card);
-            _card.dataset.columnId = _originCol.dataset.columnId;
-            _updateCounts();
+                    try {
+                        await fetch(`/projects/{{ $project->id }}/board-columns/reorder`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': CSRF,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ order: colOrder })
+                        });
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            });
         }
-        _card = _originCol = _newColumnId = null;
-    }
+    });
 
-    function _clearDropStyle(col) {
-        col.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-50');
-    }
+    window.openTask = function(taskId) {
+        if (window.openTaskModal) {
+            window.openTaskModal(taskId);
+        } else {
+            window.dispatchEvent(new CustomEvent('open-task-modal', { detail: { taskId } }));
+        }
+    };
 
-    function _removeEmpty(col) {
-        col.querySelectorAll('.kb-empty').forEach(el => el.remove());
-    }
+    window.submitDetailInlineTask = async function(columnId) {
+        const input = event.target?.closest('div')?.querySelector('textarea');
+        const title = (input ? input.value : '').trim();
+        if (!title) return;
 
-    function _updateCounts() {
-        document.querySelectorAll('.kb-col').forEach(col => {
-            const columnId = col.dataset.columnId;
-            const count  = col.querySelectorAll('.kb-card').length;
-            const badge  = document.getElementById('kb-count-' + columnId);
-            if (badge) badge.textContent = count;
+        try {
+            const res = await fetch(`/projects/{{ $project->id }}/tasks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    board_column_id: columnId
+                })
+            });
 
-            if (count === 0 && !col.querySelector('.kb-empty')) {
-                const ph = document.createElement('div');
-                ph.className   = 'py-4 text-center text-xs text-gray-400 kb-empty';
-                ph.textContent = 'Empty';
-                col.appendChild(ph);
+            if (res.ok) {
+                window.location.reload();
             }
-        });
-    }
-
-    function _toast(msg, type) {
-        const toast = document.getElementById('kb-toast');
-        const inner = document.getElementById('kb-toast-inner');
-        const msgEl = document.getElementById('kb-toast-msg');
-        msgEl.textContent = msg;
-        inner.className   = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white '
-                          + (type === 'success' ? 'bg-green-600' : 'bg-red-600');
-        toast.classList.remove('hidden');
-        clearTimeout(toast._timer);
-        toast._timer = setTimeout(() => toast.classList.add('hidden'), 3000);
-    }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 })();
 </script>
 @endpush

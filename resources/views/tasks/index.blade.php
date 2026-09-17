@@ -2,6 +2,10 @@
 @section('title', 'Tasks — ' . $project->name)
 @section('page-title', 'Tasks: ' . $project->name)
 
+@push('head')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+@endpush
+
 @section('content')
 @php
     $pc  = ['low'=>'bg-green-100 text-green-700','medium'=>'bg-yellow-100 text-yellow-700','high'=>'bg-orange-100 text-orange-700','urgent'=>'bg-red-100 text-red-700'];
@@ -234,99 +238,110 @@
     </div>
 
     {{-- ===== KANBAN VIEW ===== --}}
-    <div x-show="view==='kanban'" x-cloak>
+    <div x-show="view==='kanban'" x-cloak class="pt-2">
         @php
-            $boardColumns = $project->boardColumns;
-            $allTasks = $project->tasks()->with(['assignee','milestone'])->latest()->get();
+            $allTasks = $project->tasks()->with([
+                'assignee',
+                'members',
+                'labels',
+                'checklists.items',
+                'attachments',
+                'milestone',
+                'boardColumn',
+            ])->withCount(['comments', 'attachments'])->orderBy('sort_order')->get();
         @endphp
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" id="kanban-board">
-            @forelse($boardColumns as $col)
-            @php $colTasks = $allTasks->where('board_column_id', $col->id); @endphp
-            <div class="flex flex-col min-h-64" data-column="{{ $col->id }}">
-                {{-- Column header --}}
-                <div class="flex items-center gap-2 px-3 py-2.5 rounded-t-xl border border-b-0 {{ \App\Support\BoardColumnPalette::header($col->color) }}">
-                    <span class="w-2.5 h-2.5 rounded-full {{ \App\Support\BoardColumnPalette::dot($col->color) }}"></span>
-                    <span class="text-sm font-semibold text-gray-700">{{ $col->name }}</span>
-                    <span class="ml-auto bg-white text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full border border-gray-200 kanban-count"
-                          id="count-{{ $col->id }}">{{ $colTasks->count() }}</span>
-                </div>
 
-                {{-- Drop zone --}}
-                <div class="flex-1 border border-t-0 border-gray-200 rounded-b-xl bg-gray-50 p-2 space-y-2 min-h-24 kanban-col"
-                     data-column-id="{{ $col->id }}"
-                     data-column-name="{{ $col->name }}"
-                     ondragover="event.preventDefault(); this.classList.add('ring-2','ring-blue-400','ring-inset')"
-                     ondragleave="this.classList.remove('ring-2','ring-blue-400','ring-inset')"
-                     ondrop="handleDrop(event, {{ $col->id }})">
+        <div id="project-kanban-columns-container"
+             class="flex gap-4 overflow-x-auto pb-6 pt-1 items-start min-h-[calc(100vh-320px)] scrollbar-thin">
 
-                    @forelse($colTasks as $task)
-                    @php
-                        $overdue = $task->isOverdue();
-                        $days    = $task->daysRemaining();
-                        $pl      = $plb[$task->priority] ?? 'border-l-gray-300';
-                    @endphp
-                    <div class="bg-white rounded-lg border border-gray-200 border-l-4 {{ $pl }} p-3 hover:shadow-sm transition-shadow cursor-grab active:cursor-grabbing select-none kanban-card"
-                         draggable="true"
-                         data-task-id="{{ $task->id }}"
-                         data-column-id="{{ $col->id }}"
-                         ondragstart="handleDragStart(event)"
-                         ondragend="handleDragEnd(event)">
+            @forelse($columns as $col)
+            @php
+                $colTasks = $allTasks->where('board_column_id', $col->id)->sortBy('sort_order');
+            @endphp
+            <div class="kanban-column w-80 shrink-0 bg-gray-50/90 dark:bg-gray-850/80 rounded-2xl border border-gray-200/80 dark:border-gray-750 flex flex-col max-h-[calc(100vh-250px)] shadow-xs transition-shadow"
+                 data-column-id="{{ $col->id }}"
+                 data-column-slug="{{ $col->slug }}">
 
-                        <a href="{{ route('tasks.show', [$project, $task]) }}"
-                           class="text-sm font-medium text-gray-800 hover:text-blue-600 leading-snug block mb-2"
-                           draggable="false">{{ $task->title }}</a>
+                {{-- Column Header --}}
+                <div class="p-3.5 border-b border-gray-200/70 dark:border-gray-750 flex items-center justify-between gap-2 shrink-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                        {{-- Drag handle for bucket --}}
+                        <span class="bucket-drag-handle cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400 p-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+                        </span>
 
-                        <div class="flex items-center gap-1.5 flex-wrap mb-2">
-                            <span class="text-xs px-1.5 py-0.5 rounded {{ $pc[$task->priority] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst($task->priority) }}</span>
-                            @if($overdue)
-                                <span class="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-600">Overdue</span>
-                            @endif
-                        </div>
+                        {{-- Column dot indicator --}}
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $col->color ?: '#3b82f6' }}"></span>
 
-                        @if($task->assignee)
-                        <div class="flex items-center gap-1.5 mb-1.5">
-                            <div class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                {{ strtoupper(substr($task->assignee->name, 0, 1)) }}
-                            </div>
-                            <span class="text-xs text-gray-500">{{ $task->assignee->name }}</span>
-                        </div>
-                        @endif
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-gray-800 dark:text-gray-200 truncate">
+                            {{ $col->name }}
+                        </h3>
 
-                        @if($task->due_date)
-                        <div class="flex items-center gap-1 text-xs {{ $overdue ? 'text-red-500' : 'text-gray-400' }}">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            {{ $task->due_date->format('d M Y') }}
-                            @if($days !== null)
-                                · @if($overdue) {{ abs($days) }}h lalu @elseif($days === 0) Hari ini @else {{ $days }}h lagi @endif
-                            @endif
-                        </div>
-                        @endif
-
-                        @if($task->estimated_hours)
-                        @php $pct = $task->timeProgressPercent(); @endphp
-                        <div class="mt-2">
-                            <div class="w-full bg-gray-100 rounded-full h-1 overflow-hidden">
-                                <div class="h-1 rounded-full {{ $pct >= 100 ? 'bg-red-400' : 'bg-blue-400' }}"
-                                     style="width: {{ $pct }}%"></div>
-                            </div>
-                        </div>
-                        @endif
+                        <span class="column-counter text-[11px] font-semibold bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200/80 dark:border-gray-700 px-2 py-0.5 rounded-full">
+                            {{ $colTasks->count() }}
+                        </span>
                     </div>
-                    @empty
-                    <div class="py-6 text-center text-xs text-gray-400 kanban-empty">Tidak ada task</div>
-                    @endforelse
                 </div>
+
+                {{-- Cards Droppable Container --}}
+                <div id="project-cards-column-{{ $col->id }}"
+                     data-column-id="{{ $col->id }}"
+                     class="project-cards-dropzone p-3 space-y-2.5 overflow-y-auto flex-1 min-h-[150px] scrollbar-thin">
+                    @foreach($colTasks as $task)
+                        @include('sprints._kanban_card', ['task' => $task, 'col' => $col])
+                    @endforeach
+                </div>
+
+                {{-- Inline Add Task in Bucket --}}
+                @if(!auth()->user()->hasRole('client'))
+                <div class="p-2.5 border-t border-gray-200/60 dark:border-gray-750 shrink-0"
+                     x-data="{ adding: false, taskTitle: '', isSubmitting: false }">
+                    <template x-if="!adding">
+                        <button type="button"
+                                @click="adding = true; $nextTick(() => $refs.inlineInput.focus())"
+                                class="w-full py-2 px-3 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-blue-600 hover:bg-white dark:hover:bg-gray-800 transition flex items-center justify-center gap-1.5 border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Tambah Task
+                        </button>
+                    </template>
+
+                    <template x-if="adding">
+                        <div class="space-y-2 bg-white dark:bg-gray-800 p-2.5 rounded-xl border border-blue-200 dark:border-blue-900 shadow-sm">
+                            <textarea x-ref="inlineInput"
+                                      x-model="taskTitle"
+                                      @keydown.enter.prevent="submitInlineTask({{ $col->id }})"
+                                      @keydown.escape="adding = false; taskTitle = ''"
+                                      rows="2"
+                                      placeholder="Tulis judul task dan tekan Enter..."
+                                      class="w-full text-xs p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                            <div class="flex items-center justify-end gap-1.5">
+                                <button type="button"
+                                        @click="adding = false; taskTitle = ''"
+                                        class="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700">
+                                    Batal
+                                </button>
+                                <button type="button"
+                                        @click="submitInlineTask({{ $col->id }})"
+                                        :disabled="isSubmitting || !taskTitle.trim()"
+                                        class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs disabled:opacity-50">
+                                    Tambah
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                @endif
             </div>
             @empty
-            <div class="col-span-full text-center text-sm text-gray-400 py-10">
-                Proyek ini belum punya kolom board. <a href="{{ route('board-columns.index', $project) }}" class="text-blue-600 hover:text-blue-800">Kelola kolom board</a>
+            <div class="col-span-full text-center text-sm text-gray-400 py-16 w-full">
+                Proyek ini belum memiliki kolom board.
             </div>
             @endforelse
         </div>
-
-        {{-- Drop feedback toast --}}
-        <div id="kanban-toast" class="fixed bottom-4 right-4 bg-gray-800 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg hidden transition-all z-50"></div>
     </div>
+
+    {{-- Include Task Detail Modal --}}
+    @include('sprints._task_modal')
 
 </div>
 
@@ -335,7 +350,6 @@
 (function() {
     const MOVE_URL = '{{ route('tasks.move', [$project, '__ID__']) }}';
     const CSRF     = document.querySelector('meta[name="csrf-token"]').content;
-    let dragging   = null;
 
     window.handleQuickStatusChange = function(select) {
         const form = select.closest('form');
@@ -370,75 +384,128 @@
         sel.dataset.prev = sel.value;
     });
 
-    window.handleDragStart = function(e) {
-        dragging = e.currentTarget;
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', dragging.dataset.taskId);
-        setTimeout(() => dragging.classList.add('opacity-40'), 0);
-    };
+    // Initialize SortableJS for Project Kanban
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropzones = document.querySelectorAll('.project-cards-dropzone');
+        dropzones.forEach(zone => {
+            new Sortable(zone, {
+                group: 'project-cards',
+                animation: 180,
+                ghostClass: 'opacity-30',
+                chosenClass: 'scale-[1.02]',
+                onEnd: async (evt) => {
+                    const card = evt.item;
+                    const taskId = card.dataset.taskId;
+                    const targetCol = evt.to;
+                    const targetColumnId = targetCol.dataset.columnId;
 
-    window.handleDragEnd = function(e) {
-        if (dragging) dragging.classList.remove('opacity-40');
-        dragging = null;
-        document.querySelectorAll('.kanban-col').forEach(c =>
-            c.classList.remove('ring-2','ring-blue-400','ring-inset'));
-    };
+                    const cardElements = Array.from(targetCol.querySelectorAll('.kanban-card'));
+                    const order = cardElements.map(el => parseInt(el.dataset.taskId, 10));
 
-    window.handleDrop = function(e, newColumnId) {
-        e.preventDefault();
-        const col = e.currentTarget;
-        col.classList.remove('ring-2','ring-blue-400','ring-inset');
+                    if (evt.from !== evt.to) {
+                        try {
+                            await fetch(MOVE_URL.replace('__ID__', taskId), {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': CSRF,
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({ board_column_id: targetColumnId })
+                            });
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    }
 
-        const card = dragging || document.querySelector(`.kanban-card[data-task-id="${e.dataTransfer.getData('text/plain')}"]`);
-        if (!card) return;
+                    try {
+                        await fetch(`/projects/{{ $project->id }}/tasks/reorder`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': CSRF,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                order: order,
+                                board_column_id: targetColumnId
+                            })
+                        });
+                    } catch (err) {
+                        console.error(err);
+                    }
 
-        const oldColumnId = card.dataset.columnId;
-        if (String(oldColumnId) === String(newColumnId)) return;
+                    document.querySelectorAll('.kanban-column').forEach(col => {
+                        const count = col.querySelectorAll('.kanban-card').length;
+                        const counter = col.querySelector('.column-counter');
+                        if (counter) counter.textContent = count;
+                    });
+                }
+            });
+        });
 
-        const taskId = card.dataset.taskId;
-        const newColumnName = col.dataset.columnName || '';
+        const columnsContainer = document.getElementById('project-kanban-columns-container');
+        if (columnsContainer) {
+            new Sortable(columnsContainer, {
+                handle: '.bucket-drag-handle',
+                animation: 180,
+                ghostClass: 'opacity-40',
+                onEnd: async () => {
+                    const colElements = Array.from(columnsContainer.querySelectorAll('.kanban-column'));
+                    const colOrder = colElements.map(el => parseInt(el.dataset.columnId, 10));
 
-        // Optimistic UI: move card DOM
-        const emptyEl = col.querySelector('.kanban-empty');
-        if (emptyEl) emptyEl.remove();
-        col.appendChild(card);
-        card.dataset.columnId = newColumnId;
-
-        // Remove empty placeholder from old col if needed
-        const oldCol = document.querySelector(`.kanban-col[data-column-id="${oldColumnId}"]`);
-        if (oldCol && oldCol.querySelectorAll('.kanban-card').length === 0) {
-            oldCol.innerHTML = '<div class="py-6 text-center text-xs text-gray-400 kanban-empty">Tidak ada task</div>';
+                    try {
+                        await fetch(`/projects/{{ $project->id }}/board-columns/reorder`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': CSRF,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ order: colOrder })
+                        });
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            });
         }
+    });
 
-        // Update counts
-        document.querySelectorAll('.kanban-col').forEach(c => {
-            const cnt = c.querySelectorAll('.kanban-card').length;
-            const badge = document.getElementById('count-' + c.dataset.columnId);
-            if (badge) badge.textContent = cnt;
-        });
-
-        // API call
-        fetch(MOVE_URL.replace('__ID__', taskId), {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
-            body: JSON.stringify({ board_column_id: newColumnId })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) showToast('✓ Status diperbarui ke ' + newColumnName);
-        })
-        .catch(() => {
-            showToast('✕ Gagal update status', true);
-        });
+    window.openTask = function(taskId) {
+        if (window.openTaskModal) {
+            window.openTaskModal(taskId);
+        } else {
+            window.dispatchEvent(new CustomEvent('open-task-modal', { detail: { taskId } }));
+        }
     };
 
-    function showToast(msg, err = false) {
-        const t = document.getElementById('kanban-toast');
-        t.textContent = msg;
-        t.className = `fixed bottom-4 right-4 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg z-50 transition-all ${err ? 'bg-red-600' : 'bg-gray-800'}`;
-        t.classList.remove('hidden');
-        setTimeout(() => t.classList.add('hidden'), 3000);
-    }
+    window.submitInlineTask = async function(columnId) {
+        const input = event.target?.closest('div')?.querySelector('textarea');
+        const title = (input ? input.value : '').trim();
+        if (!title) return;
+
+        try {
+            const res = await fetch(`/projects/{{ $project->id }}/tasks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    board_column_id: columnId
+                })
+            });
+
+            if (res.ok) {
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 })();
 </script>
 @endpush

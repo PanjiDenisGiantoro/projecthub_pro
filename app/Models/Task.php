@@ -16,6 +16,7 @@ class Task extends Model
         'completion_notes', 'assigned_to', 'created_by', 'status', 'board_column_id', 'priority', 'start_date', 'due_date',
         'estimated_hours', 'story_points', 'sort_order', 'recurring_definition_id',
         'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
+        'cover_image_path',
     ];
 
     protected function casts(): array
@@ -159,5 +160,44 @@ class Task extends Model
     public function isBlocked(): bool
     {
         return $this->blockedBy()->whereNotIn('status', ['done'])->exists();
+    }
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'task_members')->withTimestamps();
+    }
+
+    public function labels()
+    {
+        return $this->belongsToMany(Label::class, 'task_labels')->withTimestamps();
+    }
+
+    public function checklists()
+    {
+        return $this->hasMany(TaskChecklist::class)->orderBy('sort_order');
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(TaskAttachment::class)->latest();
+    }
+
+    /**
+     * Total checklist items across all checklist groups.
+     */
+    public function checklistTotalCount(): int
+    {
+        return $this->checklists()->withCount('items')->get()->sum('items_count');
+    }
+
+    /**
+     * Total done checklist items across all checklist groups.
+     */
+    public function checklistDoneCount(): int
+    {
+        return $this->checklists
+            ->flatMap(fn ($cl) => $cl->items)
+            ->where('is_done', true)
+            ->count();
     }
 }

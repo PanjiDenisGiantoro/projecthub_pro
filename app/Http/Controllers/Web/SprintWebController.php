@@ -78,10 +78,39 @@ class SprintWebController extends Controller
 
     public function show(Project $project, Sprint $sprint)
     {
-        $sprint->load(['tasks' => fn ($q) => $q->with('assignee', 'milestone')->orderBy('sort_order')]);
-        $columns = $project->boardColumns;
+        $sprint->load([
+            'tasks' => fn ($q) => $q->with([
+                'assignee',
+                'members',
+                'labels',
+                'checklists.items',
+                'attachments',
+                'milestone',
+                'boardColumn',
+            ])->withCount(['comments', 'attachments'])->orderBy('sort_order')
+        ]);
 
-        return view('sprints.show', compact('project', 'sprint', 'columns'));
+        $columns = $project->boardColumns()->orderBy('sort_order')->get();
+
+        // Seed default labels if none exist
+        if ($project->labels()->count() === 0) {
+            $defaultLabels = [
+                ['name' => 'Feature', 'color' => 'blue'],
+                ['name' => 'Bug', 'color' => 'red'],
+                ['name' => 'Urgent', 'color' => 'orange'],
+                ['name' => 'Design', 'color' => 'purple'],
+                ['name' => 'Backend', 'color' => 'teal'],
+            ];
+            foreach ($defaultLabels as $l) {
+                $project->labels()->create($l);
+            }
+        }
+
+        $projectLabels = $project->labels()->orderBy('name')->get();
+        $assignableUsers = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
+        $milestones = $project->milestones()->get();
+
+        return view('sprints.show', compact('project', 'sprint', 'columns', 'projectLabels', 'assignableUsers', 'milestones'));
     }
 
     public function update(Request $request, Project $project, Sprint $sprint, GoogleCalendarService $calendar)
