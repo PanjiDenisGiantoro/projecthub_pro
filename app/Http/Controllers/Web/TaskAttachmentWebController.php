@@ -49,6 +49,17 @@ class TaskAttachmentWebController extends Controller
             ]);
         }
 
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'file_name' => $attachment->file_name,
+                    'type'      => $attachment->type,
+                ])
+                ->log('attachment_added');
+        }
+
         return response()->json([
             'ok'         => true,
             'attachment' => [
@@ -69,11 +80,20 @@ class TaskAttachmentWebController extends Controller
         $this->authorize('view', $project);
         abort_if($task->project_id !== $project->id || $attachment->task_id !== $task->id, 404);
 
+        $fileName = $attachment->file_name;
         if ($attachment->file_path) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment->file_path);
         }
 
         $attachment->delete();
+
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties(['file_name' => $fileName])
+                ->log('attachment_deleted');
+        }
 
         return response()->json(['ok' => true]);
     }
@@ -94,6 +114,14 @@ class TaskAttachmentWebController extends Controller
             $path = $request->file('cover')->store("task-covers/{$task->id}", 'public');
             $task->update(['cover_image_path' => $path]);
 
+            if (function_exists('activity')) {
+                activity('task')
+                    ->performedOn($task)
+                    ->causedBy(auth()->user())
+                    ->withProperties(['cover_path' => $path])
+                    ->log('cover_updated');
+            }
+
             return response()->json([
                 'ok'  => true,
                 'url' => \Illuminate\Support\Facades\Storage::url($path),
@@ -105,6 +133,13 @@ class TaskAttachmentWebController extends Controller
             \Illuminate\Support\Facades\Storage::disk('public')->delete($task->cover_image_path);
         }
         $task->update(['cover_image_path' => null]);
+
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->log('cover_removed');
+        }
 
         return response()->json(['ok' => true, 'url' => null]);
     }

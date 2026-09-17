@@ -29,6 +29,14 @@ class TaskChecklistWebController extends Controller
             'sort_order' => $nextOrder,
         ]);
 
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties(['group_title' => $checklist->title])
+                ->log('checklist_group_created');
+        }
+
         return response()->json($checklist->load('items'), 201);
     }
 
@@ -43,6 +51,14 @@ class TaskChecklistWebController extends Controller
 
         $checklist->update($data);
 
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties(['group_title' => $checklist->title])
+                ->log('checklist_group_updated');
+        }
+
         return response()->json($checklist);
     }
 
@@ -51,7 +67,16 @@ class TaskChecklistWebController extends Controller
         $this->authorize('view', $project);
         abort_if($task->project_id !== $project->id || $checklist->task_id !== $task->id, 404);
 
+        $groupTitle = $checklist->title;
         $checklist->delete();
+
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties(['group_title' => $groupTitle])
+                ->log('checklist_group_deleted');
+        }
 
         return response()->json(['ok' => true]);
     }
@@ -75,6 +100,17 @@ class TaskChecklistWebController extends Controller
             'sort_order' => $nextOrder,
         ]);
 
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'item_title' => $item->title,
+                    'group_title' => $checklist->title,
+                ])
+                ->log('checklist_item_created');
+        }
+
         return response()->json($item, 201);
     }
 
@@ -87,6 +123,9 @@ class TaskChecklistWebController extends Controller
             'title'   => 'sometimes|required|string|max:500',
             'is_done' => 'sometimes|boolean',
         ]);
+
+        $wasDone = (bool) $item->is_done;
+        $oldTitle = $item->title;
 
         // Track completion timestamp
         if (isset($data['is_done'])) {
@@ -101,6 +140,23 @@ class TaskChecklistWebController extends Controller
 
         $item->update($data);
 
+        if (function_exists('activity')) {
+            if (isset($data['is_done']) && (bool)$data['is_done'] !== $wasDone) {
+                $event = $data['is_done'] ? 'checklist_item_completed' : 'checklist_item_uncompleted';
+                activity('task')
+                    ->performedOn($task)
+                    ->causedBy(auth()->user())
+                    ->withProperties(['item_title' => $item->title, 'is_done' => (bool)$data['is_done']])
+                    ->log($event);
+            } elseif (isset($data['title']) && $data['title'] !== $oldTitle) {
+                activity('task')
+                    ->performedOn($task)
+                    ->causedBy(auth()->user())
+                    ->withProperties(['item_title' => $item->title, 'old_title' => $oldTitle])
+                    ->log('checklist_item_updated');
+            }
+        }
+
         return response()->json($item);
     }
 
@@ -109,7 +165,16 @@ class TaskChecklistWebController extends Controller
         $this->authorize('view', $project);
         abort_if($task->project_id !== $project->id || $checklist->task_id !== $task->id || $item->checklist_id !== $checklist->id, 404);
 
+        $itemTitle = $item->title;
         $item->delete();
+
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties(['item_title' => $itemTitle])
+                ->log('checklist_item_deleted');
+        }
 
         return response()->json(['ok' => true]);
     }

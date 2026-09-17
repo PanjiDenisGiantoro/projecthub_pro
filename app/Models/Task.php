@@ -79,7 +79,7 @@ class Task extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll()->useLogName('task');
+        return LogOptions::defaults()->logAll()->logOnlyDirty()->useLogName('task');
     }
 
     public function project()

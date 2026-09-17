@@ -35,13 +35,17 @@ class BoardColumnWebController extends Controller
 
         $nextOrder = (int) $project->boardColumns()->max('sort_order') + 1;
 
-        $project->boardColumns()->create([
+        $column = $project->boardColumns()->create([
             'name' => $data['name'],
             'slug' => $slug,
             'color' => $data['color'],
             'is_done' => $request->boolean('is_done'),
             'sort_order' => $nextOrder,
         ]);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($column);
+        }
 
         return back()->with('success', 'Kolom berhasil ditambahkan.');
     }

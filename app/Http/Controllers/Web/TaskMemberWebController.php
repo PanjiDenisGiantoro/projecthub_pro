@@ -24,6 +24,17 @@ class TaskMemberWebController extends Controller
 
         $user = User::find($request->user_id);
 
+        if (function_exists('activity') && $user) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'user_name' => $user->name,
+                    'user_id' => $user->id,
+                ])
+                ->log('member_added');
+        }
+
         return response()->json([
             'ok'   => true,
             'user' => [
@@ -40,6 +51,17 @@ class TaskMemberWebController extends Controller
         abort_if($task->project_id !== $project->id, 404);
 
         $task->members()->detach($user->id);
+
+        if (function_exists('activity')) {
+            activity('task')
+                ->performedOn($task)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'user_name' => $user->name,
+                    'user_id' => $user->id,
+                ])
+                ->log('member_removed');
+        }
 
         return response()->json(['ok' => true]);
     }
