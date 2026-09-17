@@ -248,7 +248,7 @@
         </aside>
 
         {{-- ── Main Content ────────────────────────────────────────────────────── --}}
-        <div class="flex-1 flex flex-col min-h-0 transition-all duration-300"
+        <div class="flex-1 flex flex-col min-h-0 min-w-0 max-w-full overflow-x-hidden transition-all duration-300"
             :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'">
 
             {{-- Top bar --}}
@@ -307,218 +307,162 @@
                     </div>
                 @endif
 
-                <div class="flex-1"></div>
-
-                {{-- 1. Global Search Input --}}
-                @can('access search')
-                    <form method="GET" action="{{ route('search.index') }}" class="hidden sm:flex items-center">
-                        <div class="relative">
-                            <input type="text" name="q" placeholder="Global Search" value="{{ request('q') }}"
-                                class="fl-search-input w-52 pl-9 pr-3 py-2 border rounded-xl text-sm transition-all">
-                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                                style="color:var(--fl-search-ph)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <div class="flex-1 max-w-xl mx-auto px-4 hidden md:flex items-center justify-center">
+                    {{-- Global Search Input Centered --}}
+                    @can('access search')
+                    <form method="GET" action="{{ route('search.index') }}" class="w-full">
+                        <div class="relative flex items-center w-full">
+                            <input type="text" name="q" placeholder="Global Search (tasks, docs, members)..." value="{{ request('q') }}"
+                                class="w-full pl-9 pr-12 py-1.5 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700 rounded-xl text-xs text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:bg-white dark:focus:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-2xs">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
+                            <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 bg-white dark:bg-gray-750 border border-gray-200 dark:border-gray-650 rounded-md shadow-2xs pointer-events-none">⌘K</kbd>
                         </div>
                     </form>
+                    @endcan
+                </div>
+
+                <div class="flex items-center gap-1 sm:gap-2 ml-auto shrink-0">
                     {{-- Mobile Search Icon --}}
-                    <div class="sm:hidden relative group flex items-center">
+                    @can('access search')
+                    <div class="md:hidden relative group flex items-center">
                         <a href="{{ route('search.index') }}"
                             class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('search.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </a>
-                        <span
-                            class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                            Global Search
-                        </span>
                     </div>
-                @endcan
+                    @endcan
 
-                {{-- 2. Meetings --}}
-                @can('access meetings')
+                    {{-- 2. Meetings --}}
+                    @can('access meetings')
                     <div class="relative group flex items-center">
                         <a href="{{ route('meetings.index') }}"
-                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('meetings.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('meetings.*') ? 'text-blue-500 bg-blue-500/10' : '' }}" title="Meetings">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
                         </a>
-                        <span
-                            class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                            Meetings
-                        </span>
                     </div>
-                @endcan
+                    @endcan
 
-                {{-- 3. Chat (Proyek + Pesan + Forum) --}}
-                @php
-                    $chatUser = auth()->user();
-                    $chatProjectUnread = \App\Models\ProjectMessage::whereHas('project', function ($q) use ($chatUser) {
-                        if ($chatUser->hasRole(['admin', 'member']))
-                            return;
-                        $q->where('manager_id', $chatUser->id)
-                            ->orWhere('client_id', $chatUser->id)
-                            ->orWhereHas('members', fn($m) => $m->where('user_id', $chatUser->id));
-                    })->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))->count();
+                    {{-- 3. Chat (Proyek + Pesan + Forum) --}}
+                    @php
+                        $chatUser = auth()->user();
+                        $chatProjectUnread = \App\Models\ProjectMessage::whereHas('project', function ($q) use ($chatUser) {
+                            if ($chatUser->hasRole(['admin', 'member']))
+                                return;
+                            $q->where('manager_id', $chatUser->id)
+                                ->orWhere('client_id', $chatUser->id)
+                                ->orWhereHas('members', fn($m) => $m->where('user_id', $chatUser->id));
+                        })->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))->count();
 
-                    $chatConversationIds = \App\Models\Conversation::where('user_one_id', $chatUser->id)->orWhere('user_two_id', $chatUser->id)->pluck('id');
-                    $chatDmUnread = \App\Models\DirectMessage::withTrashed()
-                        ->whereIn('conversation_id', $chatConversationIds)
-                        ->where('user_id', '!=', $chatUser->id)
-                        ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
-                        ->count();
+                        $chatConversationIds = \App\Models\Conversation::where('user_one_id', $chatUser->id)->orWhere('user_two_id', $chatUser->id)->pluck('id');
+                        $chatDmUnread = \App\Models\DirectMessage::withTrashed()
+                            ->whereIn('conversation_id', $chatConversationIds)
+                            ->where('user_id', '!=', $chatUser->id)
+                            ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
+                            ->count();
 
-                    $chatForumIds = $chatUser->hasRole(['admin', 'member'])
-                        ? \App\Models\Forum::where('company_id', $chatUser->company_id)->pluck('id')
-                        : \App\Models\Forum::whereHas('members', fn($q) => $q->where('user_id', $chatUser->id))->pluck('id');
-                    $chatForumUnread = \App\Models\ForumMessage::withTrashed()
-                        ->whereIn('forum_id', $chatForumIds)
-                        ->where('user_id', '!=', $chatUser->id)
-                        ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
-                        ->count();
+                        $chatForumIds = $chatUser->hasRole(['admin', 'member'])
+                            ? \App\Models\Forum::where('company_id', $chatUser->company_id)->pluck('id')
+                            : \App\Models\Forum::whereHas('members', fn($q) => $q->where('user_id', $chatUser->id))->pluck('id');
+                        $chatForumUnread = \App\Models\ForumMessage::withTrashed()
+                            ->whereIn('forum_id', $chatForumIds)
+                            ->where('user_id', '!=', $chatUser->id)
+                            ->whereDoesntHave('reads', fn($r) => $r->where('user_id', $chatUser->id))
+                            ->count();
 
-                    $chatUnread = $chatProjectUnread + $chatDmUnread + $chatForumUnread;
-                @endphp
-                <div class="relative group flex items-center">
-                    <a href="{{ route('chat.index') }}"
-                        class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('chat.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        @if($chatUnread > 0)
-                            <span
-                                class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold leading-none">
-                                {{ $chatUnread > 99 ? '99+' : $chatUnread }}
-                            </span>
-                        @endif
-                    </a>
-                    <span
-                        class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                        Chat
-                    </span>
-                </div>
+                        $chatUnread = $chatProjectUnread + $chatDmUnread + $chatForumUnread;
+                    @endphp
+                    <div class="relative group flex items-center">
+                        <a href="{{ route('chat.index') }}"
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('chat.*') ? 'text-blue-500 bg-blue-500/10' : '' }}" title="Chat">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            @if($chatUnread > 0)
+                                <span class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold leading-none">
+                                    {{ $chatUnread > 99 ? '99+' : $chatUnread }}
+                                </span>
+                            @endif
+                        </a>
+                    </div>
 
-                {{-- 4. Calendar --}}
-                @can('access calendar')
+                    {{-- 4. Calendar --}}
+                    @can('access calendar')
                     <div class="relative group flex items-center">
                         <a href="{{ route('calendar.index') }}"
-                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('calendar.*') ? 'text-blue-500 bg-blue-500/10' : '' }}">
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('calendar.*') ? 'text-blue-500 bg-blue-500/10' : '' }}" title="Calendar">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         </a>
-                        <span
-                            class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                            Calendar
-                        </span>
                     </div>
-                @endcan
+                    @endcan
 
-                {{-- 5. Notification --}}
-                <div x-data="notificationBell()" x-init="init()" class="relative group flex items-center">
-                    <button @click="open = !open"
-                        class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <span x-show="unreadCount > 0" x-cloak
-                            class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
-                            x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
-                    </button>
-                    <span x-show="!open"
-                        class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                        Notification
-                    </span>
+                    {{-- 5. Notification --}}
+                    <div x-data="notificationBell()" x-init="init()" class="relative group flex items-center">
+                        <button @click="open = !open"
+                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center" title="Notifications">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span x-show="unreadCount > 0" x-cloak
+                                class="absolute top-1 right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none"
+                                x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
+                        </button>
 
-                    <div x-show="open" x-cloak @click.away="open = false"
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 -translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl overflow-hidden z-50"
-                        style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
-                        <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
-                            <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifications</p>
-                            <button @click="markAllRead()" x-show="unreadCount > 0"
-                                class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer">Mark all as
-                                read</button>
-                        </div>
-                        <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak
-                            class="px-4 py-2.5 ph-drop-divider-b">
-                            <button @click="subscribePush()"
-                                class="w-full text-[11.5px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                                Enable push notifications
-                            </button>
-                        </div>
-                        <div class="max-h-80 overflow-y-auto">
-                            <template x-if="items.length === 0">
-                                <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">No
-                                    notifications yet.</p>
-                            </template>
-                            <template x-for="n in items" :key="n.id">
-                                <button @click="markRead(n)"
-                                    class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors cursor-pointer"
-                                    :class="!n.read_at ? 'bg-blue-500/5' : ''">
-                                    <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)"
-                                        x-text="n.title"></p>
-                                    <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message">
-                                    </p>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 6. Dark Mode --}}
-                <div class="relative group flex items-center">
-                    <button id="fl-mode-toggle" class="fl-mode-toggle cursor-pointer" title="Dark Mode">
-                        {{-- Sun icon: shown in dark mode → click to go light --}}
-                        <svg id="fl-icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        {{-- Moon icon: shown in light mode → click to go dark --}}
-                        <svg id="fl-icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                    </button>
-                    <span
-                        class="pointer-events-none absolute top-full mt-1.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                        Dark Mode
-                    </span>
-                </div>
-
-                {{-- 7. Profile --}}
-                <div class="relative group flex items-center">
-                    <a href="{{ route('profile') }}" class="group flex items-center shrink-0 cursor-pointer">
-                        @if(auth()->user()->avatar)
-                            <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
-                                class="w-9 h-9 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
-                        @else
-                            <div
-                                class="fl-avatar w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/20 group-hover:ring-purple-400 transition-all">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        <div x-show="open" x-cloak @click.away="open = false"
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl overflow-hidden z-50 shadow-xl"
+                            style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border)">
+                            <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
+                                <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifications</p>
+                                <button @click="markAllRead()" x-show="unreadCount > 0"
+                                    class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer">Mark all as read</button>
                             </div>
-                        @endif
-                    </a>
-                    <span
-                        class="pointer-events-none absolute top-full mt-1.5 right-0 opacity-0 group-hover:opacity-100 transition-all duration-150 z-50 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium rounded-md text-white bg-slate-900/95 shadow-md border border-white/10">
-                        Profile
-                    </span>
+                            <div class="max-h-80 overflow-y-auto">
+                                <template x-if="items.length === 0">
+                                    <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">No notifications yet.</p>
+                                </template>
+                                <template x-for="n in items" :key="n.id">
+                                    <button @click="markRead(n)"
+                                        class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors cursor-pointer"
+                                        :class="!n.read_at ? 'bg-blue-500/5' : ''">
+                                        <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)" x-text="n.title"></p>
+                                        <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message"></p>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 6. Dark Mode (Hidden by request: 'icon dark mode di hide dulu') --}}
+                    <div class="hidden" style="display:none !important;" aria-hidden="true">
+                        <button id="fl-mode-toggle" class="fl-mode-toggle cursor-pointer" title="Dark Mode">
+                            <svg id="fl-icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            <svg id="fl-icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                        </button>
+                    </div>
+
+                    {{-- 7. Profile Avatar --}}
+                    <div class="relative group flex items-center ml-1">
+                        <a href="{{ route('profile') }}" class="group flex items-center shrink-0 cursor-pointer">
+                            @if(auth()->user()->avatar)
+                                <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
+                                    class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500/20 group-hover:ring-blue-500 transition-all">
+                            @else
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs bg-gradient-to-br from-blue-600 to-indigo-700 ring-2 ring-blue-500/20 group-hover:ring-blue-500 transition-all">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                </div>
+                            @endif
+                        </a>
+                    </div>
                 </div>
             </header>
 

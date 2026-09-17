@@ -184,11 +184,14 @@ class TaskWebController extends Controller
 
         $this->teamNotifier->notify($project, '🆕 Task Baru', "\"{$task->title}\" ditambahkan oleh ".auth()->user()->name.'.');
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            $task->load(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'recurringDefinition', 'boardColumn']);
+            $cardHtml = view('sprints._kanban_card', ['task' => $task, 'col' => $task->boardColumn])->render();
             return response()->json([
                 'ok' => true,
                 'message' => 'Task berhasil dibuat.',
-                'task' => $task->load(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'recurringDefinition'])
+                'task' => $task,
+                'card_html' => $cardHtml,
             ], 201);
         }
 
@@ -337,11 +340,14 @@ class TaskWebController extends Controller
             }
         }
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            $freshTask = $task->fresh(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'recurringDefinition', 'boardColumn', 'milestone', 'creator']);
+            $cardHtml = view('sprints._kanban_card', ['task' => $freshTask, 'col' => $freshTask->boardColumn])->render();
             return response()->json([
                 'ok' => true,
                 'message' => 'Task diperbarui.',
-                'task' => $task->fresh(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'recurringDefinition', 'boardColumn', 'milestone', 'creator'])
+                'task' => $freshTask,
+                'card_html' => $cardHtml,
             ]);
         }
 
@@ -686,9 +692,13 @@ class TaskWebController extends Controller
     }
 
 
-    public function destroy(Project $project, Task $task)
+    public function destroy(Request $request, Project $project, Task $task)
     {
         $task->delete();
+
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json(['ok' => true, 'message' => 'Task berhasil dihapus.']);
+        }
 
         return redirect()->route('tasks.index', $project)->with('success', 'Task dihapus.');
     }

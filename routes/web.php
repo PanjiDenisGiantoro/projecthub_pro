@@ -190,6 +190,7 @@ Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
 
         Route::get('/projects/{project}/board-columns', [BoardColumnWebController::class, 'index'])->name('board-columns.index');
         Route::post('/projects/{project}/board-columns', [BoardColumnWebController::class, 'store'])->name('board-columns.store');
+        Route::post('/projects/{project}/board-columns/bootstrap-default', [BoardColumnWebController::class, 'bootstrapDefault'])->name('board-columns.bootstrap-default');
         Route::put('/projects/{project}/board-columns/{column}', [BoardColumnWebController::class, 'update'])->name('board-columns.update');
         Route::delete('/projects/{project}/board-columns/{column}', [BoardColumnWebController::class, 'destroy'])->name('board-columns.destroy');
         Route::post('/projects/{project}/board-columns/reorder', [BoardColumnWebController::class, 'reorder'])->name('board-columns.reorder');

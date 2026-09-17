@@ -2979,17 +2979,31 @@
             const labelsContainer = card.querySelector('.card-labels-container');
             if (labelsContainer) {
                 if (task.labels && task.labels.length > 0) {
-                    labelsContainer.innerHTML = task.labels.map(label => {
+                    const visibleLabels = task.labels.slice(0, 2);
+                    const remainingCount = task.labels.length - 2;
+                    let labelsHtml = visibleLabels.map(label => {
                         const c = labelColorMap[label.color] || labelColorMap['gray'];
                         return `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${c.bg} ${c.text} tracking-wide">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold ${c.bg} ${c.text} tracking-wide">
                             <span class="w-1.5 h-1.5 rounded-full ${c.dot}"></span>
                             ${label.name}
                         </span>
                     `;
                     }).join('');
+                    if (remainingCount > 0) {
+                        labelsHtml += `
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 shrink-0">
+                            +${remainingCount}
+                        </span>
+                        `;
+                    }
+                    labelsContainer.innerHTML = labelsHtml;
                 } else {
-                    labelsContainer.innerHTML = '';
+                    labelsContainer.innerHTML = `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-gray-50 text-gray-500 border border-gray-100">
+                            Task
+                        </span>
+                    `;
                 }
             }
 
@@ -3182,9 +3196,101 @@
         });
 
         // Also update any table/list rows matching this task
-        document.querySelectorAll(`tr[data-task-id="${task.id}"], .task-list-row[data-task-id="${task.id}"]`).forEach(row => {
-            const titleEl = row.querySelector('.task-title, a[href*="/tasks/"]');
+        document.querySelectorAll(`.list-task-row[data-task-id="${task.id}"], tr[data-task-id="${task.id}"], .task-list-row[data-task-id="${task.id}"]`).forEach(row => {
+            const titleEl = row.querySelector('.task-title, span.text-xs.font-bold, a[href*="/tasks/"]');
             if (titleEl) titleEl.textContent = task.title;
+
+            // Priority
+            const priorityEl = row.querySelector('.list-priority-container');
+            if (priorityEl && task.priority) {
+                const pLabel = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
+                priorityEl.className = `col-span-1 list-priority-container flex items-center gap-1.5 text-xs font-bold ${priorityBadges[task.priority] || 'text-blue-600'}`;
+                priorityEl.innerHTML = `
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                    <span class="truncate">${pLabel}</span>
+                `;
+            }
+
+            // Labels
+            const labelsEl = row.querySelector('.list-labels-container');
+            if (labelsEl) {
+                if (task.labels && task.labels.length > 0) {
+                    const visibleLabels = task.labels.slice(0, 2);
+                    const remainingCount = task.labels.length - 2;
+                    let labelsHtml = visibleLabels.map(l => {
+                        const c = labelColorMap[l.color] || labelColorMap['gray'];
+                        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold ${c.bg} ${c.text} truncate max-w-[120px]">${l.name}</span>`;
+                    }).join('');
+                    if (remainingCount > 0) {
+                        labelsHtml += `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 shrink-0">+${remainingCount}</span>`;
+                    }
+                    labelsEl.innerHTML = labelsHtml;
+                } else {
+                    labelsEl.innerHTML = '<span class="text-xs text-gray-300">—</span>';
+                }
+            }
+
+            // Due Date
+            const dueEl = row.querySelector('.list-due-container');
+            if (dueEl) {
+                if (task.status === 'done' || task.status === 'completed') {
+                    dueEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400"><svg class="w-3 h-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>Completed</span>`;
+                } else if (task.due_date) {
+                    const dateClean = (typeof task.due_date === 'string' && task.due_date.includes('T')) ? task.due_date.split('T')[0] : task.due_date;
+                    const d = new Date(dateClean + 'T00:00:00');
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+                    const diffDays = Math.round((d - now) / (1000 * 60 * 60 * 24));
+                    const overdue = diffDays < 0;
+                    const formattedDate = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
+                    if (overdue) {
+                        dueEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400"><span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>${formattedDate} (Overdue)</span>`;
+                    } else if (diffDays <= 2) {
+                        dueEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 dark:text-red-400"><span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>Due: ${formattedDate}</span>`;
+                    } else {
+                        dueEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 dark:text-gray-400"><svg class="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>${formattedDate}</span>`;
+                    }
+                } else {
+                    dueEl.innerHTML = '<span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>';
+                }
+            }
+
+            // Checklists
+            const checklistEl = row.querySelector('.list-checklist-container');
+            if (checklistEl) {
+                let doneCount = 0;
+                let totalCount = 0;
+                if (task.checklists && task.checklists.length > 0) {
+                    task.checklists.forEach(g => {
+                        if (g.items) {
+                            g.items.forEach(i => {
+                                totalCount++;
+                                if (i.is_done) doneCount++;
+                            });
+                        }
+                    });
+                }
+                if (totalCount > 0) {
+                    const isAll = doneCount === totalCount;
+                    checklistEl.innerHTML = `
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold ${isAll ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'}">
+                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <span>${doneCount}/${totalCount}</span>
+                        </span>
+                    `;
+                } else {
+                    checklistEl.innerHTML = '<span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>';
+                }
+            }
+
+            // Move row in list view if bucket changed
+            if (task.board_column_id) {
+                const targetListDrop = document.getElementById(`list-tasks-column-${task.board_column_id}`);
+                if (targetListDrop && row.parentElement !== targetListDrop) {
+                    targetListDrop.prepend(row);
+                }
+            }
         });
 
         // Update column counters
