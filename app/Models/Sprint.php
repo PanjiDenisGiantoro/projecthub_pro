@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Sprint extends Model
 {
     protected $fillable = [
-        'project_id', 'name', 'goal', 'start_date', 'end_date', 'status', 'created_by',
+        'project_id', 'milestone_id', 'name', 'goal', 'start_date', 'end_date', 'status', 'created_by',
         'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
         'google_meeting_is_recurring',
     ];
@@ -25,6 +25,11 @@ class Sprint extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function milestone()
+    {
+        return $this->belongsTo(Milestone::class);
     }
 
     public function meetingOrganizer()

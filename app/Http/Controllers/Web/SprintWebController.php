@@ -16,15 +16,16 @@ class SprintWebController extends Controller
 
     public function index(Project $project, Request $request)
     {
-        $sprints = $project->sprints()->with(['tasks.assignee'])
+        $sprints = $project->sprints()->with(['tasks.assignee', 'milestone'])
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->orderByDesc('start_date')
             ->paginate($this->perPage($request), ['*'], 'sprints_page')->withQueryString();
         $backlog = $project->tasks()->whereNull('sprint_id')->with('assignee', 'milestone')->orderBy('sort_order')
             ->paginate($this->perPage($request, 10, 'backlog_per_page'), ['*'], 'backlog_page')->withQueryString();
         $activeSprint = $project->sprints()->where('status', 'active')->first();
+        $milestones = $project->milestones()->get();
 
-        return view('sprints.index', compact('project', 'sprints', 'backlog', 'activeSprint'));
+        return view('sprints.index', compact('project', 'sprints', 'backlog', 'activeSprint', 'milestones'));
     }
 
     public function allSprints(Request $request)
@@ -38,7 +39,7 @@ class SprintWebController extends Controller
             }
         };
 
-        $query = Sprint::with(['project'])
+        $query = Sprint::with(['project', 'milestone'])
             ->tap($companyScope)
             ->when($request->status, fn ($q) => $q->where('status', $request->status));
 
@@ -56,6 +57,7 @@ class SprintWebController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'goal' => 'nullable|string',
+            'milestone_id' => 'nullable|exists:milestones,id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -89,6 +91,7 @@ class SprintWebController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'goal' => 'nullable|string',
+            'milestone_id' => 'nullable|exists:milestones,id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|in:planned,active,completed',

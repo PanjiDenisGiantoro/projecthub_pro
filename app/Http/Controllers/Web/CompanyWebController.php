@@ -26,16 +26,26 @@ class CompanyWebController extends Controller
             ->paginate($this->perPage($request))
             ->withQueryString();
 
-        return view('master.companies.index', compact('companies'));
+        $companyLimitReached = Company::count() > 0;
+
+        return view('master.companies.index', compact('companies', 'companyLimitReached'));
     }
 
     public function create()
     {
+        if (Company::count() > 0) {
+            return redirect()->route('companies.index')->withErrors(['Sistem hanya mengizinkan 1 perusahaan. Hapus perusahaan yang ada terlebih dahulu jika ingin menggantinya.']);
+        }
+
         return view('master.companies.create');
     }
 
     public function store(Request $request)
     {
+        if (Company::count() > 0) {
+            return redirect()->route('companies.index')->withErrors(['Sistem hanya mengizinkan 1 perusahaan. Hapus perusahaan yang ada terlebih dahulu jika ingin menggantinya.']);
+        }
+
         $data = $request->validate([
             'name'      => 'required|string|max:255',
             'code'      => 'nullable|string|max:50|unique:companies,code',

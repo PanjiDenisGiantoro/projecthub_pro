@@ -67,6 +67,7 @@
                 <tr>
                     <th class="px-4 py-3 text-left">Judul</th>
                     @if(!$project)<th class="px-4 py-3 text-left">Proyek</th>@endif
+                    <th class="px-4 py-3 text-left">Milestone</th>
                     <th class="px-4 py-3 text-left">Tipe</th>
                     <th class="px-4 py-3 text-left">Prioritas</th>
                     <th class="px-4 py-3 text-left">Status</th>
@@ -89,6 +90,7 @@
                     @if(!$project)
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $ticket->project->name ?? '-' }}</td>
                     @endif
+                    <td class="px-4 py-3 text-gray-500 text-xs">{{ $ticket->milestone->title ?? '—' }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ ucfirst($ticket->type) }}</td>
                     <td class="px-4 py-3">
                         @php
@@ -115,7 +117,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">Belum ada tiket.</td></tr>
+                <tr><td colspan="{{ $project ? 10 : 11 }}" class="px-4 py-8 text-center text-gray-400">Belum ada tiket.</td></tr>
                 @endforelse
             </tbody>
         </table>
