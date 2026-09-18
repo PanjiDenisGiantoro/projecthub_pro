@@ -62,7 +62,7 @@ class TaskWebController extends Controller
             }
         };
 
-        $query = Task::with(['project', 'assignee', 'sprint'])
+        $query = Task::with(['project', 'assignee', 'sprint', 'milestone'])
             ->tap($companyScope)
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->priority, fn ($q) => $q->where('priority', $request->priority));

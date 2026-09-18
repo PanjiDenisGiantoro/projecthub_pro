@@ -34,7 +34,7 @@ class TicketWebController extends Controller
             }
         };
 
-        $query = BugTicket::with(['project', 'reporter', 'assignee'])
+        $query = BugTicket::with(['project', 'reporter', 'assignee', 'milestone'])
             ->tap($companyScope)
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
@@ -55,7 +55,7 @@ class TicketWebController extends Controller
 
     public function index(Request $request, Project $project)
     {
-        $query = $project->tickets()->with(['reporter', 'assignee'])
+        $query = $project->tickets()->with(['reporter', 'assignee', 'milestone'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority));
 
@@ -74,7 +74,9 @@ class TicketWebController extends Controller
 
     public function create(Project $project)
     {
-        return view('tickets.create', compact('project'));
+        $milestones = $project->milestones()->get();
+
+        return view('tickets.create', compact('project', 'milestones'));
     }
 
     public function store(Request $request, Project $project, GoogleCalendarService $calendar)
@@ -85,6 +87,7 @@ class TicketWebController extends Controller
             'type'           => 'in:bug,issue,enhancement,security,performance',
             'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
             'priority'       => 'in:critical,high,medium,low',
+            'milestone_id'   => 'nullable|exists:milestones,id',
             'attachments'    => 'nullable|array|max:5',
             'attachments.*'  => 'file|max:10240',
         ]);
@@ -104,7 +107,7 @@ class TicketWebController extends Controller
         }
 
         $ticket = $project->tickets()->create([
-            ...$request->only('title', 'description', 'type', 'error_category', 'priority'),
+            ...$request->only('title', 'description', 'type', 'error_category', 'priority', 'milestone_id'),
             'reporter_id' => auth()->id(),
             'status'      => 'open',
         ]);
