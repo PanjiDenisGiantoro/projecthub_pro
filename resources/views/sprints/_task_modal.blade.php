@@ -242,9 +242,8 @@
             </div>
 
             {{-- Loading State --}}
-            <div x-show="loading" class="p-20 flex flex-col items-center justify-center space-y-3">
-                <div class="w-9 h-9 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-xs text-slate-400 font-medium">Loading task details...</p>
+            <div x-show="loading" class="py-20 flex flex-col items-center justify-center">
+                <img src="{{ asset('flovig_loading_white.gif') }}" alt="Loading..." class="w-44 h-auto object-contain">
             </div>
 
             {{-- ============================================================
