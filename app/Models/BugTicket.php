@@ -12,7 +12,7 @@ class BugTicket extends Model
     use SoftDeletes, LogsActivity;
 
     protected $fillable = [
-        'project_id', 'reporter_id', 'assignee_id', 'merged_into_id',
+        'project_id', 'milestone_id', 'reporter_id', 'assignee_id', 'merged_into_id',
         'title', 'description', 'type', 'error_category', 'solution', 'priority', 'status',
         'sla_policy_id', 'sla_due_at', 'sla_breached', 'sla_paused', 'sla_paused_at',
         'escalated_at', 'resolved_at', 'closed_at',
@@ -39,6 +39,7 @@ class BugTicket extends Model
     }
 
     public function project()       { return $this->belongsTo(Project::class); }
+    public function milestone()     { return $this->belongsTo(Milestone::class); }
     public function reporter()      { return $this->belongsTo(User::class, 'reporter_id'); }
     public function assignee()      { return $this->belongsTo(User::class, 'assignee_id'); }
     public function slaPolicy()     { return $this->belongsTo(SlaPolicy::class); }

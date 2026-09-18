@@ -28,6 +28,7 @@
                 <tr>
                     <th class="px-4 py-3 text-left">Sprint</th>
                     <th class="px-4 py-3 text-left">Proyek</th>
+                    <th class="px-4 py-3 text-left">Milestone</th>
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Periode</th>
                     <th class="px-4 py-3 text-left">Progress</th>
@@ -44,6 +45,7 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{{ $sprint->name }}</td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $sprint->project->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-500 text-xs">{{ $sprint->milestone->title ?? '—' }}</td>
                     <td class="px-4 py-3">
                         <span class="badge {{ $sc[$sprint->status] ?? '' }}">{{ ucfirst($sprint->status) }}</span>
                     </td>
@@ -69,7 +71,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Belum ada sprint.</td></tr>
+                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Belum ada sprint.</td></tr>
                 @endforelse
             </tbody>
         </table>

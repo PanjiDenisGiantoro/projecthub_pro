@@ -37,7 +37,7 @@ class RecurringTaskWebController extends Controller
             }
         };
 
-        $query = RecurringTaskDefinition::with(['project', 'assignee'])->withCount('tasks')
+        $query = RecurringTaskDefinition::with(['project', 'assignee', 'milestone'])->withCount('tasks')
             ->tap($companyScope)
             ->when($request->status === 'active', fn($q) => $q->where('is_active', true))
             ->when($request->status === 'inactive', fn($q) => $q->where('is_active', false));

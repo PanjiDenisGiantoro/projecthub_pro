@@ -46,6 +46,15 @@
                 </div>
             </div>
             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Milestone</label>
+                <select name="milestone_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">— Tanpa milestone —</option>
+                    @foreach($milestones as $m)
+                        <option value="{{ $m->id }}" {{ old('milestone_id') == $m->id ? 'selected' : '' }}>{{ $m->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Error</label>
                 <select name="error_category" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">— Pilih Kategori —</option>

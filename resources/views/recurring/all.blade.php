@@ -24,6 +24,7 @@
                 <tr>
                     <th class="px-4 py-3 text-left">Judul</th>
                     <th class="px-4 py-3 text-left">Proyek</th>
+                    <th class="px-4 py-3 text-left">Milestone</th>
                     <th class="px-4 py-3 text-left">Frekuensi</th>
                     <th class="px-4 py-3 text-left">Assignee</th>
                     <th class="px-4 py-3 text-left">Status</th>
@@ -37,6 +38,7 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{{ $def->title }}</td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $def->project->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-500 text-xs">{{ $def->milestone->title ?? '—' }}</td>
                     <td class="px-4 py-3 text-gray-600 capitalize">{{ $def->frequency }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $def->assignee->name ?? '—' }}</td>
                     <td class="px-4 py-3">
@@ -53,7 +55,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Belum ada recurring task.</td></tr>
+                <tr><td colspan="9" class="px-4 py-8 text-center text-gray-400">Belum ada recurring task.</td></tr>
                 @endforelse
             </tbody>
         </table>
