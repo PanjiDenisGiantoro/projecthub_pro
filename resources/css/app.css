@@ -335,6 +335,17 @@
 .ph-user-btn { transition: background .15s; }
 .ph-user-btn:hover { background: var(--ph-user-hover); }
 
+/* ── Sidebar subscription widget ───────────────────────────────────────── */
+.ph-sub-manage-btn {
+    background: var(--ph-nav-hover-bg);
+    color: var(--ph-user-name);
+    transition: background .15s, color .15s;
+}
+.ph-sub-manage-btn:hover {
+    background: var(--ph-nav-act-bg);
+    color: var(--ph-nav-act-fg);
+}
+
 .ph-drop-link {
     display: flex;
     align-items: center;

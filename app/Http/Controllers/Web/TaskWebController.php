@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\BoardColumn;
+use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\TimeLog;
 use App\Models\User;
@@ -37,21 +39,22 @@ class TaskWebController extends Controller
     {
         $authUser = auth()->user();
         $companyId = $authUser->company_id;
+        $isClient = $authUser->hasRole('client');
 
         $companyScope = function ($q) use ($authUser, $companyId) {
             if (! $authUser->is_super_admin && $companyId) {
                 $q->whereHas('project', fn ($p) => $p->where('company_id', $companyId));
             }
         };
+        $clientScope = fn ($q) => $q->whereHas('project', fn ($p) => $p->where('client_id', $authUser->id));
 
         $query = Task::with(['project', 'assignee', 'sprint', 'milestone'])
             ->tap($companyScope)
+            ->when($isClient, $clientScope)
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->priority, fn ($q) => $q->where('priority', $request->priority));
-
-        if ($authUser->hasRole('client')) {
-            $query->whereHas('project', fn ($p) => $p->where('client_id', $authUser->id));
-        }
+            ->when($request->priority, fn ($q) => $q->where('priority', $request->priority))
+            ->when($request->assignee, fn ($q) => $q->where('assigned_to', $request->assignee))
+            ->when($request->project, fn ($q) => $q->where('project_id', $request->project));
 
         $kanbanLimit = 300;
         $kanbanTasks = (clone $query)->latest()->limit($kanbanLimit)->get();
@@ -59,7 +62,53 @@ class TaskWebController extends Controller
 
         $tasks = $query->latest()->paginate($this->perPage($request))->withQueryString();
 
-        return view('tasks.all', compact('tasks', 'kanbanTasks', 'kanbanTruncated'));
+        // ── Filter dropdown options (scoped the same way, ignoring the active filters) ──
+        $projects = Project::orderBy('name')
+            ->when($isClient, fn ($q) => $q->where('client_id', $authUser->id))
+            ->get(['id', 'name']);
+
+        $assignees = User::whereHas('assignedTasks', fn ($q) => $q->tap($companyScope)->when($isClient, $clientScope))
+            ->orderBy('name')->get(['id', 'name']);
+
+        // ── Header overview stats ──
+        $scopedTasks = fn () => Task::tap($companyScope)->when($isClient, $clientScope);
+        $totalTasks = $scopedTasks()->count();
+        $completedThisWeek = $scopedTasks()->where('status', 'done')->where('updated_at', '>=', now()->startOfWeek())->count();
+
+        // ── Footer summary cards ──
+        $nearestSprint = Sprint::with('project')->tap($companyScope)->when($isClient, $clientScope)
+            ->where('status', 'active')->orderBy('end_date')->first();
+        if ($nearestSprint) {
+            $sprintTotal = $nearestSprint->tasks()->count();
+            $sprintDone = $nearestSprint->tasks()->where('status', 'done')->count();
+            $nearestSprint->progress_percent = $sprintTotal > 0 ? (int) round($sprintDone / $sprintTotal * 100) : 0;
+            $nearestSprint->tasks_done = $sprintDone;
+            $nearestSprint->tasks_total = $sprintTotal;
+            $nearestSprint->days_left = $nearestSprint->end_date ? (int) now()->startOfDay()->diffInDays($nearestSprint->end_date->copy()->startOfDay(), false) : null;
+        }
+
+        $activePicCount = $scopedTasks()->where('status', '!=', 'done')->whereNotNull('assigned_to')->distinct()->count('assigned_to');
+        $activeTaskCount = $scopedTasks()->where('status', '!=', 'done')->count();
+        $avgTasksPerPic = $activePicCount > 0 ? round($activeTaskCount / $activePicCount, 1) : 0;
+
+        $milestoneCompanyScope = function ($q) use ($authUser, $companyId) {
+            if (! $authUser->is_super_admin && $companyId) {
+                $q->where('company_id', $companyId);
+            }
+        };
+        $nextMilestone = Milestone::with('project')
+            ->whereHas('project', fn ($p) => $p->tap($milestoneCompanyScope)->when($isClient, fn ($p2) => $p2->where('client_id', $authUser->id)))
+            ->where('status', '!=', 'completed')
+            ->whereNotNull('due_date')
+            ->where('due_date', '>=', now()->startOfDay())
+            ->orderBy('due_date')
+            ->first();
+
+        return view('tasks.all', compact(
+            'tasks', 'kanbanTasks', 'kanbanTruncated', 'projects', 'assignees',
+            'totalTasks', 'completedThisWeek', 'nearestSprint',
+            'activePicCount', 'avgTasksPerPic', 'nextMilestone'
+        ));
     }
 
     public function store(Request $request, Project $project, GoogleCalendarService $calendar)

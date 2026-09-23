@@ -137,15 +137,16 @@ class DashboardWebController extends Controller
                 $doneTasks   = Task::whereHas('project', $projectFilter)->where('status', 'done')->count();
                 $openTickets = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->count();
 
-                $revThis  = (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', now()->year)->whereMonth('paid_at', now()->month)->sum('total');
-                $revLast  = (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', now()->subMonth()->year)->whereMonth('paid_at', now()->subMonth()->month)->sum('total');
-                $revChange = $revLast > 0 ? round(($revThis - $revLast) / $revLast * 100, 1) : null;
-
                 $tickNow  = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
                 $tickPrev = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
                 $tickChange = $tickPrev > 0 ? round(($tickNow - $tickPrev) / $tickPrev * 100, 1) : null;
 
                 $projectsQuery = Project::query()->when($cid, fn($q) => $q->where('company_id', $cid));
+
+                $activeProjects = (clone $projectsQuery)->where('status', 'active')->get(['id', 'end_date']);
+                $overdueProjects = $activeProjects->filter(fn($p) => $p->end_date && $p->end_date->isPast())->count();
+                $atRiskProjects = $activeProjects->filter(fn($p) => $p->end_date && !$p->end_date->isPast() && now()->diffInDays($p->end_date, false) <= 7)->count();
+                $onTrackProjects = $activeProjects->count() - $overdueProjects - $atRiskProjects;
 
                 return [
                     'projects'         => [
@@ -168,17 +169,17 @@ class DashboardWebController extends Controller
                     ],
                     'tickets'          => ['open' => $openTickets, 'breached' => BugTicket::whereHas('project', $projectFilter)->where('sla_breached', true)->count(), 'week_change' => $tickChange],
                     'pending_requests' => CustomerRequest::whereHas('project', $projectFilter)->where('status', 'waiting_approval')->count(),
-                    'revenue'          => ['total' => Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->sum('total'), 'overdue' => Invoice::whereHas('project', $projectFilter)->where('status', 'overdue')->count(), 'change' => $revChange],
+                    'project_health'   => ['total_active' => $activeProjects->count(), 'on_track' => $onTrackProjects, 'at_risk' => $atRiskProjects, 'overdue' => $overdueProjects],
                 ];
             });
 
-            $revenueMonthly = Cache::remember("dashboard.revenue.monthly.{$ckey}.v1", 60, function () use ($projectFilter) {
+            $teamProductivity = Cache::remember("dashboard.team_productivity.{$ckey}.v1", 60, function () use ($projectFilter) {
                 return collect(range(5, 0))->map(function ($monthsAgo) use ($projectFilter) {
                     $month = now()->subMonths($monthsAgo);
                     return [
-                        'month'   => $month->locale('id')->isoFormat('MMM'),
-                        'revenue' => (float) Invoice::whereHas('project', $projectFilter)->where('status', 'paid')->whereYear('paid_at', $month->year)->whereMonth('paid_at', $month->month)->sum('total'),
-                        'target'  => (float) Invoice::whereHas('project', $projectFilter)->whereNotIn('status', ['cancelled'])->whereYear('issue_date', $month->year)->whereMonth('issue_date', $month->month)->sum('total'),
+                        'month'     => $month->locale('id')->isoFormat('MMM'),
+                        'completed' => Task::whereHas('project', $projectFilter)->where('status', 'done')->whereYear('updated_at', $month->year)->whereMonth('updated_at', $month->month)->count(),
+                        'created'   => Task::whereHas('project', $projectFilter)->whereYear('created_at', $month->year)->whereMonth('created_at', $month->month)->count(),
                     ];
                 })->values()->toArray();
             });
@@ -215,7 +216,7 @@ class DashboardWebController extends Controller
 
             return view('dashboard.admin', [
                 'stats'               => $stats,
-                'revenue_monthly'     => $revenueMonthly,
+                'team_productivity'   => $teamProductivity,
                 'top_projects'        => $topProjects,
                 'recent_activities'   => $recentActivities,
                 'recent_tickets'      => $recentTickets,
