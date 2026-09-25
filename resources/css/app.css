@@ -658,6 +658,64 @@ html:not([data-mode="light"]) main tbody tr:hover td {
     background-color: rgba(167,139,250,0.04) !important;
 }
 
+/* ── Dark mode: form control (input/select/textarea) ─────────────────────
+   Tanpa ini teks input ikut warna gelap bawaan (tak terbaca di latar gelap) dan
+   border-gray-200 di-override jadi hampir transparan (aturan kartu di atas).
+   Elemen yang sudah atur warnanya sendiri lewat inline style (mis. .fl-setting-input
+   pakai var(--fl-*)) dibiarkan. */
+html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *) {
+    color-scheme: dark;
+}
+html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *):not([style^="color"]):not([style*=";color"]):not([style*="; color"]) {
+    color: #f0ebff !important;
+}
+html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *):not(.border-0):not([style*="border-color"]) {
+    border-color: rgba(167,139,250,0.28) !important;
+}
+html:not([data-mode="light"]) main :is(input, textarea):not(.shadcn-scope *)::placeholder {
+    color: rgba(167,139,250,0.45) !important;
+}
+html:not([data-mode="light"]) main select option {
+    background-color: #130a27;
+    color: #f0ebff;
+}
+
+/* ── Dark mode: select2 (dropdown-nya di-append ke <body>, jadi tidak di-scope ke main) ── */
+html:not([data-mode="light"]) .select2-container--default .select2-selection--single,
+html:not([data-mode="light"]) .select2-container--default .select2-selection--multiple {
+    background-color: #130a27 !important;
+    border-color: rgba(167,139,250,0.28) !important;
+}
+html:not([data-mode="light"]) .select2-container--default .select2-selection--single .select2-selection__rendered,
+html:not([data-mode="light"]) .select2-container--default .select2-selection--single .select2-selection__clear {
+    color: #f0ebff !important;
+}
+html:not([data-mode="light"]) .select2-container--default .select2-selection__placeholder {
+    color: rgba(167,139,250,0.45) !important;
+}
+html:not([data-mode="light"]) .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-top-color: rgba(221,214,254,0.7) !important;
+}
+html:not([data-mode="light"]) .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: rgba(124,58,237,0.18) !important;
+    border-color: rgba(167,139,250,0.3) !important;
+    color: #e2d9f3 !important;
+}
+html:not([data-mode="light"]) .select2-dropdown {
+    background-color: #130a27 !important;
+    border-color: rgba(167,139,250,0.28) !important;
+    color: #e2d9f3 !important;
+}
+html:not([data-mode="light"]) .select2-search--dropdown .select2-search__field,
+html:not([data-mode="light"]) .select2-container--default .select2-search--inline .select2-search__field {
+    background-color: rgba(255,255,255,0.04) !important;
+    border-color: rgba(167,139,250,0.28) !important;
+    color: #f0ebff !important;
+}
+html:not([data-mode="light"]) .select2-container--default .select2-results__option--selected {
+    background-color: rgba(124,58,237,0.25) !important;
+}
+
 /* Expiry banner in dark mode */
 html:not([data-mode="light"]) .fl-warn-banner {
     background: var(--fl-banner-warn-bg) !important;
@@ -857,6 +915,17 @@ body {
     border-color: var(--ph-nav-hover-fg);
     border-style: solid;
     transform: scale(1.05);
+}
+
+/* Border default buat input/select/textarea — dulu diandalkan dari plugin @tailwindcss/forms
+   (class "rounded-lg border-gray-300" tanpa "border") yang tidak terpasang, jadi banyak field
+   tampil tanpa border. Di layer base: class utility (border-0, border-gray-200, dst) tetap menang. */
+@layer base {
+  :where(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=hidden],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *) {
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--color-gray-300);
+  }
 }
 
 /* Scoped to React (shadcn) mount points so it doesn't override the existing Blade/Alpine design system. */

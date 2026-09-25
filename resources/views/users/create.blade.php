@@ -257,8 +257,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(function () {
-            $('#select-role, #select-level, #sel-org-unit').select2({
-                placeholder: '— Select —',
+            $('#select-role, #select-level, #sel-org-unit, #sel-shift').select2({
+                placeholder: '— Pilih —',
                 allowClear: true,
                 width: '100%',
             });

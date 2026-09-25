@@ -308,13 +308,8 @@
         });
 
         $(function () {
-    <<<<<<< HEAD
-            $('#select-role, #select-level, #sel-org-unit').select2({
-                placeholder: '— Select —',
-    =======
-        $('#select-role, #select-level, #sel-org-unit, #sel-shift').select2({
-            placeholder: '— Pilih —',
-    >>>>>>> fa2e32217bc85ac59d5f79985363c234c25093c3
+            $('#select-role, #select-level, #sel-org-unit, #sel-shift').select2({
+                placeholder: '— Pilih —',
                 allowClear: true,
                 width: '100%',
             });
