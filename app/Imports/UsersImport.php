@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use Spatie\Permission\Models\Role;
 
@@ -25,7 +26,7 @@ use Spatie\Permission\Models\Role;
  * dengan email baru membuat user baru dengan password acak (admin harus minta
  * karyawan reset password lewat "lupa password").
  */
-class UsersImport implements ToCollection, WithHeadingRow
+class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
 {
     use Importable;
 
@@ -48,6 +49,12 @@ class UsersImport implements ToCollection, WithHeadingRow
         $this->organizationUnits = OrganizationUnit::where('company_id', $companyId)->get();
         $this->structuralLevels = StructuralLevel::where('company_id', $companyId)->get();
         $this->companyPackageIds = Package::whereHas('users', fn ($q) => $q->where('company_id', $companyId))->pluck('id');
+    }
+
+    /** Cuma sheet pertama (Template) — sheet Petunjuk & Daftar (sumber dropdown) jangan ikut diproses. */
+    public function sheets(): array
+    {
+        return [0 => $this];
     }
 
     public function collection(Collection $rows): void
@@ -91,7 +98,8 @@ class UsersImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            $orgRaw = trim((string) ($row['departemen_unit'] ?? ''));
+            // Heading "Departemen/Unit" di-slug Laravel Excel jadi "departemenunit" (tanpa underscore).
+            $orgRaw = trim((string) ($row['departemenunit'] ?? $row['departemen_unit'] ?? ''));
             $organizationUnitId = null;
             if ($orgRaw !== '') {
                 $organizationUnitId = $this->matchByName($this->organizationUnits, $orgRaw);
