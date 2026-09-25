@@ -3,7 +3,7 @@
 @section('page-title', 'Tambah Level Struktural')
 
 @section('content')
-<div class="py-4 max-w-md">
+<div class="py-4 w-full">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-xs text-gray-400 mb-5">
@@ -15,7 +15,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('structural-levels.store') }}" class="space-y-5"
+        <form method="POST" action="{{ route('structural-levels.store') }}" class="form-2col space-y-5"
               data-confirm-submit="Simpan level struktural baru?" data-confirm-btn="Ya, Simpan">
             @csrf
 

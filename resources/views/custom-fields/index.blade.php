@@ -3,7 +3,7 @@
 @section('page-title', 'Field Kustom Karyawan')
 
 @section('content')
-<div class="py-4 max-w-3xl">
+<div class="py-4 w-full">
     <div class="flex items-start justify-between gap-4 mb-4">
         <div>
             <h1 class="text-xl font-semibold text-gray-800">Field Kustom Karyawan</h1>

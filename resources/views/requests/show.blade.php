@@ -9,7 +9,7 @@
         $sl = ['waiting_approval' => 'Waiting for Approval', 'approved' => 'Approved', 'rejected' => 'Rejected', 'done' => 'Done'];
         $pc = ['low' => 'bg-green-100 text-green-700', 'medium' => 'bg-yellow-100 text-yellow-700', 'high' => 'bg-orange-100 text-orange-700', 'urgent' => 'bg-red-100 text-red-700'];
     @endphp
-    <div class="py-4 max-w-3xl">
+    <div class="py-4 w-full">
         <nav class="text-sm text-gray-500 mb-4">
             <a href="{{ route('requests.index') }}" class="hover:text-blue-600 cursor-pointer">Requests</a>
             <span class="mx-2">/</span>

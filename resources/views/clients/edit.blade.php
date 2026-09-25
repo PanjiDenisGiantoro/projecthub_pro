@@ -3,9 +3,9 @@
 @section('page-title', 'Edit Client')
 
 @section('content')
-<div class="py-4 max-w-lg">
+<div class="py-4 w-full">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('clients.update', $client) }}" class="space-y-5">
+        <form method="POST" action="{{ route('clients.update', $client) }}" class="form-2col space-y-5">
             @csrf @method('PUT')
 
             @if($errors->any())

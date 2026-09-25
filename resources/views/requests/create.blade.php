@@ -3,9 +3,9 @@
 @section('page-title', 'Submit New Request')
 
 @section('content')
-<div class="py-4 max-w-2xl">
+<div class="py-4 w-full">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('requests.store') }}" class="space-y-5"
+        <form method="POST" action="{{ route('requests.store') }}" class="form-2col space-y-5"
               x-data="{ submitting: false }"
               @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
             @csrf

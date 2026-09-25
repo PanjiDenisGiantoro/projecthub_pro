@@ -3,7 +3,7 @@
 @section('page-title', 'Edit Role')
 
 @section('content')
-<div class="py-4 max-w-md">
+<div class="py-4 w-full">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-xs text-gray-400 mb-5">

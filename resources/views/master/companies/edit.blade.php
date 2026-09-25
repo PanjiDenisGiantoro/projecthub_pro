@@ -3,7 +3,7 @@
 @section('page-title', 'Edit Perusahaan')
 
 @section('content')
-<div class="py-4 max-w-xl">
+<div class="py-4 w-full">
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-xs text-gray-400 mb-5">
@@ -35,7 +35,7 @@
                     @error('logo')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                <div class="col-span-2">
+                <div class="col-span-2 md:col-span-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Perusahaan <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name', $company->name) }}" required
                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-400 @enderror">
@@ -55,14 +55,14 @@
                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
-                <div class="col-span-2">
+                <div class="col-span-2 md:col-span-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" name="email" value="{{ old('email', $company->email) }}"
                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-400 @enderror">
                     @error('email')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                <div class="col-span-2">
+                <div class="col-span-2 md:col-span-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
                     <input type="url" name="website" value="{{ old('website', $company->website) }}"
                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('website') border-red-400 @enderror"

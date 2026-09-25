@@ -3,7 +3,7 @@
 @section('page-title', 'Buat Tiket Baru')
 
 @section('content')
-<div class="py-4 max-w-2xl">
+<div class="py-4 w-full">
     <nav class="text-sm text-gray-500 mb-6">
         <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
         <span class="mx-2">/</span>

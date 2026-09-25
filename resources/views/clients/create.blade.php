@@ -3,9 +3,9 @@
 @section('page-title', 'Tambah Client Baru')
 
 @section('content')
-<div class="py-4 max-w-lg">
+<div class="py-4 w-full">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('clients.store') }}" class="space-y-5">
+        <form method="POST" action="{{ route('clients.store') }}" class="form-2col space-y-5">
             @csrf
 
             @if($errors->any())

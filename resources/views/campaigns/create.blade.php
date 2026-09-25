@@ -3,7 +3,7 @@
 @section('page-title', 'Buat Campaign Baru')
 
 @section('content')
-<div class="py-4 max-w-2xl">
+<div class="py-4 w-full">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <form method="POST" action="{{ route('campaigns.store') }}" class="space-y-4"
               x-data="{ submitting: false }"

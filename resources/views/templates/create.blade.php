@@ -3,7 +3,7 @@
 @section('page-title', 'Template Baru')
 
 @section('content')
-<div class="py-4 max-w-3xl" x-data="templateBuilder()">
+<div class="py-4 w-full" x-data="templateBuilder()">
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('templates.index') }}" class="hover:text-blue-600">Templates</a>
         <span class="mx-2">/</span><span class="text-gray-700">Baru</span>

@@ -666,10 +666,10 @@ html:not([data-mode="light"]) main tbody tr:hover td {
 html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *) {
     color-scheme: dark;
 }
-html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *):not([style^="color"]):not([style*=";color"]):not([style*="; color"]) {
+html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *):not(.fl-input):not([style^="color"]):not([style*=";color"]):not([style*="; color"]) {
     color: #f0ebff !important;
 }
-html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *):not(.border-0):not([style*="border-color"]) {
+html:not([data-mode="light"]) main :is(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=color],[type=submit],[type=button],[type=reset],[type=image]), select, textarea):not(.shadcn-scope *):not(.fl-input):not(.border-0):not([style*="border-color"]) {
     border-color: rgba(167,139,250,0.28) !important;
 }
 html:not([data-mode="light"]) main :is(input, textarea):not(.shadcn-scope *)::placeholder {
@@ -927,6 +927,225 @@ body {
     border-color: var(--color-gray-300);
   }
 }
+
+/* ── Form 2 kolom ───────────────────────────────────────────────────────────
+   Tambahkan class "form-2col" ke <form>: mulai layar md, field berjejer 2 kolom.
+   Yang otomatis selebar penuh: textarea, upload file, tabel, blok yang sudah punya
+   grid sendiri, judul/pemisah section, dan elemen terakhir (baris tombol).
+   Paksa selebar penuh secara manual dengan class "col-span-full". */
+@media (min-width: 768px) {
+  form.form-2col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.25rem;
+    row-gap: 1.25rem;
+    align-items: start;
+  }
+  form.form-2col > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  form.form-2col > :is(:has(textarea:not(.select2-search__field)), :has(input[type=file]), :has(.filepond--root), :has(table), :has(.grid),
+                       h2, h3, h4, hr, [class*="border-t"], .col-span-full, :last-child) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/* ── Form "settings": section (judul kiri, field kanan) + input halus ───── */
+/* ════════════════════════════════════════════════════════════════════════
+   Struktur:
+   <div class="fl-form">                         ← kartu
+     <section class="fl-section">
+       <div class="fl-section-head"><h3 class="fl-section-title">..</h3><p class="fl-section-desc">..</p></div>
+       <div class="fl-fields">                    ← 2 kolom (≥640px); .fl-span-2 = selebar penuh
+         <div><label class="fl-label">..</label><input class="fl-input"><p class="fl-help">..</p></div>
+       </div>
+     </section>
+     <div class="fl-actions">..tombol..</div>
+   </div> */
+.fl-form {
+    background: #fff;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 0.875rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.fl-section {
+    display: grid;
+    gap: 1rem 2.5rem;
+    padding: 1.5rem;
+}
+.fl-section + .fl-section { border-top: 1px solid var(--color-gray-100); }
+@media (min-width: 1024px) {
+    .fl-section { grid-template-columns: 15rem minmax(0, 1fr); padding: 1.75rem 2rem; }
+}
+.fl-section-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-gray-900); }
+.fl-section-desc { margin-top: 0.25rem; font-size: 0.8125rem; line-height: 1.5; color: var(--color-gray-500); }
+
+.fl-fields { display: grid; gap: 1.125rem 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 640px) { .fl-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fl-fields > .fl-span-2 { grid-column: 1 / -1; }
+
+.fl-label { display: block; margin-bottom: 0.375rem; font-size: 0.8125rem; font-weight: 500; color: var(--color-gray-700); }
+.fl-label .fl-req { color: #ef4444; margin-left: 0.125rem; }
+.fl-help { margin-top: 0.375rem; font-size: 0.75rem; line-height: 1.45; color: var(--color-gray-400); }
+.fl-error { margin-top: 0.375rem; font-size: 0.75rem; color: #dc2626; }
+
+.fl-input {
+    display: block;
+    width: 100%;
+    height: 2.375rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-gray-900);
+    background-color: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 0.5rem;
+    transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+.fl-input::placeholder { color: var(--color-gray-400); }
+.fl-input:hover { border-color: var(--color-gray-300); }
+.fl-input:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.fl-input.is-invalid { border-color: #f87171; }
+textarea.fl-input { height: auto; min-height: 5.5rem; padding: 0.5rem 0.75rem; line-height: 1.5; }
+select.fl-input {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+/* Input dengan ikon di kiri: <div class="fl-input-icon"><svg>..</svg><input class="fl-input"></div> */
+.fl-input-icon { position: relative; }
+.fl-input-icon > svg {
+    position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+    width: 1rem; height: 1rem; color: var(--color-gray-400); pointer-events: none;
+}
+.fl-input-icon > .fl-input { padding-left: 2.25rem; }
+
+/* Toggle switch: <label class="fl-switch"><input type="checkbox"><span class="fl-switch-track"></span><span>Label</span></label> */
+.fl-switch { display: inline-flex; align-items: center; gap: 0.625rem; cursor: pointer; font-size: 0.875rem; color: var(--color-gray-700); user-select: none; }
+.fl-switch > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.fl-switch-track {
+    position: relative; flex-shrink: 0; width: 2.25rem; height: 1.25rem; border-radius: 9999px;
+    background: var(--color-gray-300); transition: background-color .2s;
+}
+.fl-switch-track::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 1rem; height: 1rem; border-radius: 9999px;
+    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .2s;
+}
+.fl-switch > input:checked + .fl-switch-track { background: var(--color-primary-600); }
+.fl-switch > input:checked + .fl-switch-track::after { transform: translateX(1rem); }
+.fl-switch > input:focus-visible + .fl-switch-track { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+.fl-switch > input:disabled + .fl-switch-track { opacity: .55; cursor: not-allowed; }
+
+.fl-actions {
+    display: flex; justify-content: flex-end; align-items: center; gap: 0.625rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--color-gray-100);
+    background: var(--color-gray-50);
+    border-radius: 0 0 0.875rem 0.875rem;
+}
+@media (min-width: 1024px) { .fl-actions { padding: 1rem 2rem; } }
+.fl-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
+    height: 2.375rem; padding: 0 1rem; border-radius: 0.5rem;
+    font-size: 0.875rem; font-weight: 500; transition: background-color .15s, border-color .15s, color .15s;
+}
+.fl-btn-primary { background: var(--color-primary-600); color: #fff; box-shadow: 0 1px 2px rgba(37, 99, 235, .3); }
+.fl-btn-primary:hover { background: var(--color-primary-700); }
+.fl-btn-secondary { background: #fff; color: var(--color-gray-700); border: 1px solid var(--color-gray-200); }
+.fl-btn-secondary:hover { background: var(--color-gray-50); border-color: var(--color-gray-300); }
+
+/* select2 di dalam .fl-form — disamakan dengan .fl-input */
+.fl-form .select2-container--default .select2-selection--single,
+.fl-form .select2-container--default .select2-selection--multiple {
+    min-height: 2.375rem;
+    background-color: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+.fl-form .select2-container--default .select2-selection--single { height: 2.375rem; display: flex; align-items: center; padding: 0 2rem 0 0.75rem; }
+.fl-form .select2-container--default .select2-selection--single .select2-selection__rendered { padding-left: 0; line-height: 1.5; color: var(--color-gray-900); }
+.fl-form .select2-container--default .select2-selection--single .select2-selection__arrow { height: 2.25rem; right: 0.5rem; }
+.fl-form .select2-container--default .select2-selection--single { position: relative; }
+.fl-form .select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute; right: 1.875rem; top: 50%; transform: translateY(-50%);
+    margin: 0; padding: 0 0.25rem; height: auto; line-height: 1; font-size: 1rem; color: var(--color-gray-400);
+    background: transparent; border: 0;
+}
+.fl-form .select2-container--default .select2-selection--single .select2-selection__clear:hover { color: #ef4444; }
+.fl-form .select2-container--default .select2-selection__placeholder { color: var(--color-gray-400); }
+.fl-form .select2-container--default .select2-selection--multiple { padding: 0.1875rem 0.5rem; }
+.fl-form .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8;
+    border-radius: 0.375rem; padding: 1px 6px 1px 4px; font-size: 0.75rem; margin-top: 0.25rem;
+}
+.fl-form .select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: #3b82f6; border-right: 0; position: static; padding: 0 4px 0 0; }
+.fl-form .select2-container--default .select2-search--inline .select2-search__field { font-size: 0.875rem; margin-top: 0.3125rem; height: 1.5rem; border: 0; }
+.fl-form .select2-container--default:hover .select2-selection { border-color: var(--color-gray-300); }
+.fl-form .select2-container--default.select2-container--focus .select2-selection,
+.fl-form .select2-container--default.select2-container--open .select2-selection {
+    background-color: #fff;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.select2-dropdown { border: 1px solid var(--color-gray-200); border-radius: 0.5rem; font-size: 0.875rem; overflow: hidden; box-shadow: 0 10px 24px -6px rgba(16, 24, 40, .15); }
+.select2-results__option { padding: 0.4375rem 0.75rem; }
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable { background-color: var(--color-primary-600); }
+.select2-search--dropdown .select2-search__field { border: 1px solid var(--color-gray-200); border-radius: 0.375rem; padding: 0.375rem 0.625rem; font-size: 0.875rem; }
+
+/* FilePond di dalam .fl-form — lebih ringkas & senada */
+.fl-form .filepond--root { margin-bottom: 0; font-size: 0.8125rem; }
+.fl-form .filepond--panel-root { background-color: var(--color-gray-50); border: 1px dashed var(--color-gray-300); }
+.fl-form .filepond--drop-label { color: var(--color-gray-500); min-height: 4rem; }
+
+/* ── Dark mode: form settings ── */
+html:not([data-mode="light"]) .fl-form {
+    background: #130a27;
+    border-color: rgba(167,139,250,0.10);
+    box-shadow: 0 4px 24px rgba(109,40,217,0.10);
+}
+html:not([data-mode="light"]) .fl-section + .fl-section,
+html:not([data-mode="light"]) .fl-actions { border-top-color: rgba(167,139,250,0.08); }
+html:not([data-mode="light"]) .fl-actions { background: rgba(255,255,255,0.02); }
+html:not([data-mode="light"]) .fl-section-title { color: #f0ebff; }
+html:not([data-mode="light"]) .fl-section-desc,
+html:not([data-mode="light"]) .fl-help { color: rgba(167,139,250,0.55); }
+html:not([data-mode="light"]) .fl-label,
+html:not([data-mode="light"]) .fl-switch { color: rgba(221,214,254,0.85); }
+html:not([data-mode="light"]) .fl-input,
+html:not([data-mode="light"]) .fl-form .select2-container--default .select2-selection {
+    color: #f0ebff;
+    background-color: rgba(255,255,255,0.03);
+    border-color: rgba(167,139,250,0.2);
+    color-scheme: dark;
+}
+html:not([data-mode="light"]) .fl-input:hover,
+html:not([data-mode="light"]) .fl-form .select2-container--default:hover .select2-selection { border-color: rgba(167,139,250,0.35); }
+html:not([data-mode="light"]) .fl-input:focus,
+html:not([data-mode="light"]) .fl-form .select2-container--default.select2-container--focus .select2-selection,
+html:not([data-mode="light"]) .fl-form .select2-container--default.select2-container--open .select2-selection {
+    background-color: rgba(255,255,255,0.05) !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.2) !important;
+}
+html:not([data-mode="light"]) .fl-input::placeholder { color: rgba(167,139,250,0.4); }
+html:not([data-mode="light"]) .fl-form .select2-container--default .select2-selection--single .select2-selection__rendered { color: #f0ebff; }
+html:not([data-mode="light"]) .fl-switch-track { background: rgba(167,139,250,0.25); }
+html:not([data-mode="light"]) .fl-btn-secondary { background: transparent; color: rgba(221,214,254,0.85); border-color: rgba(167,139,250,0.25); }
+html:not([data-mode="light"]) .fl-btn-secondary:hover { background: rgba(167,139,250,0.08); }
+html:not([data-mode="light"]) .fl-form .filepond--panel-root { background-color: rgba(255,255,255,0.03); border-color: rgba(167,139,250,0.25); }
+html:not([data-mode="light"]) .fl-form .filepond--drop-label { color: rgba(221,214,254,0.7); }
 
 /* Scoped to React (shadcn) mount points so it doesn't override the existing Blade/Alpine design system. */
 @layer base {

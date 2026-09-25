@@ -11,7 +11,7 @@
     $sc = ['draft'=>'bg-gray-100 text-gray-700','sent'=>'bg-blue-100 text-blue-700','paid'=>'bg-green-100 text-green-700','overdue'=>'bg-red-100 text-red-700','cancelled'=>'bg-gray-100 text-gray-500'];
     $user = auth()->user();
 @endphp
-<div class="py-4 max-w-3xl">
+<div class="py-4 w-full">
     <nav class="text-sm text-gray-500 mb-4 no-print">
         <a href="{{ route('invoices.index') }}" class="hover:text-blue-600">Invoices</a>
         <span class="mx-2">/</span>

@@ -18,7 +18,7 @@
 @endpush
 
 @section('content')
-<div class="py-4 max-w-xl">
+<div class="py-4 w-full">
 
     <div class="flex items-center gap-2 text-xs text-gray-400 mb-5">
         <a href="{{ route('master.index') }}" class="hover:text-blue-600 transition-colors">Master Data</a>
@@ -34,7 +34,7 @@
             <span class="text-xs text-gray-400">Kode dihitung otomatis dari posisi pada pohon &mdash; berubah jika parent dipindah.</span>
         </div>
 
-        <form method="POST" action="{{ route('organization-units.update', $organizationUnit) }}" class="space-y-5"
+        <form method="POST" action="{{ route('organization-units.update', $organizationUnit) }}" class="form-2col space-y-5"
               data-confirm-submit="Simpan perubahan unit organisasi?" data-confirm-btn="Ya, Simpan">
             @csrf @method('PUT')
 

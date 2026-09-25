@@ -3,7 +3,7 @@
 @section('page-title', 'Buat Invoice Baru')
 
 @section('content')
-<div class="py-4 max-w-3xl" x-data="invoiceForm()">
+<div class="py-4 w-full" x-data="invoiceForm()">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <form method="POST" action="{{ route('invoices.store') }}" enctype="multipart/form-data" class="space-y-6"
               @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">

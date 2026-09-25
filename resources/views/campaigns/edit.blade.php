@@ -3,7 +3,7 @@
 @section('page-title', 'Edit Campaign')
 
 @section('content')
-<div class="py-4 max-w-2xl">
+<div class="py-4 w-full">
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <form method="POST" action="{{ route('campaigns.update', $campaign) }}" class="space-y-4">
             @csrf @method('PUT')

@@ -18,7 +18,7 @@
 @endpush
 
 @section('content')
-<div class="py-4 max-w-xl">
+<div class="py-4 w-full">
 
     <div class="flex items-center gap-2 text-xs text-gray-400 mb-5">
         <a href="{{ route('master.index') }}" class="hover:text-blue-600 transition-colors">Master Data</a>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('organization-units.store') }}" class="space-y-5"
+        <form method="POST" action="{{ route('organization-units.store') }}" class="form-2col space-y-5"
               data-confirm-submit="Simpan unit organisasi baru?" data-confirm-btn="Ya, Simpan">
             @csrf
 

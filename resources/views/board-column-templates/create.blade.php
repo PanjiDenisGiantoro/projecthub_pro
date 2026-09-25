@@ -3,7 +3,7 @@
 @section('page-title', 'Template Kolom Baru')
 
 @section('content')
-<div class="py-4 max-w-2xl" x-data="boardColumnTemplateBuilder()">
+<div class="py-4 w-full" x-data="boardColumnTemplateBuilder()">
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('board-column-templates.index') }}" class="hover:text-blue-600">Template Kolom</a>
         <span class="mx-2">/</span><span class="text-gray-700">Baru</span>
