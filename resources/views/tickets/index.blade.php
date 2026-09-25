@@ -3,21 +3,21 @@
 @section('page-title', $project ? 'Ticket: ' . $project->name : 'Aktivitas Kerja')
 
 @section('content')
-<div class="py-4">
+<div class="py-6">
     @unless($project)
         @include('partials.work-activity-tabs')
     @endunless
 
     {{-- Breadcrumb --}}
-    <nav class="text-sm text-gray-500 mb-4">
-        <a href="{{ route('projects.index') }}" class="hover:text-blue-600">Proyek</a>
+    <div class="flex items-center gap-1.5 text-xs text-gray-400 font-medium mb-5">
+        <a href="{{ route('projects.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Projects</a>
         @if($project)
-        <span class="mx-2">/</span>
-        <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
+            <span>&gt;</span>
+            <a href="{{ route('projects.show', $project) }}" class="text-gray-600 dark:text-gray-300 font-semibold hover:text-blue-600 transition">{{ $project->name }}</a>
         @endif
-        <span class="mx-2">/</span>
-        <span class="text-gray-700">Tickets</span>
-    </nav>
+        <span>&gt;</span>
+        <span class="text-blue-600 dark:text-blue-400 font-semibold">Tickets</span>
+    </div>
 
     {{-- SLA Summary --}}
     <div class="grid grid-cols-3 gap-4 mb-6">

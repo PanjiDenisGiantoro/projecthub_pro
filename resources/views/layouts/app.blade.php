@@ -508,7 +508,11 @@
             @if(session('success'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 3500, timerProgressBar: true, background: '#4f46e5', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                        if (window.showToast) {
+                            window.showToast(@json(session('success')));
+                        } else if (window.Swal) {
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 3500, timerProgressBar: true, background: '#4f46e5', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                        }
                     });
                 </script>
             @endif
@@ -1273,6 +1277,53 @@
                 }
             }
         })();
+
+        // Global Pill Toast Notification (matches Task modal toast)
+        window.showToast = function (message, type) {
+            message = message || 'Changes saved successfully';
+            type = type || 'success';
+
+            var toast = document.getElementById('app-global-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'app-global-toast';
+                document.body.appendChild(toast);
+            }
+
+            var isError = type === 'error';
+            var isWarning = type === 'warning';
+            var bgClass = isError
+                ? 'bg-red-600 text-white border-red-500'
+                : (isWarning ? 'bg-amber-600 text-white border-amber-500' : 'bg-slate-900 text-white border-slate-800');
+
+            var iconHtml = '';
+            if (isError) {
+                iconHtml = '<svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>';
+            } else if (isWarning) {
+                iconHtml = '<svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+            } else {
+                iconHtml = '<svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+            }
+
+            toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 px-4.5 py-2.5 rounded-full shadow-2xl text-xs sm:text-sm font-semibold pointer-events-none transition-all duration-200 transform -translate-y-4 opacity-0 scale-95 border ' + bgClass;
+            toast.innerHTML = iconHtml + '<span class="whitespace-nowrap font-medium max-w-[85vw] truncate">' + message + '</span>';
+
+            requestAnimationFrame(function () {
+                setTimeout(function () {
+                    toast.classList.remove('-translate-y-4', 'opacity-0', 'scale-95');
+                    toast.classList.add('translate-y-0', 'opacity-100', 'scale-100');
+                }, 10);
+            });
+
+            if (window._appGlobalToastTimer) {
+                clearTimeout(window._appGlobalToastTimer);
+            }
+
+            window._appGlobalToastTimer = setTimeout(function () {
+                toast.classList.remove('translate-y-0', 'opacity-100', 'scale-100');
+                toast.classList.add('-translate-y-4', 'opacity-0', 'scale-95');
+            }, 2500);
+        };
     </script>
 </body>
 

@@ -83,7 +83,7 @@ class ProjectWebController extends Controller
         $project->load([
             'client', 'manager',
             'members.user',
-            'milestones' => fn ($q) => $q->with(['assignee', 'tasks'])->orderByDesc('created_at'),
+            'milestones' => fn ($q) => $q->with(['assignee', 'tasks.assignee', 'sprints.lead', 'sprints.tasks.assignee', 'standaloneTasks.assignee'])->orderByDesc('created_at'),
             'tasks' => fn ($q) => $q->with(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'milestone', 'boardColumn'])->withCount(['comments', 'attachments'])->orderBy('sort_order'),
         ]);
         $slaPolicies = app(SlaService::class);
@@ -120,7 +120,7 @@ class ProjectWebController extends Controller
                 ->unique()
         )->select('id', 'name')->get();
 
-        $sprintList = $project->sprints()->with(['tasks.assignee'])->orderByDesc('start_date')
+        $sprintList = $project->sprints()->with(['lead', 'milestone', 'tasks.assignee'])->orderByDesc('start_date')
             ->paginate($this->perPage($request), ['*'], 'sprints_page')->withQueryString();
         $backlog = $project->tasks()->whereNull('sprint_id')->with('assignee', 'milestone')->orderBy('sort_order')
             ->paginate($this->perPage($request, 10, 'backlog_per_page'), ['*'], 'backlog_page')->withQueryString();

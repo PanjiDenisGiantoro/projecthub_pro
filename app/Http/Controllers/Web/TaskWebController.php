@@ -813,6 +813,10 @@ class TaskWebController extends Controller
             'sprint',
         ]);
 
+        if ($task->members->isEmpty() && $task->assignee) {
+            $task->setRelation('members', collect([$task->assignee]));
+        }
+
         $logsCount = $task->activitiesAsSubject()->count();
 
         // Load rich activities for Activity & Comments tab

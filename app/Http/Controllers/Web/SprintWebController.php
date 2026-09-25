@@ -56,14 +56,31 @@ class SprintWebController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
             'goal' => 'nullable|string',
             'milestone_id' => 'nullable|exists:milestones,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'priority' => 'nullable|in:normal,low,high,urgent',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'nullable|in:not_started,planning,planned,active,in_progress,completed,at_risk',
         ]);
 
         $data['project_id'] = $project->id;
         $data['created_by'] = auth()->id();
+        
+        $statusMap = [
+            'planning'    => 'planned',
+            'planned'     => 'planned',
+            'not_started' => 'planned',
+            'active'      => 'active',
+            'in_progress' => 'active',
+            'at_risk'     => 'active',
+            'completed'   => 'completed',
+        ];
+        $rawStatus = $data['status'] ?? 'planned';
+        $data['status'] = $statusMap[$rawStatus] ?? 'planned';
+        if (empty($data['priority'])) $data['priority'] = 'normal';
 
         $sprint = Sprint::create($data);
 
@@ -75,7 +92,15 @@ class SprintWebController extends Controller
             }
         }
 
-        return back()->with('success', 'Sprint dibuat.');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Sprint berhasil dibuat.',
+                'sprint' => $sprint->load(['tasks', 'milestone', 'assignee']),
+            ], 201);
+        }
+
+        return back()->with('success', 'Sprint berhasil dibuat.');
     }
 
     public function show(Project $project, Sprint $sprint)
@@ -119,16 +144,30 @@ class SprintWebController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
             'goal' => 'nullable|string',
             'milestone_id' => 'nullable|exists:milestones,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'priority' => 'nullable|in:normal,low,high,urgent',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:planned,active,completed',
+            'status' => 'required|in:not_started,planning,planned,active,in_progress,completed,at_risk',
         ]);
 
+        $statusMap = [
+            'planning'    => 'planned',
+            'planned'     => 'planned',
+            'not_started' => 'planned',
+            'active'      => 'active',
+            'in_progress' => 'active',
+            'at_risk'     => 'active',
+            'completed'   => 'completed',
+        ];
+        $data['status'] = $statusMap[$data['status'] ?? 'planned'] ?? 'planned';
+
         // Only one sprint can be active at a time
-        if ($data['status'] === 'active') {
-            $project->sprints()->where('id', '!=', $sprint->id)->where('status', 'active')->update(['status' => 'completed']);
+        if (in_array($data['status'], ['active', 'in_progress'])) {
+            $project->sprints()->where('id', '!=', $sprint->id)->whereIn('status', ['active', 'in_progress'])->update(['status' => 'completed']);
         }
 
         $sprint->update($data);
@@ -141,7 +180,15 @@ class SprintWebController extends Controller
             }
         }
 
-        return back()->with('success', 'Sprint diperbarui.');
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Sprint berhasil diperbarui.',
+                'sprint' => $sprint->load(['tasks', 'milestone', 'assignee']),
+            ]);
+        }
+
+        return back()->with('success', 'Sprint berhasil diperbarui.');
     }
 
     public function destroy(Project $project, Sprint $sprint)
@@ -150,7 +197,45 @@ class SprintWebController extends Controller
         $sprint->tasks()->update(['sprint_id' => null]);
         $sprint->delete();
 
-        return back()->with('success', 'Sprint dihapus.');
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Sprint berhasil dihapus.',
+            ]);
+        }
+
+        return back()->with('success', 'Sprint berhasil dihapus.');
+    }
+
+    public function assignTasks(Request $request, Project $project, Sprint $sprint)
+    {
+        $request->validate([
+            'task_ids' => 'nullable|array',
+            'task_ids.*' => 'exists:tasks,id',
+        ]);
+
+        // Reset all tasks in this sprint first
+        Task::where('sprint_id', $sprint->id)->update(['sprint_id' => null]);
+
+        // Re-assign selected tasks
+        if ($request->task_ids) {
+            $updateData = ['sprint_id' => $sprint->id];
+            if ($sprint->milestone_id) {
+                $updateData['milestone_id'] = $sprint->milestone_id;
+            }
+            Task::whereIn('id', $request->task_ids)
+                ->where('project_id', $project->id)
+                ->update($updateData);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Task assignments berhasil diperbarui.',
+            ]);
+        }
+
+        return back()->with('success', 'Task assignments berhasil diperbarui.');
     }
 
     public function addTask(Request $request, Project $project, Sprint $sprint)

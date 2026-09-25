@@ -8,14 +8,16 @@
     $sc = ['open'=>'bg-blue-100 text-blue-700','assigned'=>'bg-purple-100 text-purple-700','in_progress'=>'bg-yellow-100 text-yellow-700','pending_review'=>'bg-orange-100 text-orange-700','resolved'=>'bg-green-100 text-green-700','closed'=>'bg-gray-100 text-gray-700','reopened'=>'bg-red-100 text-red-700'];
     $user = auth()->user();
 @endphp
-<div class="py-4">
-    <nav class="text-sm text-gray-500 mb-4">
-        <a href="{{ route('projects.show', $ticket->project) }}" class="hover:text-blue-600">{{ $ticket->project->name }}</a>
-        <span class="mx-2">/</span>
-        <a href="{{ route('tickets.index', $ticket->project) }}" class="hover:text-blue-600">Tickets</a>
-        <span class="mx-2">/</span>
-        <span class="text-gray-700">#{{ $ticket->id }}</span>
-    </nav>
+<div class="py-6">
+    <div class="flex items-center gap-1.5 text-xs text-gray-400 font-medium mb-5">
+        <a href="{{ route('projects.index') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Projects</a>
+        <span>&gt;</span>
+        <a href="{{ route('projects.show', $ticket->project) }}" class="text-gray-600 dark:text-gray-300 font-semibold hover:text-blue-600 transition">{{ $ticket->project->name }}</a>
+        <span>&gt;</span>
+        <a href="{{ route('tickets.index', $ticket->project) }}" class="text-gray-600 dark:text-gray-300 font-semibold hover:text-blue-600 transition">Tickets</a>
+        <span>&gt;</span>
+        <span class="text-blue-600 dark:text-blue-400 font-semibold">#{{ $ticket->id }}</span>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Main --}}
