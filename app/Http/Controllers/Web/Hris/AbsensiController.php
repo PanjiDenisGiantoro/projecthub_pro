@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Web\Hris;
 use App\Exports\AttendanceImportTemplateExport;
 use App\Exports\AttendancesExport;
 use App\Exports\ShiftScheduleExport;
+use App\Exports\ShiftScheduleTemplateExport;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Imports\AttendancesImport;
+use App\Imports\ShiftScheduleImport;
 use App\Mail\AttendanceCheckMail;
 use App\Models\Attendance;
 use App\Models\AttendanceSetting;
@@ -829,6 +831,60 @@ class AbsensiController extends Controller
         return Excel::download(new ShiftScheduleExport($data), $filename . '.xlsx');
     }
 
+    /** Template Excel upload jadwal shift bulan terpilih — sudah terisi jadwal khusus (override) yang ada. */
+    public function scheduleTemplate(Request $request)
+    {
+        $this->authorize('update absensi');
+
+        $data = $this->scheduleData(
+            auth()->user()->company_id,
+            (int) $request->get('year', now()->year),
+            (int) $request->get('month', now()->month),
+        );
+
+        $filename = 'template-jadwal-shift-' . $data['year'] . '-' . str_pad($data['month'], 2, '0', STR_PAD_LEFT) . '.xlsx';
+
+        return Excel::download(new ShiftScheduleTemplateExport($data), $filename);
+    }
+
+    /** Upload jadwal shift dari template — periode dibaca dari file (sel B1), bukan dari filter halaman. */
+    public function scheduleImport(Request $request)
+    {
+        $this->authorize('update absensi');
+        $companyId = auth()->user()->company_id;
+        abort_unless($companyId, 403);
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:5120',
+        ]);
+
+        $sheets = Excel::toArray(new \stdClass(), $request->file('file'));
+        $import = new ShiftScheduleImport($companyId);
+        $import->import($sheets[0] ?? []);
+
+        $query = $import->period
+            ? ['year' => $import->period->year, 'month' => $import->period->month]
+            : $request->only('year', 'month');
+
+        if (!$import->period) {
+            return redirect()->route('hris.absensi.schedule', $query)->with('error', $import->errors[0]);
+        }
+
+        $message = "Upload jadwal {$import->period->locale('id')->isoFormat('MMMM Y')} selesai: {$import->saved} sel jadwal disimpan"
+            . ($import->reset ? ", {$import->reset} sel dikembalikan ke shift default" : '') . '.';
+
+        if ($import->errors) {
+            $shown = array_slice($import->errors, 0, 15);
+            $extra = count($import->errors) - count($shown);
+            $message .= ' ' . count($import->errors) . ' isian gagal diproses: ' . implode(' | ', $shown)
+                . ($extra > 0 ? " (+{$extra} lainnya)" : '');
+
+            return redirect()->route('hris.absensi.schedule', $query)->with('warning', $message);
+        }
+
+        return redirect()->route('hris.absensi.schedule', $query)->with('success', $message);
+    }
+
     /** Data grid jadwal shift 1 bulan (karyawan x tanggal) buat halaman jadwal & ekspornya. */
     private function scheduleData(int $companyId, int $year, int $month): array
     {
@@ -839,7 +895,7 @@ class AbsensiController extends Controller
             ->where('is_super_admin', false)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'avatar', 'shift_id']);
+            ->get(['id', 'name', 'email', 'avatar', 'shift_id']);
 
         $shifts = Shift::where('company_id', $companyId)
             ->where('is_active', true)

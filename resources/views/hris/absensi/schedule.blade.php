@@ -12,7 +12,60 @@
             <h1 class="font-display text-2xl font-extrabold" style="color:var(--fl-text-h,#1a0a3d)">Jadwal Shift Bulanan</h1>
             <p class="text-sm mt-0.5" style="color:var(--fl-text-muted,#6b7280)">Atur shift tiap karyawan per tanggal untuk kebutuhan shift rotasi/gantian. Tanpa pengaturan di sini, karyawan memakai shift default dari halaman Data Karyawan.</p>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap" x-data="{ uploadOpen: {{ $errors->has('file') ? 'true' : 'false' }} }">
+        <button type="button" @click="uploadOpen = true"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
+                style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:#7c3aed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 8l-4-5-4 5M12 3v12"/>
+            </svg>
+            Upload Jadwal
+        </button>
+
+        {{-- Modal upload jadwal (template Excel grid karyawan x tanggal) --}}
+        <div x-show="uploadOpen" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
+            <div class="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
+                 style="background:var(--fl-card-bg,#fff);border:1px solid var(--fl-card-border,#ede9fe)"
+                 @click.outside="uploadOpen = false">
+                <form method="POST" action="{{ route('hris.absensi.schedule.import') }}" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="year" value="{{ $year }}">
+                    <input type="hidden" name="month" value="{{ $month }}">
+                    <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color:var(--fl-card-border,#ede9fe)">
+                        <p class="font-semibold" style="color:var(--fl-text-h,#1a0a3d)">Upload Jadwal Shift</p>
+                        <button type="button" @click="uploadOpen = false" class="p-1.5 rounded-lg" style="color:var(--fl-text-muted,#6b7280)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4 text-sm" style="color:var(--fl-text-muted,#6b7280)">
+                        <ol class="list-decimal pl-4 space-y-1">
+                            <li>Download template bulan <strong style="color:var(--fl-text-h,#1a0a3d)">{{ $start->locale('id')->isoFormat('MMMM Y') }}</strong> (sudah berisi jadwal khusus yang ada).</li>
+                            <li>Isi sel tanggal dengan <strong>nama shift</strong>, <strong>LIBUR</strong>, atau <strong>DEFAULT</strong> (ada dropdown). Sel kosong tidak mengubah jadwal.</li>
+                            <li>Upload file-nya di sini.</li>
+                        </ol>
+                        <a href="{{ route('hris.absensi.schedule.template', ['year' => $year, 'month' => $month]) }}"
+                           class="inline-flex items-center gap-1.5 font-semibold" style="color:#7c3aed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5 5-5M12 15V3"/></svg>
+                            Download Template {{ $start->locale('id')->isoFormat('MMMM Y') }}
+                        </a>
+                        <div>
+                            <input type="file" name="file" accept=".xlsx,.xls" required
+                                   class="fl-setting-input w-full px-3 py-2 text-sm rounded-xl border"
+                                   style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                            @error('file') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 px-6 py-4 border-t" style="border-color:var(--fl-card-border,#ede9fe)">
+                        <button type="button" @click="uploadOpen = false" class="px-4 py-2 rounded-xl text-sm font-medium" style="color:var(--fl-text-muted,#6b7280)">Batal</button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-sm font-semibold text-white"
+                                style="background:var(--hris-gradient);box-shadow:0 2px 8px rgba(109,40,217,0.3)">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <a href="{{ route('hris.absensi.schedule.export', ['format' => 'pdf', 'year' => $year, 'month' => $month]) }}"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
            style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:#dc2626">
@@ -42,6 +95,9 @@
 
     @if(session('success'))
     <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-4 py-3">{{ session('success') }}</div>
+    @endif
+    @if(session('warning'))
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-4 py-3">{{ session('warning') }}</div>
     @endif
     @if(session('error'))
     <div class="bg-red-50 border border-red-200 text-red-800 text-sm rounded-xl px-4 py-3">{{ session('error') }}</div>
