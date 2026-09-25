@@ -21,6 +21,10 @@ class CompanyController extends Controller
 
     public function store(Request $request)
     {
+        if (Company::count() > 0) {
+            return response()->json(['message' => 'Sistem hanya mengizinkan 1 perusahaan.'], 422);
+        }
+
         $data = $request->validate([
             'name'    => 'required|string|max:255',
             'code'    => 'nullable|string|max:50|unique:companies,code',

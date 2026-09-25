@@ -25,6 +25,8 @@ class MasterDataWebController extends Controller
             $company->orgTree = OrganizationUnit::orderedTree($company->id)->load('head')->loadCount('users');
         });
 
-        return view('master.index', compact('stats', 'companies'));
+        $companyLimitReached = Company::count() > 0;
+
+        return view('master.index', compact('stats', 'companies', 'companyLimitReached'));
     }
 }
