@@ -389,6 +389,9 @@
                             @if($shift->hasCustomDayHours())
                             <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style="background:rgba(37,99,235,0.1);color:#2563eb">Jam beda per hari</span>
                             @endif
+                            @if($shift->isOvernight() || $shift->workingDays->contains(fn ($wd) => $shift->isOvernight($wd->day_of_week)))
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style="background:rgba(30,27,75,0.1);color:#312e81" title="Jam pulang lewat tengah malam — absen dihitung di tanggal jam masuk">Shift Malam</span>
+                            @endif
                         </p>
                         <p class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs mt-1" style="color:var(--fl-text-muted,#6b7280)">
                             @if($shift->hasCustomDayHours())
@@ -479,6 +482,9 @@
                                class="fl-setting-input w-full px-3 py-2.5 text-sm rounded-xl border transition-all"
                                style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
                     </div>
+                    <p x-show="shiftStart && shiftEnd && shiftEnd < shiftStart" x-cloak class="col-span-2 text-xs -mt-1 px-3 py-2 rounded-lg" style="background:rgba(49,46,129,0.08);color:#312e81">
+                        Shift malam: pulang <strong>besok paginya</strong> (+1 hari). Absensi tetap dicatat di tanggal jam masuk, cth. shift Senin 22:00 &ndash; Selasa 05:00 dihitung shift hari Senin.
+                    </p>
                 </div>
 
                 {{--
@@ -555,6 +561,8 @@
                                         <input type="time" :name="'day_times[' + day + '][end]'" x-model="shiftDayTimes[day].end"
                                                class="fl-setting-input flex-1 px-2 py-1.5 text-xs rounded-lg border transition-all"
                                                style="background:var(--fl-search-bg,#f5f3ff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-h,#1a0a3d)">
+                                        <span x-show="shiftDayTimes[day].start && shiftDayTimes[day].end && shiftDayTimes[day].end < shiftDayTimes[day].start"
+                                              class="text-[10px] font-semibold shrink-0" style="color:#312e81">+1 hari</span>
                                         <button type="button" @click="toggleDayCustomHours(day)"
                                                 class="text-xs font-medium shrink-0" style="color:#ef4444">
                                             Hapus

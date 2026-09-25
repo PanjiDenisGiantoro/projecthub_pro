@@ -40,13 +40,24 @@ class Attendance extends Model
         $minutes = 0;
 
         if ($this->check_in && $this->check_out) {
-            $minutes += Carbon::parse($this->check_in)->diffInMinutes(Carbon::parse($this->check_out));
+            $minutes += self::sessionMinutes($this->check_in, $this->check_out);
         }
         if ($this->check_in_2 && $this->check_out_2) {
-            $minutes += Carbon::parse($this->check_in_2)->diffInMinutes(Carbon::parse($this->check_out_2));
+            $minutes += self::sessionMinutes($this->check_in_2, $this->check_out_2);
         }
 
         return $minutes;
+    }
+
+    /**
+     * Durasi 1 sesi dari jam masuk & keluar (cuma jam, tanpa tanggal). Jam keluar lebih kecil
+     * dari jam masuk = check-out besok paginya (shift malam, mis. 22:00 -> 05:00 = 7 jam).
+     */
+    private static function sessionMinutes(string $in, string $out): int
+    {
+        $minutes = (int) Carbon::parse($in)->diffInMinutes(Carbon::parse($out));
+
+        return $minutes < 0 ? $minutes + 1440 : $minutes;
     }
 
     /** True kalau sesi 2 (shift split) sudah/sedang dipakai hari itu. */

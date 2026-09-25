@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Hris;
 
 use App\Exports\AttendanceImportTemplateExport;
 use App\Exports\AttendancesExport;
+use App\Exports\ShiftScheduleExport;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Imports\AttendancesImport;
@@ -16,6 +17,7 @@ use App\Models\Overtime;
 use App\Models\Shift;
 use App\Models\ShiftSchedule;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -32,7 +34,9 @@ class AbsensiController extends Controller
     public function index(Request $request)
     {
         $user     = auth()->user();
-        $today    = today();
+        $user->loadMissing('shift.workingDays');
+        // Tanggal shift yang sedang berjalan — bisa kemarin kalau masih di tengah shift malam.
+        $today    = $this->workDate($user);
         $setting  = AttendanceSetting::forCompany($user->company_id);
 
         $attendance = Attendance::where('user_id', $user->id)
@@ -41,12 +45,11 @@ class AbsensiController extends Controller
             ?? ($this->openSession($user)['attendance'] ?? null);
 
         $bulan = Attendance::where('user_id', $user->id)
-            ->whereYear('date', $today->year)
-            ->whereMonth('date', $today->month)
+            ->whereYear('date', today()->year)
+            ->whereMonth('date', today()->month)
             ->orderByDesc('date')
             ->get();
 
-        $user->loadMissing('shift.workingDays');
         $todayShift    = $user->effectiveShiftOn($today);
         $isShiftDayOff = $user->isDayOffOn($today);
         $isSplitShift  = $todayShift && $todayShift->isSplit();
@@ -63,7 +66,6 @@ class AbsensiController extends Controller
     public function checkIn(Request $request)
     {
         $user    = auth()->user();
-        $today   = today()->toDateString();
         $setting = AttendanceSetting::forCompany($user->company_id);
 
         // Shift malam/lintas hari: attendance check-in kemarin bisa masih terbuka
@@ -74,19 +76,22 @@ class AbsensiController extends Controller
         }
 
         $user->loadMissing('shift.workingDays');
-        if ($user->isDayOffOn(today())) {
-            $holiday = Holiday::where('company_id', $user->company_id)->whereDate('date', today())->first();
+        $workDate = $this->workDate($user);
+        $today    = $workDate->toDateString();
+
+        if ($user->isDayOffOn($workDate)) {
+            $holiday = Holiday::where('company_id', $user->company_id)->whereDate('date', $workDate)->first();
             if ($holiday) {
                 return back()->with('error', "Hari ini libur: {$holiday->name}. Hubungi admin apabila Anda perlu masuk lembur.");
             }
 
-            $shiftName = $user->effectiveShiftOn(today())->name ?? $user->shift->name ?? null;
+            $shiftName = $user->effectiveShiftOn($workDate)->name ?? $user->shift->name ?? null;
             $label     = $shiftName ? "jadwal shift Anda ({$shiftName})" : 'jadwal shift Anda';
             return back()->with('error', "Hari ini adalah hari libur sesuai {$label}. Hubungi admin apabila Anda perlu masuk lembur.");
         }
 
         $todayAttendance = Attendance::where('user_id', $user->id)->where('date', $today)->first();
-        $shift           = $user->effectiveShiftOn(today());
+        $shift           = $user->effectiveShiftOn($workDate);
         $session         = 1;
 
         if ($todayAttendance) {
@@ -125,7 +130,7 @@ class AbsensiController extends Controller
         }
 
         if ($session === 2) {
-            $lateNote = $this->lateCheckInNote($shift, 2);
+            $lateNote = $this->lateCheckInNote($shift, 2, $workDate);
 
             $todayAttendance->update([
                 'check_in_2'         => now()->toTimeString(),
@@ -144,7 +149,7 @@ class AbsensiController extends Controller
             return back()->with($lateNote ? 'warning' : 'success', $message);
         }
 
-        $lateNote = $this->lateCheckInNote($shift, 1);
+        $lateNote = $this->lateCheckInNote($shift, 1, $workDate);
 
         $newAttendance = Attendance::create([
             'user_id'          => $user->id,
@@ -178,26 +183,21 @@ class AbsensiController extends Controller
     }
 
     /**
-     * Bandingkan jam check-in sekarang dengan jadwal shift efektif hari ini
-     * (+ toleransi shift). Null kalau user tidak punya shift, jadwal jam
-     * kosong, jaraknya >12 jam (kemungkinan shift lintas hari — jangan
-     * dihitung biar tidak salah "telat 700 menit"), atau masih dalam toleransi.
+     * Bandingkan waktu check-in sekarang dengan jadwal masuk shift di tanggal
+     * shift $workDate (+ toleransi shift). Null kalau user tidak punya shift,
+     * jaraknya >12 jam (data janggal — jangan dihitung biar tidak salah
+     * "telat 700 menit"), atau masih dalam toleransi.
      */
-    private function lateCheckInNote(?Shift $shift, int $session): ?string
+    private function lateCheckInNote(?Shift $shift, int $session, Carbon $workDate): ?string
     {
         if (!$shift) {
             return null;
         }
 
-        $scheduledStart = $session === 2 && $shift->isSplit()
-            ? $shift->break_end_time
-            : $shift->effectiveStartTime(today()->dayOfWeek);
-
-        if (!$scheduledStart) {
-            return null;
-        }
-
-        $scheduled = Carbon::parse($scheduledStart);
+        // Datetime lengkap (bukan cuma jam) biar check-in lewat tengah malam di shift
+        // malam tetap dibandingkan dengan jadwal masuk kemarin malam.
+        [$scheduled] = $shift->sessionBounds($workDate, $session);
+        $scheduledStart = $scheduled->format('H:i');
         $now       = now();
         $diffMinutes = (int) round(abs($now->diffInMinutes($scheduled)));
 
@@ -226,8 +226,10 @@ class AbsensiController extends Controller
 
         ['attendance' => $attendance, 'session' => $session] = $open;
 
+        // Shift yang dipakai = shift di tanggal absen (tanggal masuk), bukan hari ini —
+        // check-out shift malam jatuh di hari berikutnya.
         $user->loadMissing('shift.workingDays');
-        $shift = $user->effectiveShiftOn(today());
+        $shift = $user->effectiveShiftOn($attendance->date);
 
         // Location validation for checkout
         $latOut = null; $lngOut = null;
@@ -251,7 +253,7 @@ class AbsensiController extends Controller
         }
 
         if ($session === 2) {
-            $earlyNote = $this->earlyCheckOutNote($shift, 2);
+            $earlyNote = $this->earlyCheckOutNote($shift, 2, $attendance->date);
 
             $attendance->update([
                 'check_out_2'         => now()->toTimeString(),
@@ -268,7 +270,7 @@ class AbsensiController extends Controller
             return back()->with($earlyNote ? 'warning' : 'success', $message);
         }
 
-        $earlyNote = $this->earlyCheckOutNote($shift, 1);
+        $earlyNote = $this->earlyCheckOutNote($shift, 1, $attendance->date);
 
         $attendance->update([
             'check_out'         => now()->toTimeString(),
@@ -286,28 +288,21 @@ class AbsensiController extends Controller
     }
 
     /**
-     * Bandingkan jam check-out sekarang dengan jadwal jam pulang efektif hari
-     * ini (+ toleransi shift). Session 1 dibandingkan ke break_start_time
-     * kalau shiftnya split (jam pulang sesi 1), session 2 (atau shift biasa)
-     * ke effectiveEndTime(). Null kalau tidak ada shift/jadwal, jaraknya >12
-     * jam (kemungkinan shift lintas hari), atau checkout-nya di jam yang sama
-     * atau lebih lambat dari jadwal (bukan "pulang cepat").
+     * Bandingkan waktu check-out sekarang dengan jadwal pulang shift di tanggal
+     * shift $workDate (+ toleransi shift) — shift malam otomatis jadwal pulangnya
+     * besok pagi. Session 1 dibandingkan ke break_start_time kalau shiftnya split
+     * (jam pulang sesi 1), session 2 (atau shift biasa) ke jam pulang. Null kalau
+     * tidak ada shift, jaraknya >12 jam, atau checkout-nya di jam yang sama atau
+     * lebih lambat dari jadwal (bukan "pulang cepat").
      */
-    private function earlyCheckOutNote(?Shift $shift, int $session): ?string
+    private function earlyCheckOutNote(?Shift $shift, int $session, Carbon $workDate): ?string
     {
         if (!$shift) {
             return null;
         }
 
-        $scheduledEnd = $session === 1 && $shift->isSplit()
-            ? $shift->break_start_time
-            : $shift->effectiveEndTime(today()->dayOfWeek);
-
-        if (!$scheduledEnd) {
-            return null;
-        }
-
-        $scheduled = Carbon::parse($scheduledEnd);
+        [, $scheduled] = $shift->sessionBounds($workDate, $session);
+        $scheduledEnd = $scheduled->format('H:i');
         $now       = now();
         $diffMinutes = (int) round(abs($now->diffInMinutes($scheduled)));
 
@@ -329,6 +324,31 @@ class AbsensiController extends Controller
      * lewat tengah malam tetap ketemu sesi kemarin, bukan dianggap belum check-in.
      * Return null kalau tidak ada sesi terbuka, atau ['attendance' => Attendance, 'session' => 1|2].
      */
+    /**
+     * Tanggal shift buat absen saat ini. Normalnya hari ini, tapi kalau kemarin karyawan
+     * punya shift malam (mis. 22:00-05:00) yang belum selesai & jam pulangnya belum lewat,
+     * absen masuk ke tanggal kemarin — mis. telat check-in jam 00:30 tetap tercatat di shift kemarin.
+     */
+    private function workDate(User $user): Carbon
+    {
+        $yesterday = today()->subDay();
+        $shift     = $user->effectiveShiftOn($yesterday);
+
+        if (!$shift || !$shift->isOvernight($yesterday->dayOfWeek) || $user->isDayOffOn($yesterday)) {
+            return today();
+        }
+
+        [, $shiftEnd] = $shift->sessionBounds($yesterday, $shift->isSplit() ? 2 : 1);
+        if (now()->gte($shiftEnd)) {
+            return today();
+        }
+
+        $attendance = Attendance::where('user_id', $user->id)->whereDate('date', $yesterday)->first();
+        $finished   = $attendance && $attendance->check_out && (!$shift->isSplit() || $attendance->check_out_2);
+
+        return $finished ? today() : $yesterday;
+    }
+
     private function openSession(User $user): ?array
     {
         $attendance = Attendance::where('user_id', $user->id)
@@ -659,10 +679,27 @@ class AbsensiController extends Controller
         return [
             'name'               => 'required|string|max:100',
             'start_time'         => 'required|date_format:H:i',
-            'end_time'           => 'required|date_format:H:i',
-            // Diisi bareng buat shift split (2 sesi kerja + jeda panjang di tengah).
-            'break_start_time'   => 'nullable|required_with:break_end_time|date_format:H:i|after:start_time|before:end_time',
-            'break_end_time'     => 'nullable|required_with:break_start_time|date_format:H:i|after:break_start_time|before:end_time',
+            // Jam pulang boleh lebih kecil dari jam masuk = shift malam, pulang besok paginya (mis. 22:00-05:00).
+            'end_time'           => ['required', 'date_format:H:i', function ($attribute, $value, $fail) use ($request) {
+                if ($value === $request->input('start_time')) {
+                    $fail('Jam pulang tidak boleh sama dengan jam masuk.');
+                }
+            }],
+            // Diisi bareng buat shift split (2 sesi kerja + jeda panjang di tengah). Urutannya
+            // dicek relatif ke jam masuk supaya shift malam (jeda lewat tengah malam) tetap valid.
+            'break_start_time'   => ['nullable', 'required_with:break_end_time', 'date_format:H:i', function ($attribute, $value, $fail) use ($request) {
+                $start = $request->input('start_time');
+                $end   = $request->input('end_time');
+                $breakEnd = $request->input('break_end_time');
+                if (!$start || !$end || !$breakEnd) {
+                    return;
+                }
+                $offset = fn ($time, $isEnd = false) => Shift::offsetFromStart($start, $time, $isEnd);
+                if (!(0 < $offset($value) && $offset($value) < $offset($breakEnd) && $offset($breakEnd) < $offset($end, true))) {
+                    $fail('Jam jeda harus berada di antara jam masuk dan jam pulang, dan jeda mulai sebelum jeda selesai.');
+                }
+            }],
+            'break_end_time'     => 'nullable|required_with:break_start_time|date_format:H:i',
             'tolerance_minutes'  => 'required|integer|min:0|max:180',
             'working_days'       => 'required|array|min:1',
             'working_days.*'     => 'integer|min:0|max:6',
@@ -673,8 +710,9 @@ class AbsensiController extends Controller
             'day_times.*.end'    => ['nullable', 'date_format:H:i', function ($attribute, $value, $fail) use ($request) {
                 preg_match('/day_times\.(\d+)\.end/', $attribute, $m);
                 $start = $request->input("day_times.{$m[1]}.start");
-                if ($start && $value && $value <= $start) {
-                    $fail('Jam pulang custom harus setelah jam masuk custom untuk hari tersebut.');
+                // Jam pulang < jam masuk = lewat tengah malam (shift malam), yang tidak boleh cuma jam yang sama.
+                if ($start && $value && $value === $start) {
+                    $fail('Jam pulang custom tidak boleh sama dengan jam masuk custom untuk hari tersebut.');
                 }
             }],
         ];
@@ -756,10 +794,44 @@ class AbsensiController extends Controller
     public function schedule(Request $request)
     {
         $this->authorize('update absensi');
-        $companyId = auth()->user()->company_id;
 
-        $year  = (int) $request->get('year', now()->year);
-        $month = (int) $request->get('month', now()->month);
+        $data = $this->scheduleData(
+            auth()->user()->company_id,
+            (int) $request->get('year', now()->year),
+            (int) $request->get('month', now()->month),
+        );
+
+        return view('hris.absensi.schedule', $data);
+    }
+
+    /** Unduh jadwal shift bulanan dalam format PDF (landscape) atau Excel. */
+    public function scheduleExport(Request $request)
+    {
+        $this->authorize('update absensi');
+        $request->validate(['format' => 'required|in:pdf,excel']);
+
+        $user = auth()->user();
+        $data = $this->scheduleData(
+            $user->company_id,
+            (int) $request->get('year', now()->year),
+            (int) $request->get('month', now()->month),
+        );
+        $data['companyName'] = $user->company?->name ?? 'Flovig';
+
+        $filename = 'jadwal-shift-' . $data['year'] . '-' . str_pad($data['month'], 2, '0', STR_PAD_LEFT);
+
+        if ($request->format === 'pdf') {
+            return Pdf::loadView('hris.absensi.schedule-export', $data + ['forPdf' => true])
+                ->setPaper('a4', 'landscape')
+                ->download($filename . '.pdf');
+        }
+
+        return Excel::download(new ShiftScheduleExport($data), $filename . '.xlsx');
+    }
+
+    /** Data grid jadwal shift 1 bulan (karyawan x tanggal) buat halaman jadwal & ekspornya. */
+    private function scheduleData(int $companyId, int $year, int $month): array
+    {
         $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end   = $start->copy()->endOfMonth();
 
@@ -783,23 +855,41 @@ class AbsensiController extends Controller
             ->get()
             ->keyBy(fn ($o) => $o->user_id . '_' . $o->date->format('Y-m-d'));
 
+        $holidays = Holiday::where('company_id', $companyId)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('date')
+            ->get()
+            ->keyBy(fn ($h) => $h->date->toDateString());
+
         $daysInMonth = $start->daysInMonth;
         $grid = [];
         foreach ($employees as $emp) {
             $row = [];
             for ($day = 1; $day <= $daysInMonth; $day++) {
                 $date = $start->copy()->day($day);
-                $row[$day] = $this->scheduleCell($emp, $date, $overrides->get($emp->id . '_' . $date->toDateString()), $allShifts);
+                $row[$day] = $this->scheduleCell(
+                    $emp, $date, $overrides->get($emp->id . '_' . $date->toDateString()), $holidays->get($date->toDateString()), $allShifts
+                );
             }
             $grid[$emp->id] = $row;
         }
 
-        return view('hris.absensi.schedule', compact('employees', 'shifts', 'grid', 'year', 'month', 'start', 'daysInMonth'));
+        return compact('employees', 'shifts', 'holidays', 'grid', 'year', 'month', 'start', 'daysInMonth');
     }
 
-    /** Rangkum status 1 sel grid (1 karyawan, 1 tanggal): mode efektif, shift, label & warna buat ditampilkan. */
-    private function scheduleCell(User $emp, Carbon $date, ?ShiftSchedule $override, $allShifts): array
+    /**
+     * Rangkum status 1 sel grid (1 karyawan, 1 tanggal): mode efektif, shift, label & warna buat ditampilkan.
+     * Prioritas sama dengan User::isDayOffOn(): override jadwal → hari libur perusahaan → hari kerja shift default.
+     */
+    private function scheduleCell(User $emp, Carbon $date, ?ShiftSchedule $override, ?Holiday $holiday, $allShifts): array
     {
+        if (!$override && $holiday) {
+            return [
+                'mode' => 'default', 'shift_id' => null, 'label' => 'Libur', 'color' => '#dc2626',
+                'is_override' => false, 'holiday' => $holiday->name,
+            ];
+        }
+
         if ($override) {
             $mode    = $override->shift_id ? 'shift' : 'off';
             $shiftId = $override->shift_id;

@@ -12,6 +12,23 @@
             <h1 class="font-display text-2xl font-extrabold" style="color:var(--fl-text-h,#1a0a3d)">Jadwal Shift Bulanan</h1>
             <p class="text-sm mt-0.5" style="color:var(--fl-text-muted,#6b7280)">Atur shift tiap karyawan per tanggal untuk kebutuhan shift rotasi/gantian. Tanpa pengaturan di sini, karyawan memakai shift default dari halaman Data Karyawan.</p>
         </div>
+        <div class="flex items-center gap-2 flex-wrap">
+        <a href="{{ route('hris.absensi.schedule.export', ['format' => 'pdf', 'year' => $year, 'month' => $month]) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
+           style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:#dc2626">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V8l-6-6H6a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Cetak PDF
+        </a>
+        <a href="{{ route('hris.absensi.schedule.export', ['format' => 'excel', 'year' => $year, 'month' => $month]) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
+           style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:#16a34a">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V8l-6-6H6a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Export Excel
+        </a>
         <a href="{{ route('hris.absensi.setting') }}"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
            style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe);color:var(--fl-text-muted,#6b7280)">
@@ -20,6 +37,7 @@
             </svg>
             Kembali ke Pengaturan
         </a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -53,6 +71,7 @@
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#2563eb"></span> Shift default</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#7c3aed"></span> Override</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#9ca3af"></span> Libur</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#dc2626"></span> Hari libur</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#d1d5db"></span> Belum diatur</span>
         </div>
     </div>
@@ -74,9 +93,10 @@
                             Karyawan
                         </th>
                         @for($d = 1; $d <= $daysInMonth; $d++)
-                        @php $colDate = $start->copy()->day($d); $isWeekend = in_array($colDate->dayOfWeek, [0, 6], true); @endphp
+                        @php $colDate = $start->copy()->day($d); $isWeekend = in_array($colDate->dayOfWeek, [0, 6], true); $colHoliday = $holidays->get($colDate->toDateString()); @endphp
                         <th class="px-1.5 py-2 text-center font-semibold border-b whitespace-nowrap"
-                            style="border-color:var(--fl-card-border,#ede9fe);{{ $isWeekend ? 'background:rgba(239,68,68,0.05);color:#ef4444' : 'color:var(--fl-text-muted,#6b7280)' }}">
+                            @if($colHoliday) title="{{ $colHoliday->name }}" @endif
+                            style="border-color:var(--fl-card-border,#ede9fe);{{ $colHoliday ? 'background:rgba(220,38,38,0.14);color:#dc2626' : ($isWeekend ? 'background:rgba(239,68,68,0.05);color:#ef4444' : 'color:var(--fl-text-muted,#6b7280)') }}">
                             {{ $d }}<br><span class="font-normal">{{ \App\Models\Shift::DAY_LABELS[$colDate->dayOfWeek] }}</span>
                         </th>
                         @endfor
@@ -96,6 +116,7 @@
                         @php $cell = $grid[$emp->id][$d]; $cellDate = $start->copy()->day($d); @endphp
                         <td class="text-center px-0.5 py-1 border-r" style="border-color:var(--fl-card-border,#ede9fe)">
                             <button type="button"
+                                    @if(!empty($cell['holiday'])) title="{{ $cell['holiday'] }}" @endif
                                     @click="openCell({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $cellDate->toDateString() }}', '{{ addslashes($cellDate->locale('id')->isoFormat('dddd, D MMMM YYYY')) }}', '{{ $cell['mode'] }}', {{ $cell['shift_id'] ?? 'null' }})"
                                     class="w-9 h-7 rounded-md text-[10px] font-bold transition-all hover:opacity-70"
                                     style="{{ $cell['is_override'] ? 'border:1.5px dashed '.$cell['color'] : 'border:1px solid transparent' }};color:{{ $cell['color'] }};background:{{ $cell['color'] }}1a">
@@ -111,6 +132,18 @@
             </table>
         </div>
     </div>
+
+    @if($holidays->isNotEmpty())
+    <div class="rounded-2xl border px-5 py-4 text-sm" style="background:var(--fl-card-bg,#fff);border-color:var(--fl-card-border,#ede9fe)">
+        <p class="font-semibold mb-2" style="color:var(--fl-text-h,#1a0a3d)">Hari libur bulan ini</p>
+        <ul class="space-y-1" style="color:var(--fl-text-muted,#6b7280)">
+            @foreach($holidays as $holiday)
+            <li><span class="font-semibold" style="color:#dc2626">{{ $holiday->date->locale('id')->isoFormat('dddd, D MMMM') }}</span> — {{ $holiday->name }}</li>
+            @endforeach
+        </ul>
+        <p class="text-xs mt-2" style="color:var(--fl-text-muted,#6b7280)">Karyawan otomatis libur di tanggal ini. Klik sel untuk memberi shift khusus jika karyawan tetap harus masuk.</p>
+    </div>
+    @endif
 
     {{-- Cell modal (edit 1 karyawan x 1 tanggal) --}}
     <div x-show="cellModalOpen" x-cloak

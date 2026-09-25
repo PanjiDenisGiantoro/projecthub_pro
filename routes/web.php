@@ -576,6 +576,7 @@ Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
         Route::patch('absensi/shifts/{shift}/toggle', [AbsensiController::class, 'toggleShift'])->name('absensi.shifts.toggle');
         Route::delete('absensi/shifts/{shift}', [AbsensiController::class, 'destroyShift'])->name('absensi.shifts.destroy');
         Route::get('absensi/jadwal', [AbsensiController::class, 'schedule'])->name('absensi.schedule');
+        Route::get('absensi/jadwal/export', [AbsensiController::class, 'scheduleExport'])->name('absensi.schedule.export');
         Route::post('absensi/jadwal/cell', [AbsensiController::class, 'saveScheduleCell'])->name('absensi.schedule.cell');
         Route::post('absensi/jadwal/bulk', [AbsensiController::class, 'bulkSetSchedule'])->name('absensi.schedule.bulk');
         Route::get('absensi/libur', [AbsensiController::class, 'holidays'])->name('absensi.holidays');
