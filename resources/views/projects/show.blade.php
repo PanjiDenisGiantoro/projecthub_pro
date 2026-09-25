@@ -77,8 +77,29 @@
 
         $daysLeft = $hasOpenItems ? (int) ($openTaskDays + $openSprintDays + $openTicketDays) : null;
 
+        // ── Ikhtisar Hub: data tambahan untuk KPI cards & widget ──────────────
+        $inProgressTasks = $project->tasks()->where('status', 'in_progress')->count();
+
+        $activeSprint = $project->sprints()->where('status', 'active')->orderByDesc('start_date')->first();
+        if ($activeSprint) {
+            $activeSprint->tasks_total = $activeSprint->tasks()->count();
+            $activeSprint->tasks_done  = $activeSprint->tasks()->where('status', 'done')->count();
+            $activeSprint->progress_percent = $activeSprint->tasks_total > 0 ? (int) round($activeSprint->tasks_done / $activeSprint->tasks_total * 100) : 0;
+            $activeSprint->days_running = (int) $today->diffInDays($activeSprint->start_date->copy()->startOfDay());
+        }
+
+        $openTicketsQuery = $project->tickets()->whereNotIn('status', ['resolved', 'closed']);
+        $openTicketsCount = (clone $openTicketsQuery)->count();
+        $criticalTicketsCount = (clone $openTicketsQuery)->where('priority', 'critical')->count();
+        $hubTickets = (clone $openTicketsQuery)->with('reporter', 'assignee', 'slaPolicy')->latest()->limit(4)->get();
+
+        $budgetUsedPercent = $project->budgetUsedPercent();
+        $budgetUsed = $project->totalExpenses();
+
+        $hubMoney = fn ($n) => $n >= 1_000_000 ? number_format($n / 1_000_000, 1) . 'jt' : number_format($n, 0, ',', '.');
+
         $tabs = [
-            ['key' => 'overview',   'label' => 'Overview',   'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'],
+            ['key' => 'overview',   'label' => 'Ikhtisar Hub', 'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>'],
             ['key' => 'timesheet',  'label' => 'Timesheet',  'group' => 'Project',       'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>'],
             ['key' => 'tasks',      'label' => 'Tasks',      'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>'],
             ['key' => 'milestones', 'label' => 'Milestones', 'group' => 'Planning',      'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>'],
@@ -144,7 +165,13 @@
         {{-- Top bar --}}
         <div class="px-4 sm:px-6 pt-5 pb-4">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div class="flex-1 min-w-0">
+                @php $projectImages = $project->imageUrls(); @endphp
+                <div class="flex items-start gap-3 flex-1 min-w-0">
+                    @if(!empty($projectImages))
+                    <img src="{{ $projectImages[0] }}" alt="{{ $project->name }}"
+                         class="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0">
+                    @endif
+                    <div class="flex-1 min-w-0">
                     {{-- Title + Status --}}
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                         <h1 class="text-lg sm:text-xl font-bold text-gray-900 leading-tight">{{ $project->name }}</h1>
@@ -183,6 +210,16 @@
                             Due {{ \Carbon\Carbon::parse($project->end_date)->format('d M Y') }}
                         </span>
                         @endif
+                    </div>
+                    @if(count($projectImages) > 1)
+                    <div class="flex items-center gap-1.5 mt-2">
+                        @foreach(array_slice($projectImages, 1) as $img)
+                        <a href="{{ $img }}" target="_blank" rel="noopener">
+                            <img src="{{ $img }}" alt="" class="w-7 h-7 rounded-md object-cover border border-gray-200 hover:opacity-80 transition">
+                        </a>
+                        @endforeach
+                    </div>
+                    @endif
                     </div>
                 </div>
 
@@ -228,30 +265,53 @@
         </div>
         </div>
 
-        {{-- Quick stats --}}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        {{-- KPI Cards --}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 mb-5">
+            {{-- Kemajuan Total --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-gray-400 mb-1">Total Tasks</p>
-                <p class="text-xl font-bold text-gray-800">{{ $totalTasks }}</p>
+                <p class="text-xs text-gray-400 mb-1">Kemajuan Total</p>
+                <p class="text-xl font-bold text-gray-800">{{ $progress }}% <span class="text-xs font-medium {{ $progress >= 70 ? 'text-green-600' : 'text-gray-400' }}">{{ $progress >= 70 ? 'On Track' : ($progress >= 30 ? 'In Progress' : 'Early') }}</span></p>
+                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                    <div class="h-1.5 rounded-full bg-blue-500" style="width: {{ min($progress, 100) }}%"></div>
+                </div>
             </div>
-            <div class="bg-green-50 rounded-xl border border-green-100 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-green-600/70 mb-1">Completed</p>
-                <p class="text-xl font-bold text-green-700">{{ $doneTasks }}</p>
-            </div>
-            <div class="bg-blue-50 rounded-xl border border-blue-100 shadow-sm px-4 py-3.5">
-                <p class="text-xs text-blue-600/70 mb-1">Members</p>
-                <p class="text-xl font-bold text-blue-700">{{ $project->members->count() }}</p>
-            </div>
+            {{-- Penyelesaian Tugas --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
-                @if($daysLeft === null)
-                    <p class="text-xs text-gray-400 mb-1">Working Days Left</p>
-                    <p class="text-xl font-bold text-gray-400">—</p>
-                @elseif($daysLeft === 0)
-                    <p class="text-xs text-orange-400 mb-1">Working Days Left</p>
-                    <p class="text-xl font-bold text-orange-600">Due Today</p>
+                <p class="text-xs text-gray-400 mb-1">Penyelesaian Tugas</p>
+                <p class="text-xl font-bold text-gray-800">{{ $doneTasks }}<span class="text-gray-300">/{{ $totalTasks }}</span> <span class="text-xs font-medium text-blue-600">{{ $inProgressTasks }} Aktif</span></p>
+                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                    <div class="h-1.5 rounded-full bg-green-500" style="width: {{ $totalTasks > 0 ? min(100, round($doneTasks / $totalTasks * 100)) : 0 }}%"></div>
+                </div>
+            </div>
+            {{-- Sprint Kecepatan --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-gray-400 mb-1">{{ $activeSprint ? $activeSprint->name . ' Kecepatan' : 'Sprint Kecepatan' }}</p>
+                @if($activeSprint)
+                    <p class="text-xl font-bold text-gray-800">{{ $activeSprint->progress_percent }}% <span class="text-xs font-medium text-amber-600">Aktif ({{ max(0, $activeSprint->days_running) }}d)</span></p>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                        <div class="h-1.5 rounded-full bg-amber-500" style="width: {{ $activeSprint->progress_percent }}%"></div>
+                    </div>
                 @else
-                    <p class="text-xs text-gray-400 mb-1">Working Days Left</p>
-                    <p class="text-xl font-bold text-blue-700">{{ $daysLeft }}d</p>
+                    <p class="text-xl font-bold text-gray-300">—</p>
+                    <p class="text-xs text-gray-400 mt-2">Tidak ada sprint aktif</p>
+                @endif
+            </div>
+            {{-- Anggaran Terpakai --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-gray-400 mb-1">Anggaran Terpakai</p>
+                <p class="text-xl font-bold text-gray-800">{{ $budgetUsedPercent }}% <span class="text-xs font-medium text-gray-400">Rp {{ $hubMoney($budgetUsed) }} / {{ $hubMoney((float) ($project->budget ?? 0)) }}</span></p>
+                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                    <div class="h-1.5 rounded-full {{ $budgetUsedPercent >= 90 ? 'bg-red-500' : 'bg-teal-500' }}" style="width: {{ min($budgetUsedPercent, 100) }}%"></div>
+                </div>
+            </div>
+            {{-- Tiket Isu Terbuka --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3.5">
+                <p class="text-xs text-gray-400 mb-1">Tiket Isu Terbuka</p>
+                <p class="text-xl font-bold text-gray-800">{{ $openTicketsCount }}</p>
+                @if($criticalTicketsCount > 0)
+                    <span class="inline-flex items-center gap-1 mt-2 text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">{{ $criticalTicketsCount }} Kritis</span>
+                @else
+                    <span class="inline-flex items-center gap-1 mt-2 text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">Aman</span>
                 @endif
             </div>
         </div>
@@ -259,16 +319,238 @@
     {{-- ============================================================
          TAB: OVERVIEW
     ============================================================ --}}
-    <div x-show="tab === 'overview'" x-cloak>
+    <div x-show="tab === 'overview'" x-cloak class="space-y-5">
+
+        {{-- ── Active Sprint Banner ───────────────────────────────────────── --}}
+        @if($activeSprint)
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900">{{ $activeSprint->name }}
+                    <span class="text-gray-400 font-normal">
+                        &middot; {{ $activeSprint->start_date->format('d M') }} &ndash; {{ $activeSprint->end_date->format('d M Y') }}
+                    </span>
+                </p>
+                <p class="text-xs text-gray-500 mt-0.5">{{ $activeSprint->goal ?: 'Belum ada goal sprint.' }}</p>
+            </div>
+            <div class="text-right shrink-0">
+                <p class="text-xs text-gray-400">Sisa Tugas</p>
+                <p class="text-sm font-bold text-gray-800">{{ $activeSprint->tasks_total - $activeSprint->tasks_done }} Tugas</p>
+            </div>
+            <a href="?tab=tasks" @click.prevent="tab='tasks'"
+               class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition shrink-0">
+                Buka Kanban
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+        </div>
+        @endif
+
+        {{-- ── Milestone Map ──────────────────────────────────────────────── --}}
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="text-sm font-semibold text-gray-900">Peta Milestone Proyek ({{ $project->milestones->count() }} Fase)</h2>
+                @if(!auth()->user()->hasRole('client'))
+                <a href="?tab=milestones" @click.prevent="tab='milestones'"
+                   class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Tambah Milestone
+                </a>
+                @endif
+            </div>
+            <p class="text-xs text-gray-400 mb-4">Kemajuan terpadu lintas sprint dari desain hingga deployment produksi</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                @forelse($project->milestones->take(3) as $ms)
+                    @php
+                        $msTotal = $ms->tasks->count();
+                        $msDone  = $ms->tasks->where('status', 'done')->count();
+                        $msPct   = $ms->status === 'completed' ? 100 : ($msTotal > 0 ? (int) round($msDone / $msTotal * 100) : 0);
+                        $msBadge = match($ms->status) {
+                            'completed'   => ['label' => 'Selesai '.$msPct.'%', 'class' => 'bg-green-100 text-green-700'],
+                            'in_progress' => ['label' => 'Berjalan '.$msPct.'%', 'class' => 'bg-blue-100 text-blue-700'],
+                            default       => ['label' => 'Tertunda '.$msPct.'%', 'class' => 'bg-gray-100 text-gray-500'],
+                        };
+                    @endphp
+                    <a href="?tab=milestones" @click.prevent="tab='milestones'"
+                       class="block border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $msBadge['class'] }}">{{ $msBadge['label'] }}</span>
+                            @if($ms->due_date)
+                            <span class="text-[11px] text-gray-400">{{ \Carbon\Carbon::parse($ms->due_date)->format('d M') }}</span>
+                            @endif
+                        </div>
+                        <p class="text-sm font-semibold text-gray-900 leading-snug">{{ $ms->title }}</p>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ $ms->description ?: 'Belum ada deskripsi.' }}</p>
+                        @if($ms->assignee)
+                        <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {{ strtoupper(substr($ms->assignee->name, 0, 2)) }}
+                            </div>
+                            <span class="text-xs text-gray-600 truncate flex-1">{{ $ms->assignee->name }}</span>
+                            <span class="text-xs text-gray-400 shrink-0">{{ $msDone }}/{{ $msTotal }} Tugas</span>
+                        </div>
+                        @endif
+                    </a>
+                @empty
+                    <div class="col-span-full text-center text-sm text-gray-400 py-6">Belum ada milestone.</div>
+                @endforelse
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {{-- ── Team Workload ──────────────────────────────────────────── --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-sm font-semibold text-gray-900">Alokasi Beban Kerja Tim ({{ $project->members->count() }} Kontributor)</h2>
+                    @if(!auth()->user()->hasRole('client'))
+                    <a href="?tab=team" @click.prevent="tab='team'" class="text-xs font-medium text-blue-600 hover:text-blue-800">Undang Anggota</a>
+                    @endif
+                </div>
+                <p class="text-xs text-gray-400 mb-4">Distribusi penugasan tugas real-time dan kapasitas tim</p>
+                <div class="space-y-3">
+                    @forelse($project->members as $member)
+                        @php
+                            $mTaskCount = $memberTaskCounts[$member->user_id] ?? 0;
+                            $mCapacityPct = min(100, (int) round($mTaskCount / 5 * 100));
+                        @endphp
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                {{ strtoupper(substr($member->user->name ?? '?', 0, 2)) }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-800 truncate">{{ $member->user->name ?? '-' }}</p>
+                                <p class="text-xs text-gray-400 capitalize">{{ str_replace('_', ' ', $member->role) }}</p>
+                            </div>
+                            <div class="w-24 shrink-0 text-right">
+                                <p class="text-xs text-gray-500 mb-1">{{ $mTaskCount }} Tugas</p>
+                                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full {{ $mCapacityPct >= 80 ? 'bg-red-500' : 'bg-blue-500' }}" style="width: {{ $mCapacityPct }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-sm text-gray-400 text-center py-6">Belum ada anggota tim.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- ── Ticket & SLA ──────────────────────────────────────────── --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-sm font-semibold text-gray-900">Sentinel Tiket &amp; SLA</h2>
+                    @if(!auth()->user()->hasRole('client'))
+                    <a href="{{ route('tickets.create', $project) }}"
+                       class="inline-flex items-center gap-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-lg">
+                        Buat Tiket
+                    </a>
+                    @endif
+                </div>
+                <p class="text-xs text-gray-400 mb-4">Pemantauan regresi bug dan waktu pemulihan SLA</p>
+                <div class="space-y-3">
+                    @php
+                        $hubPriorityClass = [
+                            'low' => 'bg-gray-100 text-gray-600', 'medium' => 'bg-blue-100 text-blue-700',
+                            'high' => 'bg-amber-100 text-amber-700', 'urgent' => 'bg-orange-100 text-orange-700',
+                            'critical' => 'bg-red-100 text-red-700',
+                        ];
+                    @endphp
+                    @forelse($hubTickets as $ticket)
+                        <a href="{{ route('tickets.show', $ticket) }}"
+                           class="block border-l-4 {{ $ticket->priority === 'critical' ? 'border-l-red-500' : 'border-l-amber-400' }} border border-gray-200 rounded-lg p-3 hover:shadow-sm transition">
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold uppercase {{ $hubPriorityClass[$ticket->priority] ?? 'bg-gray-100 text-gray-600' }}">
+                                    {{ $ticket->priority }} &middot; {{ $ticket->type }}
+                                </span>
+                                @if($ticket->sla_due_at)
+                                    @php $slaMin = $ticket->sla_remaining_minutes; @endphp
+                                    <span class="text-[10px] font-medium {{ $slaMin !== null && $slaMin <= 0 ? 'text-red-600' : 'text-gray-400' }}">
+                                        {{ $slaMin !== null && $slaMin > 0 ? 'SLA: '.round($slaMin/60,1).'j tersisa' : 'SLA lewat' }}
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-sm font-medium text-gray-800 leading-snug">{{ $ticket->title }}</p>
+                            <div class="flex items-center justify-between mt-1.5 text-xs text-gray-400">
+                                <span>PIC: {{ $ticket->assignee->name ?? '—' }}</span>
+                                <span class="text-blue-600">Inspeksi &rarr;</span>
+                            </div>
+                        </a>
+                    @empty
+                        <p class="text-sm text-gray-400 text-center py-6">Tidak ada tiket terbuka. 🎉</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Bottom Row: Budget / Portal / Integrations ────────────────────── --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {{-- Budget --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center">
+                        <svg class="w-4.5 h-4.5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full {{ $budgetUsedPercent >= 90 ? 'bg-red-50 text-red-600' : 'bg-teal-50 text-teal-600' }}">
+                        {{ $budgetUsedPercent >= 90 ? 'Hampir Habis' : 'Terkendali' }}
+                    </span>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-900">Alokasi &amp; Pembakaran Anggaran</h3>
+                <p class="text-xs text-gray-400 mt-1 mb-3">Pagu total proyek: Rp {{ number_format((float) ($project->budget ?? 0), 0, ',', '.') }}</p>
+                <p class="text-xs text-gray-400">Terpakai Saat Ini</p>
+                <p class="text-lg font-bold text-gray-900">Rp {{ number_format($budgetUsed, 0, ',', '.') }}</p>
+                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                    <div class="h-1.5 rounded-full {{ $budgetUsedPercent >= 90 ? 'bg-red-500' : 'bg-teal-500' }}" style="width: {{ min($budgetUsedPercent, 100) }}%"></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1.5">Sisa: Rp {{ number_format(max(0, (float) ($project->budget ?? 0) - $budgetUsed), 0, ',', '.') }} &middot; {{ $budgetUsedPercent }}% terpakai</p>
+                <a href="?tab=budget" @click.prevent="tab='budget'" class="mt-3 block text-center text-xs font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg py-2 transition">Lihat Detail Anggaran</a>
+            </div>
+
+            {{-- Portal Klien --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <svg class="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                    </div>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full {{ $project->portalTokens->isNotEmpty() ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500' }}">
+                        {{ $project->portalTokens->isNotEmpty() ? $project->portalTokens->count().' Aktif' : 'Belum Ada' }}
+                    </span>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-900">Portal Kolaborasi Klien</h3>
+                <p class="text-xs text-gray-500 mt-1 mb-4">Tautan eksternal untuk review progres oleh {{ $project->client->name ?? 'klien' }}.</p>
+                <a href="?tab=portal" @click.prevent="tab='portal'" class="block text-center text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg py-2 transition">Kelola Portal Klien &rarr;</a>
+            </div>
+
+            {{-- Webhook & Chat --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+                        <svg class="w-4.5 h-4.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    </div>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-900">Webhook &amp; Obrolan Tim</h3>
+                <p class="text-xs text-gray-400 mt-1 mb-3">Status integrasi eksternal proyek ini.</p>
+                <div class="space-y-1.5 mb-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-500">Slack</span>
+                        <span class="font-medium {{ $project->hasSlackIntegration() ? 'text-green-600' : 'text-gray-400' }}">{{ $project->hasSlackIntegration() ? 'Terhubung' : 'Belum diatur' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-500">GitHub CI/CD</span>
+                        <span class="font-medium {{ $project->hasGithubIntegration() ? 'text-green-600' : 'text-gray-400' }}">{{ $project->hasGithubIntegration() ? 'Terhubung' : 'Belum diatur' }}</span>
+                    </div>
+                </div>
+                <a href="?tab=chat" @click.prevent="tab='chat'" class="block text-center text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg py-2 transition">Buka Obrolan Tim Langsung</a>
+            </div>
+        </div>
+
+        {{-- ── Description & Info ─────────────────────────────────────────── --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {{-- Description --}}
             <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 class="text-base font-semibold text-gray-900 mb-3">Description</h2>
                 <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                     {{ $project->description ?: 'No description provided.' }}
                 </p>
             </div>
-            {{-- Info Sidebar --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
                 <h2 class="text-base font-semibold text-gray-900">Information</h2>
                 <div>

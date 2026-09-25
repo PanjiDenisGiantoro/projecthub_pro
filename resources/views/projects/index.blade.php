@@ -86,7 +86,14 @@
                     <div class="p-5 flex-1">
                         {{-- Name & Status --}}
                         <div class="flex items-start justify-between gap-2 mb-3">
-                            <h2 class="text-base font-semibold text-gray-900 leading-tight">{{ $project->name }}</h2>
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                @php $projectImages = $project->imageUrls(); @endphp
+                                @if(!empty($projectImages))
+                                <img src="{{ $projectImages[0] }}" alt="{{ $project->name }}"
+                                     class="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0">
+                                @endif
+                                <h2 class="text-base font-semibold text-gray-900 leading-tight truncate">{{ $project->name }}</h2>
+                            </div>
                             <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $sc['class'] }}">
                                 {{ $sc['label'] }}
                             </span>

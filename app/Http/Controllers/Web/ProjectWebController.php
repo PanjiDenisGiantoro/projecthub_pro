@@ -14,6 +14,7 @@ use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectWebController extends Controller
 {
@@ -57,11 +58,14 @@ class ProjectWebController extends Controller
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'budget' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:draft,active,on_hold,completed,cancelled',
+            'images' => 'nullable|array|max:'.Project::MAX_IMAGES,
+            'images.*' => 'image|max:2048|mimes:jpg,jpeg,png,gif,webp',
         ]);
 
         $project = Project::create([
             ...$request->only('name', 'description', 'client_id', 'manager_id', 'start_date', 'end_date', 'budget'),
             'status' => $request->input('status', 'active'),
+            'images' => $this->storeProjectImages($request),
         ]);
 
         BoardColumnTemplate::default()?->applyTo($project);
@@ -161,7 +165,20 @@ class ProjectWebController extends Controller
             'progress' => 'nullable|integer|min:0|max:100',
             'meeting_default_time' => 'nullable|date_format:H:i',
             'meeting_default_duration_minutes' => 'nullable|integer|min:15|max:480',
+            'images' => 'nullable|array',
+            'images.*' => 'image|max:2048|mimes:jpg,jpeg,png,gif,webp',
+            'remove_images' => 'nullable|array',
+            'remove_images.*' => 'string',
         ]);
+
+        $keptImages = array_values(array_diff($project->images ?? [], $request->input('remove_images', [])));
+        $newImages = $this->storeProjectImages($request, Project::MAX_IMAGES - count($keptImages));
+
+        foreach ($request->input('remove_images', []) as $path) {
+            if (in_array($path, $project->images ?? [], true)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
 
         $project->update([
             ...$request->only('name', 'description', 'client_id', 'manager_id', 'status', 'start_date', 'end_date', 'budget', 'progress'),
@@ -169,9 +186,27 @@ class ProjectWebController extends Controller
             'meeting_auto_create' => $request->boolean('meeting_auto_create'),
             'meeting_default_time' => $request->meeting_default_time,
             'meeting_default_duration_minutes' => $request->meeting_default_duration_minutes ?? 60,
+            'images' => [...$keptImages, ...$newImages],
         ]);
 
         return redirect()->route('projects.show', $project)->with('success', 'Proyek diperbarui.');
+    }
+
+    /** Upload file gambar dari $request['images'] ke disk public, dibatasi $limit file (default Project::MAX_IMAGES). Kelebihan diabaikan. */
+    private function storeProjectImages(Request $request, ?int $limit = null): array
+    {
+        if (! $request->hasFile('images')) {
+            return [];
+        }
+
+        $limit ??= Project::MAX_IMAGES;
+
+        return collect($request->file('images'))
+            ->filter(fn ($file) => $file && $file->isValid())
+            ->take(max(0, $limit))
+            ->map(fn ($file) => $file->store('project-images', 'public'))
+            ->values()
+            ->all();
     }
 
     public function createMeeting(Project $project, GoogleCalendarService $calendar)

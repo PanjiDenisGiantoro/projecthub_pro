@@ -14,7 +14,7 @@ class Project extends Model
 
     protected $fillable = [
         'company_id', 'name', 'description', 'client_id', 'manager_id',
-        'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress',
+        'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress', 'images',
         'github_repo_url', 'github_token', 'slack_webhook_url', 'discord_webhook_url',
         'google_meet_enabled', 'meeting_auto_create', 'meeting_default_time', 'meeting_default_duration_minutes',
         'google_event_id', 'google_meet_link', 'meeting_starts_at',
@@ -59,7 +59,16 @@ class Project extends Model
             'meeting_auto_create' => 'boolean',
             'meeting_default_duration_minutes' => 'integer',
             'meeting_starts_at' => 'datetime',
+            'images' => 'array',
         ];
+    }
+
+    /** Max jumlah foto/logo proyek yang boleh diunggah (lihat ProjectWebController::store/update). */
+    public const MAX_IMAGES = 4;
+
+    public function imageUrls(): array
+    {
+        return collect($this->images ?? [])->map(fn ($path) => \Illuminate\Support\Facades\Storage::url($path))->all();
     }
 
     public function hasGithubIntegration(): bool

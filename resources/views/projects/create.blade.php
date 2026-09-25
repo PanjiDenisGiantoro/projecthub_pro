@@ -29,7 +29,8 @@
     @endif
 
     {{-- Form --}}
-    <form action="{{ route('projects.store') }}" method="POST" class="bg-white rounded-xl shadow-sm border border-gray-200"
+    <form action="{{ route('projects.store') }}" method="POST" enctype="multipart/form-data"
+          class="bg-white rounded-xl shadow-sm border border-gray-200"
           x-data="{ submitting: false }"
           @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">
         @csrf
@@ -124,6 +125,36 @@
                 </div>
             </div>
 
+            {{-- Photos / Logo --}}
+            <div x-data="projectImagePicker(4)">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Foto / Logo Proyek</label>
+                <p class="text-xs text-gray-400 mb-2">JPG, PNG, GIF, atau WEBP &middot; maks 2MB per foto &middot; sampai 4 foto.</p>
+                <div class="flex flex-wrap gap-3">
+                    <template x-for="(url, idx) in previews" :key="idx">
+                        <div class="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 group">
+                            <img :src="url" class="w-full h-full object-cover">
+                            <button type="button" @click="remove(idx)"
+                                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                &times;
+                            </button>
+                        </div>
+                    </template>
+                    <button type="button" x-show="previews.length < 4" @click="$refs.imagesInput.click()"
+                            class="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-400 hover:text-blue-500 flex flex-col items-center justify-center text-xs transition-colors">
+                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add
+                    </button>
+                </div>
+                <input type="file" name="images[]" x-ref="imagesInput" @change="onChange" multiple accept="image/*" class="hidden">
+                <p x-show="error" x-cloak x-text="error" class="mt-1.5 text-xs text-red-500"></p>
+                @error('images')
+                    <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                @enderror
+                @error('images.*')
+                    <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                @enderror
+            </div>
+
             {{-- Budget & Status --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
@@ -172,4 +203,39 @@
     </form>
 
 </div>
+
+@push('scripts')
+<script>
+    function projectImagePicker(max) {
+        return {
+            max,
+            files: [],
+            previews: [],
+            error: '',
+            onChange(e) {
+                const selected = Array.from(e.target.files);
+                if (this.files.length + selected.length > this.max) {
+                    this.error = `Maksimal ${this.max} foto.`;
+                } else {
+                    this.error = '';
+                }
+                this.files = [...this.files, ...selected].slice(0, this.max);
+                this.syncInput();
+                this.previews = this.files.map(f => URL.createObjectURL(f));
+            },
+            remove(idx) {
+                this.files.splice(idx, 1);
+                this.error = '';
+                this.syncInput();
+                this.previews = this.files.map(f => URL.createObjectURL(f));
+            },
+            syncInput() {
+                const dt = new DataTransfer();
+                this.files.forEach(f => dt.items.add(f));
+                this.$refs.imagesInput.files = dt.files;
+            },
+        };
+    }
+</script>
+@endpush
 @endsection

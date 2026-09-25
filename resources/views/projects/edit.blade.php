@@ -33,7 +33,8 @@
     @endif
 
     {{-- Form --}}
-    <form action="{{ route('projects.update', $project) }}" method="POST" class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <form action="{{ route('projects.update', $project) }}" method="POST" enctype="multipart/form-data"
+          class="bg-white rounded-xl shadow-sm border border-gray-200">
         @csrf
         @method('PUT')
 
@@ -102,6 +103,48 @@
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
+
+            {{-- Photos / Logo --}}
+            <div x-data="projectImageEditor(@js($project->images ?? []), @js($project->imageUrls()), 4)">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Foto / Logo Proyek</label>
+                <p class="text-xs text-gray-400 mb-2">JPG, PNG, GIF, atau WEBP &middot; maks 2MB per foto &middot; sampai 4 foto.</p>
+                <div class="flex flex-wrap gap-3">
+                    <template x-for="img in existing" :key="img.path">
+                        <div class="relative w-20 h-20 rounded-lg overflow-hidden border group"
+                             :class="img.removed ? 'border-red-300 opacity-40' : 'border-gray-200'">
+                            <img :src="img.url" class="w-full h-full object-cover">
+                            <button type="button" @click="img.removed = !img.removed"
+                                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span x-show="!img.removed">&times;</span>
+                                <span x-show="img.removed" x-cloak>&#8635;</span>
+                            </button>
+                            <input type="hidden" name="remove_images[]" :value="img.path" :disabled="!img.removed">
+                        </div>
+                    </template>
+                    <template x-for="(url, idx) in newPreviews" :key="idx">
+                        <div class="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 group">
+                            <img :src="url" class="w-full h-full object-cover">
+                            <button type="button" @click="removeNew(idx)"
+                                    class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                &times;
+                            </button>
+                        </div>
+                    </template>
+                    <button type="button" x-show="remainingSlots > 0" @click="$refs.imagesInput.click()"
+                            class="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-400 hover:text-blue-500 flex flex-col items-center justify-center text-xs transition-colors">
+                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add
+                    </button>
+                </div>
+                <input type="file" name="images[]" x-ref="imagesInput" @change="onChange" multiple accept="image/*" class="hidden">
+                <p x-show="error" x-cloak x-text="error" class="mt-1.5 text-xs text-red-500"></p>
+                @error('images')
+                    <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                @enderror
+                @error('images.*')
+                    <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- Start Date & End Date --}}
@@ -241,4 +284,45 @@
     </form>
 
 </div>
+
+@push('scripts')
+<script>
+    function projectImageEditor(paths, urls, max) {
+        return {
+            max,
+            existing: paths.map((p, i) => ({ path: p, url: urls[i], removed: false })),
+            newFiles: [],
+            newPreviews: [],
+            error: '',
+            get remainingSlots() {
+                const kept = this.existing.filter(i => !i.removed).length;
+                return Math.max(0, this.max - kept - this.newFiles.length);
+            },
+            onChange(e) {
+                const selected = Array.from(e.target.files);
+                const room = this.remainingSlots;
+                if (selected.length > room) {
+                    this.error = `Maksimal ${this.max} foto total. Sisa slot: ${room}.`;
+                } else {
+                    this.error = '';
+                }
+                this.newFiles = [...this.newFiles, ...selected].slice(0, this.newFiles.length + room);
+                this.syncInput();
+                this.newPreviews = this.newFiles.map(f => URL.createObjectURL(f));
+            },
+            removeNew(idx) {
+                this.newFiles.splice(idx, 1);
+                this.error = '';
+                this.syncInput();
+                this.newPreviews = this.newFiles.map(f => URL.createObjectURL(f));
+            },
+            syncInput() {
+                const dt = new DataTransfer();
+                this.newFiles.forEach(f => dt.items.add(f));
+                this.$refs.imagesInput.files = dt.files;
+            },
+        };
+    }
+</script>
+@endpush
 @endsection
