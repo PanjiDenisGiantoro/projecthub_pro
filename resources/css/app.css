@@ -928,29 +928,6 @@ body {
   }
 }
 
-/* ── Form 2 kolom ───────────────────────────────────────────────────────────
-   Tambahkan class "form-2col" ke <form>: mulai layar md, field berjejer 2 kolom.
-   Yang otomatis selebar penuh: textarea, upload file, tabel, blok yang sudah punya
-   grid sendiri, judul/pemisah section, dan elemen terakhir (baris tombol).
-   Paksa selebar penuh secara manual dengan class "col-span-full". */
-@media (min-width: 768px) {
-  form.form-2col {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 1.25rem;
-    row-gap: 1.25rem;
-    align-items: start;
-  }
-  form.form-2col > * {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-  }
-  form.form-2col > :is(:has(textarea:not(.select2-search__field)), :has(input[type=file]), :has(.filepond--root), :has(table), :has(.grid),
-                       h2, h3, h4, hr, [class*="border-t"], .col-span-full, :last-child) {
-    grid-column: 1 / -1;
-  }
-}
-
 /* ════════════════════════════════════════════════════════════════════════ */
 /* ── Form "settings": section (judul kiri, field kanan) + input halus ───── */
 /* ════════════════════════════════════════════════════════════════════════
@@ -979,6 +956,8 @@ body {
 @media (min-width: 1024px) {
     .fl-section { grid-template-columns: 15rem minmax(0, 1fr); padding: 1.75rem 2rem; }
 }
+/* Varian: judul di atas, isi selebar penuh (buat tabel/konten lebar) */
+@media (min-width: 1024px) { .fl-section.fl-section-stack { grid-template-columns: minmax(0, 1fr); } }
 .fl-section-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-gray-900); }
 .fl-section-desc { margin-top: 0.25rem; font-size: 0.8125rem; line-height: 1.5; color: var(--color-gray-500); }
 
@@ -1012,6 +991,8 @@ body {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 .fl-input.is-invalid { border-color: #f87171; }
+.fl-input.fl-input-sm { height: 2rem; padding: 0 0.5rem; font-size: 0.8125rem; border-radius: 0.375rem; }
+textarea.fl-input.fl-input-sm { height: auto; min-height: 0; padding: 0.375rem 0.5rem; }
 textarea.fl-input { height: auto; min-height: 5.5rem; padding: 0.5rem 0.75rem; line-height: 1.5; }
 select.fl-input {
     appearance: none;
@@ -1029,6 +1010,24 @@ select.fl-input {
     width: 1rem; height: 1rem; color: var(--color-gray-400); pointer-events: none;
 }
 .fl-input-icon > .fl-input { padding-left: 2.25rem; }
+.fl-input-icon > .fl-prefix {
+    position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+    font-size: 0.8125rem; font-weight: 500; color: var(--color-gray-400); pointer-events: none;
+}
+.fl-input-icon > .fl-prefix + .fl-input { padding-left: 2.5rem; }
+
+/* Input file: <input type="file" class="fl-file"> */
+.fl-file {
+    display: block; width: 100%; padding: 0.625rem 0.75rem; font-size: 0.8125rem; color: var(--color-gray-500);
+    background: var(--color-gray-50); border: 1px dashed var(--color-gray-300) !important; border-radius: 0.5rem; cursor: pointer;
+}
+.fl-file:hover { border-color: var(--color-primary-400) !important; }
+.fl-file::file-selector-button {
+    margin-right: 0.75rem; padding: 0.375rem 0.75rem; border: 0; border-radius: 0.375rem;
+    background: #eff6ff; color: #1d4ed8; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+}
+html:not([data-mode="light"]) .fl-file { background: rgba(255,255,255,0.03); border-color: rgba(167,139,250,0.25) !important; color: rgba(221,214,254,0.7); }
+html:not([data-mode="light"]) .fl-file::file-selector-button { background: rgba(124,58,237,0.2); color: #ddd6fe; }
 
 /* Toggle switch: <label class="fl-switch"><input type="checkbox"><span class="fl-switch-track"></span><span>Label</span></label> */
 .fl-switch { display: inline-flex; align-items: center; gap: 0.625rem; cursor: pointer; font-size: 0.875rem; color: var(--color-gray-700); user-select: none; }
@@ -1045,6 +1044,14 @@ select.fl-input {
 .fl-switch > input:checked + .fl-switch-track::after { transform: translateX(1rem); }
 .fl-switch > input:focus-visible + .fl-switch-track { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
 .fl-switch > input:disabled + .fl-switch-track { opacity: .55; cursor: not-allowed; }
+
+/* Ringkasan error / info di atas section: <div class="fl-alert fl-alert-error">..</div> */
+.fl-alert { margin: 1.25rem 1.5rem 0; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; border: 1px solid; }
+@media (min-width: 1024px) { .fl-alert { margin: 1.5rem 2rem 0; } }
+.fl-alert-error { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.fl-alert-info { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+html:not([data-mode="light"]) .fl-alert-error { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+html:not([data-mode="light"]) .fl-alert-info { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.3); color: #93c5fd; }
 
 .fl-actions {
     display: flex; justify-content: flex-end; align-items: center; gap: 0.625rem;
@@ -1145,6 +1152,9 @@ html:not([data-mode="light"]) .fl-switch-track { background: rgba(167,139,250,0.
 html:not([data-mode="light"]) .fl-btn-secondary { background: transparent; color: rgba(221,214,254,0.85); border-color: rgba(167,139,250,0.25); }
 html:not([data-mode="light"]) .fl-btn-secondary:hover { background: rgba(167,139,250,0.08); }
 html:not([data-mode="light"]) .fl-form .filepond--panel-root { background-color: rgba(255,255,255,0.03); border-color: rgba(167,139,250,0.25); }
+html:not([data-mode="light"]) .fl-form .bg-blue-50 { background-color: rgba(59,130,246,0.12) !important; }
+html:not([data-mode="light"]) .fl-form .text-blue-700 { color: #93c5fd !important; }
+html:not([data-mode="light"]) .fl-form .border-gray-200 { border-color: rgba(167,139,250,0.14) !important; }
 html:not([data-mode="light"]) .fl-form .filepond--drop-label { color: rgba(221,214,254,0.7); }
 
 /* Scoped to React (shadcn) mount points so it doesn't override the existing Blade/Alpine design system. */

@@ -4,77 +4,77 @@
 
 @section('content')
 <div class="py-4 w-full">
-    <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('clients.update', $client) }}" class="form-2col space-y-5">
-            @csrf @method('PUT')
+    <form method="POST" action="{{ route('clients.update', $client) }}" class="fl-form">
+        @csrf @method('PUT')
 
-            @if($errors->any())
-            <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
-                {{ $errors->first() }}
-            </div>
-            @endif
+        @if($errors->any())
+            <div class="fl-alert fl-alert-error">{{ $errors->first() }}</div>
+        @endif
 
-            {{-- Role badge --}}
-            <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                <span class="text-sm text-gray-500">Role: <span class="font-semibold text-gray-700">Client</span></span>
-            </div>
-
+        <section class="fl-section">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Nama Perusahaan <span class="text-red-500">*</span>
-                </label>
-                <input type="text" name="name" value="{{ old('name', $client->name) }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                              {{ $errors->has('name') ? 'border-red-400' : '' }}">
+                <h3 class="fl-section-title">Informasi Client</h3>
+                <p class="fl-section-desc">Role: <strong>Client</strong>. Client hanya bisa melihat proyek yang dibagikan ke mereka.</p>
             </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Email <span class="text-red-500">*</span>
-                </label>
-                <input type="email" name="email" value="{{ old('email', $client->email) }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500
-                              {{ $errors->has('email') ? 'border-red-400' : '' }}">
-            </div>
-
-            <div class="border border-gray-100 rounded-lg p-4 bg-gray-50 space-y-4">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ganti Password</p>
-                <p class="text-xs text-gray-400 -mt-2">Kosongkan jika tidak ingin mengubah password.</p>
-
+            <div class="fl-fields">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
-                    <input type="password" name="password" minlength="8"
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="fl-label" for="name">Nama Perusahaan <span class="fl-req">*</span></label>
+                    <div class="fl-input-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <input type="text" id="name" name="name" value="{{ old('name', $client->name) }}" required
+                               class="fl-input @error('name') is-invalid @enderror">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
-                    <input type="password" name="password_confirmation"
-                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="fl-label" for="email">Email <span class="fl-req">*</span></label>
+                    <div class="fl-input-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        <input type="email" id="email" name="email" value="{{ old('email', $client->email) }}" required
+                               class="fl-input @error('email') is-invalid @enderror">
+                    </div>
+                </div>
+
+                <div class="fl-span-2">
+                    <label class="fl-switch">
+                        <input type="checkbox" name="is_active" value="1" id="is_active" {{ old('is_active', $client->is_active) ? 'checked' : '' }}>
+                        <span class="fl-switch-track"></span>
+                        <span>Akun Aktif</span>
+                    </label>
+                    <p class="fl-help">Client nonaktif tidak bisa login.</p>
                 </div>
             </div>
+        </section>
 
-            <div class="flex items-center gap-2">
-                <input type="checkbox" name="is_active" value="1" id="is_active"
-                       {{ old('is_active', $client->is_active) ? 'checked' : '' }}
-                       class="w-4 h-4 text-blue-600 rounded border-gray-300">
-                <label for="is_active" class="text-sm text-gray-700">Akun Aktif</label>
+        <section class="fl-section">
+            <div>
+                <h3 class="fl-section-title">Ganti Password</h3>
+                <p class="fl-section-desc">Kosongkan jika tidak ingin mengubah password.</p>
             </div>
+            <div class="fl-fields">
+                <div>
+                    <label class="fl-label" for="password">Password Baru</label>
+                    <div class="fl-input-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <input type="password" id="password" name="password" minlength="8"
+                               class="fl-input @error('password') is-invalid @enderror">
+                    </div>
+                </div>
 
-            <div class="flex gap-3 pt-2">
-                <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
-                    Simpan Perubahan
-                </button>
-                <a href="{{ route('clients.index') }}"
-                   class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
-                    Batal
-                </a>
+                <div>
+                    <label class="fl-label" for="password_confirmation">Konfirmasi Password Baru</label>
+                    <div class="fl-input-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <input type="password" id="password_confirmation" name="password_confirmation" class="fl-input">
+                    </div>
+                </div>
             </div>
-        </form>
-    </div>
+        </section>
+
+        <div class="fl-actions">
+            <a href="{{ route('clients.index') }}" class="fl-btn fl-btn-secondary">Batal</a>
+            <button type="submit" class="fl-btn fl-btn-primary">Simpan Perubahan</button>
+        </div>
+    </form>
 </div>
 @endsection

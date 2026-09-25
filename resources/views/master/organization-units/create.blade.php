@@ -4,17 +4,6 @@
 
 @push('head')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-<style>
-.select2-container--default .select2-selection--single {
-    height: 42px !important; border: 1px solid #d1d5db !important; border-radius: 0.5rem !important;
-    padding: 0.5rem 0.75rem !important; font-size: 0.875rem !important; display: flex; align-items: center;
-}
-.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 1.5 !important; color: #111827 !important; padding-left: 0 !important; }
-.select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; right: 8px !important; }
-.select2-container--default.select2-container--focus .select2-selection--single { border-color: #3b82f6 !important; box-shadow: 0 0 0 2px rgba(59,130,246,.25) !important; }
-.select2-dropdown { border: 1px solid #d1d5db !important; border-radius: 0.5rem !important; font-size: 0.875rem !important; }
-.select2-results__option--highlighted { background-color: #2563eb !important; }
-</style>
 @endpush
 
 @section('content')
@@ -28,99 +17,15 @@
         <span class="text-gray-600 font-medium">Tambah</span>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <form method="POST" action="{{ route('organization-units.store') }}" class="form-2col space-y-5"
-              data-confirm-submit="Simpan unit organisasi baru?" data-confirm-btn="Ya, Simpan">
-            @csrf
-
-            @if($companies->count() > 1)
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan <span class="text-red-500">*</span></label>
-                    <select name="company_id" onchange="this.form.submit()"
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">— Pilih Perusahaan —</option>
-                        @foreach($companies as $company)
-                            <option value="{{ $company->id }}" {{ (string) $selectedCompany === (string) $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @else
-                <input type="hidden" name="company_id" value="{{ $selectedCompany }}">
-            @endif
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Parent (opsional)</label>
-                <select name="parent_id" id="sel-parent"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('parent_id') border-red-400 @enderror">
-                    <option value="">— Tanpa Parent (Level 1) —</option>
-                    @foreach($tree as $node)
-                        <option value="{{ $node->id }}" data-level="{{ $node->level }}" {{ (string) request('parent_id') === (string) $node->id ? 'selected' : '' }}>
-                            {{ str_repeat('— ', $node->level - 1) }}{{ $node->name }} (L{{ $node->code }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('parent_id')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
-                <p class="text-xs text-gray-400 mt-1">Kosongkan untuk membuat unit level teratas (root).</p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit <span class="text-red-500">*</span></label>
-                <input type="text" name="name" value="{{ old('name') }}" required
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-400 @enderror"
-                       placeholder="Divisi IT">
-                @error('name')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kepala Unit (opsional)</label>
-                <select name="head_id" id="sel-head"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">— Tidak ada —</option>
-                    @foreach($users as $u)
-                        <option value="{{ $u->id }}" {{ (string) old('head_id') === (string) $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <input type="checkbox" name="is_active" value="1" id="is_active"
-                       {{ old('is_active', '1') ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
-                <label for="is_active" class="text-sm text-gray-700">Unit Aktif</label>
-            </div>
-
-            <div>
-                <div class="flex items-center gap-1.5 mb-1">
-                    <label class="block text-sm font-medium text-gray-700">Warna Kotak (Bagan Organisasi)</label>
-                    <div class="group relative inline-flex items-center">
-                        <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <div class="hidden group-hover:block absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-gray-800 text-white text-xs leading-relaxed rounded-lg px-3 py-2 shadow-lg z-10">
-                            Warna ini dipakai untuk kotak unit ini di Bagan Organisasi. Kalau "Otomatis sesuai level" dicentang, warnanya ikut Level Struktural unit ini — hilangkan centang untuk pilih warna sendiri lewat kotak warna di sampingnya.
-                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <label class="flex items-center gap-2 text-sm text-gray-600">
-                        <input type="checkbox" id="color-auto" onchange="toggleColorAuto(this)" {{ old('color') ? '' : 'checked' }} class="w-4 h-4 text-blue-600 rounded">
-                        Otomatis sesuai level
-                    </label>
-                    <input type="color" name="color" id="color-input" value="{{ old('color', '#1d4ed8') }}"
-                           class="w-12 h-9 border border-gray-300 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" {{ old('color') ? '' : 'disabled' }}>
-                </div>
-                <div id="color-preview-bar" class="w-full h-10 rounded-lg border border-gray-200 flex items-center px-3 mt-2 transition-colors">
-                    <span id="color-preview-label" class="text-xs font-semibold"></span>
-                </div>
-                @error('color')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
-            </div>
-
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">Simpan Unit</button>
-                <a href="{{ route('organization-units.index', ['company_id' => $selectedCompany]) }}" class="text-gray-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">Batal</a>
-            </div>
-        </form>
-    </div>
+    <form method="POST" action="{{ route('organization-units.store') }}" class="fl-form"
+          data-confirm-submit="Simpan unit organisasi baru?" data-confirm-btn="Ya, Simpan">
+        @csrf
+        @include('master.organization-units._form')
+        <div class="fl-actions">
+            <a href="{{ route('organization-units.index', ['company_id' => $selectedCompany]) }}" class="fl-btn fl-btn-secondary">Batal</a>
+            <button type="submit" class="fl-btn fl-btn-primary">Simpan Unit</button>
+        </div>
+    </form>
 </div>
 @endsection
 
