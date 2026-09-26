@@ -142,6 +142,11 @@ class Project extends Model
         return $this->hasMany(BoardColumn::class)->orderBy('sort_order');
     }
 
+    public function labels()
+    {
+        return $this->hasMany(Label::class);
+    }
+
     public function tickets()
     {
         return $this->hasMany(BugTicket::class);

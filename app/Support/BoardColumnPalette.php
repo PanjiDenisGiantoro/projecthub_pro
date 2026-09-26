@@ -82,4 +82,23 @@ class BoardColumnPalette
     {
         return self::MAP[$color]['badge'] ?? self::MAP['gray']['badge'];
     }
+
+    public static function pill(?string $color): string
+    {
+        $map = [
+            'blue'   => 'bg-blue-600',
+            'purple' => 'bg-purple-600',
+            'teal'   => 'bg-cyan-600',
+            'green'  => 'bg-emerald-600',
+            'red'    => 'bg-red-600',
+            'rose'   => 'bg-rose-600',
+            'amber'  => 'bg-amber-600',
+            'pink'   => 'bg-pink-600',
+            'indigo' => 'bg-indigo-600',
+            'slate'  => 'bg-slate-700',
+            'gray'   => 'bg-gray-600',
+        ];
+
+        return $map[$color] ?? 'bg-blue-600';
+    }
 }
