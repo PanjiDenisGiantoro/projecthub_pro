@@ -43,6 +43,8 @@
      data-due="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
      data-is-done="{{ $isDone ? '1' : '0' }}"
      data-is-overdue="{{ $overdue ? '1' : '0' }}"
+     data-sprint-id="{{ $task->sprint_id ?? '' }}"
+     data-milestone-id="{{ $task->milestone_id ?? '' }}"
      data-sort-order="{{ $task->sort_order }}"
      @click="openTask({{ $task->id }})">
 
@@ -185,13 +187,10 @@
                              title="{{ $m->name }}"
                              class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 object-cover shadow-2xs">
                     @else
-                        @php
-                            $names = explode(' ', trim($m->name));
-                            $initials = strtoupper(substr($names[0], 0, 1) . (isset($names[1]) ? substr($names[1], 0, 1) : ''));
-                        @endphp
-                        <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
+                        <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
+                             style="background-color: {{ $m->avatarColor() }};"
                              title="{{ $m->name }}">
-                            {{ $initials }}
+                            {{ $m->initials() }}
                         </div>
                     @endif
                 @empty

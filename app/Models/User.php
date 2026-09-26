@@ -88,6 +88,34 @@ class User extends Authenticatable // implements MustVerifyEmailContract
         $this->notify(new QueuedVerifyEmail);
     }
 
+    /**
+     * Get two-letter initials matching frontend avatar formatting.
+     */
+    public function initials(): string
+    {
+        $name = trim($this->name ?? '');
+        if (!$name) return 'U';
+        $parts = preg_split('/\s+/', $name);
+        if (count($parts) >= 2) {
+            return strtoupper(mb_substr($parts[0], 0, 1) . mb_substr($parts[1], 0, 1));
+        }
+        return strtoupper(mb_substr($name, 0, 2));
+    }
+
+    /**
+     * Get consistent HSL-tailored avatar color matching frontend task modal.
+     */
+    public function avatarColor(): string
+    {
+        $colors = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
+        $name = $this->name ?? '';
+        $hash = 0;
+        for ($i = 0; $i < strlen($name); $i++) {
+            $hash = ord($name[$i]) + (($hash << 5) - $hash);
+        }
+        return $colors[abs($hash) % count($colors)];
+    }
+
     /** Masa kerja dalam bulan sejak hire_date, dasar hitung THR pro-rata & eligibilitas cuti tahunan. */
     public function tenureMonths(): ?int
     {

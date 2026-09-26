@@ -211,6 +211,7 @@ Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
         Route::post('/projects/{project}/milestones', [MilestoneWebController::class, 'store'])->name('milestones.store');
         Route::put('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'update'])->name('milestones.update');
         Route::delete('/projects/{project}/milestones/{milestone}', [MilestoneWebController::class, 'destroy'])->name('milestones.destroy');
+        Route::post('/projects/{project}/milestones/{milestone}/assign', [MilestoneWebController::class, 'assignItems'])->name('milestones.assign');
         Route::post('/projects/{project}/milestones/{milestone}/meeting', [MilestoneWebController::class, 'createMeeting'])->name('milestones.meeting.create');
 
         // Tasks
@@ -484,6 +485,7 @@ Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
         Route::get('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'show'])->name('sprints.show');
         Route::put('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'update'])->name('sprints.update');
         Route::delete('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'destroy'])->name('sprints.destroy');
+        Route::post('/projects/{project}/sprints/{sprint}/assign', [SprintWebController::class, 'assignTasks'])->name('sprints.assign');
         Route::post('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'addTask'])->name('sprints.tasks.add');
         Route::delete('/projects/{project}/sprints/{sprint}/tasks', [SprintWebController::class, 'removeTask'])->name('sprints.tasks.remove');
         Route::post('/projects/{project}/sprints/{sprint}/meeting', [SprintWebController::class, 'createMeeting'])->name('sprints.meeting.create');

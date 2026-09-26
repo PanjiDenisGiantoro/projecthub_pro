@@ -19,8 +19,8 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 -translate-y-4 scale-95"
-        class="fixed top-6 left-1/2 -translate-x-1/2 z-[80] flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold"
-        :class="toast.type === 'error' ? 'bg-red-600 text-white' : (toast.type === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900')">
+        class="fixed top-6 left-1/2 -translate-x-1/2 z-[80] flex items-center gap-2.5 px-4.5 py-2.5 rounded-full shadow-2xl text-xs sm:text-sm font-semibold border"
+        :class="toast.type === 'error' ? 'bg-red-600 text-white border-red-500' : (toast.type === 'warning' ? 'bg-amber-600 text-white border-amber-500' : 'bg-slate-900 text-white border-slate-800')">
         <svg x-show="toast.type === 'success' || !toast.type" class="w-4 h-4 text-emerald-400" fill="none"
             stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -720,16 +720,9 @@
 
                             {{-- Field 5: Repeat (Card 04 Recurring Rule Scheduler) --}}
                             <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <div class="flex items-center gap-1">
-                                        <label
-                                            class="text-xs font-semibold text-slate-500 dark:text-slate-400">Repeat</label>
-                                    </div>
-                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                <div class="flex items-center gap-1">
+                                    <label
+                                        class="text-xs font-semibold text-slate-500 dark:text-slate-400">Repeat</label>
                                 </div>
 
                                 <div class="relative" x-data="{ repeatOpen: false }">
@@ -845,16 +838,9 @@
 
                             {{-- Field 6: Bucket (Card 03 Bucket Kanban Selector) --}}
                             <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <div class="flex items-center gap-1">
-                                        <label
-                                            class="text-xs font-semibold text-slate-500 dark:text-slate-400">Bucket</label>
-                                    </div>
-                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                <div class="flex items-center gap-1">
+                                    <label
+                                        class="text-xs font-semibold text-slate-500 dark:text-slate-400">Bucket</label>
                                 </div>
 
                                 <div class="relative" x-data="{ bucketOpen: false }">
@@ -964,6 +950,124 @@
                                                             class="px-2.5 py-1 text-xs bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">Save</button>
                                                     </div>
                                                 </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Field 7: Milestone Selector --}}
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Milestone</label>
+                                <div class="relative" x-data="{ msOpen: false }">
+                                    <button type="button" @click="msOpen = !msOpen"
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium hover:border-slate-300 dark:hover:border-slate-600 transition shadow-2xs">
+                                        <span class="flex items-center gap-2.5 min-w-0">
+                                            <svg class="w-4 h-4 shrink-0" :class="task.milestone_id ? 'text-purple-500' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                            </svg>
+                                            <span class="truncate font-medium" :class="task.milestone_id ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'" x-text="milestoneLabel()"></span>
+                                        </span>
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {{-- Milestone Popover --}}
+                                    <div x-show="msOpen" @click.outside="msOpen = false" x-cloak
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 scale-95"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        class="absolute left-0 top-full mt-1.5 w-full bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 z-50">
+                                        <div class="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            PROJECT MILESTONE
+                                        </div>
+                                        <div class="space-y-0.5 mt-1 px-1.5 max-h-52 overflow-y-auto">
+                                            {{-- Option: No milestone yet --}}
+                                            <button type="button" @click="task.milestone_id = null; markDirty(); msOpen = false"
+                                                class="w-full text-left px-3 py-2 text-xs flex items-center justify-between rounded-lg transition"
+                                                :class="!task.milestone_id ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                                                <span class="flex items-center gap-2">
+                                                    <span class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
+                                                    <span>No milestone yet</span>
+                                                </span>
+                                                <svg x-show="!task.milestone_id" class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </button>
+
+                                            <template x-for="m in milestones" :key="m.id">
+                                                <button type="button" @click="task.milestone_id = m.id; markDirty(); msOpen = false"
+                                                    class="w-full text-left px-3 py-2 text-xs flex items-center justify-between rounded-lg transition"
+                                                    :class="task.milestone_id === m.id ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                                                    <span class="flex items-center gap-2 min-w-0">
+                                                        <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                                                        <span class="truncate" x-text="m.title || m.name"></span>
+                                                        <span x-show="m.code" class="text-[10px] font-mono text-slate-400 shrink-0" x-text="m.code"></span>
+                                                    </span>
+                                                    <svg x-show="task.milestone_id === m.id" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Field 8: Sprint Selector --}}
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Sprint</label>
+                                <div class="relative" x-data="{ spOpen: false }">
+                                    <button type="button" @click="spOpen = !spOpen"
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium hover:border-slate-300 dark:hover:border-slate-600 transition shadow-2xs">
+                                        <span class="flex items-center gap-2.5 min-w-0">
+                                            <svg class="w-4 h-4 shrink-0" :class="task.sprint_id ? 'text-indigo-500' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            <span class="truncate font-medium" :class="task.sprint_id ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'" x-text="sprintLabel()"></span>
+                                        </span>
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {{-- Sprint Popover --}}
+                                    <div x-show="spOpen" @click.outside="spOpen = false" x-cloak
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 scale-95"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        class="absolute left-0 top-full mt-1.5 w-full bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 z-50">
+                                        <div class="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            PROJECT SPRINT
+                                        </div>
+                                        <div class="space-y-0.5 mt-1 px-1.5 max-h-52 overflow-y-auto">
+                                            {{-- Option: No sprint yet --}}
+                                            <button type="button" @click="task.sprint_id = null; markDirty(); spOpen = false"
+                                                class="w-full text-left px-3 py-2 text-xs flex items-center justify-between rounded-lg transition"
+                                                :class="!task.sprint_id ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                                                <span class="flex items-center gap-2">
+                                                    <span class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
+                                                    <span>No sprint yet</span>
+                                                </span>
+                                                <svg x-show="!task.sprint_id" class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </button>
+
+                                            <template x-for="s in sprints" :key="s.id">
+                                                <button type="button" @click="task.sprint_id = s.id; markDirty(); spOpen = false"
+                                                    class="w-full text-left px-3 py-2 text-xs flex items-center justify-between rounded-lg transition"
+                                                    :class="task.sprint_id === s.id ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                                                    <span class="flex items-center gap-2 min-w-0">
+                                                        <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+                                                        <span class="truncate" x-text="s.name"></span>
+                                                        <span x-show="s.code" class="text-[10px] font-mono text-slate-400 shrink-0" x-text="s.code"></span>
+                                                    </span>
+                                                    <svg x-show="task.sprint_id === s.id" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
                                             </template>
                                         </div>
                                     </div>
@@ -1874,7 +1978,8 @@
             columns: @json($columns ?? []),
             projectLabels: @json($projectLabels ?? []),
             assignableUsers: @json($assignableUsers ?? []),
-            milestones: @json($milestones ?? []),
+            milestones: @json(isset($milestones) ? $milestones : ($project ? $project->milestones()->get(['id', 'title', 'code']) : [])),
+            sprints: @json(isset($sprints) ? $sprints : ($project ? $project->sprints()->get(['id', 'name', 'code']) : [])),
             columnCounts: {},
 
             // Bucket Popover
@@ -2033,6 +2138,20 @@
                 if (this.task.priority === 'high') return 'border-amber-300 bg-amber-50/30 dark:border-amber-800';
                 return 'border-slate-200 dark:border-slate-700';
             },
+            milestoneLabel() {
+                if (!this.task.milestone_id) return 'No milestone yet';
+                const m = (this.milestones || []).find(item => item.id == this.task.milestone_id);
+                if (m) return m.title || m.name;
+                if (this.task.milestone) return this.task.milestone.title || this.task.milestone.name;
+                return 'Milestone #' + this.task.milestone_id;
+            },
+            sprintLabel() {
+                if (!this.task.sprint_id) return 'No sprint yet';
+                const s = (this.sprints || []).find(item => item.id == this.task.sprint_id);
+                if (s) return s.name;
+                if (this.task.sprint) return this.task.sprint.name;
+                return 'Sprint #' + this.task.sprint_id;
+            },
             setStatus(status) {
                 this.task.status = status;
                 const col = this.columns.find(c => c.slug === status);
@@ -2129,8 +2248,10 @@
                     if (this.task.due_date) {
                         this.task.due_date = (typeof this.task.due_date === 'string' && this.task.due_date.includes('T')) ? this.task.due_date.split('T')[0] : this.task.due_date;
                     }
-                    this.columnCounts = data.columnCounts || {};
                     if (!this.task.members) this.task.members = [];
+                    if (this.task.members.length === 0 && this.task.assignee) {
+                        this.task.members = [this.task.assignee];
+                    }
                     if (!this.task.labels) this.task.labels = [];
                     if (!this.task.checklists) this.task.checklists = [];
                     if (!this.task.attachments) this.task.attachments = [];
@@ -2813,7 +2934,8 @@
                     status: this.task.status,
                     priority: this.task.priority,
                     board_column_id: this.task.board_column_id,
-                    milestone_id: this.task.milestone_id,
+                    milestone_id: this.task.milestone_id || null,
+                    sprint_id: this.task.sprint_id || null,
                     start_date: this.task.start_date ? (typeof this.task.start_date === 'string' && this.task.start_date.includes('T') ? this.task.start_date.split('T')[0] : this.task.start_date) : null,
                     due_date: this.task.due_date ? (typeof this.task.due_date === 'string' && this.task.due_date.includes('T') ? this.task.due_date.split('T')[0] : this.task.due_date) : null,
                     estimated_hours: this.task.estimated_hours,
@@ -2844,6 +2966,18 @@
                         const updatedTask = data.task || this.task;
                         this.isDirty = false;
                         this.forceClose();
+
+                        if (data.card_html) {
+                            const cards = document.querySelectorAll(`.kanban-card[data-task-id="${updatedTask.id}"]`);
+                            cards.forEach(oldCard => {
+                                const temp = document.createElement('div');
+                                temp.innerHTML = data.card_html.trim();
+                                const newCard = temp.firstElementChild;
+                                if (newCard && oldCard.parentElement) {
+                                    oldCard.parentElement.replaceChild(newCard, oldCard);
+                                }
+                            });
+                        }
 
                         if (window.updateCardInDOM) {
                             window.updateCardInDOM(updatedTask);
@@ -2953,6 +3087,14 @@
         };
 
         cards.forEach(card => {
+            if (task.sprint_id !== undefined) card.dataset.sprintId = task.sprint_id || '';
+            if (task.milestone_id !== undefined) card.dataset.milestoneId = task.milestone_id || '';
+
+            const cardMembers = (task.members && task.members.length > 0)
+                ? task.members
+                : (task.assignee ? [task.assignee] : []);
+            card.dataset.assigneeIds = cardMembers.map(m => m.id).join(',');
+
             // 1. Cover Image Thumbnail
             const coverContainer = card.querySelector('.card-cover-container');
             if (coverContainer) {
@@ -3156,8 +3298,10 @@
                         } else {
                             const parts = (m.name || '').trim().split(' ');
                             const initials = ((parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '')).toUpperCase() || 'U';
-                            return `
-                            <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-[10px] font-bold"
+                        const bgColor = this.getAvatarColor(m.name);
+                        return `
+                            <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
+                                 style="background-color: ${bgColor}"
                                  title="${m.name || ''}">
                                 ${initials}
                             </div>
@@ -3196,6 +3340,9 @@
 
         // Also update any table/list rows matching this task
         document.querySelectorAll(`.list-task-row[data-task-id="${task.id}"], tr[data-task-id="${task.id}"], .task-list-row[data-task-id="${task.id}"]`).forEach(row => {
+            if (task.sprint_id !== undefined) row.dataset.sprintId = task.sprint_id || '';
+            if (task.milestone_id !== undefined) row.dataset.milestoneId = task.milestone_id || '';
+
             const titleEl = row.querySelector('.task-title, span.text-xs.font-bold, a[href*="/tasks/"]');
             if (titleEl) titleEl.textContent = task.title;
 
@@ -3280,6 +3427,34 @@
                     `;
                 } else {
                     checklistEl.innerHTML = '<span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>';
+                }
+            }
+
+            // Assignee in List Row
+            const listAssigneeEl = row.querySelector('.list-assignee-container');
+            if (listAssigneeEl) {
+                const members = (task.members && task.members.length > 0)
+                    ? task.members
+                    : (task.assignee ? [task.assignee] : []);
+                if (members.length > 0) {
+                    const firstM = members[0];
+                    if (firstM.avatar) {
+                        const avUrl = firstM.avatar.startsWith('http') || firstM.avatar.startsWith('/') ? firstM.avatar : '/storage/' + firstM.avatar;
+                        listAssigneeEl.innerHTML = `<img src="${avUrl}" alt="${firstM.name || ''}" title="${firstM.name || ''}" class="w-6 h-6 rounded-full object-cover shadow-2xs">`;
+                    } else {
+                        const parts = (firstM.name || '').trim().split(' ');
+                        const initials = ((parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '')).toUpperCase() || 'U';
+                        const bgColor = this.getAvatarColor(firstM.name);
+                        listAssigneeEl.innerHTML = `
+                            <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
+                                 style="background-color: ${bgColor}"
+                                 title="${firstM.name || ''}">
+                                ${initials}
+                            </div>
+                        `;
+                    }
+                } else {
+                    listAssigneeEl.innerHTML = '<span class="text-xs text-gray-300">—</span>';
                 }
             }
 
