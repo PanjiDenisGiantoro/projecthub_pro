@@ -20,17 +20,28 @@ class PayrollController extends Controller
     public function index(Request $request)
     {
         $user  = auth()->user();
-        $year  = $request->get('year', now()->year);
-        $month = $request->get('month', now()->month);
+        $year   = (int) $request->get('year', now()->year);
+        $month  = (int) $request->get('month', now()->month);
+        $search = trim((string) $request->get('q', ''));
+        $status = in_array($request->get('status'), ['draft', 'finalized', 'paid']) ? $request->get('status') : null;
 
-        $payrolls = Payroll::with('user')
-            ->where('company_id', $user->company_id)
+        $periodQuery = fn() => Payroll::where('company_id', $user->company_id)
             ->when(!$user->can('view payroll'), fn($q) => $q->where('user_id', $user->id))
             ->where('year', $year)
-            ->where('month', $month)
+            ->where('month', $month);
+
+        $payrolls = $periodQuery()
+            ->with('user')
+            ->when($status, fn($q) => $q->where('status', $status))
+            ->when($search !== '', fn($q) => $q->whereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")))
             ->orderBy('created_at')
             ->paginate($this->perPage($request))
             ->withQueryString();
+
+        // Total satu periode (bukan per halaman) untuk kartu ringkasan.
+        $totals = $periodQuery()
+            ->selectRaw('count(*) as jumlah, coalesce(sum(penghasilan_bruto),0) as bruto, coalesce(sum(total_potongan),0) as potongan, coalesce(sum(gaji_bersih),0) as bersih')
+            ->first();
 
         $employees = $user->can('view payroll')
             ? User::where('company_id', $user->company_id)
@@ -49,15 +60,14 @@ class PayrollController extends Controller
             : collect();
 
         // Ringkasan status satu periode (bukan per halaman) untuk alur Generate → Finalize.
-        $statusCounts = $user->can('generate payroll') || $user->can('update payroll')
-            ? Payroll::where('company_id', $user->company_id)
-                ->where('year', $year)->where('month', $month)
-                ->selectRaw('status, count(*) as total')
-                ->groupBy('status')
-                ->pluck('total', 'status')
-            : collect();
+        $statusCounts = $periodQuery()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
-        return view('hris.payroll.index', compact('payrolls', 'year', 'month', 'employees', 'existingStatus', 'statusCounts'));
+        return view('hris.payroll.index', compact(
+            'payrolls', 'year', 'month', 'search', 'status', 'totals', 'employees', 'existingStatus', 'statusCounts'
+        ));
     }
 
     public function generate(Request $request)
