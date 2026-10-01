@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\CustomFieldDefinition;
 use App\Models\OrganizationUnit;
 use App\Models\Package;
+use App\Models\Shift;
 use App\Models\StructuralLevel;
 use App\Models\User;
 use App\Support\EmploymentType;
@@ -40,14 +41,17 @@ class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
     private Collection $allowedRoles;
     private Collection $organizationUnits;
     private Collection $structuralLevels;
+    private Collection $shifts;
     private Collection $companyPackageIds;
 
-    public function __construct(private int $companyId)
+    /** @param bool $sendVerification true: user baru harus klik link verifikasi di email; false: langsung terverifikasi. */
+    public function __construct(private int $companyId, private bool $sendVerification = false)
     {
         $this->customFields = CustomFieldDefinition::forCompany($companyId)->active()->get();
         $this->allowedRoles = Role::whereNotIn('name', ['client', 'tester'])->get();
         $this->organizationUnits = OrganizationUnit::where('company_id', $companyId)->get();
         $this->structuralLevels = StructuralLevel::where('company_id', $companyId)->get();
+        $this->shifts = Shift::where('company_id', $companyId)->get();
         $this->companyPackageIds = Package::whereHas('users', fn ($q) => $q->where('company_id', $companyId))->pluck('id');
     }
 
@@ -98,8 +102,8 @@ class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
                 continue;
             }
 
-            // Heading "Departemen/Unit" di-slug Laravel Excel jadi "departemenunit" (tanpa underscore).
-            $orgRaw = trim((string) ($row['departemenunit'] ?? $row['departemen_unit'] ?? ''));
+            // Heading "Organization Unit" (template lama: "Departemen/Unit", di-slug Laravel Excel jadi "departemenunit").
+            $orgRaw = trim((string) ($row['organization_unit'] ?? $row['departemenunit'] ?? $row['departemen_unit'] ?? ''));
             $organizationUnitId = null;
             if ($orgRaw !== '') {
                 $organizationUnitId = $this->matchByName($this->organizationUnits, $orgRaw);
@@ -119,7 +123,21 @@ class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
                 }
             }
 
+            // Kolom Shift Kerja cuma ada di file dari paket HRIS; kosong = tidak diubah.
+            $shiftRaw = trim((string) ($row['shift_kerja'] ?? ''));
+            $shiftId  = null;
+            if ($shiftRaw !== '') {
+                $shiftId = $this->matchByName($this->shifts, $shiftRaw);
+                if (! $shiftId) {
+                    $this->errors[] = "Baris {$line}: Shift Kerja \"{$shiftRaw}\" tidak ditemukan.";
+                    continue;
+                }
+            }
+
             $data = ['name' => $name];
+            if ($shiftId) {
+                $data['shift_id'] = $shiftId;
+            }
 
             if ($orgRaw !== '' || ! $existing) {
                 $data['organization_unit_id'] = $organizationUnitId;
@@ -167,10 +185,16 @@ class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
                 $data['email']      = $email;
                 $data['company_id'] = $this->companyId;
                 $data['password']   = Str::random(12);
+                // Default langsung terverifikasi (diimpor admin, bukan daftar sendiri),
+                // kecuali admin memilih "Kirim email verifikasi" di form import.
+                $data['email_verified_at'] = $this->sendVerification ? null : now();
 
                 $user = User::create($data);
                 $user->assignRole($role->name);
                 $user->packages()->sync($this->companyPackageIds);
+                if ($this->sendVerification) {
+                    $user->sendEmailVerificationNotification();
+                }
                 $this->created++;
             }
         }

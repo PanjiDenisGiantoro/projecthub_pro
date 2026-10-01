@@ -112,6 +112,15 @@
                         </label>
                         <p class="fl-help">Inactive users cannot log in.</p>
                     </div>
+
+                    <div class="fl-span-2">
+                        <label class="fl-switch">
+                            <input type="checkbox" name="send_verification" value="1" id="send_verification" {{ old('send_verification') ? 'checked' : '' }}>
+                            <span class="fl-switch-track"></span>
+                            <span>Kirim email verifikasi</span>
+                        </label>
+                        <p class="fl-help">Jika aktif, user harus klik link verifikasi di emailnya sebelum bisa login. Jika tidak, akun langsung terverifikasi (sampaikan kredensial secara langsung).</p>
+                    </div>
                 </div>
             </section>
 

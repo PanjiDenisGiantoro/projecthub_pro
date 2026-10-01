@@ -31,6 +31,7 @@ class UsersExport implements FromCollection, WithEvents, WithHeadings, WithMappi
      * @param Collection $roles Role yang bisa dipilih (buat dropdown kolom Role)
      * @param Collection $organizationUnits Unit organisasi milik company (buat dropdown kolom Departemen/Unit)
      * @param Collection $structuralLevels Level struktural milik company (buat dropdown kolom Level Struktural)
+     * @param Collection|null $shifts Shift kerja company; null = kolom Shift Kerja tidak ditampilkan (di luar paket HRIS)
      */
     public function __construct(
         private Collection $users,
@@ -38,6 +39,7 @@ class UsersExport implements FromCollection, WithEvents, WithHeadings, WithMappi
         private Collection $roles,
         private Collection $organizationUnits = new Collection(),
         private Collection $structuralLevels = new Collection(),
+        private ?Collection $shifts = null,
     ) {}
 
     public function collection(): Collection
@@ -48,9 +50,10 @@ class UsersExport implements FromCollection, WithEvents, WithHeadings, WithMappi
     public function headings(): array
     {
         return [
-            'Nama', 'Email', 'Role', 'Departemen/Unit', 'Level Struktural',
+            'Nama', 'Email', 'Role', 'Organization Unit', 'Level Struktural',
             'Tipe Karyawan', 'Tipe Karyawan (Lainnya)', 'Nama Perusahaan Asal',
             'Tanggal Bergabung', 'Tanggal Akhir Kontrak', 'Status Aktif',
+            ...($this->shifts !== null ? ['Shift Kerja'] : []),
             ...$this->customFields->pluck('label')->all(),
         ];
     }
@@ -70,6 +73,10 @@ class UsersExport implements FromCollection, WithEvents, WithHeadings, WithMappi
             $user->contract_end_date?->format('Y-m-d'),
             $user->is_active ? 'Aktif' : 'Nonaktif',
         ];
+
+        if ($this->shifts !== null) {
+            $row[] = $user->shift?->name;
+        }
 
         foreach ($this->customFields as $field) {
             $value = $user->custom_fields[$field->key] ?? null;
@@ -113,6 +120,10 @@ class UsersExport implements FromCollection, WithEvents, WithHeadings, WithMappi
                 $this->applyDropdown($sheet, 'K', 2, $lastRow, ['Aktif', 'Nonaktif'], 'ActiveStatus');
 
                 $column = 11; // kolom terakhir yang fixed (K = Status Aktif)
+                if ($this->shifts !== null) {
+                    $column++; // L = Shift Kerja
+                    $this->applyDropdown($sheet, 'L', 2, $lastRow, $this->shifts->pluck('name')->all(), 'Shift');
+                }
                 foreach ($this->customFields as $field) {
                     $column++;
                     if ($field->type === 'checkbox') {

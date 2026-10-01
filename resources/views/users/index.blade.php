@@ -284,6 +284,14 @@
                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @error('file') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <label class="fl-switch">
+                            <input type="checkbox" name="send_verification" value="1">
+                            <span class="fl-switch-track"></span>
+                            <span>Kirim email verifikasi</span>
+                        </label>
+                        <p class="fl-help">Jika aktif, user baru harus klik link verifikasi di emailnya sebelum bisa login. Jika tidak, akun langsung terverifikasi (sampaikan kredensial secara langsung). Hanya berlaku untuk user baru, bukan user yang diperbarui.</p>
+                    </div>
                 </div>
                 <div class="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="importOpen = false" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 cursor-pointer">Cancel</button>

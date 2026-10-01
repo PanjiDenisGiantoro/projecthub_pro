@@ -18,6 +18,7 @@ class UsersImportTemplateExport implements WithMultipleSheets
         private Collection $roles,
         private Collection $organizationUnits,
         private Collection $structuralLevels,
+        private ?Collection $shifts = null, // null = tanpa kolom Shift Kerja (di luar paket HRIS)
     ) {}
 
     public function sheets(): array
@@ -29,8 +30,9 @@ class UsersImportTemplateExport implements WithMultipleSheets
                 'role'  => RoleLabel::for($this->roles->firstWhere('name', 'member')?->name ?? $this->roles->first()?->name ?? 'member'),
                 'unit'  => $this->organizationUnits->first()?->name ?? '',
                 'level' => $this->structuralLevels->first()?->name ?? '',
-            ]),
-            new UsersImportGuideSheet($this->customFields, $this->roles, $this->organizationUnits, $this->structuralLevels),
+                'shift' => $this->shifts?->first()?->name ?? '',
+            ], $this->shifts !== null),
+            new UsersImportGuideSheet($this->customFields, $this->roles, $this->organizationUnits, $this->structuralLevels, $this->shifts),
             new UsersImportListsSheet($lists),
         ];
     }
@@ -52,8 +54,14 @@ class UsersImportTemplateExport implements WithMultipleSheets
             'K' => ['Aktif', 'Nonaktif'],
         ];
 
+        $fixedColumns = UsersTemplateSheet::FIXED_COLUMNS;
+        if ($this->shifts !== null) {
+            $options['L'] = $this->shifts->pluck('name')->values()->all();
+            $fixedColumns++;
+        }
+
         foreach ($this->customFields->values() as $i => $field) {
-            $column = Coordinate::stringFromColumnIndex(UsersTemplateSheet::FIXED_COLUMNS + $i + 1);
+            $column = Coordinate::stringFromColumnIndex($fixedColumns + $i + 1);
             $options[$column] = match ($field->type) {
                 'checkbox' => ['Ya', 'Tidak'],
                 'select'   => array_values($field->options ?? []),

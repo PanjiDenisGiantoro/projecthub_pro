@@ -18,6 +18,7 @@ class UsersImportGuideSheet implements FromArray, WithStyles, WithTitle
         private Collection $roles,
         private Collection $organizationUnits,
         private Collection $structuralLevels,
+        private ?Collection $shifts = null,
     ) {}
 
     public function array(): array
@@ -29,7 +30,7 @@ class UsersImportGuideSheet implements FromArray, WithStyles, WithTitle
             ['Nama', 'Wajib diisi.'],
             ['Email', 'Wajib diisi. Kalau email sudah terdaftar, data user tersebut akan diperbarui (bukan dibuat baru).'],
             ['Role', 'Wajib diisi untuk user baru. Nilai valid: ' . $this->roles->map(fn ($r) => RoleLabel::for($r->name))->implode(', ')],
-            ['Departemen/Unit', 'Opsional. Harus persis sama dengan nama unit yang sudah ada (lihat daftar di bawah).'],
+            ['Organization Unit', 'Opsional. Harus persis sama dengan nama unit yang sudah ada (lihat daftar di bawah).'],
             ['Level Struktural', 'Opsional. Harus persis sama dengan nama level yang sudah ada (lihat daftar di bawah).'],
             ['Tipe Karyawan', 'Opsional, default "Tetap". Nilai valid: ' . implode(', ', EmploymentType::LABELS)],
             ['Tipe Karyawan (Lainnya)', 'Isi hanya kalau Tipe Karyawan = Lainnya.'],
@@ -37,8 +38,11 @@ class UsersImportGuideSheet implements FromArray, WithStyles, WithTitle
             ['Tanggal Bergabung', 'Format tanggal: YYYY-MM-DD, contoh 2024-01-15.'],
             ['Tanggal Akhir Kontrak', 'Format tanggal: YYYY-MM-DD. Isi kalau Tipe Karyawan = Kontrak.'],
             ['Status Aktif', 'Nilai valid: Aktif / Nonaktif. Kosong = dianggap Aktif untuk user baru, atau tidak diubah untuk user lama.'],
+            ...($this->shifts !== null
+                ? [['Shift Kerja', 'Opsional. Harus persis sama dengan nama shift yang sudah ada (lihat daftar di bawah). Kosong = tidak diubah.']]
+                : []),
             [''],
-            ['Daftar Departemen/Unit yang tersedia'],
+            ['Daftar Organization Unit yang tersedia'],
             ...($this->organizationUnits->isEmpty()
                 ? [['(belum ada data)']]
                 : $this->organizationUnits->map(fn ($u) => [$u->name])->all()),
@@ -48,6 +52,14 @@ class UsersImportGuideSheet implements FromArray, WithStyles, WithTitle
                 ? [['(belum ada data)']]
                 : $this->structuralLevels->map(fn ($l) => [$l->name])->all()),
         ];
+
+        if ($this->shifts !== null) {
+            $rows[] = [''];
+            $rows[] = ['Daftar Shift Kerja yang tersedia'];
+            foreach ($this->shifts->isEmpty() ? [null] : $this->shifts as $shift) {
+                $rows[] = $shift ? [$shift->name, substr($shift->start_time, 0, 5) . ' - ' . substr($shift->end_time, 0, 5)] : ['(belum ada data)'];
+            }
+        }
 
         if ($this->customFields->isNotEmpty()) {
             $rows[] = [''];

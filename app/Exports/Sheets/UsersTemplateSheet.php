@@ -15,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 /** Sheet 1 template import — heading + satu baris contoh, siap diisi admin, dengan dropdown di kolom pilihan. */
 class UsersTemplateSheet implements FromArray, WithEvents, WithHeadings, WithStyles, WithTitle
 {
-    /** Jumlah kolom tetap (Nama .. Status Aktif) sebelum kolom field kustom. */
+    /** Jumlah kolom tetap (Nama .. Status Aktif) sebelum kolom Shift Kerja / field kustom. */
     public const FIXED_COLUMNS = 11;
 
     /** Dropdown dipasang sampai baris ini (baris 1 = heading). */
@@ -25,15 +25,17 @@ class UsersTemplateSheet implements FromArray, WithEvents, WithHeadings, WithSty
      * @param array<string,string> $dropdowns Kolom (mis. "C") => rumus range sumber pilihan di sheet Daftar
      * @param array<int,string>    $example   Nilai baris contoh buat kolom Role, Departemen/Unit, Level Struktural
      *                                        (diambil dari data company biar contohnya lolos import)
+     * @param bool                 $withShift Tambah kolom Shift Kerja setelah Status Aktif (paket HRIS)
      */
-    public function __construct(private Collection $customFields, private array $dropdowns = [], private array $example = []) {}
+    public function __construct(private Collection $customFields, private array $dropdowns = [], private array $example = [], private bool $withShift = false) {}
 
     public function headings(): array
     {
         return [
-            'Nama', 'Email', 'Role', 'Departemen/Unit', 'Level Struktural',
+            'Nama', 'Email', 'Role', 'Organization Unit', 'Level Struktural',
             'Tipe Karyawan', 'Tipe Karyawan (Lainnya)', 'Nama Perusahaan Asal',
             'Tanggal Bergabung', 'Tanggal Akhir Kontrak', 'Status Aktif',
+            ...($this->withShift ? ['Shift Kerja'] : []),
             ...$this->customFields->pluck('label')->all(),
         ];
     }
@@ -45,6 +47,9 @@ class UsersTemplateSheet implements FromArray, WithEvents, WithHeadings, WithSty
             $this->example['role'] ?? 'Member', $this->example['unit'] ?? '', $this->example['level'] ?? '',
             'Tetap', '', '', '2024-01-15', '', 'Aktif',
         ];
+        if ($this->withShift) {
+            $example[] = $this->example['shift'] ?? '';
+        }
 
         foreach ($this->customFields as $field) {
             $example[] = match ($field->type) {

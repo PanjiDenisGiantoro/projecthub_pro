@@ -136,7 +136,7 @@ class UserWebController extends Controller
     {
         $authUser = auth()->user();
 
-        $query = User::with(['roles', 'structuralLevel', 'organizationUnit'])
+        $query = User::with(['roles', 'structuralLevel', 'organizationUnit', 'shift'])
             ->whereDoesntHave('roles', fn($r) => $r->where('name', 'client'));
 
         if ($authUser->company_id) {
@@ -154,9 +154,19 @@ class UserWebController extends Controller
             : collect();
 
         return Excel::download(
-            new UsersExport($users, $this->activeCustomFields(), $roles, $organizationUnits, $structuralLevels),
+            new UsersExport($users, $this->activeCustomFields(), $roles, $organizationUnits, $structuralLevels, $this->hrisShifts()),
             'data-karyawan-' . now()->format('Y-m-d') . '.xlsx'
         );
+    }
+
+    /** Shift company untuk kolom "Shift Kerja" di export/template — cuma di paket HRIS, selain itu null (kolom tidak ada). */
+    private function hrisShifts(): ?\Illuminate\Support\Collection
+    {
+        $companyId = auth()->user()->company_id;
+
+        return session('active_package') === 'hris' && $companyId
+            ? Shift::where('company_id', $companyId)->orderBy('start_time')->get()
+            : null;
     }
 
     /** Template Excel siap isi buat import — sheet contoh + sheet petunjuk nilai valid. */
@@ -170,6 +180,7 @@ class UserWebController extends Controller
                 Role::whereNotIn('name', ['client', 'tester'])->get(),
                 OrganizationUnit::where('company_id', $companyId)->orderBy('name')->get(),
                 StructuralLevel::where('company_id', $companyId)->orderBy('name')->get(),
+                $this->hrisShifts(),
             ),
             'template-import-karyawan.xlsx'
         );
@@ -184,7 +195,7 @@ class UserWebController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
         ]);
 
-        $import = new UsersImport($authUser->company_id);
+        $import = new UsersImport($authUser->company_id, $request->boolean('send_verification'));
         Excel::import($import, $request->file('file'));
 
         $message = "Import selesai: {$import->created} user baru ditambahkan, {$import->updated} user diperbarui.";
@@ -239,12 +250,18 @@ class UserWebController extends Controller
             ...$this->customFieldValidationRules($customFields),
         ]);
 
+        $sendVerification = $request->boolean('send_verification');
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password,
             'company_id' => auth()->user()->company_id,
             'is_active' => $request->boolean('is_active', true),
+            // Default: admin yang buat & menyampaikan kredensial langsung, jadi akun
+            // langsung terverifikasi. Centang "send_verification" untuk minta user
+            // klik link verifikasi di emailnya dulu.
+            'email_verified_at' => $sendVerification ? null : now(),
             'structural_level_id' => $request->structural_level_id,
             'organization_unit_id' => $request->organization_unit_id,
             'shift_id' => $request->shift_id,
@@ -267,6 +284,10 @@ class UserWebController extends Controller
             $q->where('company_id', auth()->user()->company_id);
         })->pluck('id');
         $user->packages()->sync($companyPackageIds);
+
+        if ($sendVerification) {
+            $user->sendEmailVerificationNotification();
+        }
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }

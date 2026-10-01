@@ -37,6 +37,7 @@ class UserController extends Controller
             'email'                => $request->email,
             'password'             => $request->password,
             'is_active'            => $request->boolean('is_active', true),
+            'email_verified_at'    => now(), // dibuat admin, bukan daftar sendiri
             'timezone'             => $request->timezone ?? 'UTC',
             'organization_unit_id' => $request->organization_unit_id,
         ]);
