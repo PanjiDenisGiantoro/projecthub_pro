@@ -12,7 +12,14 @@ use Illuminate\Support\Facades\Storage;
 
 class ProjectFileWebController extends Controller
 {
+    /** URL lama File Manager penuh — sekarang tampil langsung di tab Files project. */
     public function index(Project $project)
+    {
+        return redirect()->route('projects.tab', [$project, 'files']);
+    }
+
+    /** Data File Manager (dipakai tab Files di ProjectWebController::show). */
+    public static function managerData(Project $project): array
     {
         $files = $project->files()->with('uploader')->orderBy('folder')->orderByDesc('created_at')->get();
 
@@ -25,7 +32,8 @@ class ProjectFileWebController extends Controller
             ->values();
 
         $folderTree = FolderTreeBuilder::build($folders);
-        return view('files.index', compact('project', 'files', 'folders', 'folderTree'));
+
+        return compact('files', 'folders', 'folderTree');
     }
 
     /** Buat folder kosong (bisa bersarang lebih dari 1 level lewat "parent"). */

@@ -1959,7 +1959,7 @@
                 TAB: FILES
                 ============================================================ --}}
                 <div x-show="tab === 'files'" x-cloak>
-                    @include('projects.partials.files-content')
+                    @include('files._manager')
                 </div>
 
                 @endif {{-- /tab files --}}

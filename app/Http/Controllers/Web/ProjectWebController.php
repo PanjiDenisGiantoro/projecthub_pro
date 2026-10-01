@@ -135,7 +135,7 @@ class ProjectWebController extends Controller
         if (in_array($tabKey, ['overview', 'tickets'], true)) {
             $data['recentTickets'] = $project->tickets()->with('reporter')->latest()->limit(5)->get();
         }
-        if (in_array($tabKey, ['overview', 'files'], true)) {
+        if ($tabKey === 'overview') {
             $data['recentFilesTotal'] = $project->files()->count();
         }
         if (in_array($tabKey, ['tasks', 'milestones', 'sprints'], true)) {
@@ -168,9 +168,7 @@ class ProjectWebController extends Controller
                 break;
 
             case 'files':
-                // Preview file terbaru aja — browsing folder lengkap ada di File Manager
-                // penuh (route project.files.index).
-                $data['recentFiles'] = $project->files()->with('uploader')->latest()->limit(12)->get();
+                $data += ProjectFileWebController::managerData($project);
                 break;
 
             case 'recurring':

@@ -11,14 +11,15 @@
         @else
             <span class="w-4 shrink-0"></span>
         @endif
-        <button type="button" @click="activeFolder = '{{ $node['path'] }}'"
-                :class="activeFolder === @js($node['path']) ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'"
+        <button type="button" @click="activeFolder = @js($node['path'])"
+                :class="activeFolder === @js($node['path']) ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'"
                 class="flex-1 min-w-0 text-left px-2 py-1.5 rounded-lg text-sm flex items-center gap-2 transition-colors">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
             </svg>
             <span class="truncate">{{ $name }}</span>
-            <span class="text-xs text-gray-400 ml-auto shrink-0">({{ $files->where('folder', $node['path'])->count() }})</span>
+            {{-- Jumlah file termasuk subfolder, sama dengan yang tampil saat folder dipilih. --}}
+            <span class="text-xs text-gray-400 ml-auto shrink-0">{{ $files->filter(fn ($f) => $f->folder === $node['path'] || str_starts_with((string) $f->folder, $node['path'] . '/'))->count() }}</span>
         </button>
     </div>
     @if(count($node['children']) > 0)
