@@ -93,7 +93,7 @@ Route::get('/privacy-policy', fn () => view('legal.privacy-policy'))->name('lega
 Route::get('/terms-of-service', fn () => view('legal.terms-of-service'))->name('legal.terms');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active', /* 'verified', */ 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
@@ -141,7 +141,7 @@ Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function
 Route::post('/billing/notification', [BillingWebController::class, 'notification'])->name('billing.notification');
 
 // ─── Authenticated ────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
+Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     Route::get('/dashboard', [DashboardWebController::class, 'index'])->name('dashboard');
     Route::get('/dashboard2', [DashboardWebController::class, 'v2'])->name('dashboard.v2');

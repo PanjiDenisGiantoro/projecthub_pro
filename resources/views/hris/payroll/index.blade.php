@@ -251,7 +251,7 @@
         <div class="flex items-center justify-between gap-3 flex-wrap px-4 pt-4">
             <div class="flex items-center gap-1 flex-wrap">
                 @php $base = ['year' => $year, 'month' => $month, 'q' => $search ?: null]; @endphp
-                @foreach([null => 'Semua', 'draft' => 'Draft', 'finalized' => 'Final', 'paid' => 'Dibayar'] as $key => $label)
+                @foreach(['' => 'Semua', 'draft' => 'Draft', 'finalized' => 'Final', 'paid' => 'Dibayar'] as $key => $label)
                 @php
                     $count = $key ? (int) ($statusCounts[$key] ?? 0) : (int) $statusCounts->sum();
                     $isOn  = ($status ?? null) === ($key ?: null);
