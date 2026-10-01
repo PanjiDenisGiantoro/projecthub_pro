@@ -150,7 +150,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::post('/switch-package', function (Request $request) {
         $pkg = $request->input('package');
         $valid = ['task_management', 'hris'];
-        $allowed = auth()->user()->is_super_admin ? $valid : auth()->user()->activePackages();
+        $allowed = array_intersect($valid, auth()->user()->accessiblePackages());
         if (auth()->user()->hasRole('customer')) {
             $allowed = array_diff($allowed, ['hris']);
         }
@@ -183,6 +183,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::middleware('can:access projects')->group(function () {
         Route::get('/projects', [ProjectWebController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}', [ProjectWebController::class, 'show'])->name('projects.show');
+        // Tab detail project: /projects/{id}/overview, /projects/{id}/timesheet, dst. (lihat ProjectWebController::TABS)
+        Route::get('/projects/{project}/{tab}', [ProjectWebController::class, 'show'])->name('projects.tab')
+            ->where('tab', '(?i)' . implode('|', array_keys(ProjectWebController::TABS)));
     });
     Route::middleware('can:edit project')->group(function () {
         Route::get('/projects/{project}/edit', [ProjectWebController::class, 'edit'])->name('projects.edit');
@@ -215,7 +218,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/milestones/{milestone}/meeting', [MilestoneWebController::class, 'createMeeting'])->name('milestones.meeting.create');
 
         // Tasks
-        Route::get('/projects/{project}/tasks', [TaskWebController::class, 'index'])->name('tasks.index');
+        Route::get('/projects/{project}/tasks/all', [TaskWebController::class, 'index'])->name('tasks.index');
         Route::post('/projects/{project}/tasks', [TaskWebController::class, 'store'])->name('tasks.store');
         Route::get('/projects/{project}/tasks/{task}', [TaskWebController::class, 'show'])->name('tasks.show');
         Route::get('/projects/{project}/tasks/{task}/detail', [TaskWebController::class, 'detail'])->name('tasks.detail'); // JSON for modal
@@ -261,7 +264,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/sprints', [SprintWebController::class, 'allSprints'])->name('sprints.all');
     Route::get('/recurring', [RecurringTaskWebController::class, 'allRecurring'])->name('recurring.all');
     Route::get('/tickets', [TicketWebController::class, 'allTickets'])->name('tickets.all');
-    Route::get('/projects/{project}/tickets', [TicketWebController::class, 'index'])->name('tickets.index');
+    Route::get('/projects/{project}/tickets/all', [TicketWebController::class, 'index'])->name('tickets.index');
     Route::get('/projects/{project}/tickets/create', [TicketWebController::class, 'create'])->name('tickets.create');
     Route::post('/projects/{project}/tickets', [TicketWebController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{ticket}', [TicketWebController::class, 'show'])->name('tickets.show');
@@ -439,7 +442,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     });
 
     // Timesheet
-    Route::get('/projects/{project}/timesheet', [ProjectWebController::class, 'timesheet'])->name('projects.timesheet')->middleware('can:view,project');
+    Route::get('/projects/{project}/timesheet/all', [ProjectWebController::class, 'timesheet'])->name('projects.timesheet')->middleware('can:view,project');
 
     // Workload
     Route::get('/workload', [DashboardWebController::class, 'workload'])->name('workload');
@@ -480,7 +483,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Sprints, File Manager, Budget, Risk Register, Recurring Tasks, Client Portal
     // — hanya anggota/manager/client proyek atau admin/manager
     Route::middleware('can:view,project')->group(function () {
-        Route::get('/projects/{project}/sprints', [SprintWebController::class, 'index'])->name('sprints.index');
+        Route::get('/projects/{project}/sprints/all', [SprintWebController::class, 'index'])->name('sprints.index');
         Route::post('/projects/{project}/sprints', [SprintWebController::class, 'store'])->name('sprints.store');
         Route::get('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'show'])->name('sprints.show');
         Route::put('/projects/{project}/sprints/{sprint}', [SprintWebController::class, 'update'])->name('sprints.update');
@@ -491,13 +494,13 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::post('/projects/{project}/sprints/{sprint}/meeting', [SprintWebController::class, 'createMeeting'])->name('sprints.meeting.create');
         Route::post('/projects/{project}/sprints/{sprint}/standup', [SprintWebController::class, 'createStandup'])->name('sprints.standup.create');
 
-        Route::get('/projects/{project}/files', [ProjectFileWebController::class, 'index'])->name('project.files.index');
+        Route::get('/projects/{project}/files/all', [ProjectFileWebController::class, 'index'])->name('project.files.index');
         Route::post('/projects/{project}/files', [ProjectFileWebController::class, 'store'])->name('project.files.store');
         Route::delete('/projects/{project}/files/{projectFile}', [ProjectFileWebController::class, 'destroy'])->name('project.files.destroy');
         Route::patch('/projects/{project}/files/{projectFile}/folder', [ProjectFileWebController::class, 'moveFolder'])->name('project.files.move');
         Route::post('/projects/{project}/files/folders', [ProjectFileWebController::class, 'storeFolder'])->name('project.files.folders.store');
 
-        Route::get('/projects/{project}/budget', [BudgetWebController::class, 'index'])->name('budget.index');
+        Route::get('/projects/{project}/budget/all', [BudgetWebController::class, 'index'])->name('budget.index');
         Route::post('/projects/{project}/budget', [BudgetWebController::class, 'store'])->name('budget.store');
         Route::delete('/projects/{project}/budget/{budgetEntry}', [BudgetWebController::class, 'destroy'])->name('budget.destroy');
         Route::patch('/projects/{project}/budget/threshold', [BudgetWebController::class, 'updateThreshold'])->name('budget.threshold');
@@ -508,13 +511,13 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/risks/{risk}', [RiskWebController::class, 'destroy'])->name('risks.destroy');
         Route::get('/projects/{project}/risks/matrix', [RiskWebController::class, 'matrix'])->name('risks.matrix');
 
-        Route::get('/projects/{project}/recurring', [RecurringTaskWebController::class, 'index'])->name('recurring.index');
+        Route::get('/projects/{project}/recurring/all', [RecurringTaskWebController::class, 'index'])->name('recurring.index');
         Route::post('/projects/{project}/recurring', [RecurringTaskWebController::class, 'store'])->name('recurring.store');
         Route::put('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'update'])->name('recurring.update');
         Route::delete('/projects/{project}/recurring/{recurringTask}', [RecurringTaskWebController::class, 'destroy'])->name('recurring.destroy');
         Route::post('/projects/{project}/recurring/{recurringTask}/generate', [RecurringTaskWebController::class, 'generateNow'])->name('recurring.generateNow');
 
-        Route::get('/projects/{project}/portal', [ClientPortalWebController::class, 'index'])->name('portal.index');
+        Route::get('/projects/{project}/portal/all', [ClientPortalWebController::class, 'index'])->name('portal.index');
         Route::post('/projects/{project}/portal', [ClientPortalWebController::class, 'store'])->name('portal.store');
         Route::delete('/projects/{project}/portal/{portalToken}', [ClientPortalWebController::class, 'destroy'])->name('portal.destroy');
 

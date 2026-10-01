@@ -7,12 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\BoardColumnTemplate;
 use App\Models\Project;
 use App\Models\ProjectMember;
-use App\Models\StructuralLevel;
 use App\Models\TimeLog;
 use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
-use App\Services\SlaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -82,74 +80,117 @@ class ProjectWebController extends Controller
         return redirect()->route('projects.show', $project)->with('success', 'Proyek berhasil dibuat.');
     }
 
-    public function show(Project $project, Request $request)
+    /**
+     * Tab halaman detail project: slug URL (/projects/{id}/{slug}) => key tab di view.
+     * Tiap tab dirender & di-query terpisah supaya buka satu tab tidak ikut memuat
+     * data semua tab lain.
+     */
+    public const TABS = [
+        'overview'       => 'overview',
+        'timesheet'      => 'timesheet',
+        'tasks'          => 'tasks',
+        'sprints'        => 'sprints',
+        'milestones'     => 'milestones',
+        'team'           => 'team',
+        'tickets'        => 'tickets',
+        'files'          => 'files',
+        'knowledge-base' => 'kb',
+        'portal'         => 'portal',
+        'budget'         => 'budget',
+        'recurring'      => 'recurring',
+        'notifications'  => 'notif',
+        'chat'           => 'chat',
+    ];
+
+    public static function tabSlug(string $key): string
     {
-        $project->load([
-            'client', 'manager',
-            'members.user',
-            'milestones' => fn ($q) => $q->with(['assignee', 'tasks.assignee', 'sprints.lead', 'sprints.tasks.assignee', 'standaloneTasks.assignee'])->orderByDesc('created_at'),
-            'tasks' => fn ($q) => $q->with(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'milestone', 'boardColumn'])->withCount(['comments', 'attachments'])->orderBy('sort_order'),
-        ]);
-        $slaPolicies = app(SlaService::class);
-        $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
-        $companyUsers = User::where('is_active', true)->where('company_id', $project->company_id)
-            ->whereNotIn('id', $project->members()->pluck('user_id'))
-            ->orderBy('name')->get();
-        $structuralLevels = StructuralLevel::active()->where('company_id', $project->company_id)->get();
-        $recentTickets = $project->tickets()->with('reporter')->latest()->limit(5)->get();
+        return array_search($key, self::TABS, true) ?: 'tasks';
+    }
 
-        // Task & hour stats per member
-        $memberTaskCounts = $project->tasks()
-            ->selectRaw('assigned_to, count(*) as total, sum(case when status="done" then 1 else 0 end) as done')
-            ->whereNotNull('assigned_to')
-            ->groupBy('assigned_to')
-            ->pluck('total', 'assigned_to');
+    public function show(Project $project, Request $request, ?string $tab = null)
+    {
+        // /projects/{id} & URL lama /projects/{id}?tab=xxx → /projects/{id}/{slug}
+        if ($tab === null || $tab !== strtolower($tab)) {
+            $requested = strtolower($tab ?? (string) $request->query('tab', 'tasks'));
+            $slug = isset(self::TABS[$requested]) ? $requested : self::tabSlug($requested);
+            $query = http_build_query($request->except('tab'));
 
-        $memberHours = TimeLog::whereHas('task', fn ($q) => $q->where('project_id', $project->id))
-            ->selectRaw('user_id, round(sum(minutes)/60, 1) as total_hours')
-            ->groupBy('user_id')
-            ->pluck('total_hours', 'user_id');
+            return redirect()->to(route('projects.tab', [$project, $slug]) . ($query ? "?{$query}" : ''));
+        }
 
-        // KB articles for project tab (root only)
-        $kbArticles = $project->kbArticles()
-            ->with(['author', 'children'])
-            ->whereNull('parent_id')
-            ->latest()
-            ->get();
+        $tabKey = self::TABS[$tab];
+        $data = ['project' => $project, 'tab' => $tabKey];
 
-        $chatMembers = User::whereIn('id',
-            $project->members()->pluck('user_id')
-                ->push($project->manager_id)
-                ->filter()
-                ->unique()
-        )->select('id', 'name')->get();
+        $project->load(['client', 'manager']);
 
-        $sprintList = $project->sprints()->with(['lead', 'milestone', 'tasks.assignee'])->orderByDesc('start_date')
-            ->paginate($this->perPage($request), ['*'], 'sprints_page')->withQueryString();
-        $backlog = $project->tasks()->whereNull('sprint_id')->with('assignee', 'milestone')->orderBy('sort_order')
-            ->paginate($this->perPage($request, 10, 'backlog_per_page'), ['*'], 'backlog_page')->withQueryString();
+        if (in_array($tabKey, ['overview', 'tasks', 'milestones', 'sprints'], true)) {
+            $project->load([
+                'milestones' => fn ($q) => $q->with(['assignee', 'tasks.assignee', 'sprints.lead', 'sprints.tasks.assignee', 'standaloneTasks.assignee'])->orderByDesc('created_at'),
+                'tasks' => fn ($q) => $q->with(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'milestone', 'boardColumn'])->withCount(['comments', 'attachments'])->orderBy('sort_order'),
+            ]);
+        }
+        if (in_array($tabKey, ['overview', 'team'], true)) {
+            $project->load('members.user');
+        }
+        if (in_array($tabKey, ['overview', 'tickets'], true)) {
+            $data['recentTickets'] = $project->tickets()->with('reporter')->latest()->limit(5)->get();
+        }
+        if (in_array($tabKey, ['overview', 'files'], true)) {
+            $data['recentFilesTotal'] = $project->files()->count();
+        }
+        if (in_array($tabKey, ['tasks', 'milestones', 'sprints'], true)) {
+            $data['assignableUsers'] = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
+        }
 
-        $recurringDefinitions = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')
-            ->paginate($this->perPage($request, 10, 'recurring_per_page'), ['*'], 'recurring_page')->withQueryString();
-        $recurringMilestones = $project->milestones()->orderBy('title')->get(['id', 'title']);
-        $recurringUsers = User::where('company_id', $project->company_id)->orderBy('name')->get(['id', 'name']);
+        switch ($tabKey) {
+            case 'overview':
+                $data['memberTaskCounts'] = $project->tasks()
+                    ->selectRaw('assigned_to, count(*) as total, sum(case when status="done" then 1 else 0 end) as done')
+                    ->whereNotNull('assigned_to')
+                    ->groupBy('assigned_to')
+                    ->pluck('total', 'assigned_to');
+                break;
 
-        // Preview file terbaru aja buat tab ringkas — browsing folder lengkap ada di
-        // halaman File Manager penuh (route project.files.index), biar tidak perlu
-        // narik semua file project ke satu request cuma buat tab yang mungkin nggak dibuka.
-        $recentFiles = $project->files()->with('uploader')->latest()->limit(12)->get();
-        $recentFilesTotal = $project->files()->count();
+            case 'tasks':
+                $data['columns'] = $project->boardColumns()->orderBy('sort_order')->get();
+                $data['projectLabels'] = $project->labels()->orderBy('name')->get();
+                $data['sprints'] = $project->sprints()->with(['tasks.assignee'])->orderBy('start_date')->get();
+                break;
 
-        $timesheetData = $this->buildTimesheetData($project, $request);
+            case 'team':
+                $data['companyUsers'] = User::where('is_active', true)->where('company_id', $project->company_id)
+                    ->whereNotIn('id', $project->members()->pluck('user_id'))
+                    ->orderBy('name')->get();
+                break;
 
-        $columns = $project->boardColumns()->orderBy('sort_order')->get();
-        $projectLabels = $project->labels()->orderBy('name')->get();
-        $assignableUsers = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
+            case 'timesheet':
+                $data += $this->buildTimesheetData($project, $request);
+                break;
 
-        return view('projects.show', array_merge(
-            compact('project', 'developers', 'companyUsers', 'structuralLevels', 'recentTickets', 'memberTaskCounts', 'memberHours', 'kbArticles', 'chatMembers', 'backlog', 'sprintList', 'recurringDefinitions', 'recurringMilestones', 'recurringUsers', 'recentFiles', 'recentFilesTotal', 'columns', 'projectLabels', 'assignableUsers'),
-            $timesheetData
-        ));
+            case 'files':
+                // Preview file terbaru aja — browsing folder lengkap ada di File Manager
+                // penuh (route project.files.index).
+                $data['recentFiles'] = $project->files()->with('uploader')->latest()->limit(12)->get();
+                break;
+
+            case 'recurring':
+                $data['recurringDefinitions'] = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')
+                    ->paginate($this->perPage($request, 10, 'recurring_per_page'), ['*'], 'recurring_page')->withQueryString();
+                $data['recurringMilestones'] = $project->milestones()->orderBy('title')->get(['id', 'title']);
+                $data['recurringUsers'] = User::where('company_id', $project->company_id)->orderBy('name')->get(['id', 'name']);
+                break;
+
+            case 'chat':
+                $data['chatMembers'] = User::whereIn('id',
+                    $project->members()->pluck('user_id')
+                        ->push($project->manager_id)
+                        ->filter()
+                        ->unique()
+                )->select('id', 'name')->get();
+                break;
+        }
+
+        return view('projects.show', $data);
     }
 
     public function edit(Project $project)

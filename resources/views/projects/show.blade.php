@@ -178,7 +178,7 @@
             1. CLEAN SIDEBAR NAVIGATION
             ============================================================ --}}
             <aside
-                class="w-full lg:w-56 shrink-0 lg:sticky lg:top-0 flex flex-col justify-between min-h-[calc(100vh-120px)]">
+                class="w-full lg:w-56 shrink-0 lg:sticky lg:top-4 flex flex-col bg-white dark:bg-gray-850 rounded-2xl shadow-2xs border border-gray-200/90 dark:border-gray-700/80 p-3">
                 <div class="space-y-4">
 
 
@@ -189,21 +189,21 @@
                             </p>
                             <nav class="space-y-0.5">
                                 @foreach($groupTabs as $t)
-                                    <button @click="tab = '{{ $t['key'] }}'"
-                                        :class="tab === '{{ $t['key'] }}'
-                                                                    ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-500/30 text-blue-700 dark:text-blue-400 font-semibold shadow-2xs'
-                                                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'"
-                                        class="relative w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl border text-[13px] font-medium transition-all group">
+                                    @php $isTab = $tab === $t['key']; @endphp
+                                    <a href="{{ route('projects.tab', [$project, \App\Http\Controllers\Web\ProjectWebController::tabSlug($t['key'])]) }}"
+                                        class="relative w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl border text-[13px] font-medium transition-all group {{ $isTab
+                                            ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-500/30 text-blue-700 dark:text-blue-400 font-semibold shadow-2xs'
+                                            : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200' }}">
                                         <span class="flex items-center gap-2.5 truncate">
-                                            <svg class="w-4 h-4 shrink-0 transition-colors"
-                                                :class="tab === '{{ $t['key'] }}' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 group-hover:text-gray-600'"
+                                            <svg class="w-4 h-4 shrink-0 transition-colors {{ $isTab ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 group-hover:text-gray-600' }}"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">{!! $t['icon'] !!}</svg>
                                             <span class="truncate">{{ $t['label'] }}</span>
                                         </span>
                                         {{-- Active indicator dot on right --}}
-                                        <span x-show="tab === '{{ $t['key'] }}'"
-                                            class="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
-                                    </button>
+                                        @if($isTab)
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
+                                        @endif
+                                    </a>
                                 @endforeach
                             </nav>
                         </div>
@@ -211,7 +211,7 @@
                 </div>
 
                 {{-- Sidebar Footer --}}
-                <div class="pt-6 pb-2 px-2.5 text-[11px] text-gray-400 dark:text-gray-600 font-medium">
+                <div class="mt-4 pt-3 px-2.5 border-t border-gray-100 dark:border-gray-700/80 text-[11px] text-gray-400 dark:text-gray-600 font-medium">
                     Powered by ARUNIKA &copy; 2026
                 </div>
             </aside>
@@ -248,6 +248,7 @@
                     </span>
                 </div>
 
+                @if($tab === 'overview')
                 {{-- ============================================================
                 TOP HEADER & 4 STAT CARDS (ONLY FOR OVERVIEW TAB)
                 ============================================================ --}}
@@ -469,6 +470,8 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab overview --}}
+                @if($tab === 'tasks')
                 {{-- ============================================================
                 TAB: TASKS (FILTERS, BOARD & LIST VIEWS)
                 ============================================================ --}}
@@ -1643,9 +1646,11 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab tasks --}}
                 {{-- Include Task Detail Modal --}}
                 @include('sprints._task_modal')
 
+                @if($tab === 'milestones')
                 {{-- ============================================================
                 TAB: MILESTONES
                 ============================================================ --}}
@@ -1653,6 +1658,8 @@
                     @include('projects.partials.milestones-content')
                 </div>
 
+                @endif {{-- /tab milestones --}}
+                @if($tab === 'tickets')
                 {{-- ============================================================
                 TAB: TICKETS
                 ============================================================ --}}
@@ -1769,6 +1776,8 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab tickets --}}
+                @if($tab === 'team')
                 {{-- ============================================================
                 TAB: TEAM
                 ============================================================ --}}
@@ -1911,6 +1920,8 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab team --}}
+                @if($tab === 'kb')
                 {{-- ============================================================
                 TAB: KB (Knowledge Base)
                 ============================================================ --}}
@@ -1924,6 +1935,8 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab kb --}}
+                @if($tab === 'timesheet')
                 {{-- ============================================================
                 TAB: TIMESHEET
                 ============================================================ --}}
@@ -1931,6 +1944,8 @@
                     @include('projects.partials.timesheet-content')
                 </div>
 
+                @endif {{-- /tab timesheet --}}
+                @if($tab === 'sprints')
                 {{-- ============================================================
                 TAB: SPRINTS
                 ============================================================ --}}
@@ -1938,6 +1953,8 @@
                     @include('projects.partials.sprints-content')
                 </div>
 
+                @endif {{-- /tab sprints --}}
+                @if($tab === 'files')
                 {{-- ============================================================
                 TAB: FILES
                 ============================================================ --}}
@@ -1945,6 +1962,8 @@
                     @include('projects.partials.files-content')
                 </div>
 
+                @endif {{-- /tab files --}}
+                @if($tab === 'budget')
                 {{-- ============================================================
                 TAB: BUDGET
                 ============================================================ --}}
@@ -1998,6 +2017,8 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab budget --}}
+                @if($tab === 'recurring')
                 {{-- ============================================================
                 TAB: RECURRING
                 ============================================================ --}}
@@ -2005,6 +2026,8 @@
                     @include('projects.partials.recurring-content')
                 </div>
 
+                @endif {{-- /tab recurring --}}
+                @if($tab === 'portal')
                 {{-- ============================================================
                 TAB: PORTAL
                 ============================================================ --}}
@@ -2020,6 +2043,8 @@
                     </div>
                 </div>
 
+                @endif {{-- /tab portal --}}
+                @if($tab === 'notif')
                 {{-- ============================================================
                 TAB: NOTIFICATIONS (SLACK/DISCORD)
                 ============================================================ --}}
@@ -2027,12 +2052,15 @@
                     @include('projects.partials.notifications-content')
                 </div>
 
+                @endif {{-- /tab notif --}}
+                @if($tab === 'chat')
                 {{-- ============================================================
                 TAB: CHAT
                 ============================================================ --}}
                 <div x-show="tab === 'chat'" x-cloak>
                     @include('projects.partials._chat')
                 </div>
+                @endif {{-- /tab chat --}}
 
             </div>
             {{-- /MAIN CONTENT --}}
@@ -2043,9 +2071,18 @@
 
 @push('scripts')
     <script>
+        window.projectTabUrl = function (tab, params = {}) {
+            const urls = @js(collect(\App\Http\Controllers\Web\ProjectWebController::TABS)->mapWithKeys(fn ($key, $slug) => [$key => route('projects.tab', [$project, $slug])]));
+            const url = new URL(urls[tab] || urls.tasks, window.location.origin);
+            Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
+            return url.toString();
+        };
+
         function projectPageData() {
             return {
-                tab: new URLSearchParams(window.location.search).get('tab') || 'tasks',
+                // Tab dirender server per halaman (/projects/{id}/{tab}); mengubah `tab`
+                // (mis. tombol shortcut di Overview) = pindah ke URL tab tsb.
+                tab: @js($tab),
                 taskView: localStorage.getItem('projecthub_task_view') || 'board',
                 filterAssignee: '',
                 filterAssigneeName: 'All',
@@ -2094,7 +2131,6 @@
                     const milestoneParam = urlParams.get('milestone');
 
                     if (sprintParam) {
-                        this.tab = 'tasks';
                         this.filterSprint = sprintParam;
                         const sList = @json($project->sprints->map(fn($s) => ['id' => (string) $s->id, 'name' => $s->name]));
                         const foundS = sList.find(s => s.id === sprintParam);
@@ -2102,7 +2138,6 @@
                     }
 
                     if (milestoneParam) {
-                        this.tab = 'tasks';
                         this.filterMilestone = milestoneParam;
                         const mList = @json($project->milestones->map(fn($m) => ['id' => (string) $m->id, 'title' => $m->title]));
                         const foundM = mList.find(m => m.id === milestoneParam);
@@ -2118,14 +2153,8 @@
                     });
 
                     this.$watch('tab', (val) => {
-                        const url = new URL(window.location);
-                        url.searchParams.set('tab', val);
-                        window.history.replaceState({}, '', url);
-                        if (val === 'tasks') {
-                            this.$nextTick(() => {
-                                this.initSortables();
-                                this.applyFilters();
-                            });
+                        if (val !== @js($tab)) {
+                            window.location.href = window.projectTabUrl(val);
                         }
                     });
 
@@ -3080,13 +3109,15 @@
             const alpineEl = document.querySelector('[x-data*="projectPageData"]');
             if (alpineEl && alpineEl._x_dataStack && alpineEl._x_dataStack[0]) {
                 const data = alpineEl._x_dataStack[0];
-                data.tab = 'tasks';
+                if (data.tab !== 'tasks') {
+                    window.location.href = window.projectTabUrl('tasks', { sprint: sprintId });
+                    return;
+                }
                 data.filterSprint = sprintId ? sprintId.toString() : '';
                 data.filterSprintName = sprintName || 'Sprint ' + sprintId;
                 data.filterMilestone = '';
                 data.filterMilestoneName = 'All';
                 const url = new URL(window.location);
-                url.searchParams.set('tab', 'tasks');
                 if (sprintId) url.searchParams.set('sprint', sprintId);
                 else url.searchParams.delete('sprint');
                 url.searchParams.delete('milestone');
@@ -3097,7 +3128,7 @@
                     if (tasksSec) tasksSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
             } else {
-                window.location.href = `/projects/{{ $project->id }}?tab=tasks&sprint=${sprintId}`;
+                window.location.href = window.projectTabUrl('tasks', { sprint: sprintId });
             }
         };
 
@@ -3105,13 +3136,15 @@
             const alpineEl = document.querySelector('[x-data*="projectPageData"]');
             if (alpineEl && alpineEl._x_dataStack && alpineEl._x_dataStack[0]) {
                 const data = alpineEl._x_dataStack[0];
-                data.tab = 'tasks';
+                if (data.tab !== 'tasks') {
+                    window.location.href = window.projectTabUrl('tasks', { milestone: milestoneId });
+                    return;
+                }
                 data.filterMilestone = milestoneId ? milestoneId.toString() : '';
                 data.filterMilestoneName = milestoneName || 'Milestone ' + milestoneId;
                 data.filterSprint = '';
                 data.filterSprintName = 'All';
                 const url = new URL(window.location);
-                url.searchParams.set('tab', 'tasks');
                 if (milestoneId) url.searchParams.set('milestone', milestoneId);
                 else url.searchParams.delete('milestone');
                 url.searchParams.delete('sprint');
@@ -3122,7 +3155,7 @@
                     if (tasksSec) tasksSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
             } else {
-                window.location.href = `/projects/{{ $project->id }}?tab=tasks&milestone=${milestoneId}`;
+                window.location.href = window.projectTabUrl('tasks', { milestone: milestoneId });
             }
         };
     </script>
