@@ -103,6 +103,31 @@
                     </svg>
                 </button>
             </div>
+            {{-- Package switcher versi HP (di header disembunyikan di layar kecil karena tidak muat) --}}
+            @php
+                $mobilePackages = auth()->user()->accessiblePackages();
+                if (auth()->user()->hasRole('client')) {
+                    $mobilePackages = array_values(array_diff($mobilePackages, ['hris']));
+                }
+                $mobileActivePkg = session('active_package', $mobilePackages[0] ?? 'task_management');
+            @endphp
+            @if(count($mobilePackages) > 1)
+                <div class="px-3 pt-3 shrink-0">
+                    <div class="fl-pkg-switcher flex items-center rounded-full p-0.5">
+                        @foreach(['task_management' => 'Task', 'hris' => 'HRIS'] as $pkgSlug => $pkgLabel)
+                        <form method="POST" action="{{ route('switch.package') }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="package" value="{{ $pkgSlug }}">
+                            <button type="submit"
+                                class="fl-pkg-btn {{ $mobileActivePkg === $pkgSlug ? 'fl-pkg-active' : '' }} w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer">
+                                {{ $pkgLabel }}
+                            </button>
+                        </form>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 scrollbar-hide">
                 @include('layouts.sidebar-nav')
             </nav>
