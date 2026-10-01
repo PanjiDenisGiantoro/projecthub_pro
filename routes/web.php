@@ -677,6 +677,7 @@ Route::middleware(['auth', 'check.active'/*, 'verified'*/])->group(function () {
         // Payroll
         Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
         Route::post('payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+        Route::post('payroll/finalize', [PayrollController::class, 'finalizeBulk'])->name('payroll.finalizeBulk');
         Route::get('payroll/setting', [PayrollSettingController::class, 'edit'])->name('payroll.setting');
         Route::post('payroll/setting', [PayrollSettingController::class, 'update'])->name('payroll.setting.save');
         Route::get('payroll/setting/logs', [PayrollSettingController::class, 'logs'])->name('payroll.setting.logs');
