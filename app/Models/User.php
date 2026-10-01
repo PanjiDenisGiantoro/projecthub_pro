@@ -159,6 +159,22 @@ class User extends Authenticatable implements MustVerifyEmailContract
         return $this->packages->where('is_active', true)->pluck('slug')->toArray();
     }
 
+    /**
+     * Package yang boleh dipakai user di aplikasi. Super admin ikut package akunnya
+     * sendiri (diatur di Superadmin → Pelanggan); kalau belum punya modul sama sekali,
+     * tetap bisa akses semua modul supaya tidak terkunci.
+     */
+    public function accessiblePackages(): array
+    {
+        $packages = $this->activePackages();
+
+        if ($this->is_super_admin && ! array_intersect($packages, ['task_management', 'hris'])) {
+            return ['task_management', 'hris'];
+        }
+
+        return $packages;
+    }
+
     public function isLifetime(): bool
     {
         return is_null($this->active_until);

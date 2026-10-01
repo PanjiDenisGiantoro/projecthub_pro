@@ -167,30 +167,28 @@
                 </div>
             </div>
 
+            @if($modules->isNotEmpty())
             <div class="pt-1">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Modul Aplikasi</label>
                 <p class="text-xs text-gray-500 mb-2">Pilih modul yang ingin Anda aktifkan. Bisa diubah lagi nanti.</p>
 
                 <div class="space-y-2">
+                    @foreach($modules as $module)
                     <label class="flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-gray-300 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                        <input type="checkbox" name="modules[]" value="task_management" x-model="modules"
+                        <input type="checkbox" name="modules[]" value="{{ $module->slug }}" x-model="modules"
                                class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                         <span>
-                            <span class="block text-sm font-medium text-gray-900">Task Management</span>
-                            <span class="block text-xs text-gray-500">Proyek, tugas, bug ticket, dan laporan.</span>
+                            <span class="block text-sm font-medium text-gray-900">{{ $module->name }}</span>
+                            @if($module->description)
+                            <span class="block text-xs text-gray-500">{{ $module->description }}</span>
+                            @endif
                         </span>
                     </label>
-                    <label class="flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 cursor-pointer hover:border-gray-300 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                        <input type="checkbox" name="modules[]" value="hris" x-model="modules"
-                               class="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span>
-                            <span class="block text-sm font-medium text-gray-900">HRIS</span>
-                            <span class="block text-xs text-gray-500">Data karyawan, absensi, penggajian, dan cuti.</span>
-                        </span>
-                    </label>
+                    @endforeach
                 </div>
                 @error('modules') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
+            @endif
 
             <button type="submit"
                     class="w-full font-medium py-2.5 rounded-lg transition-colors text-sm mt-2 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
@@ -215,7 +213,7 @@
 function registerForm() {
     return {
         plan: @json(old('plan', $prefillPlan)),
-        modules: @json(old('modules', ['task_management', 'hris'])),
+        modules: @json(old('modules', $modules->pluck('slug')->values())),
         showPassword: false,
         showPasswordConfirmation: false,
     }

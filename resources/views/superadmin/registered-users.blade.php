@@ -177,7 +177,7 @@
                 {{-- Aksi --}}
                 <td class="px-6 py-4 text-center">
                     <button
-                        onclick="openModal({{ $user->id }}, '{{ e($user->name) }}', '{{ $user->isLifetime() ? 'lifetime' : 'expiry' }}', '{{ $user->active_until?->format('Y-m-d') ?? '' }}')"
+                        onclick="openModal({{ $user->id }}, '{{ e($user->name) }}', '{{ $user->isLifetime() ? 'lifetime' : 'expiry' }}', '{{ $user->active_until?->format('Y-m-d') ?? '' }}', {{ Js::from($user->packages->where('type', 'module')->pluck('slug')->values()) }})"
                         class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white border border-white/10 hover:border-white/25 px-3 py-1.5 rounded-lg transition-all">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -276,6 +276,22 @@
                 <input type="date" name="active_until" id="input-date"
                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-all"
                        min="{{ now()->addDay()->format('Y-m-d') }}">
+            </div>
+
+            {{-- Modul --}}
+            <div class="space-y-2">
+                <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Modul</label>
+                <div class="grid grid-cols-2 gap-2">
+                    @foreach($packages->where('type', 'module') as $pkg)
+                    <label class="relative flex items-start gap-3 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-white/20 transition-all has-[:checked]:border-blue-500/60 has-[:checked]:bg-blue-500/10">
+                        <input type="checkbox" name="modules[]" value="{{ $pkg->slug }}" class="modal-module mt-0.5 accent-blue-500">
+                        <div>
+                            <p class="text-sm font-semibold text-white">{{ $pkg->name }}</p>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+                <p class="text-xs text-slate-500">Berlaku untuk semua user di perusahaan pelanggan ini (kecuali client).</p>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-1">
@@ -429,13 +445,17 @@ function toggleAddDateField(radio) {
         document.getElementById('add-input-date').value = '';
     }
 }
-@if($errors->any())
+@if($errors->any() && ! $errors->has('modules'))
 openAddModal();
 @endif
 </script>
 
 <script>
-function openModal(userId, userName, currentType, currentDate) {
+function openModal(userId, userName, currentType, currentDate, currentModules = []) {
+    document.querySelectorAll('.modal-module').forEach(cb => {
+        cb.checked = currentModules.includes(cb.value);
+    });
+
     document.getElementById('modal-username').textContent = userName;
     document.getElementById('modal-avatar').textContent = userName.substring(0, 2).toUpperCase();
     document.getElementById('modal-form').action = `/superadmin/registered-users/${userId}/lifetime`;

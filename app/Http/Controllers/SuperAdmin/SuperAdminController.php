@@ -154,6 +154,7 @@ class SuperAdminController extends Controller
                 'organization_unit_id' => $rootUnit->id,
                 'is_active'            => true,
                 'is_registered'        => true,
+                'email_verified_at'    => now(), // dibuat superadmin, kredensial disampaikan langsung
                 'timezone'             => 'Asia/Jakarta',
                 'active_until'         => $request->type === 'lifetime' ? null : $request->active_until,
             ]);
@@ -200,18 +201,39 @@ class SuperAdminController extends Controller
 
     public function updateLifetime(Request $request, User $user)
     {
+        $moduleSlugs = Package::where('type', 'module')->pluck('slug')->all();
+
         $request->validate([
             'type'         => 'required|in:lifetime,expiry',
             'active_until' => 'required_if:type,expiry|nullable|date|after:today',
+            'modules'      => 'required|array|min:1',
+            'modules.*'    => Rule::in($moduleSlugs),
+        ], [
+            'modules.required' => 'Pilih minimal satu modul (HRIS / Task Management).',
         ]);
 
         $activeUntil = $request->type === 'lifetime' ? null : $request->active_until;
 
         $user->update(['active_until' => $activeUntil]);
 
+        // Modul (HRIS / Task Management) berlaku untuk semua user di perusahaan pelanggan
+        // (kecuali client), sama seperti user baru yang otomatis ikut package company-nya.
+        // Package tier (Free/Basic/...) tidak disentuh.
+        $moduleIds   = Package::where('type', 'module')->pluck('id');
+        $selectedIds = Package::where('type', 'module')->whereIn('slug', $request->modules)->pluck('id');
+        $members = $user->company_id
+            ? User::where('company_id', $user->company_id)->whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))->get()
+            : collect([$user]);
+        foreach ($members as $member) {
+            $member->packages()->detach($moduleIds->diff($selectedIds)->all());
+            $member->packages()->syncWithoutDetaching($selectedIds->all());
+        }
+
         $msg = $request->type === 'lifetime'
             ? "Masa aktif {$user->name} diset ke Lifetime."
             : "Masa aktif {$user->name} diset hingga " . \Carbon\Carbon::parse($request->active_until)->format('d M Y') . '.';
+        $msg .= ' Modul ' . Package::whereIn('id', $selectedIds)->pluck('name')->implode(' + ')
+            . " diterapkan ke {$members->count()} user di perusahaannya.";
 
         return back()->with('success', $msg);
     }

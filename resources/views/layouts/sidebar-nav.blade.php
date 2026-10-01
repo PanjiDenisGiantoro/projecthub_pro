@@ -3,7 +3,7 @@
     $active = 'ph-nav-link ph-active';
     $inactive = 'ph-nav-link';
     $isSuperAdmin = auth()->user()->is_super_admin;
-    $userPkgs = $isSuperAdmin ? ['task_management', 'hris'] : auth()->user()->activePackages();
+    $userPkgs = auth()->user()->accessiblePackages();
     if (auth()->user()->hasRole('client')) {
         $userPkgs = array_values(array_diff($userPkgs, ['hris']));
     }
@@ -355,7 +355,8 @@
                 Activity Logs
             </a>
 
-            {{-- Email Notifications --}}
+            {{-- Email Notifications — disembunyikan dulu (by request); pengaturannya tetap ada di My Profile --}}
+            @if(false)
             <a href="{{ route('profile') }}#email-notifications" title="Email Notifications" data-title="Email Notifications"
                 class="{{ $inactive }}">
                 <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,6 +365,7 @@
                 </svg>
                 Email Notifications
             </a>
+            @endif
         </x-nav-section>
     @endcan
 

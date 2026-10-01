@@ -25,7 +25,7 @@ class DashboardWebController extends Controller
         $activePkg  = session('active_package', 'task_management');
 
         // ── HRIS Dashboard ──────────────────────────────────────────────────
-        if ($activePkg === 'hris' && !$user->hasRole('client') && ($user->is_super_admin || $user->hasPackage('hris'))) {
+        if ($activePkg === 'hris' && !$user->hasRole('client') && in_array('hris', $user->accessiblePackages())) {
             $companyId      = $user->company_id;
             $totalKaryawan  = User::where('company_id', $companyId)
                 ->where('is_super_admin', false)

@@ -126,15 +126,13 @@
                 </button>
 
                 <h1
-                    class="fl-topbar-title text-[14px] tracking-tight shrink-0 truncate max-w-[12rem] sm:max-w-none font-semibold">
+                    class="fl-topbar-title text-[14px] tracking-tight min-w-0 truncate font-semibold">
                     @yield('page-title', View::getSection('title') ? trim(str_replace('— Flovig', '', View::getSection('title'))) : 'Dashboard')
                 </h1>
 
                 {{-- Package switcher — visible when user has both packages or is super admin --}}
                 @php
-                    $userPackages = auth()->user()->is_super_admin
-                        ? ['task_management', 'hris']
-                        : auth()->user()->activePackages();
+                    $userPackages = auth()->user()->accessiblePackages();
                     if (auth()->user()->hasRole('client')) {
                         $userPackages = array_values(array_diff($userPackages, ['hris']));
                     }
@@ -202,7 +200,7 @@
 
                     {{-- 2. Meetings --}}
                     @can('access meetings')
-                    <div class="relative group flex items-center">
+                    <div class="relative group hidden sm:flex items-center">
                         <a href="{{ route('meetings.index') }}"
                             class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('meetings.*') ? 'text-blue-500 bg-blue-500/10' : '' }}" title="Meetings">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +255,7 @@
 
                     {{-- 4. Calendar --}}
                     @can('access calendar')
-                    <div class="relative group flex items-center">
+                    <div class="relative group hidden sm:flex items-center">
                         <a href="{{ route('calendar.index') }}"
                             class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('calendar.*') ? 'text-blue-500 bg-blue-500/10' : '' }}" title="Calendar">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

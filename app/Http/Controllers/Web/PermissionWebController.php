@@ -20,7 +20,7 @@ class PermissionWebController extends Controller
         // logika $showTm/$showHris di layouts/sidebar-nav.blade.php. Super admin
         // mengelola template default global (cid null) jadi tetap lihat semua paket.
         $user     = auth()->user();
-        $userPkgs = $user->is_super_admin ? ['task_management', 'hris'] : $user->activePackages();
+        $userPkgs = $user->accessiblePackages();
         $showTm   = $cid === null || empty($userPkgs) || in_array('task_management', $userPkgs);
         $showHris = $cid === null || in_array('hris', $userPkgs);
 

@@ -2,7 +2,6 @@
     $collapsible ??= true;
     $subUser = auth()->user();
 @endphp
-@if(! $subUser->is_super_admin)
     @php
         $subRegistrant  = $subUser->companyRegistrant() ?? $subUser;
         $subTierPkg     = $subRegistrant->packages()->where('type', 'tier')->orderByDesc('price')->first();
@@ -48,4 +47,3 @@
             @endif
         </div>
     </div>
-@endif

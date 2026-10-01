@@ -31,13 +31,26 @@ class RegisterWebController extends Controller
             'prefillEmail' => $request->query('email'),
             'prefillPlan'  => $request->query('plan', 'free'),
             'tiers'        => $tiers,
+            'modules'      => $this->selectableModules(),
         ]);
+    }
+
+    /**
+     * Modul yang boleh dipilih sendiri saat daftar: package type=module yang aktif dan
+     * "Aksi Tombol"-nya = daftar (Superadmin → Paket). Modul ber-aksi "Hubungi sales"
+     * (mis. HRIS) hanya bisa ditambahkan superadmin lewat Pelanggan → Set Langganan.
+     */
+    private function selectableModules()
+    {
+        return Package::where('type', 'module')->active()->where('cta_type', 'register')
+            ->orderBy('sort_order')->orderBy('id', 'desc')->get();
     }
 
     public function store(Request $request)
     {
         $selectableTiers = Package::tiers()->active()->where('cta_type', 'register')->get();
         $selectablePlans = $selectableTiers->pluck('slug');
+        $selectableModules = $this->selectableModules()->pluck('slug');
 
         $request->validate([
             'name'         => 'required|string|max:255',
@@ -45,8 +58,8 @@ class RegisterWebController extends Controller
             'company_name' => 'required|string|max:255',
             'password'     => 'required|string|min:8|confirmed',
             'plan'         => ['required', \Illuminate\Validation\Rule::in($selectablePlans)],
-            'modules'      => ['required', 'array', 'min:1'],
-            'modules.*'    => [\Illuminate\Validation\Rule::in(['task_management', 'hris'])],
+            'modules'      => [$selectableModules->isEmpty() ? 'nullable' : 'required', 'array'],
+            'modules.*'    => [\Illuminate\Validation\Rule::in($selectableModules)],
         ], [
             'email.unique'       => 'Email ini sudah terdaftar.',
             'password.min'       => 'Password minimal 8 karakter.',
