@@ -181,6 +181,11 @@ class ProjectWebController extends Controller
                 $data += BudgetWebController::pageData($request, $project);
                 break;
 
+            case 'portal':
+                abort_unless($request->user()->can('view', $project), 403);
+                $data += ClientPortalWebController::manageData($project);
+                break;
+
             case 'recurring':
                 $data['recurringDefinitions'] = $project->recurringTasks()->with('assignee', 'milestone')->withCount('tasks')->orderByDesc('id')
                     ->paginate($this->perPage($request, 10, 'recurring_per_page'), ['*'], 'recurring_page')->withQueryString();

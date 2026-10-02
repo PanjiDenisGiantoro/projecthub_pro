@@ -1,14 +1,5 @@
-@extends('layouts.app')
-@section('title', 'Client Portal — ' . $project->name)
-@section('page-title', 'Client Portal')
-
-@section('content')
-<div class="py-4" x-data="{showForm:false}">
-    <nav class="text-sm text-gray-500 mb-4">
-        <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
-        <span class="mx-2">/</span><span class="text-gray-700">Client Portal</span>
-    </nav>
-
+{{-- Kelola link portal klien; dirender di tab Portal (projects/show). --}}
+<div x-data="{showForm:false}">
     <div class="flex justify-between items-center mb-5">
         <p class="text-sm text-gray-500">{{ $tokens->count() }} link portal dibuat</p>
         <button @click="showForm=!showForm"
@@ -115,4 +106,3 @@
         @endif
     </div>
 </div>
-@endsection

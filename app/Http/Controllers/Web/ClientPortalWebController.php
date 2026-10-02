@@ -14,11 +14,16 @@ class ClientPortalWebController extends Controller
 {
     public function __construct(private NotificationService $notifier, private TeamNotifier $teamNotifier) {}
 
-    // Manage tokens (admin/manager)
+    /** URL lama halaman kelola portal — sekarang tampil langsung di tab Portal project. */
     public function index(Project $project)
     {
-        $tokens = $project->portalTokens()->with('clientUser', 'creator')->orderByDesc('id')->get();
-        return view('portal.manage', compact('project', 'tokens'));
+        return redirect()->route('projects.tab', [$project, 'portal']);
+    }
+
+    /** Data kelola token portal (dipakai tab Portal di ProjectWebController::show). */
+    public static function manageData(Project $project): array
+    {
+        return ['tokens' => $project->portalTokens()->with('clientUser', 'creator')->orderByDesc('id')->get()];
     }
 
     public function store(Request $request, Project $project)

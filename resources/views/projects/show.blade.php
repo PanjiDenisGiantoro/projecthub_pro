@@ -1915,15 +1915,7 @@
                 TAB: PORTAL
                 ============================================================ --}}
                 <div x-show="tab === 'portal'" x-cloak>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h2 class="text-base font-semibold text-gray-900 mb-4">Client Portal</h2>
-                        <p class="text-sm text-gray-500 mb-4">{{ $project->portalTokens()->count() }} portal link created.
-                            Share a private link with clients to view project progress.</p>
-                        <a href="{{ route('portal.index', $project) }}"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                            Manage Portal Links &rarr;
-                        </a>
-                    </div>
+                    @include('portal._manage')
                 </div>
 
                 @endif {{-- /tab portal --}}
