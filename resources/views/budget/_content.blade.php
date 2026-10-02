@@ -1,14 +1,5 @@
-@extends('layouts.app')
-@section('title', 'Anggaran — ' . $project->name)
-@section('page-title', 'Budget Tracking')
-
-@section('content')
-<div class="py-4" x-data="{showForm:false}">
-    <nav class="text-sm text-gray-500 mb-4">
-        <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
-        <span class="mx-2">/</span><span class="text-gray-700">Anggaran</span>
-    </nav>
-
+{{-- Halaman anggaran project; dirender di tab Budget (projects/show). --}}
+<div x-data="{showForm:false}">
     {{-- Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <div class="bg-white rounded-xl border border-gray-200 p-5">
@@ -108,7 +99,7 @@
                 @if(request('category'))
                 <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                     {{ request('category') }}
-                    <a href="{{ route('budget.index', $project) }}" class="hover:text-blue-900" title="Hapus filter">✕</a>
+                    <a href="{{ route('projects.tab', [$project, 'budget']) }}" class="hover:text-blue-900" title="Hapus filter">✕</a>
                 </span>
                 @endif
             </div>
@@ -192,4 +183,3 @@ var categoryChart = new Chart(document.getElementById('categoryChart'), {
 @endif
 </script>
 @endpush
-@endsection

@@ -1897,53 +1897,7 @@
                 TAB: BUDGET
                 ============================================================ --}}
                 <div x-show="tab === 'budget'" x-cloak>
-                    @php
-                        $budgetUsed = $project->totalExpenses();
-                        $budgetPct = $project->budgetUsedPercent();
-                    @endphp
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <h2 class="text-base font-semibold text-gray-900">Budget Tracking</h2>
-                            <a href="{{ route('budget.index', $project) }}"
-                                class="text-sm text-blue-600 hover:text-blue-800 font-medium">Manage →</a>
-                        </div>
-                        @if($project->budget)
-                            <div class="grid grid-cols-3 gap-4 mb-4">
-                                <div class="bg-gray-50 rounded-lg p-3">
-                                    <p class="text-xs text-gray-400 mb-0.5">Total Budget</p>
-                                    <p class="font-semibold text-gray-800 text-sm">Rp
-                                        {{ number_format($project->budget, 0, ',', '.') }}
-                                    </p>
-                                </div>
-                                <div class="bg-red-50 rounded-lg p-3">
-                                    <p class="text-xs text-gray-400 mb-0.5">Spent</p>
-                                    <p class="font-semibold text-red-600 text-sm">Rp
-                                        {{ number_format($budgetUsed, 0, ',', '.') }}
-                                    </p>
-                                </div>
-                                <div class="bg-green-50 rounded-lg p-3">
-                                    <p class="text-xs text-gray-400 mb-0.5">Remaining</p>
-                                    <p class="font-semibold text-green-600 text-sm">Rp
-                                        {{ number_format($project->budget - $budgetUsed, 0, ',', '.') }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-xs text-gray-500 mb-1">
-                                    <span>Budget usage</span>
-                                    <span
-                                        class="{{ $budgetPct >= 90 ? 'text-red-600 font-bold' : '' }}">{{ $budgetPct }}%</span>
-                                </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="h-2 rounded-full {{ $budgetPct >= 90 ? 'bg-red-500' : ($budgetPct >= 70 ? 'bg-yellow-500' : 'bg-blue-500') }}"
-                                        style="width:{{ min(100, $budgetPct) }}%"></div>
-                                </div>
-                            </div>
-                        @else
-                            <p class="text-sm text-gray-400">Budget not set. <a href="{{ route('budget.index', $project) }}"
-                                    class="text-blue-600 hover:underline">Manage budget →</a></p>
-                        @endif
-                    </div>
+                    @include('budget._content')
                 </div>
 
                 @endif {{-- /tab budget --}}

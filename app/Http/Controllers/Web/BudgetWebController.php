@@ -12,14 +12,23 @@ class BudgetWebController extends Controller
 {
     use HasPerPage;
 
+    /** URL lama halaman anggaran penuh — sekarang tampil langsung di tab Budget project. */
     public function index(Request $request, Project $project)
+    {
+        $query = http_build_query($request->query());
+
+        return redirect()->to(route('projects.tab', [$project, 'budget']) . ($query ? "?{$query}" : ''));
+    }
+
+    /** Data halaman anggaran (dipakai tab Budget di ProjectWebController::show). */
+    public static function pageData(Request $request, Project $project): array
     {
         // Breakdown per kategori butuh seluruh entri, bukan cuma satu halaman.
         $allEntries = $project->budgetEntries()->orderByDesc('entry_date')->orderByDesc('id')->get();
         $entries = $project->budgetEntries()->with('creator')
             ->when($request->category, fn ($q) => $q->where('category', $request->category))
             ->orderByDesc('entry_date')->orderByDesc('id')
-            ->paginate($this->perPage($request))
+            ->paginate((new static)->perPage($request))
             ->withQueryString();
         $summary = [
             'budget'   => (float) $project->budget,
@@ -33,7 +42,7 @@ class BudgetWebController extends Controller
             ->map(fn($g) => $g->sum('amount'))
             ->sortByDesc(fn($v) => $v);
 
-        return view('budget.index', compact('project', 'entries', 'summary', 'byCategory'));
+        return compact('entries', 'summary', 'byCategory');
     }
 
     public function store(Request $request, Project $project)
