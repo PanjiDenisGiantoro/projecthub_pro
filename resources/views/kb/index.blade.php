@@ -2,8 +2,14 @@
 @section('title', 'Knowledge Base — ' . $project->name)
 @section('page-title', 'Knowledge Base')
 
+@section('main-class', 'flex-1 px-4 sm:px-6 pt-0 pb-8 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0')
+
 @section('content')
-<div class="py-4" x-data="{showForm:false}">
+<div class="pt-4 pb-6 flex flex-col lg:flex-row gap-6 items-start w-full max-w-full min-w-0">
+    @include('projects.partials.sidebar', ['project' => $project, 'tab' => 'kb'])
+
+<div class="flex-1 min-w-0 w-full">
+<div x-data="{showForm:false}">
     <nav class="text-sm text-gray-500 mb-4">
         <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
         <span class="mx-2">/</span>
@@ -147,6 +153,9 @@
         </div>
         @endforelse
     </div>
+</div>
+
+</div>
 </div>
 
 @push('scripts')

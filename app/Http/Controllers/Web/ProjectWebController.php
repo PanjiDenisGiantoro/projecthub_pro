@@ -119,6 +119,11 @@ class ProjectWebController extends Controller
         }
 
         $tabKey = self::TABS[$tab];
+
+        // Knowledge Base punya halaman sendiri (/projects/{id}/kb).
+        if ($tabKey === 'kb') {
+            return redirect()->route('kb.index', $project);
+        }
         $data = ['project' => $project, 'tab' => $tabKey];
 
         $project->load(['client', 'manager']);

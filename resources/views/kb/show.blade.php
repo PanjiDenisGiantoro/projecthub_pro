@@ -2,8 +2,14 @@
 @section('title', $article->title)
 @section('page-title', 'Knowledge Base')
 
+@section('main-class', 'flex-1 px-4 sm:px-6 pt-0 pb-8 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0')
+
 @section('content')
-<div class="py-4 max-w-4xl" x-data="{editing:false, addingFiles:false}">
+<div class="pt-4 pb-6 flex flex-col lg:flex-row gap-6 items-start w-full max-w-full min-w-0">
+    @include('projects.partials.sidebar', ['project' => $project, 'tab' => 'kb'])
+
+<div class="flex-1 min-w-0 w-full">
+<div class="pb-4 max-w-4xl" x-data="{editing:false, addingFiles:false}">
     <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
         <a href="{{ route('projects.show', $project) }}" class="hover:text-blue-600">{{ $project->name }}</a>
         <span>/</span>
@@ -180,6 +186,9 @@
         </div>
     </div>
     @endif
+</div>
+
+</div>
 </div>
 
 @push('scripts')
