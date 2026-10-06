@@ -30,9 +30,10 @@ class ProjectWebController extends Controller
 
         if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
-        } elseif (! $user->is_super_admin && ! $user->hasRole('admin')) {
-            // Member biasa hanya melihat proyek yang ia pimpin atau ia menjadi
-            // anggota timnya — selaras dengan ProjectPolicy::view().
+        } elseif (! $user->is_super_admin) {
+            // Selain super admin (termasuk role 'admin'), hanya melihat proyek
+            // yang ia pimpin atau ia menjadi anggota timnya — selaras dengan
+            // ProjectPolicy::view().
             $query->where(function ($q) use ($user) {
                 $q->where('manager_id', $user->id)
                   ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
