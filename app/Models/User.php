@@ -63,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'is_registered'     => 'boolean',
             'email_notifications_enabled' => 'boolean',
             'active_until'      => 'datetime',
+            'password_changed_at' => 'datetime',
             'hire_date'         => 'date',
             'contract_end_date' => 'date',
             'custom_fields'     => 'array',
