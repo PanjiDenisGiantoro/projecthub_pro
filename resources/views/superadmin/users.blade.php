@@ -74,11 +74,18 @@
                     @endif
                 </td>
                 <td class="px-6 py-4 text-right">
-                    <button type="button"
-                            onclick='openCompanyModal(@json($user->id), @json($user->name), @json($user->company_id), @json($user->additionalCompanies->pluck("id")))'
-                            class="text-xs font-medium text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500/60 rounded-lg px-3 py-1.5 transition-all">
-                        Kelola Company
-                    </button>
+                    <div class="inline-flex items-center gap-2">
+                        <button type="button"
+                                onclick='openPasswordModal(@json($user->id), @json($user->name), @json((bool) $user->previous_password), @json($user->password_changed_at?->format("d M Y H:i")))'
+                                class="text-xs font-medium text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-500/60 rounded-lg px-3 py-1.5 transition-all">
+                            Password
+                        </button>
+                        <button type="button"
+                                onclick='openCompanyModal(@json($user->id), @json($user->name), @json($user->company_id), @json($user->additionalCompanies->pluck("id")))'
+                                class="text-xs font-medium text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-500/60 rounded-lg px-3 py-1.5 transition-all">
+                            Kelola Company
+                        </button>
+                    </div>
                 </td>
             </tr>
             @empty
@@ -148,7 +155,95 @@
     </div>
 </div>
 
+{{-- Modal Ganti / Kembalikan Password --}}
+<div id="modal-password" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePasswordModal()"></div>
+    <div class="relative bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div>
+                <h3 class="font-semibold text-white text-sm">Ganti Password</h3>
+                <p id="pm-username" class="text-xs text-slate-500 mt-0.5"></p>
+            </div>
+            <button onclick="closePasswordModal()" class="text-slate-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="pm-form" method="POST" class="px-6 py-5 space-y-4">
+            @csrf
+            @method('PUT')
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1.5">Password baru</label>
+                <input type="password" name="new_password" minlength="8" required autocomplete="new-password"
+                       class="w-full text-sm bg-slate-800/60 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                       placeholder="Minimal 8 karakter">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1.5">Ulangi password baru</label>
+                <input type="password" name="new_password_confirmation" minlength="8" required autocomplete="new-password"
+                       class="w-full text-sm bg-slate-800/60 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                       placeholder="Ketik ulang password baru">
+            </div>
+
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Password lama (hash) otomatis disimpan sebagai cadangan dan bisa dikembalikan kapan saja.
+            </p>
+
+            <div class="flex items-center justify-end gap-3 pt-1">
+                <button type="button" onclick="closePasswordModal()"
+                        class="px-4 py-2 text-sm text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-xl transition-all">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="px-5 py-2 text-sm font-semibold bg-amber-600 hover:bg-amber-500 text-white rounded-xl transition-all">
+                    Simpan Password
+                </button>
+            </div>
+        </form>
+
+        <div id="pm-restore-wrap" class="hidden px-6 pb-5 -mt-1">
+            <div class="border-t border-white/5 pt-4 flex items-center justify-between gap-3">
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Ada password lama tersimpan<span id="pm-changed-at"></span>.
+                </p>
+                <form id="pm-restore-form" method="POST" onsubmit="return confirm('Kembalikan ke password sebelumnya? Password saat ini akan ditukar dengan yang lama.')">
+                    @csrf
+                    <button type="submit"
+                            class="shrink-0 text-xs font-medium text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/60 rounded-lg px-3 py-1.5 transition-all">
+                        Kembalikan password lama
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function openPasswordModal(userId, userName, hasPrevious, changedAt) {
+    document.getElementById('pm-username').textContent = userName;
+    const form = document.getElementById('pm-form');
+    form.action = `/superadmin/users/${userId}/password`;
+    form.reset();
+
+    const restoreWrap = document.getElementById('pm-restore-wrap');
+    if (hasPrevious) {
+        document.getElementById('pm-restore-form').action = `/superadmin/users/${userId}/password/restore`;
+        document.getElementById('pm-changed-at').textContent = changedAt ? ` (diubah ${changedAt})` : '';
+        restoreWrap.classList.remove('hidden');
+    } else {
+        restoreWrap.classList.add('hidden');
+    }
+
+    document.getElementById('modal-password').classList.remove('hidden');
+}
+
+function closePasswordModal() {
+    document.getElementById('modal-password').classList.add('hidden');
+}
+
 function openCompanyModal(userId, userName, primaryCompanyId, additionalIds) {
     document.getElementById('cm-username').textContent = userName;
     document.getElementById('cm-form').action = `/superadmin/users/${userId}/companies`;

@@ -98,6 +98,8 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
     Route::get('/companies', [SuperAdminController::class, 'companies'])->name('companies');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::put('/users/{user}/companies', [SuperAdminController::class, 'updateUserCompanies'])->name('users.companies');
+    Route::put('/users/{user}/password', [SuperAdminController::class, 'updateUserPassword'])->name('users.password');
+    Route::post('/users/{user}/password/restore', [SuperAdminController::class, 'restoreUserPassword'])->name('users.password.restore');
     Route::patch('/companies/{company}/toggle', [SuperAdminController::class, 'toggleCompany'])->name('companies.toggle');
     Route::delete('/companies/{company}', [SuperAdminController::class, 'destroyCompany'])->name('companies.destroy');
     Route::get('/registered-users', [SuperAdminController::class, 'registeredUsers'])->name('registered-users');
