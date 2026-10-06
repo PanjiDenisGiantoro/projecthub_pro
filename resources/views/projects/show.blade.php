@@ -40,6 +40,38 @@
             font-size: 0.875rem !important;
         }
 
+        /* Select2 single (dropdown di dialog hapus anggota) */
+        .select2-container--default .select2-selection--single {
+            height: 38px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            font-size: 0.875rem !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single,
+        .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
+        }
+
+        .dark .select2-container--default .select2-selection--single,
+        .dark .select2-dropdown,
+        .dark .select2-search--dropdown .select2-search__field {
+            background-color: #111827 !important;
+            border-color: #374151 !important;
+            color: #f3f4f6 !important;
+        }
+
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #f3f4f6 !important;
+        }
+
         .select2-results__option--highlighted {
             background-color: #3b82f6 !important;
         }
@@ -1726,24 +1758,64 @@
                 TAB: TEAM
                 ============================================================ --}}
                 @php
-                    // Calon penerima task saat anggota dihapus: anggota tim + lead proyek.
+                    // Calon penerima pekerjaan saat anggota dihapus: anggota tim + lead proyek.
                     $teamUsers = $project->members->pluck('user')->push($project->manager)->filter()->unique('id')->values()
                         ->map(fn ($u) => ['id' => $u->id, 'name' => $u->name]);
                 @endphp
                 <div x-show="tab === 'team'" x-cloak x-data="{
                     showAddMember: false,
                     teamUsers: @js($teamUsers),
-                    remove: { open: false, form: null, name: '', userId: null, tasks: [], action: 'reassign', to: '' },
+                    memberIds: @js($project->members->pluck('user_id')->values()),
+                    leadId: {{ (int) $project->manager_id }},
+                    remove: { open: false, form: null, name: '', userId: null, tasks: [], to: '', isLead: false, newLead: '' },
                     get receivers() { return this.teamUsers.filter(u => u.id !== this.remove.userId); },
+                    // Pekerjaan belum selesai dikelompokkan per jenis untuk tampilan dialog.
+                    get workGroups() {
+                        const groups = {};
+                        this.remove.tasks.forEach(t => (groups[t.type] ||= []).push(t));
+                        return Object.entries(groups).map(([type, items]) => ({ type, items }));
+                    },
+                    // Calon Lead baru: anggota tim lain (bukan lead yang keluar).
+                    get leadCandidates() { return this.teamUsers.filter(u => u.id !== this.remove.userId && this.memberIds.includes(u.id)); },
+                    get canConfirm() {
+                        if (this.remove.tasks.length && !this.remove.to) return false;
+                        return !this.remove.isLead || !!this.remove.newLead;
+                    },
                     openRemove(form, name, userId, tasks) {
-                        const def = this.teamUsers.find(u => u.id === {{ (int) $project->manager_id }} && u.id !== userId) || this.teamUsers.find(u => u.id !== userId);
-                        this.remove = { open: true, form, name, userId, tasks, action: def ? 'reassign' : 'unassign', to: def ? String(def.id) : '' };
+                        const isLead = userId === this.leadId;
+                        const def = this.teamUsers.find(u => u.id === this.leadId && u.id !== userId) || this.teamUsers.find(u => u.id !== userId);
+                        const to = def ? String(def.id) : '';
+                        const newLead = isLead ? (this.leadCandidates.find(u => String(u.id) === to) || this.teamUsers.find(u => u.id !== userId && this.memberIds.includes(u.id))) : null;
+                        this.remove = { open: true, form, name, userId, tasks, to, isLead, newLead: newLead ? String(newLead.id) : '' };
+                        this.$nextTick(() => {
+                            if (this.remove.isLead) this.initRemoveSelect(this.$refs.newLeadSelect, this.leadCandidates, 'newLead');
+                            if (this.$refs.receiverSelect) this.initRemoveSelect(this.$refs.receiverSelect, this.receivers, 'to');
+                        });
+                    },
+                    // Select2 untuk dropdown di dialog; opsi dibangun ulang tiap dialog dibuka dan
+                    // nilainya disinkronkan balik ke state Alpine (remove[key]).
+                    initRemoveSelect(el, users, key) {
+                        const jq = window.jQuery;
+                        if (!el || !jq || !jq.fn.select2) return;
+                        const $el = jq(el);
+                        if ($el.hasClass('select2-hidden-accessible')) $el.select2('destroy');
+                        $el.empty().append(new Option('', '', false, false));
+                        users.forEach(u => $el.append(new Option(u.name, String(u.id), false, false)));
+                        $el.prop('disabled', !users.length).select2({
+                            placeholder: '— Pilih anggota —',
+                            width: '100%',
+                            dropdownParent: jq(this.$refs.removePanel),
+                        });
+                        $el.val(this.remove[key] || null).trigger('change.select2');
+                        $el.off('change.removeDialog').on('change.removeDialog', () => { this.remove[key] = $el.val() || ''; });
                     },
                     confirmRemove() {
-                        if (this.remove.action === 'reassign' && !this.remove.to) return;
+                        if (!this.canConfirm) return;
                         const add = (n, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; this.remove.form.appendChild(i); };
-                        add('task_action', this.remove.action);
-                        if (this.remove.action === 'reassign') add('reassign_to', this.remove.to);
+                        if (this.remove.tasks.length) {
+                            add('reassign_to', this.remove.to);
+                        }
+                        if (this.remove.isLead) add('new_manager_id', this.remove.newLead);
                         this.remove.form.submit();
                     },
                 }">
@@ -1781,20 +1853,35 @@
                                             </div>
                                             <div>
                                                 <p class="text-sm font-medium text-gray-900">{{ $member->user->name ?? '-' }}
+                                                    @if((int) $member->user_id === (int) $project->manager_id)
+                                                        <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700 align-middle">Lead</span>
+                                                    @endif
                                                 </p>
                                                 <p class="text-xs text-gray-500 mt-0.5">{{ $member->user->email ?? '' }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
-                                            @php $openTasks = $memberOpenTasks[$member->user_id] ?? []; @endphp
+                                            @php
+                                                $openTasks = $memberOpenWork[$member->user_id] ?? [];
+                                                $isLead = (int) $member->user_id === (int) $project->manager_id;
+                                                // Lead hanya bisa keluar kalau ada anggota tim lain yang bisa menggantikannya.
+                                                $leadLocked = $isLead && $project->members->where('user_id', '!=', $member->user_id)->isEmpty();
+                                            @endphp
                                             @if(count($openTasks))
-                                                <span class="text-xs text-gray-400">{{ count($openTasks) }} task aktif</span>
+                                                <span class="text-xs text-gray-400">{{ count($openTasks) }} pekerjaan aktif</span>
                                             @endif
-                                            @if(!auth()->user()->hasRole('client'))
+                                            @if(!auth()->user()->hasRole('client') && $leadLocked)
+                                                <span class="shrink-0 p-1.5 text-gray-200 cursor-not-allowed" title="Tambahkan anggota lain dulu untuk jadi Lead">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a1 1 0 00-1-1h-4a1 1 0 00-1 1H5" />
+                                                    </svg>
+                                                </span>
+                                            @elseif(!auth()->user()->hasRole('client'))
                                                 <form method="POST"
                                                     action="{{ route('projects.members.remove', [$project, $member->user]) }}"
-                                                    class="opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    @if(count($openTasks))
+                                                    class="shrink-0"
+                                                    @if(count($openTasks) || $isLead)
                                                         @submit.prevent="openRemove($el, @js($member->user->name), {{ $member->user_id }}, @js($openTasks))"
                                                     @else
                                                         data-confirm-delete="{{ $member->user->name }} from team"
@@ -1802,7 +1889,7 @@
                                                     @endif>
                                                     @csrf @method('DELETE')
                                                     <button type="submit"
-                                                        class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                        title="Keluarkan dari tim" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1892,49 +1979,108 @@
 
                     </div>
 
-                    {{-- Dialog hapus anggota yang masih punya task belum selesai --}}
+                    {{-- Dialog hapus anggota yang masih punya task belum selesai, atau Lead (wajib tunjuk Lead baru) --}}
                     <div x-show="remove.open" x-cloak @keydown.escape.window="remove.open = false"
-                        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-                        <div @click.outside="remove.open = false" class="w-full max-w-md bg-white rounded-xl shadow-xl">
-                            <div class="px-5 py-4 border-b border-gray-100">
-                                <h3 class="text-base font-semibold text-gray-900">Keluarkan <span x-text="remove.name"></span> dari tim?</h3>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Masih ada <span class="font-semibold" x-text="remove.tasks.length"></span> task belum selesai.
-                                    Task yang sudah selesai dan time log tidak diubah.
-                                </p>
-                            </div>
-                            <div class="px-5 py-4 space-y-4">
-                                <ul class="max-h-40 overflow-y-auto text-sm text-gray-700 border border-gray-100 rounded-lg divide-y divide-gray-100">
-                                    <template x-for="t in remove.tasks" :key="t.id">
-                                        <li class="px-3 py-2 truncate" x-text="t.title"></li>
-                                    </template>
-                                </ul>
-                                <div class="space-y-2">
-                                    <label class="flex items-start gap-2 text-sm text-gray-700" :class="!receivers.length && 'opacity-50'">
-                                        <input type="radio" value="reassign" x-model="remove.action" :disabled="!receivers.length" class="mt-0.5">
-                                        <span class="flex-1">
-                                            Pindahkan task ke
-                                            <select x-model="remove.to" @focus="remove.action = 'reassign'" :disabled="!receivers.length"
-                                                class="mt-1 block w-full text-sm border-gray-300 rounded-lg">
-                                                <option value="">— Pilih anggota —</option>
-                                                <template x-for="u in receivers" :key="u.id">
-                                                    <option :value="String(u.id)" x-text="u.name" :selected="String(u.id) === remove.to"></option>
-                                                </template>
-                                            </select>
-                                        </span>
-                                    </label>
-                                    <label class="flex items-center gap-2 text-sm text-gray-700">
-                                        <input type="radio" value="unassign" x-model="remove.action">
-                                        Kosongkan penanggung jawab (assign ulang nanti)
-                                    </label>
+                        x-transition.opacity
+                        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+                        <div @click.outside="remove.open = false" x-ref="removePanel"
+                            class="w-full max-w-2xl max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800">
+
+                            {{-- Header --}}
+                            <div class="flex items-start gap-3 px-6 pt-6 pb-4">
+                                <div class="w-10 h-10 shrink-0 rounded-full bg-red-50 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+                                    </svg>
                                 </div>
-                            </div>
-                            <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                        Keluarkan <span x-text="remove.name"></span> dari tim?
+                                    </h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Pekerjaan yang sudah selesai dan time log tidak diubah.
+                                    </p>
+                                </div>
                                 <button type="button" @click="remove.open = false"
-                                    class="px-3 py-1.5 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Batal</button>
+                                    class="p-1 -mr-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="px-6 pb-5 space-y-4 overflow-y-auto">
+                                {{-- Serah-terima Lead --}}
+                                <div x-show="remove.isLead"
+                                    class="rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 p-4">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-200/70 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">LEAD</span>
+                                        <p class="text-sm font-semibold text-amber-900 dark:text-amber-200">Serahkan posisi Lead</p>
+                                    </div>
+                                    <p class="text-xs text-amber-800/80 dark:text-amber-300/80 mb-3">
+                                        <span x-text="remove.name"></span> adalah Lead proyek ini. Pilih anggota tim yang akan menggantikan.
+                                    </p>
+                                    <label class="block text-xs font-medium text-amber-900 dark:text-amber-200 mb-1">Lead baru <span class="text-red-500">*</span></label>
+                                    <select x-ref="newLeadSelect" class="w-full"></select>
+                                </div>
+
+                                {{-- Pekerjaan belum selesai --}}
+                                <template x-if="remove.tasks.length">
+                                    <div class="rounded-xl border border-gray-200 dark:border-gray-800">
+                                        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Pekerjaan belum selesai</p>
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400"
+                                                :title="workGroups.map(g => g.items.length + ' ' + g.type).join(', ')"
+                                                x-text="remove.tasks.length + ' item'"></span>
+                                        </div>
+                                        <div class="max-h-64 overflow-y-auto">
+                                            <table class="w-full text-sm">
+                                                <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                    <tr>
+                                                        <th class="w-10 px-4 py-2 text-left font-semibold">#</th>
+                                                        <th class="w-28 px-2 py-2 text-left font-semibold">Jenis</th>
+                                                        <th class="px-2 pr-4 py-2 text-left font-semibold">Judul</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                                    <template x-for="(t, i) in remove.tasks" :key="t.type + '-' + t.id">
+                                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                            <td class="px-4 py-2 text-xs text-gray-400" x-text="i + 1"></td>
+                                                            <td class="px-2 py-2">
+                                                                <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase"
+                                                                    :class="{
+                                                                        'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300': t.type === 'Task',
+                                                                        'bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300': t.type === 'Sprint',
+                                                                        'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300': t.type === 'Milestone',
+                                                                        'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300': t.type === 'Ticket',
+                                                                        'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300': t.type === 'Recurring',
+                                                                    }"
+                                                                    x-text="t.type"></span>
+                                                            </td>
+                                                            <td class="px-2 pr-4 py-2 text-gray-700 dark:text-gray-300 max-w-0 truncate" :title="t.title" x-text="t.title"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-800/40 rounded-b-xl">
+                                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Pindahkan semua ke <span class="text-red-500">*</span></label>
+                                            <select x-ref="receiverSelect" class="w-full"></select>
+                                            <p x-show="!receivers.length" class="mt-1.5 text-xs text-red-500">
+                                                Tidak ada anggota lain untuk menerima pekerjaan. Tambahkan anggota tim dulu.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            {{-- Footer --}}
+                            <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-800">
+                                <button type="button" @click="remove.open = false"
+                                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">Batal</button>
                                 <button type="button" @click="confirmRemove()"
-                                    :disabled="remove.action === 'reassign' && !remove.to"
-                                    class="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg">Keluarkan dari Tim</button>
+                                    :disabled="!canConfirm"
+                                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-sm transition">Keluarkan dari Tim</button>
                             </div>
                         </div>
                     </div>

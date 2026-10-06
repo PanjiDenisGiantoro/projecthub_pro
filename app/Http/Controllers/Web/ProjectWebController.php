@@ -178,13 +178,19 @@ class ProjectWebController extends Controller
                     ->whereNotIn('id', $project->members()->pluck('user_id'))
                     ->orderBy('name')->get();
 
-                // Task belum selesai per anggota (assignee atau anggota task), dipakai
-                // dialog hapus anggota untuk memindahkan/mengosongkan task-nya dulu.
-                $data['memberOpenTasks'] = [];
+                // Pekerjaan belum selesai per anggota (task, sprint, milestone, ticket,
+                // recurring task), dipakai dialog hapus anggota untuk memindahkan/
+                // mengosongkan penanggung jawabnya dulu.
+                $data['memberOpenWork'] = [];
                 foreach ($this->openTasksQuery($project)->with('members:id')->get(['id', 'title', 'assigned_to']) as $task) {
                     $userIds = $task->members->pluck('id')->push($task->assigned_to)->filter()->unique();
                     foreach ($userIds as $uid) {
-                        $data['memberOpenTasks'][$uid][] = ['id' => $task->id, 'title' => $task->title];
+                        $data['memberOpenWork'][$uid][] = ['type' => 'Task', 'id' => $task->id, 'title' => $task->title];
+                    }
+                }
+                foreach ($this->openOwnedWorkQueries($project) as [$label, $query, $column, $titleColumn]) {
+                    foreach ($query->whereNotNull($column)->get(['id', $titleColumn, $column]) as $item) {
+                        $data['memberOpenWork'][$item->{$column}][] = ['type' => $label, 'id' => $item->id, 'title' => $item->{$titleColumn}];
                     }
                 }
                 break;
@@ -336,25 +342,27 @@ class ProjectWebController extends Controller
     }
 
     /**
-     * Keluarkan anggota dari tim. Task yang BELUM selesai milik anggota itu
-     * (sebagai assignee maupun anggota task) dipindahkan ke anggota lain
-     * (task_action=reassign + reassign_to) atau dikosongkan (default).
-     * Task yang sudah selesai & time log tidak diubah supaya riwayat tetap utuh.
+     * Keluarkan anggota dari tim. Pekerjaan yang BELUM selesai milik anggota itu
+     * (task, sprint, milestone, ticket, recurring task) wajib dipindahkan ke
+     * anggota tim lain lewat reassign_to. Lead wajib menunjuk new_manager_id.
+     * Pekerjaan yang sudah selesai & time log tidak diubah supaya riwayat tetap utuh.
      */
     public function removeMember(Request $request, Project $project, User $user)
     {
         $request->validate([
-            'task_action' => 'nullable|in:reassign,unassign',
-            'reassign_to' => 'nullable|required_if:task_action,reassign|integer',
+            'reassign_to' => 'nullable|integer',
+            'new_manager_id' => 'nullable|integer',
         ]);
 
-        $reassignTo = null;
-        if ($request->task_action === 'reassign') {
-            $reassignTo = (int) $request->reassign_to;
-            $isTeam = $reassignTo === (int) $project->manager_id
-                || ProjectMember::where('project_id', $project->id)->where('user_id', $reassignTo)->exists();
-            if ($reassignTo === $user->id || ! $isTeam) {
-                return back()->with('danger', 'Pilih anggota tim lain untuk menerima task.');
+        // Lead yang keluar dari tim wajib menyerahkan posisi Lead ke anggota tim lain;
+        // kalau tidak, ia tetap jadi manager_id dan tetap punya akses ke proyek.
+        $newManagerId = null;
+        if ((int) $project->manager_id === $user->id) {
+            $newManagerId = (int) $request->new_manager_id;
+            $isOtherMember = $newManagerId && $newManagerId !== $user->id
+                && ProjectMember::where('project_id', $project->id)->where('user_id', $newManagerId)->exists();
+            if (! $isOtherMember) {
+                return back()->with('danger', 'Tunjuk Lead baru dulu dari anggota tim lain.');
             }
         }
 
@@ -363,7 +371,27 @@ class ProjectWebController extends Controller
                 ->orWhereHas('members', fn ($m) => $m->where('users.id', $user->id)))
             ->get();
 
-        DB::transaction(function () use ($tasks, $project, $user, $reassignTo) {
+        // Sprint, milestone, ticket & recurring task yang ia pegang ikut dipindahkan.
+        $owned = collect($this->openOwnedWorkQueries($project))
+            ->map(fn ($def) => [$def[1]->where($def[2], $user->id), $def[2]]);
+        $itemCount = $tasks->count() + $owned->sum(fn ($o) => (clone $o[0])->count());
+
+        // Pekerjaan yang belum beres wajib dipindahkan ke anggota tim lain (tidak boleh dikosongkan).
+        $reassignTo = null;
+        if ($itemCount > 0) {
+            $reassignTo = (int) $request->reassign_to;
+            $isTeam = $reassignTo === (int) $project->manager_id
+                || ProjectMember::where('project_id', $project->id)->where('user_id', $reassignTo)->exists();
+            if (! $reassignTo || $reassignTo === $user->id || ! $isTeam) {
+                return back()->with('danger', 'Pilih anggota tim lain untuk menerima pekerjaan yang belum selesai.');
+            }
+        }
+
+        DB::transaction(function () use ($tasks, $owned, $project, $user, $reassignTo, $newManagerId) {
+            if ($newManagerId) {
+                $project->update(['manager_id' => $newManagerId]);
+            }
+
             foreach ($tasks as $task) {
                 if ((int) $task->assigned_to === $user->id) {
                     $task->update(['assigned_to' => $reassignTo]);
@@ -373,30 +401,67 @@ class ProjectWebController extends Controller
                 }
             }
 
+            foreach ($owned as [$query, $column]) {
+                $query->update([$column => $reassignTo]);
+            }
+
             ProjectMember::where('project_id', $project->id)->where('user_id', $user->id)->delete();
         });
 
         $message = 'Anggota dihapus.';
-        if ($tasks->isNotEmpty()) {
-            $count = $tasks->count();
+        if ($itemCount > 0) {
             if ($reassignTo) {
                 $receiver = User::find($reassignTo);
-                $message .= " {$count} task dipindahkan ke {$receiver->name}.";
+                $message .= " {$itemCount} pekerjaan dipindahkan ke {$receiver->name}.";
                 if ($reassignTo !== auth()->id()) {
                     $this->notifier->send(
                         $reassignTo,
                         'task_assigned',
-                        'Task Dipindahkan ke Anda',
-                        auth()->user()->name." memindahkan {$count} task dari {$user->name} ke Anda di proyek \"{$project->name}\".",
+                        'Pekerjaan Dipindahkan ke Anda',
+                        auth()->user()->name." memindahkan {$itemCount} pekerjaan (task/sprint/milestone/ticket) dari {$user->name} ke Anda di proyek \"{$project->name}\".",
                         ['project_id' => $project->id]
                     );
                 }
             } else {
-                $message .= " {$count} task sekarang tanpa penanggung jawab.";
+                $message .= " {$itemCount} pekerjaan sekarang tanpa penanggung jawab.";
             }
         }
 
+        if ($newManagerId) {
+            $newManager = User::find($newManagerId);
+            $message .= " {$newManager->name} sekarang menjadi Lead proyek.";
+            if ($newManagerId !== auth()->id()) {
+                $this->notifier->send(
+                    $newManagerId,
+                    'project_lead_assigned',
+                    'Anda Menjadi Lead Proyek',
+                    auth()->user()->name." menunjuk Anda sebagai Lead proyek \"{$project->name}\" menggantikan {$user->name}.",
+                    ['project_id' => $project->id]
+                );
+            }
+        }
+
+        // Yang mengeluarkan dirinya sendiri bisa kehilangan akses ke proyek ini,
+        // jadi jangan kembalikan ke halaman proyek (akan 403).
+        if (! auth()->user()->can('view', $project->fresh())) {
+            return redirect()->route('projects.index')->with('success', $message);
+        }
+
         return back()->with('success', $message);
+    }
+
+    /**
+     * Pekerjaan proyek selain task yang punya satu penanggung jawab dan belum selesai.
+     * Tiap entri: [label, query, kolom penanggung jawab, kolom judul].
+     */
+    private function openOwnedWorkQueries(Project $project): array
+    {
+        return [
+            ['Sprint', $project->sprints()->where('status', '!=', 'completed'), 'assigned_to', 'name'],
+            ['Milestone', $project->milestones()->where('status', '!=', 'completed'), 'assigned_to', 'title'],
+            ['Ticket', $project->tickets()->whereNotIn('status', ['resolved', 'closed']), 'assignee_id', 'title'],
+            ['Recurring', $project->recurringTasks()->where('is_active', true), 'assigned_to', 'title'],
+        ];
     }
 
     /** Task proyek yang belum selesai: kolom board-nya bukan kolom "done" (atau status != done kalau tanpa kolom). */
