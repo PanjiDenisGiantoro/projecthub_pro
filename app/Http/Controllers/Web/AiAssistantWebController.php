@@ -339,8 +339,27 @@ class AiAssistantWebController extends Controller
             }
         }
 
+        // Model manggil tool tapi argumen wajibnya kosong (mis. "buatkan proyek dong"
+        // tanpa nama) → tool call dibuang di atas dan content-nya kosong, yang di
+        // frontend jadi "(no response)". Ulangi sekali TANPA tools supaya model
+        // menjawab biasa (biasanya nanya balik detail yang kurang).
+        if (trim($content) === '') {
+            try {
+                $content = Http::timeout(110)->post('http://127.0.0.1:11434/api/chat', [
+                    'model'      => self::MODEL,
+                    'messages'   => $messages,
+                    'stream'     => false,
+                    'keep_alive' => self::KEEP_ALIVE,
+                ])->json('message.content', '');
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                report($e);
+            }
+        }
+
         return response()->json([
-            'reply' => $content,
+            'reply' => trim($content) !== '' && !$this->looksLikeRawJson($content)
+                ? $content
+                : 'Bisa tolong sebutkan detailnya? Misalnya nama proyek, atau judul task dan nama proyeknya.',
         ]);
     }
 
