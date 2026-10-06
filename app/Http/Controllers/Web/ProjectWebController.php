@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectWebController extends Controller
@@ -166,6 +167,16 @@ class ProjectWebController extends Controller
                 $data['companyUsers'] = User::where('is_active', true)->where('company_id', $project->company_id)
                     ->whereNotIn('id', $project->members()->pluck('user_id'))
                     ->orderBy('name')->get();
+
+                // Task belum selesai per anggota (assignee atau anggota task), dipakai
+                // dialog hapus anggota untuk memindahkan/mengosongkan task-nya dulu.
+                $data['memberOpenTasks'] = [];
+                foreach ($this->openTasksQuery($project)->with('members:id')->get(['id', 'title', 'assigned_to']) as $task) {
+                    $userIds = $task->members->pluck('id')->push($task->assigned_to)->filter()->unique();
+                    foreach ($userIds as $uid) {
+                        $data['memberOpenTasks'][$uid][] = ['id' => $task->id, 'title' => $task->title];
+                    }
+                }
                 break;
 
             case 'timesheet':
@@ -263,6 +274,7 @@ class ProjectWebController extends Controller
             ->filter(fn ($file) => $file && $file->isValid())
             ->take(max(0, $limit))
             ->map(fn ($file) => $file->store('project-images', 'public'))
+            ->filter()
             ->values()
             ->all();
     }
@@ -313,11 +325,76 @@ class ProjectWebController extends Controller
         return back()->with('success', 'Anggota tim ditambahkan.');
     }
 
-    public function removeMember(Project $project, User $user)
+    /**
+     * Keluarkan anggota dari tim. Task yang BELUM selesai milik anggota itu
+     * (sebagai assignee maupun anggota task) dipindahkan ke anggota lain
+     * (task_action=reassign + reassign_to) atau dikosongkan (default).
+     * Task yang sudah selesai & time log tidak diubah supaya riwayat tetap utuh.
+     */
+    public function removeMember(Request $request, Project $project, User $user)
     {
-        ProjectMember::where('project_id', $project->id)->where('user_id', $user->id)->delete();
+        $request->validate([
+            'task_action' => 'nullable|in:reassign,unassign',
+            'reassign_to' => 'nullable|required_if:task_action,reassign|integer',
+        ]);
 
-        return back()->with('success', 'Anggota dihapus.');
+        $reassignTo = null;
+        if ($request->task_action === 'reassign') {
+            $reassignTo = (int) $request->reassign_to;
+            $isTeam = $reassignTo === (int) $project->manager_id
+                || ProjectMember::where('project_id', $project->id)->where('user_id', $reassignTo)->exists();
+            if ($reassignTo === $user->id || ! $isTeam) {
+                return back()->with('danger', 'Pilih anggota tim lain untuk menerima task.');
+            }
+        }
+
+        $tasks = $this->openTasksQuery($project)
+            ->where(fn ($q) => $q->where('assigned_to', $user->id)
+                ->orWhereHas('members', fn ($m) => $m->where('users.id', $user->id)))
+            ->get();
+
+        DB::transaction(function () use ($tasks, $project, $user, $reassignTo) {
+            foreach ($tasks as $task) {
+                if ((int) $task->assigned_to === $user->id) {
+                    $task->update(['assigned_to' => $reassignTo]);
+                }
+                if ($task->members()->detach($user->id) && $reassignTo) {
+                    $task->members()->syncWithoutDetaching([$reassignTo]);
+                }
+            }
+
+            ProjectMember::where('project_id', $project->id)->where('user_id', $user->id)->delete();
+        });
+
+        $message = 'Anggota dihapus.';
+        if ($tasks->isNotEmpty()) {
+            $count = $tasks->count();
+            if ($reassignTo) {
+                $receiver = User::find($reassignTo);
+                $message .= " {$count} task dipindahkan ke {$receiver->name}.";
+                if ($reassignTo !== auth()->id()) {
+                    $this->notifier->send(
+                        $reassignTo,
+                        'task_assigned',
+                        'Task Dipindahkan ke Anda',
+                        auth()->user()->name." memindahkan {$count} task dari {$user->name} ke Anda di proyek \"{$project->name}\".",
+                        ['project_id' => $project->id]
+                    );
+                }
+            } else {
+                $message .= " {$count} task sekarang tanpa penanggung jawab.";
+            }
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /** Task proyek yang belum selesai: kolom board-nya bukan kolom "done" (atau status != done kalau tanpa kolom). */
+    private function openTasksQuery(Project $project)
+    {
+        return $project->tasks()->where(fn ($q) => $q
+            ->whereHas('boardColumn', fn ($c) => $c->where('is_done', false))
+            ->orWhere(fn ($q2) => $q2->whereNull('board_column_id')->where('status', '!=', 'done')));
     }
 
     public function timesheet(Request $request, Project $project)

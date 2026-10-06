@@ -1725,7 +1725,28 @@
                 {{-- ============================================================
                 TAB: TEAM
                 ============================================================ --}}
-                <div x-show="tab === 'team'" x-cloak x-data="{ showAddMember: false }">
+                @php
+                    // Calon penerima task saat anggota dihapus: anggota tim + lead proyek.
+                    $teamUsers = $project->members->pluck('user')->push($project->manager)->filter()->unique('id')->values()
+                        ->map(fn ($u) => ['id' => $u->id, 'name' => $u->name]);
+                @endphp
+                <div x-show="tab === 'team'" x-cloak x-data="{
+                    showAddMember: false,
+                    teamUsers: @js($teamUsers),
+                    remove: { open: false, form: null, name: '', userId: null, tasks: [], action: 'reassign', to: '' },
+                    get receivers() { return this.teamUsers.filter(u => u.id !== this.remove.userId); },
+                    openRemove(form, name, userId, tasks) {
+                        const def = this.teamUsers.find(u => u.id === {{ (int) $project->manager_id }} && u.id !== userId) || this.teamUsers.find(u => u.id !== userId);
+                        this.remove = { open: true, form, name, userId, tasks, action: def ? 'reassign' : 'unassign', to: def ? String(def.id) : '' };
+                    },
+                    confirmRemove() {
+                        if (this.remove.action === 'reassign' && !this.remove.to) return;
+                        const add = (n, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; this.remove.form.appendChild(i); };
+                        add('task_action', this.remove.action);
+                        if (this.remove.action === 'reassign') add('reassign_to', this.remove.to);
+                        this.remove.form.submit();
+                    },
+                }">
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -1765,12 +1786,20 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
+                                            @php $openTasks = $memberOpenTasks[$member->user_id] ?? []; @endphp
+                                            @if(count($openTasks))
+                                                <span class="text-xs text-gray-400">{{ count($openTasks) }} task aktif</span>
+                                            @endif
                                             @if(!auth()->user()->hasRole('client'))
                                                 <form method="POST"
                                                     action="{{ route('projects.members.remove', [$project, $member->user]) }}"
                                                     class="opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    data-confirm-delete="{{ $member->user->name }} from team"
-                                                    data-confirm-label="Remove from Team">
+                                                    @if(count($openTasks))
+                                                        @submit.prevent="openRemove($el, @js($member->user->name), {{ $member->user_id }}, @js($openTasks))"
+                                                    @else
+                                                        data-confirm-delete="{{ $member->user->name }} from team"
+                                                        data-confirm-label="Remove from Team"
+                                                    @endif>
                                                     @csrf @method('DELETE')
                                                     <button type="submit"
                                                         class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -1861,6 +1890,53 @@
                             </div>
                         @endif
 
+                    </div>
+
+                    {{-- Dialog hapus anggota yang masih punya task belum selesai --}}
+                    <div x-show="remove.open" x-cloak @keydown.escape.window="remove.open = false"
+                        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+                        <div @click.outside="remove.open = false" class="w-full max-w-md bg-white rounded-xl shadow-xl">
+                            <div class="px-5 py-4 border-b border-gray-100">
+                                <h3 class="text-base font-semibold text-gray-900">Keluarkan <span x-text="remove.name"></span> dari tim?</h3>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Masih ada <span class="font-semibold" x-text="remove.tasks.length"></span> task belum selesai.
+                                    Task yang sudah selesai dan time log tidak diubah.
+                                </p>
+                            </div>
+                            <div class="px-5 py-4 space-y-4">
+                                <ul class="max-h-40 overflow-y-auto text-sm text-gray-700 border border-gray-100 rounded-lg divide-y divide-gray-100">
+                                    <template x-for="t in remove.tasks" :key="t.id">
+                                        <li class="px-3 py-2 truncate" x-text="t.title"></li>
+                                    </template>
+                                </ul>
+                                <div class="space-y-2">
+                                    <label class="flex items-start gap-2 text-sm text-gray-700" :class="!receivers.length && 'opacity-50'">
+                                        <input type="radio" value="reassign" x-model="remove.action" :disabled="!receivers.length" class="mt-0.5">
+                                        <span class="flex-1">
+                                            Pindahkan task ke
+                                            <select x-model="remove.to" @focus="remove.action = 'reassign'" :disabled="!receivers.length"
+                                                class="mt-1 block w-full text-sm border-gray-300 rounded-lg">
+                                                <option value="">— Pilih anggota —</option>
+                                                <template x-for="u in receivers" :key="u.id">
+                                                    <option :value="String(u.id)" x-text="u.name" :selected="String(u.id) === remove.to"></option>
+                                                </template>
+                                            </select>
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                                        <input type="radio" value="unassign" x-model="remove.action">
+                                        Kosongkan penanggung jawab (assign ulang nanti)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
+                                <button type="button" @click="remove.open = false"
+                                    class="px-3 py-1.5 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Batal</button>
+                                <button type="button" @click="confirmRemove()"
+                                    :disabled="remove.action === 'reassign' && !remove.to"
+                                    class="px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg">Keluarkan dari Tim</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
