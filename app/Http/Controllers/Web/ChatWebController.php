@@ -33,6 +33,20 @@ class ChatWebController extends Controller
 
     public function index()
     {
+        return view('chat.index', $this->inboxData());
+    }
+
+    /** Daftar percakapan (proyek, DM, forum) dalam JSON — dipakai aplikasi mobile. */
+    public function inbox()
+    {
+        $data = $this->inboxData();
+        $data['allPeers'] = $data['allPeers']->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values();
+
+        return response()->json($data);
+    }
+
+    private function inboxData(): array
+    {
         $user = Auth::user();
 
         // ── Proyek ────────────────────────────────────────────────────────
@@ -137,12 +151,12 @@ class ChatWebController extends Controller
                 ] : null,
             ]);
 
-        return view('chat.index', [
+        return [
             'projects'  => $projects->values(),
             'dms'       => $directMessages->values(),
             'forums'    => $forums->values(),
             'allPeers'  => $peers,
-        ]);
+        ];
     }
 
     public function messages(Request $request, Project $project)

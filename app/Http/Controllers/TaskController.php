@@ -14,7 +14,7 @@ class TaskController extends Controller
 
     public function index(Request $request, Project $project)
     {
-        $query = $project->tasks()->with(['assignee', 'milestone', 'creator'])
+        $query = $project->tasks()->with(['assignee', 'milestone', 'sprint:id,name', 'creator'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->assigned_to, fn($q) => $q->where('assigned_to', $request->assigned_to));
 
@@ -27,9 +27,12 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
             'milestone_id' => 'nullable|exists:milestones,id',
+            'sprint_id' => 'nullable|exists:sprints,id',
+            'start_date' => 'nullable|date',
             'due_date' => 'nullable|date',
             'priority' => 'in:low,medium,high,urgent',
             'estimated_hours' => 'nullable|integer|min:1',
+            'story_points' => 'nullable|integer|min:0|max:100',
         ]);
 
         $todoColumn = BoardColumn::where('project_id', $project->id)
@@ -38,7 +41,7 @@ class TaskController extends Controller
             ->first();
 
         $task = $project->tasks()->create([
-            ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'priority', 'due_date', 'estimated_hours', 'ticket_id'),
+            ...$request->only('title', 'description', 'assigned_to', 'milestone_id', 'sprint_id', 'priority', 'start_date', 'due_date', 'estimated_hours', 'story_points', 'ticket_id'),
             'status' => $todoColumn->slug ?? 'todo',
             'board_column_id' => $todoColumn->id ?? null,
             'created_by' => $request->user()->id,
@@ -66,9 +69,15 @@ class TaskController extends Controller
     {
         $oldStatus = $task->status;
 
+        $request->validate([
+            'sprint_id' => 'nullable|exists:sprints,id',
+            'start_date' => 'nullable|date',
+            'story_points' => 'nullable|integer|min:0|max:100',
+        ]);
+
         $task->update($request->only(
-            'title', 'description', 'assigned_to', 'milestone_id',
-            'status', 'priority', 'due_date', 'estimated_hours'
+            'title', 'description', 'assigned_to', 'milestone_id', 'sprint_id',
+            'status', 'priority', 'start_date', 'due_date', 'estimated_hours', 'story_points'
         ));
 
         if ($oldStatus !== $task->status) {
