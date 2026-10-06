@@ -17,10 +17,10 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        if ($user->hasRole(['admin', 'member'])) {
-            return true;
-        }
-
+        // Super admin & role 'admin' sudah di-bypass oleh Gate::before
+        // (lihat AppServiceProvider). Role lain (member/client) hanya boleh
+        // mengakses proyek bila benar-benar terhubung dengan proyek tsb:
+        // sebagai lead, client, atau anggota tim.
         return $project->manager_id === $user->id
             || $project->client_id === $user->id
             || $project->members()->where('user_id', $user->id)->exists();
