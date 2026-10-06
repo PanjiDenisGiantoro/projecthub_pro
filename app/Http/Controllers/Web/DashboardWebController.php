@@ -293,7 +293,10 @@ class DashboardWebController extends Controller
         }
 
         if ($user->hasRole('member')) {
-            return view('dashboard.member', $this->memberDashboardData($user));
+            // Member memakai TAMPILAN dashboard admin, tetapi seluruh datanya
+            // difilter hanya untuk dirinya sendiri (task yang di-assign ke dia &
+            // proyek yang dia pimpin/ikuti).
+            return view('dashboard.admin', $this->selfScopedDashboardData($user));
         }
 
         if ($user->hasRole('client')) {
@@ -316,6 +319,172 @@ class DashboardWebController extends Controller
         // Custom role (created via /roles) without one of the 3 system roles:
         // fall back to the member dashboard instead of a blank/broken view.
         return view('dashboard.member', $this->memberDashboardData($user));
+    }
+
+    /**
+     * Data dashboard untuk member, memakai struktur yang sama persis dengan
+     * dashboard admin (view dashboard.admin) namun DI-SCOPE hanya ke dirinya:
+     * - Statistik task dihitung dari task yang di-assign ke user (assigned_to).
+     * - Proyek/sprint/milestone dibatasi ke proyek yang ia pimpin atau ikuti.
+     * - Tiket dibatasi ke tiket yang ia laporkan atau yang di-assign ke dia.
+     */
+    private function selfScopedDashboardData($user): array
+    {
+        // Proyek milik user: yang ia pimpin (manager_id) atau ia jadi anggota tim.
+        // Global scope company_id pada model Project sudah membatasi ke company-nya.
+        $myProjectIds = Project::where(function ($q) use ($user) {
+            $q->where('manager_id', $user->id)
+              ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
+        })->pluck('id');
+
+        $uid = $user->id;
+
+        // Base query reusable
+        $myTasks   = fn () => Task::where('assigned_to', $uid);
+        $myTickets = fn () => BugTicket::where(fn ($q) => $q->where('assignee_id', $uid)->orWhere('reporter_id', $uid));
+
+        $stats = Cache::remember("dashboard.self.{$uid}.stats.v1", 60, function () use ($myProjectIds, $myTasks, $myTickets) {
+            $totalTasks  = (clone $myTasks())->count();
+            $doneTasks   = (clone $myTasks())->where('status', 'done')->count();
+            $inProgTasks = (clone $myTasks())->where('status', 'in_progress')->count();
+            $reviewTasks = (clone $myTasks())->where('status', 'review')->count();
+            $todoTasks   = (clone $myTasks())->where('status', 'todo')->count();
+
+            $openTickets = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->count();
+            $tickNow  = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
+            $tickPrev = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
+            $tickChange = $tickPrev > 0 ? round(($tickNow - $tickPrev) / $tickPrev * 100, 1) : null;
+
+            $projectsQuery = Project::whereIn('id', $myProjectIds);
+            $sprintsQuery  = Sprint::whereIn('project_id', $myProjectIds);
+
+            return [
+                'projects'         => [
+                    'total'     => (clone $projectsQuery)->count(),
+                    'active'    => (clone $projectsQuery)->where('status', 'active')->count(),
+                    'completed' => (clone $projectsQuery)->where('status', 'completed')->count(),
+                    'new_month' => (clone $projectsQuery)->whereYear('created_at', now()->year)->whereMonth('created_at', now()->month)->count(),
+                ],
+                'sprints'          => [
+                    'total'     => (clone $sprintsQuery)->count(),
+                    'active'    => (clone $sprintsQuery)->where('status', 'active')->count(),
+                    'completed' => (clone $sprintsQuery)->where('status', 'completed')->count(),
+                    'planned'   => (clone $sprintsQuery)->where('status', 'planned')->count(),
+                ],
+                'tasks'            => [
+                    'total'           => $totalTasks,
+                    'in_progress'     => $inProgTasks,
+                    'review'          => $reviewTasks,
+                    'todo'            => $todoTasks,
+                    'done'            => $doneTasks,
+                    'done_this_week'  => (clone $myTasks())->where('status', 'done')->where('updated_at', '>=', now()->startOfWeek())->count(),
+                    'completion_rate' => $totalTasks > 0 ? round($doneTasks / $totalTasks * 100, 1) : 0,
+                ],
+                'tasks_dist'       => [
+                    'done'        => $doneTasks,
+                    'in_progress' => $inProgTasks,
+                    'review'      => $reviewTasks,
+                    'todo'        => $todoTasks,
+                ],
+                'tickets'          => [
+                    'open'        => $openTickets,
+                    'breached'    => (clone $myTickets())->where('sla_breached', true)->count(),
+                    'week_change' => $tickChange,
+                ],
+                'pending_requests' => CustomerRequest::whereIn('project_id', $myProjectIds)->where('status', 'waiting_approval')->count(),
+            ];
+        });
+
+        $taskVelocity = Cache::remember("dashboard.self.{$uid}.velocity.v1", 60, function () use ($myTasks) {
+            $sinceDate = now()->subDays(13)->startOfDay();
+            $doneRows = (clone $myTasks())->where('status', 'done')->where('updated_at', '>=', $sinceDate)
+                ->selectRaw('DATE(updated_at) as d, count(*) as count')->groupBy('d')->pluck('count', 'd');
+            $createdRows = (clone $myTasks())->where('created_at', '>=', $sinceDate)
+                ->selectRaw('DATE(created_at) as d, count(*) as count')->groupBy('d')->pluck('count', 'd');
+
+            return collect(range(13, 0))->map(function ($daysAgo) use ($doneRows, $createdRows) {
+                $date = now()->subDays($daysAgo);
+                $dStr = $date->toDateString();
+                return [
+                    'date'    => $date->format('d M'),
+                    'done'    => (int) ($doneRows[$dStr] ?? 0),
+                    'created' => (int) ($createdRows[$dStr] ?? 0),
+                ];
+            })->values()->toArray();
+        });
+
+        $activeSprintsList = Sprint::whereIn('project_id', $myProjectIds)
+            ->where('status', 'active')
+            ->with(['project:id,name,company_id'])
+            ->withCount(['tasks', 'tasks as done_tasks_count' => fn ($q) => $q->where('status', 'done')])
+            ->orderBy('end_date')
+            ->limit(4)
+            ->get();
+
+        $topProjects = Project::with('client')
+            ->withCount(['tasks', 'tasks as done_tasks_count' => fn ($q) => $q->where('status', 'done'), 'sprints'])
+            ->whereIn('id', $myProjectIds)
+            ->whereIn('status', ['active', 'on_hold', 'draft'])
+            ->orderByDesc('updated_at')
+            ->limit(5)
+            ->get();
+
+        $recentActivities = (clone $myTasks())->with(['assignee', 'project:id,name'])
+            ->whereIn('status', ['done', 'in_progress'])
+            ->orderByDesc('updated_at')
+            ->limit(6)
+            ->get()
+            ->map(fn ($t) => [
+                'type'    => 'task',
+                'status'  => $t->status,
+                'user'    => $t->assignee,
+                'project' => $t->project?->name,
+                'message' => $t->status === 'done' ? 'menyelesaikan task' : 'sedang mengerjakan task',
+                'subject' => $t->title,
+                'time'    => $t->updated_at,
+            ])
+            ->concat(
+                (clone $myTickets())->with(['reporter', 'project:id,name'])
+                    ->orderByDesc('created_at')
+                    ->limit(4)
+                    ->get()
+                    ->map(fn ($t) => [
+                        'type'    => 'ticket',
+                        'status'  => $t->status,
+                        'user'    => $t->reporter,
+                        'project' => $t->project?->name,
+                        'message' => 'membuka tiket',
+                        'subject' => "#{$t->id} {$t->title}",
+                        'time'    => $t->created_at,
+                    ])
+            )
+            ->sortByDesc('time')->take(6)->values();
+
+        $recentTickets = (clone $myTickets())->with(['project.client'])
+            ->whereIn('status', ['open', 'assigned', 'in_progress'])
+            ->orderByDesc('created_at')
+            ->limit(6)
+            ->get();
+
+        $upcomingDeadlines = \App\Models\Milestone::with('project')
+            ->whereIn('project_id', $myProjectIds)
+            ->where('due_date', '>=', now()->toDateString())
+            ->where('status', '!=', 'completed')
+            ->orderBy('due_date')
+            ->limit(5)
+            ->get();
+
+        return [
+            'stats'               => $stats,
+            'task_velocity'       => $taskVelocity,
+            'active_sprints_list' => $activeSprintsList,
+            'top_projects'        => $topProjects,
+            'recent_activities'   => $recentActivities,
+            'recent_tickets'      => $recentTickets,
+            'upcoming_deadlines'  => $upcomingDeadlines,
+            'companies'           => collect(), // tanpa pemilih company untuk member
+            'selected_company_id' => null,
+        ];
     }
 
     private function memberDashboardData($user): array
