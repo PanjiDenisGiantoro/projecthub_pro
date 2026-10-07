@@ -28,7 +28,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
     1. TOP KPI STAT CARDS (UNIFIED 4-COLUMN CARD MATCHING GAMBAR 3)
     ============================================================ --}}
     <div
-        class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 shadow-2xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
+        class="bg-white dark:bg-gray-850 rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
         {{-- Col 1: TOTAL SPRINTS --}}
         <div class="p-5 flex flex-col justify-between">
             <div class="flex items-center justify-between">
@@ -408,7 +408,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
     ============================================================ --}}
     @if($allSprints->isEmpty())
         <div
-            class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200/90 dark:border-gray-700/80 p-8 sm:p-12 text-center shadow-2xs space-y-5">
+            class="bg-white dark:bg-gray-850 rounded-3xl p-8 sm:p-12 text-center space-y-5">
             <div
                 class="relative w-16 h-16 mx-auto rounded-3xl bg-indigo-50 dark:bg-indigo-950/60 border-2 border-indigo-200/70 dark:border-indigo-800/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -448,7 +448,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
                         $statusStyle = $sprint->statusStyle();
                         $priorityStyle = $sprint->priorityStyle();
                     @endphp
-                    <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs hover:shadow-md transition-all group"
+                    <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 transition-all group"
                         x-show="matchesSprintFilter('{{ strtolower(addslashes($sprint->name . ' ' . $sprint->code)) }}', '{{ $sprint->status }}', '{{ $sprint->priority ?? 'normal' }}')">
 
                         {{-- Badges & Actions --}}
@@ -600,7 +600,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
 
             {{-- Right Column: Sprint Roadmap Gantt View (7 cols) --}}
             <div
-                class="xl:col-span-6 bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs overflow-hidden">
+                class="xl:col-span-6 bg-white dark:bg-gray-850 rounded-2xl p-5 overflow-hidden">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-750">
                     <div>
                         <h4 class="text-sm font-bold text-gray-900 dark:text-white">Sprint Execution Roadmap</h4>
@@ -682,7 +682,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
         5. VIEW 2: SPRINT TABLE VIEW
         ============================================================ --}}
         <div x-show="activeSprintView === 'table_view'" x-cloak
-            class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 shadow-2xs overflow-hidden">
+            class="bg-white dark:bg-gray-850 rounded-2xl overflow-hidden">
 
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-750 flex items-center justify-between">
                 <div>
@@ -1002,7 +1002,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
 
             openEditSprintModal(sp) {
                 this.sprintModalMode = 'edit';
-                this.sprintEditActionUrl = '{{ url('projects/' . $project->id . '/sprints') }}/' + sp.id;
+                this.sprintEditActionUrl = '{{ url('projects/' . $project->slug . '/sprints') }}/' + sp.id;
                 this.sprintForm = {
                     code: sp.code || ('SP-' + sp.id),
                     name: sp.name || '',
@@ -1026,7 +1026,7 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
                 this.assignSprintMilestoneId = sp.milestone_id || null;
                 this.assignSprintCode = sp.code || ('SP-' + sp.id);
                 this.assignSprintTitle = sp.name;
-                this.assignSprintActionUrl = '{{ url('projects/' . $project->id . '/sprints') }}/' + sp.id + '/assign';
+                this.assignSprintActionUrl = '{{ url('projects/' . $project->slug . '/sprints') }}/' + sp.id + '/assign';
                 this.assignSprintSearchQuery = '';
                 this.selectedSprintTaskIds = (taskIds ? [...taskIds] : []).map(Number);
                 this.showSprintAssignModal = true;

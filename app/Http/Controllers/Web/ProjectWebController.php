@@ -23,27 +23,118 @@ class ProjectWebController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Project::with(['client', 'manager'])
-            ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->search, fn ($q) => $q->where('name', 'like', "%{$request->search}%"));
+        $query = Project::with([
+            'client.organizationUnit',
+            'client.company',
+            'manager.structuralLevel',
+            'manager.roles',
+        ])
+        ->withCount([
+            'tasks as total_tasks_count',
+            'tasks as completed_tasks_count' => function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('status', 'done')
+                        ->orWhereHas('boardColumn', fn ($bc) => $bc->where('is_done', true));
+                });
+            },
+        ]);
 
         if ($user->hasRole('client')) {
             $query->where('client_id', $user->id);
         }
 
-        $projects = $query->latest()->paginate($this->perPage($request))->withQueryString();
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+                $cleanId = preg_replace('/[^0-9]/', '', $search);
+                if (!empty($cleanId)) {
+                    $q->orWhere('id', (int) $cleanId);
+                }
+            });
+        }
 
-        return view('projects.index', compact('projects'));
+        // Status filter
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if ($status === 'overdue') {
+                $query->whereNotIn('status', ['completed', 'cancelled'])
+                      ->whereNotNull('end_date')
+                      ->whereDate('end_date', '<', now()->toDateString());
+            } elseif ($status === 'in_progress') {
+                $query->where('status', 'active');
+            } elseif ($status === 'pending') {
+                $query->whereIn('status', ['on_hold', 'draft']);
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        // PIC / Manager filter
+        if ($request->filled('manager_id')) {
+            $query->where('manager_id', $request->manager_id);
+        }
+
+        // Client filter
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->client_id);
+        }
+
+        // Deadline filter
+        if ($request->filled('deadline')) {
+            $deadline = $request->deadline;
+            if ($deadline === 'today') {
+                $query->whereDate('end_date', now()->toDateString());
+            } elseif ($deadline === 'this_week') {
+                $query->whereBetween('end_date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()]);
+            } elseif ($deadline === 'this_month') {
+                $query->whereBetween('end_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);
+            } elseif ($deadline === 'overdue') {
+                $query->whereNotIn('status', ['completed', 'cancelled'])
+                      ->whereNotNull('end_date')
+                      ->whereDate('end_date', '<', now()->toDateString());
+            }
+        }
+
+        // Summary KPI stats (tenant and role scoped)
+        $statsBase = Project::query();
+        if ($user->hasRole('client')) {
+            $statsBase->where('client_id', $user->id);
+        }
+        $stats = [
+            'total'       => (clone $statsBase)->count(),
+            'completed'   => (clone $statsBase)->where('status', 'completed')->count(),
+            'in_progress' => (clone $statsBase)->where('status', 'active')->count(),
+            'pending'     => (clone $statsBase)->whereIn('status', ['on_hold', 'draft'])->count(),
+            'overdue'     => (clone $statsBase)->whereNotIn('status', ['completed', 'cancelled'])
+                                               ->whereNotNull('end_date')
+                                               ->whereDate('end_date', '<', now()->toDateString())
+                                               ->count(),
+        ];
+
+        // Filter dropdown options
+        $companyId = $user->company_id;
+        $clientsQuery = User::role('client')->where('is_active', true);
+        $managersQuery = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))->where('is_active', true);
+        if ($companyId) {
+            $clientsQuery->where('company_id', $companyId);
+            $managersQuery->where('company_id', $companyId);
+        }
+        $clients = $clientsQuery->orderBy('name')->get(['id', 'name']);
+        $managers = $managersQuery->orderBy('name')->get(['id', 'name']);
+
+        $perPage = $this->perPage($request, 6, 'per_page', [6, 9, 12, 24, 48, 100]);
+        $projects = $query->latest()->paginate($perPage)->withQueryString();
+
+        return view('projects.index', compact('projects', 'stats', 'clients', 'managers'));
     }
 
     public function create()
     {
-        $companyId = auth()->user()->company_id;
-        $clients = User::role('client')->where('is_active', true)->where('company_id', $companyId)->get();
-        $managers = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))
-            ->where('is_active', true)->where('company_id', $companyId)->get();
-
-        return view('projects.create', compact('clients', 'managers'));
+        return redirect()->route('projects.index', ['create' => 1]);
     }
 
     public function store(Request $request)
@@ -77,6 +168,10 @@ class ProjectWebController extends Controller
             companyId: $project->company_id
         );
 
+        if ($request->input('redirect_to') === 'index') {
+            return redirect()->route('projects.index')->with('success', 'Proyek berhasil dibuat.');
+        }
+
         return redirect()->route('projects.show', $project)->with('success', 'Proyek berhasil dibuat.');
     }
 
@@ -104,14 +199,14 @@ class ProjectWebController extends Controller
 
     public static function tabSlug(string $key): string
     {
-        return array_search($key, self::TABS, true) ?: 'tasks';
+        return array_search($key, self::TABS, true) ?: 'overview';
     }
 
     public function show(Project $project, Request $request, ?string $tab = null)
     {
-        // /projects/{id} & URL lama /projects/{id}?tab=xxx → /projects/{id}/{slug}
+        // /projects/{slug} & URL lama /projects/{id}?tab=xxx → /projects/{slug}/{tab}
         if ($tab === null || $tab !== strtolower($tab)) {
-            $requested = strtolower($tab ?? (string) $request->query('tab', 'tasks'));
+            $requested = strtolower($tab ?? (string) $request->query('tab', 'overview'));
             $slug = isset(self::TABS[$requested]) ? $requested : self::tabSlug($requested);
             $query = http_build_query($request->except('tab'));
 
@@ -124,7 +219,23 @@ class ProjectWebController extends Controller
         if ($tabKey === 'kb') {
             return redirect()->route('kb.index', $project);
         }
+
+        // Chat punya halaman terpusat (/chat?project={slug})
+        if ($tabKey === 'chat') {
+            return redirect()->route('chat.index', ['project' => $project->slug]);
+        }
         $data = ['project' => $project, 'tab' => $tabKey];
+
+        // Load clients & managers untuk modal edit project
+        $companyId = $project->company_id;
+        $clientsQuery = User::role('client')->where('is_active', true);
+        $managersQuery = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))->where('is_active', true);
+        if ($companyId) {
+            $clientsQuery->where('company_id', $companyId);
+            $managersQuery->where('company_id', $companyId);
+        }
+        $data['clients'] = $clientsQuery->orderBy('name')->get(['id', 'name']);
+        $data['managers'] = $managersQuery->orderBy('name')->get(['id', 'name']);
 
         $project->load(['client', 'manager']);
 
@@ -135,7 +246,7 @@ class ProjectWebController extends Controller
             ]);
         }
         if (in_array($tabKey, ['overview', 'team'], true)) {
-            $project->load('members.user');
+            $project->load('members.user.roles');
         }
         if (in_array($tabKey, ['overview', 'tickets'], true)) {
             $data['recentTickets'] = $project->tickets()->with('reporter')->latest()->limit(5)->get();
@@ -165,7 +276,70 @@ class ProjectWebController extends Controller
             case 'team':
                 $data['companyUsers'] = User::where('is_active', true)->where('company_id', $project->company_id)
                     ->whereNotIn('id', $project->members()->pluck('user_id'))
+                    ->with('roles')
                     ->orderBy('name')->get();
+                $data['memberTaskStats'] = $project->tasks()
+                    ->selectRaw('assigned_to, count(*) as total, sum(case when status="done" then 1 else 0 end) as done')
+                    ->whereNotNull('assigned_to')
+                    ->groupBy('assigned_to')
+                    ->get()
+                    ->keyBy('assigned_to');
+                $data['memberTicketStats'] = $project->tickets()
+                    ->selectRaw('assignee_id, count(*) as total')
+                    ->whereNotNull('assignee_id')
+                    ->groupBy('assignee_id')
+                    ->pluck('total', 'assignee_id');
+                break;
+
+            case 'tickets':
+                $status   = $request->query('status');
+                $priority = $request->query('priority');
+                $type     = $request->query('type');
+                $search   = $request->query('search');
+
+                $ticketRelations = [
+                    'reporter', 'assignee', 'assignees', 'milestone',
+                    'attachments.uploader', 'comments.user', 'histories.actor', 'slaPolicy'
+                ];
+
+                $ticketsQuery = $project->tickets()->with($ticketRelations)
+                    ->when($status, fn ($q) => $q->where('status', $status))
+                    ->when($priority, fn ($q) => $q->where('priority', $priority))
+                    ->when($type, fn ($q) => $q->where('type', $type))
+                    ->when($search, fn ($q) => $q->where(function ($sq) use ($search) {
+                        $sq->where('title', 'like', "%{$search}%")
+                           ->orWhere('description', 'like', "%{$search}%");
+                    }));
+
+                if ($request->user()->hasRole('client')) {
+                    $ticketsQuery->where('reporter_id', $request->user()->id);
+                }
+
+                $data['projectTickets'] = $ticketsQuery->latest()->paginate($this->perPage($request, 15, 'tickets_per_page'), ['*'], 'tickets_page')->withQueryString();
+
+                // If specific ticket requested (e.g. from /tickets/2 redirect), make sure it is available for modal
+                if ($request->filled('ticket')) {
+                    $targetTicketId = (int) $request->ticket;
+                    $targetTicket = $project->tickets()->with($ticketRelations)->find($targetTicketId);
+                    if ($targetTicket) {
+                        $data['initialOpenTicket'] = $targetTicket;
+                    }
+                }
+
+                $data['projectMilestones'] = $project->milestones()->orderBy('title')->get();
+                $data['ticketAssignableUsers'] = $project->members()
+                    ->with(['user' => fn ($q) => $q->with('roles')])
+                    ->get()
+                    ->pluck('user')
+                    ->filter(fn ($u) => $u && $u->hasRole('member') && !$u->hasRole('admin') && !$u->hasRole('client'))
+                    ->unique('id')
+                    ->values();
+                $data['ticketStats'] = [
+                    'total'    => $project->tickets()->count(),
+                    'open'     => $project->tickets()->whereIn('status', ['open', 'assigned', 'in_progress', 'reopened'])->count(),
+                    'resolved' => $project->tickets()->whereIn('status', ['resolved', 'closed'])->count(),
+                    'breached' => $project->tickets()->where('sla_breached', true)->count(),
+                ];
                 break;
 
             case 'timesheet':
@@ -208,11 +382,7 @@ class ProjectWebController extends Controller
 
     public function edit(Project $project)
     {
-        $clients = User::role('client')->where('is_active', true)->get();
-        $managers = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))
-            ->where('is_active', true)->get();
-
-        return view('projects.edit', compact('project', 'clients', 'managers'));
+        return redirect()->route('projects.show', [$project, 'edit' => 1]);
     }
 
     public function update(Request $request, Project $project)
@@ -246,6 +416,10 @@ class ProjectWebController extends Controller
             'meeting_default_duration_minutes' => $request->meeting_default_duration_minutes ?? 60,
             'images' => [...$keptImages, ...$newImages],
         ]);
+
+        if ($request->input('redirect_to') === 'index') {
+            return redirect()->route('projects.index')->with('success', 'Proyek berhasil diperbarui.');
+        }
 
         return redirect()->route('projects.show', $project)->with('success', 'Proyek diperbarui.');
     }
@@ -335,14 +509,39 @@ class ProjectWebController extends Controller
     /** Base query for a project's time logs, dengan filter tanggal opsional dari request. */
     private function timeLogsQuery(Project $project, Request $request)
     {
+        $from = $request->input('start_date', $request->input('from', $request->input('gantt_start')));
+        $to = $request->input('end_date', $request->input('to', $request->input('gantt_end')));
+
         return TimeLog::with(['user', 'task'])
             ->whereHas('task', fn ($q) => $q->where('project_id', $project->id))
-            ->when($request->from, fn ($q) => $q->whereDate('started_at', '>=', $request->from))
-            ->when($request->to, fn ($q) => $q->whereDate('started_at', '<=', $request->to));
+            ->when($from, fn ($q) => $q->whereDate('started_at', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('started_at', '<=', $to));
     }
 
     private function buildTimesheetData(Project $project, Request $request): array
     {
+        // Filter rentang tanggal Gantt Chart: default bulan berjalan saat ini (1 bulan penuh)
+        $startDateInput = $request->input('start_date', $request->input('gantt_start', $request->input('from')));
+        $endDateInput = $request->input('end_date', $request->input('gantt_end', $request->input('to')));
+
+        if ($startDateInput && $endDateInput) {
+            $ganttStart = \Carbon\Carbon::parse($startDateInput)->startOfDay();
+            $ganttEnd = \Carbon\Carbon::parse($endDateInput)->startOfDay();
+        } elseif ($startDateInput) {
+            $ganttStart = \Carbon\Carbon::parse($startDateInput)->startOfDay();
+            $ganttEnd = $ganttStart->copy()->endOfMonth()->startOfDay();
+        } else {
+            // Default: bulan berjalan saat ini (1 bulan penuh dari tgl 1 sampai akhir bulan)
+            $ganttStart = now()->startOfMonth()->startOfDay();
+            $ganttEnd = now()->endOfMonth()->startOfDay();
+        }
+
+        if ($ganttEnd->lt($ganttStart)) {
+            $ganttEnd = $ganttStart->copy()->endOfMonth()->startOfDay();
+        }
+
+        $ganttDays = max(1, (int) $ganttStart->diffInDays($ganttEnd) + 1);
+
         // Agregasi langsung di DB (bukan load semua row time_logs ke PHP) supaya ringan
         // walau time log-nya sudah ribuan baris — cuma butuh total per user, bukan detailnya.
         $summary = $this->timeLogsQuery($project, $request)
@@ -362,33 +561,39 @@ class ProjectWebController extends Controller
         $recentLogs = $this->timeLogsQuery($project, $request)->orderByDesc('started_at')->limit(15)->get();
         $recentLogsTotal = $this->timeLogsQuery($project, $request)->count();
 
-        $sprints = $project->sprints()->with(['tasks.assignee'])->orderBy('start_date')->get();
+        // Effective start/end per task: own dates, else its sprint's dates
+        $effStart = fn ($t) => $t->start_date ?? $t->due_date ?? $t->sprint?->start_date;
+        $effEnd = fn ($t) => $t->due_date ?? $t->start_date ?? $t->sprint?->end_date;
 
-        // Gantt: tasks with start/due dates, or belonging to a sprint (uses sprint's dates as fallback), + their time logs
+        // Sprints yang overlap dengan rentang [ganttStart, ganttEnd]
+        $sprints = $project->sprints()
+            ->with(['tasks.assignee'])
+            ->orderBy('start_date')
+            ->get()
+            ->filter(function ($sprint) use ($ganttStart, $ganttEnd) {
+                if (!$sprint->start_date && !$sprint->end_date) return true;
+                $s = ($sprint->start_date ?? $sprint->end_date)->copy()->startOfDay();
+                $e = ($sprint->end_date ?? $sprint->start_date)->copy()->startOfDay();
+                return $s->lte($ganttEnd) && $e->gte($ganttStart);
+            })
+            ->values();
+
+        // Gantt: tasks with start/due dates, or belonging to a sprint, yang overlap dengan [ganttStart, ganttEnd]
         $ganttTasks = $project->tasks()
             ->with(['milestone', 'assignee', 'sprint', 'timeLogs' => fn ($q) => $q->where('is_running', false)->orderBy('started_at')])
             ->where(fn ($q) => $q->whereNotNull('start_date')->orWhereNotNull('due_date')->orWhereNotNull('sprint_id'))
             ->orderBy('milestone_id')
             ->orderBy('start_date')
-            ->get();
-
-        // Effective start/end per task: own dates, else its sprint's dates
-        $effStart = fn ($t) => $t->start_date ?? $t->due_date ?? $t->sprint?->start_date;
-        $effEnd = fn ($t) => $t->due_date ?? $t->start_date ?? $t->sprint?->end_date;
-
-        // Determine Gantt date range (also cover sprint date ranges, even sprints with no tasks yet)
-        // collect()->map() dipakai (bukan langsung $ganttTasks->map()) karena map() pada Eloquent Collection
-        // mewarisi tipe Eloquent Collection walau isinya sudah bukan model (Carbon), sehingga merge() berikutnya
-        // salah asumsi item punya getKey() dan meledak.
-        $allStarts = collect($ganttTasks->all())->map($effStart)->filter()->merge($sprints->pluck('start_date')->filter());
-        $allEnds = collect($ganttTasks->all())->map($effEnd)->filter()->merge($sprints->pluck('end_date')->filter());
-        $ganttStart = $allStarts->min() ?? now()->startOfWeek();
-        $ganttEnd = $allEnds->max() ?? now()->addDays(30);
-        // Always show at least today + 7 days
-        if ($ganttEnd->lt(now()->addDays(7))) {
-            $ganttEnd = now()->addDays(7);
-        }
-        $ganttDays = max(1, (int) $ganttStart->diffInDays($ganttEnd) + 1);
+            ->get()
+            ->filter(function ($t) use ($effStart, $effEnd, $ganttStart, $ganttEnd) {
+                $s = $effStart($t);
+                $e = $effEnd($t);
+                if (!$s && !$e) return false;
+                $s = ($s ?? $e)->copy()->startOfDay();
+                $e = ($e ?? $s)->copy()->startOfDay();
+                return $s->lte($ganttEnd) && $e->gte($ganttStart);
+            })
+            ->values();
 
         return compact('summary', 'recentLogs', 'recentLogsTotal', 'sprints', 'ganttTasks', 'ganttStart', 'ganttEnd', 'ganttDays');
     }

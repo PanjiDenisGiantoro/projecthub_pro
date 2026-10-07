@@ -11,7 +11,7 @@
     </div>
 
     @if(!auth()->user()->hasRole('client'))
-    <div x-show="showRecurringForm" x-cloak class="bg-white rounded-xl border border-blue-200 p-5 mb-5">
+    <div x-show="showRecurringForm" x-cloak class="bg-white rounded-2xl p-5 mb-5">
         <h4 class="text-sm font-semibold text-gray-700 mb-4">Definisi Baru</h4>
         <form method="POST" action="{{ route('recurring.store', $project) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @csrf
@@ -92,7 +92,7 @@
     </div>
     @endif
 
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-2xl overflow-hidden">
         @if($recurringDefinitions->isEmpty())
         <div class="text-center py-12 text-gray-400">
             <p class="text-3xl mb-2">🔄</p>

@@ -14,10 +14,6 @@
             </svg>
         </a>
         <h1 class="text-2xl font-bold text-gray-900">Edit Project</h1>
-        <a href="{{ route('board-columns.index', $project) }}"
-           class="ml-auto text-sm text-blue-600 hover:text-blue-800 border border-blue-300 px-3 py-1.5 rounded-lg transition-colors">
-            Manage Board Columns
-        </a>
     </div>
 
     {{-- Validation Errors --}}

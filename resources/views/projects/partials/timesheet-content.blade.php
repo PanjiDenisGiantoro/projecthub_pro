@@ -1,10 +1,9 @@
     {{-- ============================================================
-         GANTT CHART  (milestone + task + sprint gabung di sini)
+         GANTT CHART (Milestone + Task + Sprint)
+         Default: Menampilkan 1 bulan berjalan saat ini dengan kolom per tanggal lebar
     ============================================================ --}}
-    @if($ganttTasks->count() || $sprints->count())
     @php
         $today = now()->startOfDay();
-        $todayPct = max(0, min(100, round($ganttStart->diffInDays($today) / $ganttDays * 100, 2)));
 
         $pColors = [
             'todo'        => ['bar'=>'#6366f1','label'=>'To Do'],
@@ -13,49 +12,118 @@
             'done'        => ['bar'=>'#22c55e','label'=>'Done'],
         ];
 
-        // Build week markers
-        $markers = collect();
-        $cur = $ganttStart->copy()->startOfWeek();
+        // Buat daftar semua hari dalam rentang tanggal yang dipilih
+        $days = collect();
+        $cur = $ganttStart->copy()->startOfDay();
         while ($cur->lte($ganttEnd)) {
-            $pct = max(0, round($ganttStart->diffInDays($cur) / $ganttDays * 100, 2));
-            $markers->push(['date' => $cur->copy(), 'pct' => $pct]);
-            $cur->addWeek();
+            $days->push($cur->copy());
+            $cur->addDay();
         }
+        $totalDays = max(1, $days->count());
 
-        // Timeline minimum width: generous width so bars and dates are spacious and easily readable
-        // Provides ample horizontal scroll space so gantt bars aren't tiny
-        $timelineWidth = max(2200, $markers->count() * 100);
-        $leftColWidth = 300; // px
+        // Lebar kolom per tanggal: 68px agar lega, jelas tiap hari, dan scroll horizontal lancar
+        $dayWidth = 68;
+        $timelineWidth = $totalDays * $dayWidth;
+        $leftColWidth = 320; // px
         $totalCanvasWidth = $leftColWidth + $timelineWidth;
+
+        // Index hari ini dalam timeline
+        $diffToday = (int) $ganttStart->diffInDays($today, false);
+        $todayIndex = ($diffToday >= 0 && $diffToday < $totalDays) ? $diffToday : null;
 
         // Group tasks by milestone
         $grouped = $ganttTasks->groupBy(fn($t) => $t->milestone?->title ?? 'Tanpa Milestone');
+        $hasData = $ganttTasks->isNotEmpty() || $sprints->isNotEmpty();
+
+        $dayNames = [1=>'Sen', 2=>'Sel', 3=>'Rab', 4=>'Kam', 5=>'Jum', 6=>'Sab', 7=>'Min'];
     @endphp
 
-    <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 mb-6 shadow-2xs overflow-hidden">
-        {{-- Card Header: Title + Date Range + Export Buttons --}}
+    {{-- Container Section Gantt Chart: Tanpa Border dan Tanpa Shadow per request --}}
+    <div class="bg-white dark:bg-gray-850 rounded-2xl mb-6 overflow-hidden">
+        {{-- Card Header: Title + Period + Month Quick Switcher + Start/End Filter + Export Buttons --}}
         <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-4">
-            <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
-                </svg>
-                Gantt Chart
-            </h2>
-            <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex items-center gap-3 flex-wrap">
+                <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                    </svg>
+                    Gantt Chart
+                </h2>
                 <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{{ $ganttStart->format('d M Y') }}</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-300">{{ $ganttStart->format('d M Y') }}</span>
                     <span>&rarr;</span>
-                    <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{{ $ganttEnd->format('d M Y') }}</span>
-                    <span class="text-gray-400 font-semibold">({{ $ganttDays }} hari)</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-300">{{ $ganttEnd->format('d M Y') }}</span>
+                    <span class="text-gray-400 font-medium">({{ $ganttDays }} hari)</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('export.timesheet.gantt.excel', $project) }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition shadow-2xs">
+            </div>
+
+            {{-- Controls: Quick Month Nav + Custom Date Filter + Export --}}
+            <div class="flex items-center gap-3 flex-wrap">
+                {{-- Quick Month Switcher --}}
+                <div class="inline-flex items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
+                    <a href="{{ request()->fullUrlWithQuery([
+                            'start_date' => $ganttStart->copy()->subMonthNoOverflow()->startOfMonth()->format('Y-m-d'),
+                            'end_date'   => $ganttStart->copy()->subMonthNoOverflow()->endOfMonth()->format('Y-m-d')
+                        ]) }}"
+                       class="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 transition"
+                       title="Bulan sebelumnya">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                    <span class="px-2.5 text-xs font-bold text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                        {{ $ganttStart->format('M Y') }}
+                    </span>
+                    <a href="{{ request()->fullUrlWithQuery([
+                            'start_date' => $ganttStart->copy()->addMonthNoOverflow()->startOfMonth()->format('Y-m-d'),
+                            'end_date'   => $ganttStart->copy()->addMonthNoOverflow()->endOfMonth()->format('Y-m-d')
+                        ]) }}"
+                       class="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 transition"
+                       title="Bulan berikutnya">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                {{-- Start & End Date Filter Form --}}
+                <form method="GET" action="{{ url()->current() }}" class="flex items-center gap-1.5 flex-wrap">
+                    @foreach(request()->except(['start_date', 'end_date']) as $k => $v)
+                        @if(is_string($v))
+                            <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                        @endif
+                    @endforeach
+
+                    <div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg px-2 py-1 border border-gray-200 dark:border-gray-700">
+                        <span class="text-[10px] font-semibold text-gray-400 uppercase">Mulai</span>
+                        <input type="date" name="start_date" value="{{ request('start_date', $ganttStart->format('Y-m-d')) }}"
+                               class="bg-transparent border-0 p-0 text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-0">
+                    </div>
+                    <span class="text-xs text-gray-400">-</span>
+                    <div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg px-2 py-1 border border-gray-200 dark:border-gray-700">
+                        <span class="text-[10px] font-semibold text-gray-400 uppercase">Akhir</span>
+                        <input type="date" name="end_date" value="{{ request('end_date', $ganttEnd->format('Y-m-d')) }}"
+                               class="bg-transparent border-0 p-0 text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-0">
+                    </div>
+                    <button type="submit"
+                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition shadow-2xs cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        Filter
+                    </button>
+                    @if(request('start_date') || request('end_date'))
+                    <a href="{{ request()->url() }}"
+                       class="px-2 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                       title="Kembali ke bulan berjalan saat ini">
+                        Bulan Ini
+                    </a>
+                    @endif
+                </form>
+
+                {{-- Export Buttons --}}
+                <div class="flex items-center gap-1.5 pl-2 border-l border-gray-200 dark:border-gray-700">
+                    <a href="{{ route('export.timesheet.gantt.excel', array_merge(['project' => $project], request()->only('start_date', 'end_date'))) }}"
+                       class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition shadow-2xs">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Excel
                     </a>
-                    <a href="{{ route('export.timesheet.gantt.pdf', $project) }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:bg-rose-900/60 transition shadow-2xs">
+                    <a href="{{ route('export.timesheet.gantt.pdf', array_merge(['project' => $project], request()->only('start_date', 'end_date'))) }}"
+                       class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:bg-rose-900/60 transition shadow-2xs">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         PDF
                     </a>
@@ -63,6 +131,7 @@
             </div>
         </div>
 
+        @if($hasData)
         {{-- Horizontal Scrollable Gantt Canvas --}}
         <div class="overflow-x-auto relative">
             <div class="flex" style="min-width: {{ $totalCanvasWidth }}px;">
@@ -70,9 +139,9 @@
                 {{-- ============================================================
                      LEFT COLUMN: STICKY TASK & SPRINT LABELS
                      ============================================================ --}}
-                <div class="w-[300px] flex-shrink-0 sticky left-0 z-20 bg-white dark:bg-gray-850 border-r border-gray-200 dark:border-gray-700 shadow-[4px_0_12px_-2px_rgba(0,0,0,0.07)]">
-                    {{-- Header Spacer (Height matches Right Date Header: h-10) --}}
-                    <div class="h-10 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 flex items-center justify-between">
+                <div class="w-[320px] flex-shrink-0 sticky left-0 z-20 bg-white dark:bg-gray-850 border-r border-gray-200 dark:border-gray-700">
+                    {{-- Header Spacer (Height matches Right Date Header: h-14) --}}
+                    <div class="h-14 border-b border-gray-200 dark:border-gray-700 bg-gray-50/90 dark:bg-gray-800/90 px-4 flex items-center justify-between">
                         <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Task / Deliverable</span>
                         <span class="text-[10px] text-gray-400 font-mono">Sprint/MS</span>
                     </div>
@@ -172,53 +241,103 @@
                 </div>
 
                 {{-- ============================================================
-                     RIGHT COLUMN: GANTT TIMELINE & BARS
+                     RIGHT COLUMN: GANTT TIMELINE & BARS (DAILY TIAP TANGGAL)
                      ============================================================ --}}
                 <div class="relative flex-shrink-0" style="width: {{ $timelineWidth }}px;">
-                    {{-- Date Headers (h-10 matching Left spacer) --}}
-                    <div class="h-10 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 relative">
-                        @foreach($markers as $m)
-                        <div class="absolute top-0 bottom-0 flex items-center" style="left: {{ $m['pct'] }}%">
-                            <div class="border-l border-gray-200 dark:border-gray-700 h-full absolute"></div>
-                            <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 pl-1.5 whitespace-nowrap">{{ $m['date']->format('d M') }}</span>
+                    {{-- Date Headers (h-14 matching Left spacer): Tiap tanggal lebar & jelas --}}
+                    <div class="h-14 border-b border-gray-200 dark:border-gray-700 bg-gray-50/90 dark:bg-gray-800/90 flex">
+                        @foreach($days as $day)
+                        @php
+                            $isToday = $day->isSameDay($today);
+                            $isWeekend = in_array($day->dayOfWeekIso, [6, 7], true);
+                            $dayName = $dayNames[$day->dayOfWeekIso] ?? $day->format('D');
+                        @endphp
+                        <div class="flex-shrink-0 flex flex-col items-center justify-center border-r border-gray-200/80 dark:border-gray-700/60 {{ $isWeekend ? 'bg-gray-100/60 dark:bg-gray-900/40' : '' }} {{ $isToday ? 'bg-blue-50/80 dark:bg-blue-950/50' : '' }}"
+                             style="width: {{ $dayWidth }}px;">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider {{ $isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : ($isWeekend ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400') }}">
+                                {{ $dayName }}
+                            </span>
+                            <span class="mt-0.5 text-xs font-bold inline-flex items-center justify-center {{ $isToday ? 'w-6 h-6 rounded-full bg-blue-600 text-white shadow-2xs' : ($isWeekend ? 'text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-200') }}">
+                                {{ $day->format('d') }}
+                            </span>
                         </div>
                         @endforeach
                     </div>
 
-                    {{-- Today Marker Line --}}
-                    @if($todayPct >= 0 && $todayPct <= 100)
-                    <div class="absolute top-10 bottom-0 w-px bg-rose-500 z-10 pointer-events-none" style="left: {{ $todayPct }}%">
-                        <div class="absolute -top-1 -left-5 text-[10px] font-bold text-white bg-rose-500 px-1.5 py-0.2 rounded shadow-xs whitespace-nowrap">
-                            Hari ini
-                        </div>
+                    {{-- Today Marker Vertical Line --}}
+                    @if($todayIndex !== null)
+                    <div class="absolute top-14 bottom-0 pointer-events-none z-10 w-0.5 bg-blue-500/80 dark:bg-blue-400"
+                         style="left: {{ ($todayIndex * $dayWidth) + ($dayWidth / 2) }}px;">
                     </div>
                     @endif
 
                     {{-- Sprint Swimlane Spacer Row (h-8) --}}
                     @if($sprints->isNotEmpty())
                     <div class="h-8 bg-purple-50/50 dark:bg-purple-950/20 border-b border-purple-100 dark:border-purple-900/60 relative">
-                        @foreach($markers as $m)
-                        <div class="absolute top-0 bottom-0 border-l border-gray-100 dark:border-gray-800/80" style="left: {{ $m['pct'] }}%"></div>
-                        @endforeach
+                        <div class="absolute inset-0 flex pointer-events-none">
+                            @foreach($days as $day)
+                                @php $isWk = in_array($day->dayOfWeekIso, [6, 7], true); @endphp
+                                <div class="flex-shrink-0 h-full border-r border-gray-100 dark:border-gray-800/60 {{ $isWk ? 'bg-purple-100/20 dark:bg-purple-900/20' : '' }}"
+                                     style="width: {{ $dayWidth }}px;"></div>
+                            @endforeach
+                        </div>
                     </div>
+
                     @foreach($sprints as $sprint)
                     @php
                         $sHasDates = $sprint->start_date && $sprint->end_date;
-                        $sStart = $sprint->start_date ?? $ganttStart;
-                        $sEnd   = $sprint->end_date   ?? $ganttEnd;
-                        if ($sEnd->lt($sStart)) $sEnd = $sStart->copy()->addDay();
-                        $sLeft  = max(0, min(100, round($ganttStart->diffInDays($sStart) / $ganttDays * 100, 2)));
-                        $sWidth = max(0.5, min(100 - $sLeft, round($sStart->diffInDays($sEnd) / $ganttDays * 100, 2)));
+                        $sStart = ($sprint->start_date ?? $ganttStart)->copy()->startOfDay();
+                        $sEnd   = ($sprint->end_date   ?? $ganttEnd)->copy()->startOfDay();
+                        if ($sEnd->lt($sStart)) $sEnd = $sStart->copy();
+
+                        $sDiffStart = (int) $ganttStart->diffInDays($sStart, false);
+                        $sDiffEnd   = (int) $ganttStart->diffInDays($sEnd, false);
+
+                        $sVisStart = max(0, $sDiffStart);
+                        $sVisEnd   = min($totalDays - 1, $sDiffEnd);
+                        $sSpanDays = max(1, ($sVisEnd - $sVisStart) + 1);
+
+                        $sLeftPx = $sVisStart * $dayWidth;
+                        $sWidthPx = $sSpanDays * $dayWidth;
+
+                        $sStartsBefore = ($sDiffStart < 0);
+                        $sEndsAfter    = ($sDiffEnd >= $totalDays);
+
+                        $sLeftStyle = $sStartsBefore ? '0px' : ($sLeftPx + 3) . 'px';
+                        $sWidthStyle = max(28, $sWidthPx - ($sStartsBefore ? 3 : 6) - ($sEndsAfter ? 0 : 3)) . 'px';
+
+                        $sRounded = 'rounded-lg';
+                        if ($sStartsBefore && $sEndsAfter) {
+                            $sRounded = 'rounded-none';
+                        } elseif ($sStartsBefore) {
+                            $sRounded = 'rounded-r-lg rounded-l-none';
+                        } elseif ($sEndsAfter) {
+                            $sRounded = 'rounded-l-lg rounded-r-none';
+                        }
                     @endphp
                     <div class="h-11 relative border-b border-gray-100 dark:border-gray-800">
-                        @foreach($markers as $m)
-                        <div class="absolute top-0 bottom-0 border-l border-gray-100 dark:border-gray-800/80" style="left: {{ $m['pct'] }}%"></div>
-                        @endforeach
+                        {{-- Grid lines --}}
+                        <div class="absolute inset-0 flex pointer-events-none">
+                            @foreach($days as $day)
+                                @php $isWk = in_array($day->dayOfWeekIso, [6, 7], true); @endphp
+                                <div class="flex-shrink-0 h-full border-r border-gray-100 dark:border-gray-800/60 {{ $isWk ? 'bg-gray-50/50 dark:bg-gray-900/30' : '' }}"
+                                     style="width: {{ $dayWidth }}px;"></div>
+                            @endforeach
+                        </div>
+
                         @if($sHasDates)
-                        <div class="absolute top-1/2 -translate-y-1/2 rounded-lg h-6 flex items-center px-2.5 overflow-hidden shadow-xs hover:brightness-110 transition cursor-pointer"
-                             style="left: {{ $sLeft }}%; width: {{ $sWidth }}%; background: linear-gradient(90deg, #9333ea, #6366f1);"
+                        <div class="absolute top-1/2 -translate-y-1/2 h-6 flex items-center px-2.5 overflow-hidden shadow-xs hover:brightness-110 transition cursor-pointer {{ $sRounded }}"
+                             style="left: {{ $sLeftStyle }}; width: {{ $sWidthStyle }}; background: linear-gradient(90deg, #9333ea, #6366f1);"
                              title="{{ $sprint->name }}: {{ $sStart->format('d M') }} → {{ $sEnd->format('d M Y') }}">
-                            <span class="text-white text-xs truncate font-semibold drop-shadow-xs">{{ $sprint->name }}</span>
+                            <span class="text-white text-xs truncate font-semibold drop-shadow-xs flex items-center gap-1">
+                                @if($sStartsBefore)
+                                    <span class="opacity-75 text-[10px]">&laquo;</span>
+                                @endif
+                                <span class="truncate">{{ $sprint->name }}</span>
+                                @if($sEndsAfter)
+                                    <span class="opacity-75 text-[10px]">&raquo;</span>
+                                @endif
+                            </span>
                         </div>
                         @else
                         <span class="absolute top-1/2 -translate-y-1/2 left-2 text-[10px] text-gray-300 italic">Belum ada tanggal</span>
@@ -231,47 +350,95 @@
                     @foreach($grouped as $milestoneName => $mTasks)
                     {{-- Milestone Row Spacer (h-8) --}}
                     <div class="h-8 bg-blue-50/50 dark:bg-blue-950/20 border-b border-blue-100 dark:border-blue-900/60 relative">
-                        @foreach($markers as $m)
-                        <div class="absolute top-0 bottom-0 border-l border-gray-100 dark:border-gray-800/80" style="left: {{ $m['pct'] }}%"></div>
-                        @endforeach
+                        <div class="absolute inset-0 flex pointer-events-none">
+                            @foreach($days as $day)
+                                @php $isWk = in_array($day->dayOfWeekIso, [6, 7], true); @endphp
+                                <div class="flex-shrink-0 h-full border-r border-gray-100 dark:border-gray-800/60 {{ $isWk ? 'bg-blue-100/20 dark:bg-blue-900/20' : '' }}"
+                                     style="width: {{ $dayWidth }}px;"></div>
+                            @endforeach
+                        </div>
                     </div>
 
                     @foreach($mTasks as $t)
                     @php
-                        $barStart = $t->start_date ?? $t->due_date ?? $t->sprint?->start_date ?? $ganttStart;
-                        $barEnd   = $t->due_date   ?? $t->start_date ?? $t->sprint?->end_date   ?? $ganttEnd;
-                        if ($barEnd->lt($barStart)) $barEnd = $barStart->copy()->addDay();
+                        $barStart = ($t->start_date ?? $t->due_date ?? $t->sprint?->start_date ?? $ganttStart)->copy()->startOfDay();
+                        $barEnd   = ($t->due_date   ?? $t->start_date ?? $t->sprint?->end_date   ?? $ganttEnd)->copy()->startOfDay();
+                        if ($barEnd->lt($barStart)) {
+                            $barEnd = $barStart->copy();
+                        }
 
-                        $barLeft  = max(0, min(100, round($ganttStart->diffInDays($barStart) / $ganttDays * 100, 2)));
-                        $barWidth = max(0.5, min(100 - $barLeft, round($barStart->diffInDays($barEnd) / $ganttDays * 100, 2)));
+                        $diffStart = (int) $ganttStart->diffInDays($barStart, false);
+                        $diffEnd   = (int) $ganttStart->diffInDays($barEnd, false);
+
+                        $visStart = max(0, $diffStart);
+                        $visEnd   = min($totalDays - 1, $diffEnd);
+                        $spanDays = max(1, ($visEnd - $visStart) + 1);
+
+                        $leftPx = $visStart * $dayWidth;
+                        $widthPx = $spanDays * $dayWidth;
+
+                        $startsBefore = ($diffStart < 0);
+                        $endsAfter    = ($diffEnd >= $totalDays);
+
+                        $barLeftStyle = $startsBefore ? '0px' : ($leftPx + 3) . 'px';
+                        $barWidthStyle = max(24, $widthPx - ($startsBefore ? 3 : 6) - ($endsAfter ? 0 : 3)) . 'px';
+
+                        $roundedClass = 'rounded-lg';
+                        if ($startsBefore && $endsAfter) {
+                            $roundedClass = 'rounded-none';
+                        } elseif ($startsBefore) {
+                            $roundedClass = 'rounded-r-lg rounded-l-none';
+                        } elseif ($endsAfter) {
+                            $roundedClass = 'rounded-l-lg rounded-r-none';
+                        }
+
                         $barColor = $pColors[$t->status]['bar'] ?? '#6366f1';
                         $barOpacity = $t->status === 'done' ? '0.75' : '1';
 
-                        // Time log segments
-                        $logSegs = $t->timeLogs->filter(fn($l) => $l->started_at && $l->ended_at)->map(function($l) use ($ganttStart, $ganttDays) {
-                            $ls = max(0, min(100, round($ganttStart->diffInDays($l->started_at->startOfDay()) / $ganttDays * 100, 2)));
-                            $lw = max(0.3, min(100 - $ls, round(max(0.016, $l->minutes / (60 * 24)) / $ganttDays * 100, 2)));
-                            return ['left' => $ls, 'width' => $lw];
+                        // Time log marks inside bar
+                        $logSegs = $t->timeLogs->filter(fn($l) => $l->started_at && $l->ended_at)->map(function($l) use ($ganttStart, $dayWidth, $leftPx, $widthPx) {
+                            $lStart = $l->started_at->copy()->startOfDay();
+                            $lEnd = $l->ended_at->copy()->startOfDay();
+                            $lDiff = (int) $ganttStart->diffInDays($lStart, false);
+                            $lLeft = $lDiff * $dayWidth;
+                            $lSpan = max(1, (int) $lStart->diffInDays($lEnd) + 1);
+                            $lWidth = $lSpan * $dayWidth;
+                            return [
+                                'left' => max(0, $lLeft - $leftPx),
+                                'width' => min($widthPx, $lWidth),
+                            ];
                         });
                     @endphp
                     <div class="h-12 relative border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50/40 dark:hover:bg-gray-800/30 transition">
                         {{-- Grid lines --}}
-                        @foreach($markers as $m)
-                        <div class="absolute top-0 bottom-0 border-l border-gray-100 dark:border-gray-800/80" style="left: {{ $m['pct'] }}%"></div>
-                        @endforeach
+                        <div class="absolute inset-0 flex pointer-events-none">
+                            @foreach($days as $day)
+                                @php $isWk = in_array($day->dayOfWeekIso, [6, 7], true); @endphp
+                                <div class="flex-shrink-0 h-full border-r border-gray-100 dark:border-gray-800/60 {{ $isWk ? 'bg-gray-50/50 dark:bg-gray-900/30' : '' }}"
+                                     style="width: {{ $dayWidth }}px;"></div>
+                            @endforeach
+                        </div>
 
                         {{-- Task bar --}}
-                        <div class="absolute top-1/2 -translate-y-1/2 rounded-lg h-6 flex items-center overflow-hidden shadow-xs cursor-pointer hover:shadow-md hover:brightness-105 transition"
-                             style="left: {{ $barLeft }}%; width: {{ $barWidth }}%; background-color: {{ $barColor }}; opacity: {{ $barOpacity }};"
+                        <div class="absolute top-1/2 -translate-y-1/2 h-6 flex items-center overflow-hidden shadow-xs cursor-pointer hover:shadow-md hover:brightness-105 transition {{ $roundedClass }}"
+                             style="left: {{ $barLeftStyle }}; width: {{ $barWidthStyle }}; background-color: {{ $barColor }}; opacity: {{ $barOpacity }};"
                              @click="if(window.openTask) window.openTask({{ $t->id }})"
-                             title="{{ $t->title }} [{{ $t->sprint->name ?? 'Backlog' }}]: {{ $barStart->format('d M') }} → {{ $barEnd->format('d M Y') }}">
+                             title="{{ $t->title }} [{{ $t->sprint?->name ?? 'Backlog' }}]: {{ $barStart->format('d M') }} → {{ $barEnd->format('d M Y') }}">
                             {{-- Time log marks --}}
                             @foreach($logSegs as $seg)
-                            <div class="absolute h-full bg-white bg-opacity-30 rounded"
-                                 style="left: {{ max(0, ($seg['left'] - $barLeft) / $barWidth * 100) }}%; width: {{ min(100, $seg['width'] / $barWidth * 100) }}%"></div>
+                            <div class="absolute h-full bg-white/30 rounded pointer-events-none"
+                                 style="left: {{ $seg['left'] }}px; width: {{ $seg['width'] }}px;"></div>
                             @endforeach
-                            <span class="text-white text-xs px-2 truncate font-semibold drop-shadow-xs relative z-10"
-                                  style="font-size:11px">{{ $t->title }}</span>
+                            <span class="text-white text-xs px-2 truncate font-semibold drop-shadow-xs relative z-10 flex items-center gap-1"
+                                  style="font-size:11px">
+                                @if($startsBefore)
+                                    <span class="opacity-75 text-[10px]">&laquo;</span>
+                                @endif
+                                <span class="truncate">{{ $t->title }}</span>
+                                @if($endsAfter)
+                                    <span class="opacity-75 text-[10px]">&raquo;</span>
+                                @endif
+                            </span>
                         </div>
                     </div>
                     @endforeach
@@ -295,17 +462,34 @@
                 Sprint
             </div>
             @endif
+            <div class="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+                <span class="w-3.5 h-3.5 rounded-md inline-block bg-gray-200/80 dark:bg-gray-700 border border-gray-300 dark:border-gray-600"></span>
+                Weekend
+            </div>
             <div class="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-300 ml-auto">
-                <span class="w-4 h-0.5 bg-rose-500 inline-block rounded-full"></span>
+                <span class="w-4 h-0.5 bg-blue-500 inline-block rounded-full"></span>
                 Hari ini
             </div>
         </div>
+        @else
+        {{-- Empty State: Ketika tidak ada task/sprint di bulan/periode yang dipilih --}}
+        <div class="px-6 py-16 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-500 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Tidak ada task atau sprint pada periode ini</h3>
+            <p class="text-xs text-gray-400 max-w-md mx-auto mb-4">
+                Tidak ada aktivitas dengan tanggal pada {{ $ganttStart->format('d M Y') }} — {{ $ganttEnd->format('d M Y') }}. Gunakan tombol navigasi di atas untuk melihat bulan lain.
+            </p>
+            <div class="flex items-center justify-center gap-2">
+                <a href="{{ request()->fullUrlWithQuery(['start_date' => now()->startOfMonth()->format('Y-m-d'), 'end_date' => now()->endOfMonth()->format('Y-m-d')]) }}"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition shadow-2xs">
+                    Kembali ke Bulan Berjalan ({{ now()->format('M Y') }})
+                </a>
+            </div>
+        </div>
+        @endif
     </div>
-    @else
-    <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 px-6 py-12 text-center text-sm text-gray-400 mb-6">
-        Tidak ada task dengan tanggal mulai/selesai untuk ditampilkan di Gantt.
-    </div>
-    @endif
 
     {{-- ============================================================
          HIDDEN PER USER REQUEST:
@@ -314,7 +498,7 @@
          Focus solely on the Gantt Chart.
     ============================================================ --}}
     @if(false)
-    <div class="bg-white rounded-xl border border-gray-200 mb-6">
+    <div class="bg-white rounded-2xl mb-6">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Ringkasan per Developer</h2>
             <div class="flex items-center gap-2">
@@ -376,7 +560,7 @@
     </div>
 
     @php $displayLogs = $logs ?? $recentLogs; @endphp
-    <div class="bg-white rounded-xl border border-gray-200">
+    <div class="bg-white rounded-2xl">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">
                 Detail Log Waktu

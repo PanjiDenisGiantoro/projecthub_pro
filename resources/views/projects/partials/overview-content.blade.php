@@ -35,7 +35,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {{-- Shortcut 1: Sprints & Tasks --}}
             <button type="button" @click="tab = 'sprints'"
-                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700/80 shadow-2xs hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50/80 dark:hover:bg-gray-800 transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
                 <div class="flex items-center justify-between w-full mb-2">
                     <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +62,7 @@
 
             {{-- Shortcut 2: Milestones --}}
             <button type="button" @click="tab = 'milestones'"
-                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700/80 shadow-2xs hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50/80 dark:hover:bg-gray-800 transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
                 <div class="flex items-center justify-between w-full mb-2">
                     <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@
 
             {{-- Shortcut 3: Team Members --}}
             <button type="button" @click="tab = 'team'"
-                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700/80 shadow-2xs hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-md transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50/80 dark:hover:bg-gray-800 transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
                 <div class="flex items-center justify-between w-full mb-2">
                     <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +116,7 @@
 
             {{-- Shortcut 4: Timesheet & Gantt --}}
             <button type="button" @click="tab = 'timesheet'"
-                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700/80 shadow-2xs hover:border-amber-500 dark:hover:border-amber-500 hover:shadow-md transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50/80 dark:hover:bg-gray-800 transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
                 <div class="flex items-center justify-between w-full mb-2">
                     <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +143,7 @@
 
             {{-- Shortcut 5: Tickets --}}
             <button type="button" @click="tab = 'tickets'"
-                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700/80 shadow-2xs hover:border-rose-500 dark:hover:border-rose-500 hover:shadow-md transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50/80 dark:hover:bg-gray-800 transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
                 <div class="flex items-center justify-between w-full mb-2">
                     <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +170,7 @@
 
             {{-- Shortcut 6: Files & KB --}}
             <button type="button" @click="tab = 'files'"
-                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700/80 shadow-2xs hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+                class="group text-left p-3.5 rounded-2xl bg-white dark:bg-gray-850 hover:bg-gray-50/80 dark:hover:bg-gray-800 transition-all -translate-y-0.5 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
                 <div class="flex items-center justify-between w-full mb-2">
                     <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +206,7 @@
         <div class="lg:col-span-7 space-y-5">
 
             {{-- ANALYTICS CARD: Task Distribution & Progress --}}
-            <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs space-y-4">
+            <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
@@ -293,7 +293,7 @@
             </div>
 
             {{-- SPOTLIGHT: Active Sprint Card --}}
-            <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs space-y-4">
+            <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
@@ -381,7 +381,7 @@
             </div>
 
             {{-- MILESTONE ROADMAP PIPELINE --}}
-            <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs space-y-4">
+            <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
@@ -444,7 +444,7 @@
         <div class="lg:col-span-5 space-y-5">
             
             {{-- PROJECT DETAILS CARD --}}
-            <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs space-y-4">
+            <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 space-y-4">
                 <h3 class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
                     <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -500,7 +500,7 @@
             </div>
 
             {{-- TEAM ROSTER SPOTLIGHT --}}
-            <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs space-y-4">
+            <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
@@ -558,7 +558,7 @@
             </div>
 
             {{-- RECENT TICKETS & ISSUES ALERT --}}
-            <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs space-y-4">
+            <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">

@@ -84,13 +84,13 @@ Route::prefix('deploy')->name('deploy.')->group(function () {
 });
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-Route::get('/', fn () => view('landing', [
+Route::get('/', fn() => view('landing', [
     'pricingTiers' => Package::tiers()->active()->orderBy('sort_order')->with('features')->get(),
 ]))->name('home');
 Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
-Route::get('/privacy-policy', fn () => view('legal.privacy-policy'))->name('legal.privacy');
-Route::get('/terms-of-service', fn () => view('legal.terms-of-service'))->name('legal.terms');
+Route::get('/privacy-policy', fn() => view('legal.privacy-policy'))->name('legal.privacy');
+Route::get('/terms-of-service', fn() => view('legal.terms-of-service'))->name('legal.terms');
 
 // ─── Super Admin ─────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
@@ -163,6 +163,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
     // Profile
     Route::get('/profile', [ProfileWebController::class, 'index'])->name('profile');
+    Route::put('/profile', [ProfileWebController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profile/avatar', [ProfileWebController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileWebController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::put('/profile/password', [ProfileWebController::class, 'updatePassword'])->name('profile.password');
@@ -450,10 +451,13 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     // Calendar
     Route::get('/calendar', [CalendarWebController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events', [CalendarWebController::class, 'events'])->name('calendar.events');
+    Route::post('/calendar/events', [CalendarWebController::class, 'store'])->name('calendar.events.store');
+    Route::put('/calendar/events/{id}', [CalendarWebController::class, 'update'])->name('calendar.events.update');
+    Route::delete('/calendar/events/{id}', [CalendarWebController::class, 'destroy'])->name('calendar.events.destroy');
     Route::get('/calendar/upcoming', [CalendarWebController::class, 'upcoming'])->name('calendar.upcoming');
 
-    // Meetings
-    Route::get('/meetings', [MeetingWebController::class, 'index'])->name('meetings.index');
+    // Meetings (dialihkan ke calendar terpusat)
+    Route::get('/meetings', fn() => redirect()->route('calendar.index', ['view' => 'list', 'category' => 'Meeting']))->name('meetings.index');
     Route::get('/meetings/pickables', [MeetingWebController::class, 'pickables'])->name('meetings.pickables');
     Route::post('/meetings/create', [MeetingWebController::class, 'create'])->name('meetings.create');
 
@@ -499,6 +503,7 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/files/{projectFile}', [ProjectFileWebController::class, 'destroy'])->name('project.files.destroy');
         Route::patch('/projects/{project}/files/{projectFile}/folder', [ProjectFileWebController::class, 'moveFolder'])->name('project.files.move');
         Route::post('/projects/{project}/files/folders', [ProjectFileWebController::class, 'storeFolder'])->name('project.files.folders.store');
+        Route::post('/projects/{project}/files/link', [ProjectFileWebController::class, 'storeLink'])->name('project.files.link.store');
 
         Route::get('/projects/{project}/budget/all', [BudgetWebController::class, 'index'])->name('budget.index');
         Route::post('/projects/{project}/budget', [BudgetWebController::class, 'store'])->name('budget.store');
@@ -562,14 +567,21 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::put('/projects/{project}/chat/{message}', [ChatWebController::class, 'update'])->name('chat.update');
     Route::delete('/projects/{project}/chat/{message}', [ChatWebController::class, 'destroy'])->name('chat.destroy');
     Route::post('/projects/{project}/chat/{message}/react', [ChatWebController::class, 'react'])->name('chat.react');
+    Route::post('/projects/{project}/chat/{message}/pin', [ChatWebController::class, 'togglePin'])->name('chat.pin');
+    Route::get('/projects/{project}/chat/details', [ChatWebController::class, 'details'])->name('chat.project.details');
     Route::post('/projects/{project}/chat/read', [ChatWebController::class, 'markRead'])->name('chat.markRead');
+    Route::get('/projects/{project}/chat', function (\App\Models\Project $project) {
+        return redirect()->route('chat.index', ['project' => $project->slug]);
+    })->name('projects.chat.redirect');
 
     // Direct Messages (chat per orang) — digabung ke halaman /chat
     Route::get('/messages/unread', [DirectMessageWebController::class, 'unreadCount'])->name('messages.unread');
     Route::get('/messages/{peer}/thread', [DirectMessageWebController::class, 'messages'])->name('messages.thread');
+    Route::get('/messages/{peer}/details', [DirectMessageWebController::class, 'details'])->name('messages.details');
     Route::post('/messages/{peer}', [DirectMessageWebController::class, 'store'])->name('messages.store');
     Route::put('/messages/{peer}/{message}', [DirectMessageWebController::class, 'update'])->name('messages.update');
     Route::delete('/messages/{peer}/{message}', [DirectMessageWebController::class, 'destroy'])->name('messages.destroy');
+    Route::post('/messages/{peer}/{message}/pin', [DirectMessageWebController::class, 'togglePin'])->name('messages.pin');
     Route::post('/messages/{peer}/read', [DirectMessageWebController::class, 'markRead'])->name('messages.read');
 
     // Forum (chat grup) — digabung ke halaman /chat
@@ -577,10 +589,12 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::post('/forums/{forum}/members', [ForumWebController::class, 'addMember'])->name('forums.members.add');
     Route::delete('/forums/{forum}/members/{user}', [ForumWebController::class, 'removeMember'])->name('forums.members.remove');
     Route::get('/forums/{forum}/members', [ForumWebController::class, 'members'])->name('forums.members');
+    Route::get('/forums/{forum}/details', [ForumWebController::class, 'details'])->name('forums.details');
     Route::get('/forums/{forum}/messages', [ForumWebController::class, 'messages'])->name('forums.messages');
     Route::post('/forums/{forum}/messages', [ForumWebController::class, 'storeMessage'])->name('forums.messages.store');
     Route::put('/forums/{forum}/messages/{message}', [ForumWebController::class, 'update'])->name('forums.messages.update');
     Route::delete('/forums/{forum}/messages/{message}', [ForumWebController::class, 'destroy'])->name('forums.messages.destroy');
+    Route::post('/forums/{forum}/messages/{message}/pin', [ForumWebController::class, 'togglePin'])->name('forums.pin');
     Route::post('/forums/{forum}/read', [ForumWebController::class, 'markRead'])->name('forums.read');
 
     // AI Assistant (widget mengambang)

@@ -113,7 +113,7 @@
 @endpush
 
 @section('content')
-    <div class="pt-4 pb-6 w-full max-w-full min-w-0 overflow-x-hidden" x-data="projectPageData()"
+    <div class="pt-4 pb-6 w-full max-w-full min-w-0" x-data="projectPageData()"
         x-init="initProjectPage()">
 
         {{-- ============================================================
@@ -199,7 +199,7 @@
                 <div x-show="tab === 'overview'" x-cloak class="space-y-5">
                     {{-- Top Header Card --}}
                     <div
-                        class="bg-white dark:bg-gray-850 rounded-2xl shadow-2xs border border-gray-200/90 dark:border-gray-700/80 p-5 sm:p-6 space-y-4">
+                        class="bg-white dark:bg-gray-850 rounded-2xl p-5 sm:p-6 space-y-4">
 
 
                         {{-- Title Row + Action Buttons --}}
@@ -208,7 +208,15 @@
                             <div class="flex items-center gap-3 flex-wrap">
                                 @if(!empty($projectImages))
                                     <img src="{{ $projectImages[0] }}" alt="{{ $project->name }}"
-                                        class="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0">
+                                        class="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-12 h-12 rounded-xl items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40" style="display:none;">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.25v4.5a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25v-4.5m16.5 0v-4.5A2.25 2.25 0 0 0 18 7.5H6a2.25 2.25 0 0 0-2.25 2.25v4.5m16.5 0h-4.5a2.25 2.25 0 0 1-2.25-2.25v-.75m-6 3H3.75m16.5 0h-3.75a2.25 2.25 0 0 1-2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-3A2.25 2.25 0 0 0 7.5 9v1.5a2.25 2.25 0 0 1-2.25 2.25H3.75M9 7.5V6a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 15 6v1.5"/></svg>
+                                    </div>
+                                @else
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.25v4.5a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25v-4.5m16.5 0v-4.5A2.25 2.25 0 0 0 18 7.5H6a2.25 2.25 0 0 0-2.25 2.25v4.5m16.5 0h-4.5a2.25 2.25 0 0 1-2.25-2.25v-.75m-6 3H3.75m16.5 0h-3.75a2.25 2.25 0 0 1-2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-3A2.25 2.25 0 0 0 7.5 9v1.5a2.25 2.25 0 0 1-2.25 2.25H3.75M9 7.5V6a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 15 6v1.5"/></svg>
+                                    </div>
                                 @endif
                                 @foreach(array_slice($projectImages, 1) as $img)
                                     <a href="{{ $img }}" target="_blank" rel="noopener" class="order-last">
@@ -251,15 +259,31 @@
                                 @endif
 
                                 @if(!auth()->user()->hasRole('client'))
-                                    <a href="{{ route('projects.edit', $project) }}"
-                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition shadow-2xs">
+                                    @php
+                                        $projectShowPayload = json_encode([
+                                            'id' => $project->id,
+                                            'slug' => $project->slug,
+                                            'name' => $project->name,
+                                            'description' => $project->description,
+                                            'client_id' => $project->client_id,
+                                            'manager_id' => $project->manager_id,
+                                            'start_date' => $project->start_date ? $project->start_date->format('Y-m-d') : null,
+                                            'end_date' => $project->end_date ? $project->end_date->format('Y-m-d') : null,
+                                            'budget' => $project->budget,
+                                            'status' => $project->status,
+                                            'images' => $project->images ?? [],
+                                            'image_urls' => $project->imageUrls(),
+                                        ]);
+                                    @endphp
+                                    <button type="button" @click="openEditProjectModal({{ $projectShowPayload }}, 'show')"
+                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold rounded-xl transition shadow-2xs cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
                                         </svg>
                                         Edit Project
-                                    </a>
+                                    </button>
                                 @endif
                             </div>
                         </div>
@@ -310,7 +334,7 @@
                         </div>
                     </div> {{-- 4 Stat Cards (Redesigned matching Sprint Style CSS) --}}
                     <div
-                        class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 shadow-2xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
+                        class="bg-white dark:bg-gray-850 rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
                         {{-- Col 1: TOTAL TASKS --}}
                         <div class="p-5 flex flex-col justify-between">
                             <div class="flex items-center justify-between">
@@ -698,7 +722,7 @@
                     ============================================================ --}}
                     @if($columns->isEmpty())
                         <div
-                            class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200/90 dark:border-gray-700/80 p-8 sm:p-12 text-center shadow-2xs space-y-6">
+                            class="bg-white dark:bg-gray-850 rounded-3xl p-8 sm:p-12 text-center space-y-6">
                             {{-- Illustration Blueprint Box --}}
                             <div
                                 class="relative w-20 h-20 mx-auto rounded-3xl bg-blue-50 dark:bg-blue-950/60 border-2 border-blue-200/70 dark:border-blue-800/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
@@ -965,9 +989,9 @@
                                 @if(!auth()->user()->hasRole('client'))
                                     <div class="add-bucket-column-wrapper w-80 shrink-0">
                                         <button type="button" @click="openCreateBucketModal()"
-                                            class="w-full h-[220px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 bg-white/60 dark:bg-gray-850/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all flex flex-col items-center justify-center gap-2.5 group cursor-pointer shadow-2xs p-6 text-center">
+                                            class="w-full h-[220px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 bg-white/60 dark:bg-gray-850/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all flex flex-col items-center justify-center gap-2.5 group cursor-pointer p-6 text-center">
                                             <div
-                                                class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-blue-600 group-hover:text-white text-gray-400 flex items-center justify-center transition-colors shadow-2xs">
+                                                class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-blue-600 group-hover:text-white text-gray-400 flex items-center justify-center transition-colors">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                                         d="M12 4v16m8-8H4" />
@@ -993,7 +1017,7 @@
                     @if($columns->isNotEmpty())
                         <div x-show="taskView === 'list'" x-cloak class="pt-1 w-full max-w-full min-w-0">
                             <div
-                                class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/80 dark:border-gray-700 p-6 shadow-2xs space-y-6">
+                                class="bg-white dark:bg-gray-850 rounded-2xl p-6 space-y-6">
                                 {{-- Table Header Row --}}
                                 <div
                                     class="grid grid-cols-12 gap-2 text-[12px] font-bold text-gray-400 dark:text-gray-500 pb-3 border-b border-gray-100 dark:border-gray-800 px-3 items-center">
@@ -1338,10 +1362,12 @@
                 {{-- ============================================================
                 CREATE & EDIT BUCKET MODAL DIALOG
                 ============================================================ --}}
-                <div x-show="showBucketModal" x-cloak
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-                    <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
-                        @click.away="showBucketModal = false">
+                <template x-teleport="body">
+                    <div x-show="showBucketModal" x-cloak
+                        class="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+                        @click.self="showBucketModal = false">
+                        <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
+                            @click.stop>
                         {{-- Modal Header --}}
                         <div
                             class="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3">
@@ -1493,14 +1519,17 @@
                         </form>
                     </div>
                 </div>
+                </template>
 
                 {{-- ============================================================
                 DELETE BUCKET CONFIRMATION MODAL
                 ============================================================ --}}
-                <div x-show="showDeleteBucketModal" x-cloak
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-                    <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
-                        @click.away="showDeleteBucketModal = false">
+                <template x-teleport="body">
+                    <div x-show="showDeleteBucketModal" x-cloak
+                        class="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+                        @click.self="showDeleteBucketModal = false">
+                        <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
+                            @click.stop>
                         <div class="p-6 space-y-4">
                             {{-- Icon + Title --}}
                             <div class="flex items-center gap-3.5">
@@ -1551,7 +1580,7 @@
                                                     @foreach($columns as $otherCol)
                                                         <option value="{{ $otherCol->id }}"
                                                             x-show="deleteBucketData.id !== {{ $otherCol->id }}">
-                                                            {{ $otherCol->name }}
+                                                                {{ $otherCol->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -1589,6 +1618,7 @@
                         </div>
                     </div>
                 </div>
+                </template>
 
                 @endif {{-- /tab tasks --}}
                 {{-- Include Task Detail Modal --}}
@@ -1607,263 +1637,18 @@
                 {{-- ============================================================
                 TAB: TICKETS
                 ============================================================ --}}
-                <div x-show="tab === 'tickets'" x-cloak class="space-y-4 w-full max-w-full min-w-0">
-                    <div
-                        class="bg-white dark:bg-gray-850 rounded-2xl shadow-2xs border border-gray-200/90 dark:border-gray-700/80 overflow-hidden">
-                        <div
-                            class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-                            <div>
-                                <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                    Recent Tickets
-                                </h2>
-                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Daftar tiket dan issue yang
-                                    dilaporkan pada proyek ini</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <a href="{{ route('tickets.create', $project) }}"
-                                    class="inline-flex items-center px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition shadow-2xs">
-                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Create Ticket
-                                </a>
-                                <a href="{{ route('tickets.index', $project) }}"
-                                    class="inline-flex items-center px-3.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition shadow-2xs">
-                                    View All
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
-                                <thead class="bg-gray-50 dark:bg-gray-800/50">
-                                    <tr>
-                                        <th
-                                            class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                            Title</th>
-                                        <th
-                                            class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                            Reporter</th>
-                                        <th
-                                            class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                            Priority</th>
-                                        <th
-                                            class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                            Status</th>
-                                        <th class="px-6 py-3.5"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white dark:bg-gray-850 divide-y divide-gray-100 dark:divide-gray-800">
-                                    @forelse($recentTickets as $ticket)
-                                        @php
-                                            $tPriorityClass = [
-                                                'low' => 'bg-gray-100 text-gray-600',
-                                                'medium' => 'bg-blue-100 text-blue-700',
-                                                'high' => 'bg-orange-100 text-orange-700',
-                                                'urgent' => 'bg-red-100 text-red-700',
-                                            ][$ticket->priority ?? 'medium'] ?? 'bg-gray-100 text-gray-600';
-                                            $tStatusClass = [
-                                                'open' => 'bg-blue-100 text-blue-700',
-                                                'in_progress' => 'bg-yellow-100 text-yellow-700',
-                                                'resolved' => 'bg-green-100 text-green-700',
-                                                'closed' => 'bg-gray-100 text-gray-600',
-                                            ][$ticket->status ?? 'open'] ?? 'bg-gray-100 text-gray-600';
-                                        @endphp
-                                        <tr class="hover:bg-gray-50 transition cursor-pointer"
-                                            onclick="window.location='{{ route('tickets.show', $ticket) }}'">
-                                            <td class="px-6 py-3">
-                                                <a href="{{ route('tickets.show', $ticket) }}"
-                                                    class="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors">
-                                                    {{ $ticket->title }}
-                                                </a>
-                                            </td>
-                                            <td class="px-6 py-3 text-sm text-gray-600">{{ $ticket->reporter->name ?? '-' }}
-                                            </td>
-                                            <td class="px-6 py-3">
-                                                <span
-                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $tPriorityClass }}">
-                                                    {{ ucfirst($ticket->priority ?? '-') }}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-3">
-                                                <span
-                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $tStatusClass }}">
-                                                    {{ ucwords(str_replace('_', ' ', $ticket->status ?? '-')) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-3 text-right">
-                                                <a href="{{ route('tickets.show', $ticket) }}"
-                                                    class="text-gray-400 hover:text-blue-600 transition-colors">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M9 5l7 7-7 7" />
-                                                    </svg>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">
-                                                No tickets yet.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div x-show="tab === 'tickets'" x-cloak>
+                    @include('projects.partials.tickets-content')
                 </div>
 
                 @endif {{-- /tab tickets --}}
                 @if($tab === 'team')
                 {{-- ============================================================
-                TAB: TEAM
+                TAB: TEAM (Modernized & Redesigned)
                 ============================================================ --}}
-                <div x-show="tab === 'team'" x-cloak x-data="{ showAddMember: false }">
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                        {{-- ── Member List ── --}}
-                        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                                <div>
-                                    <h2 class="text-base font-semibold text-gray-900">Team Members</h2>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ $project->members->count() }} active members
-                                    </p>
-                                </div>
-                                @if(!auth()->user()->hasRole('client'))
-                                    <button @click="showAddMember = !showAddMember"
-                                        :class="showAddMember ? 'bg-gray-100 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        <span x-text="showAddMember ? 'Close Form' : 'Add Member'"></span>
-                                    </button>
-                                @endif
-                            </div>
-
-                            <ul class="divide-y divide-gray-100">
-                                @forelse($project->members as $member)
-                                    <li class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition group">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm uppercase shrink-0">
-                                                {{ strtoupper(substr($member->user->name ?? '?', 0, 2)) }}
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-medium text-gray-900">{{ $member->user->name ?? '-' }}
-                                                </p>
-                                                <p class="text-xs text-gray-500 mt-0.5">{{ $member->user->email ?? '' }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            @if(!auth()->user()->hasRole('client'))
-                                                <form method="POST"
-                                                    action="{{ route('projects.members.remove', [$project, $member->user]) }}"
-                                                    class="opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    data-confirm-delete="{{ $member->user->name }} from team"
-                                                    data-confirm-label="Remove from Team">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit"
-                                                        class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a1 1 0 00-1-1h-4a1 1 0 00-1 1H5" />
-                                                        </svg>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </li>
-                                @empty
-                                    <li class="px-6 py-12 text-center">
-                                        <svg class="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <p class="text-sm text-gray-400">No team members yet.</p>
-                                        <p class="text-xs text-gray-300 mt-1">Click "Add Member" to get started.</p>
-                                    </li>
-                                @endforelse
-                            </ul>
-                        </div>
-
-                        {{-- ── Add Member Form (sidebar) ── --}}
-                        @if(!auth()->user()->hasRole('client'))
-                            <div x-show="showAddMember" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-1"
-                                x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="bg-white rounded-xl border border-gray-200 p-6 sticky top-4">
-                                    <div class="flex items-center justify-between mb-5">
-                                        <div>
-                                            <h3 class="text-sm font-semibold text-gray-900">Add Member</h3>
-                                            <p class="text-xs text-gray-400 mt-0.5">Add developers to this project team</p>
-                                        </div>
-                                        <button @click="showAddMember = false"
-                                            class="text-gray-400 hover:text-gray-600 transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <form action="{{ route('projects.members.add', $project) }}" method="POST"
-                                        class="space-y-4">
-                                        @csrf
-
-                                        {{-- Anggota --}}
-                                        <div>
-                                            <label class="block text-xs font-medium text-gray-700 mb-1.5">
-                                                Members <span class="text-red-500">*</span>
-                                            </label>
-                                            <select id="member-select" name="user_id[]" required multiple class="w-full"
-                                                style="width:100%">
-                                                @foreach($companyUsers as $u)
-                                                    <option value="{{ $u->id }}" {{ collect(old('user_id'))->contains($u->id) ? 'selected' : '' }}>
-                                                        {{ $u->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('user_id')
-                                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                                    <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    {{ $message }}
-                                                </p>
-                                            @enderror
-                                        </div>
-
-                                        <button type="submit"
-                                            class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                            </svg>
-                                            Add to Team
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        @endif
-
-                    </div>
+                <div x-show="tab === 'team'" x-cloak>
+                    @include('projects.partials.team-content')
                 </div>
-
                 @endif {{-- /tab team --}}
                 @if($tab === 'timesheet')
                 {{-- ============================================================
@@ -1928,19 +1713,14 @@
                 </div>
 
                 @endif {{-- /tab notif --}}
-                @if($tab === 'chat')
-                {{-- ============================================================
-                TAB: CHAT
-                ============================================================ --}}
-                <div x-show="tab === 'chat'" x-cloak>
-                    @include('projects.partials._chat')
-                </div>
-                @endif {{-- /tab chat --}}
 
             </div>
             {{-- /MAIN CONTENT --}}
         </div>
         {{-- /sidebar + main flex wrapper --}}
+
+        {{-- Include Project Create & Edit Modal --}}
+        @include('projects._project_modal', ['clients' => $clients ?? [], 'managers' => $managers ?? []])
     </div>
 @endsection
 
@@ -2087,7 +1867,7 @@
 
                                 if (evt.from !== evt.to) {
                                     try {
-                                        await fetch(`/projects/{{ $project->id }}/tasks/${taskId}/move`, {
+                                        await fetch(`/projects/{{ $project->slug }}/tasks/${taskId}/move`, {
                                             method: 'PATCH',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -2102,7 +1882,7 @@
                                 }
 
                                 try {
-                                    await fetch(`/projects/{{ $project->id }}/tasks/reorder`, {
+                                    await fetch(`/projects/{{ $project->slug }}/tasks/reorder`, {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
@@ -2146,7 +1926,7 @@
 
                                 if (evt.from !== evt.to) {
                                     try {
-                                        await fetch(`/projects/{{ $project->id }}/tasks/${taskId}/move`, {
+                                        await fetch(`/projects/{{ $project->slug }}/tasks/${taskId}/move`, {
                                             method: 'PATCH',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -2161,7 +1941,7 @@
                                 }
 
                                 try {
-                                    await fetch(`/projects/{{ $project->id }}/tasks/reorder`, {
+                                    await fetch(`/projects/{{ $project->slug }}/tasks/reorder`, {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
@@ -2201,7 +1981,7 @@
                                 const colOrder = colElements.map(el => parseInt(el.dataset.columnId, 10)).filter(id => !isNaN(id));
 
                                 try {
-                                    await fetch(`/projects/{{ $project->id }}/board-columns/reorder`, {
+                                    await fetch(`/projects/{{ $project->slug }}/board-columns/reorder`, {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
@@ -2392,8 +2172,8 @@
 
                     try {
                         const url = this.bucketModalMode === 'edit'
-                            ? `/projects/{{ $project->id }}/board-columns/${this.bucketEditId}`
-                            : `/projects/{{ $project->id }}/board-columns`;
+                            ? `/projects/{{ $project->slug }}/board-columns/${this.bucketEditId}`
+                            : `/projects/{{ $project->slug }}/board-columns`;
                         const method = this.bucketModalMode === 'edit' ? 'PUT' : 'POST';
 
                         const res = await fetch(url, {
@@ -2624,11 +2404,13 @@
                             this.showBucketModal = false;
                         } else {
                             const err = await res.json();
-                            alert(err.error || err.message || 'Error saving bucket');
+                            if (window.showToast) window.showToast(err.error || err.message || 'Error saving bucket', 'error');
+                            else alert(err.error || err.message || 'Error saving bucket');
                         }
                     } catch (e) {
                         console.error(e);
-                        alert('Failed to save bucket');
+                        if (window.showToast) window.showToast('Failed to save bucket', 'error');
+                        else alert('Failed to save bucket');
                     } finally {
                         this.isSavingBucket = false;
                     }
@@ -2667,7 +2449,7 @@
                             payload.delete_tasks = true;
                         }
 
-                        const res = await fetch(`/projects/{{ $project->id }}/board-columns/${bucketId}`, {
+                        const res = await fetch(`/projects/{{ $project->slug }}/board-columns/${bucketId}`, {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -2709,13 +2491,16 @@
 
                             this.showDeleteBucketModal = false;
                             this.updateCounters();
+                            if (window.showToast) window.showToast('Bucket deleted successfully', 'success');
                         } else {
                             const err = await res.json();
-                            alert(err.error || err.message || 'Could not delete bucket.');
+                            if (window.showToast) window.showToast(err.error || err.message || 'Could not delete bucket.', 'error');
+                            else alert(err.error || err.message || 'Could not delete bucket.');
                         }
                     } catch (e) {
                         console.error(e);
-                        alert('Failed to delete bucket.');
+                        if (window.showToast) window.showToast('Failed to delete bucket.', 'error');
+                        else alert('Failed to delete bucket.');
                     } finally {
                         this.isDeletingBucket = false;
                     }
@@ -2747,7 +2532,7 @@
                     this.isBootstrapping = true;
                     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content;
                     try {
-                        const res = await fetch(`/projects/{{ $project->id }}/board-columns/bootstrap-default`, {
+                        const res = await fetch(`/projects/{{ $project->slug }}/board-columns/bootstrap-default`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -2782,7 +2567,7 @@
 
                     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content;
                     try {
-                        const res = await fetch(`/projects/{{ $project->id }}/tasks`, {
+                        const res = await fetch(`/projects/{{ $project->slug }}/tasks`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -2925,7 +2710,7 @@
 
                     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content;
                     try {
-                        const res = await fetch(`/projects/{{ $project->id }}/tasks/${taskId}`, {
+                        const res = await fetch(`/projects/{{ $project->slug }}/tasks/${taskId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',

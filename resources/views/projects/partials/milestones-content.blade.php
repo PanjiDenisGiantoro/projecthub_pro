@@ -28,7 +28,7 @@
     {{-- ============================================================
          1. TOP KPI STAT CARDS (UNIFIED 4-COLUMN CARD MATCHING GAMBAR 3)
          ============================================================ --}}
-    <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 shadow-2xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
+    <div class="bg-white dark:bg-gray-850 rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
         {{-- Col 1: TOTAL MILESTONES --}}
         <div class="p-5 flex flex-col justify-between">
             <div class="flex items-center justify-between">
@@ -367,7 +367,7 @@
          3. EMPTY STATE
          ============================================================ --}}
     @if($allMilestones->isEmpty())
-        <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200/90 dark:border-gray-700/80 p-8 sm:p-12 text-center shadow-2xs space-y-5">
+        <div class="bg-white dark:bg-gray-850 rounded-3xl p-8 sm:p-12 text-center space-y-5">
             <div class="relative w-16 h-16 mx-auto rounded-3xl bg-blue-50 dark:bg-blue-950/60 border-2 border-blue-200/70 dark:border-blue-800/80 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
@@ -410,7 +410,7 @@
                         $statusStyle = $ms->statusStyle();
                         $priorityStyle = $ms->priorityStyle();
                     @endphp
-                    <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs hover:shadow-md transition-all group"
+                    <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 transition-all group"
                         x-show="matchesFilter('{{ strtolower(addslashes($ms->title . ' ' . $ms->code)) }}', '{{ $ms->status }}', '{{ $ms->priority ?? 'low' }}')">
                         
                         {{-- Top Badges & Actions --}}
@@ -565,7 +565,7 @@
             </div>
 
             {{-- Right Column: Interactive Roadmap Gantt View (7 cols) --}}
-            <div class="xl:col-span-6 bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-2xs overflow-hidden">
+            <div class="xl:col-span-6 bg-white dark:bg-gray-850 rounded-2xl p-5 overflow-hidden">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-750">
                     <div>
                         <h4 class="text-sm font-bold text-gray-900 dark:text-white">Milestone Delivery Roadmap</h4>
@@ -641,7 +641,7 @@
              5. VIEW 2: HIERARCHY TABLE VIEW
              ============================================================ --}}
         <div x-show="activeMilestoneView === 'hierarchy_table'" x-cloak
-            class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 shadow-2xs overflow-hidden">
+            class="bg-white dark:bg-gray-850 rounded-2xl overflow-hidden">
             
             <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-750 flex items-center justify-between">
                 <div>
@@ -924,7 +924,7 @@
              6. VIEW 3: HIERARCHY DIAGRAM VIEW (Interactive Tree Graph)
              ============================================================ --}}
         <div x-show="activeMilestoneView === 'hierarchy_diagram'" x-cloak
-            class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-6 shadow-2xs overflow-x-auto">
+            class="bg-white dark:bg-gray-850 rounded-2xl p-6 overflow-x-auto">
             
             <div class="mb-6 flex items-center justify-between">
                 <div>
@@ -936,7 +936,7 @@
             <div class="min-w-[700px] flex flex-col items-center space-y-8 py-4">
                 {{-- ROOT NODE: PROJECT --}}
                 <div class="flex flex-col items-center">
-                    <div class="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md text-center">
+                    <div class="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-center">
                         <div class="text-[10px] font-extrabold uppercase tracking-wider text-blue-200">PROJECT ROOT</div>
                         <div class="text-sm font-black">{{ $project->name }}</div>
                     </div>
@@ -952,7 +952,7 @@
                         @endphp
                         <div class="flex-1 min-w-[260px] max-w-[340px] flex flex-col items-center">
                             {{-- Milestone Box --}}
-                            <div class="w-full bg-white dark:bg-gray-800 rounded-2xl border-2 border-blue-200 dark:border-blue-800/80 p-4 shadow-sm space-y-2.5">
+                            <div class="w-full bg-white dark:bg-gray-800 rounded-2xl p-4 space-y-2.5">
                                 <div class="flex items-center justify-between">
                                     <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700 font-mono">
                                         {{ $ms->code ?? ('MS-' . $ms->id) }}
@@ -973,7 +973,7 @@
                                 <div class="w-full space-y-2.5">
                                     {{-- Sprints --}}
                                     @foreach($ms->sprints as $sp)
-                                        <div class="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs space-y-2">
+                                        <div class="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 space-y-2">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-mono">{{ $sp->code ?? ('SP-' . $sp->id) }}</span>
                                                 <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{{ $sp->taskProgressPercent() }}%</span>
@@ -989,7 +989,7 @@
                                                     </div>
                                                     <div class="space-y-1 max-h-48 overflow-y-auto pr-0.5 custom-scrollbar">
                                                         @foreach($sp->tasks as $spt)
-                                                            <div class="p-1.5 px-2 rounded-lg bg-white dark:bg-gray-800 border border-indigo-100/80 dark:border-indigo-800/60 shadow-2xs flex items-center justify-between gap-1.5 cursor-pointer hover:border-indigo-400 hover:shadow-xs transition group"
+                                                            <div class="p-1.5 px-2 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between gap-1.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/60 transition group"
                                                                 @click.stop="openTaskModal({{ $spt->id }})"
                                                                 title="Click to view/edit {{ $spt->code ?? ('TSK-' . $spt->id) }}">
                                                                 <div class="flex items-center gap-1.5 min-w-0">
@@ -1029,7 +1029,7 @@
 
                                     {{-- Standalone Tasks --}}
                                     @foreach($ms->standaloneTasks as $st)
-                                        <div class="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs flex items-center justify-between cursor-pointer hover:border-emerald-400 transition group"
+                                        <div class="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 flex items-center justify-between cursor-pointer hover:bg-emerald-100/50 dark:hover:bg-emerald-900/40 transition group"
                                             @click="openTaskModal({{ $st->id }})"
                                             title="Click to view/edit {{ $st->code ?? ('TSK-' . $st->id) }}">
                                             <div class="flex items-center gap-2 min-w-0">
@@ -1174,7 +1174,7 @@ function milestonesDashboardData() {
 
         openEditMilestoneModal(ms) {
             this.milestoneModalMode = 'edit';
-            this.milestoneEditActionUrl = '{{ url('projects/' . $project->id . '/milestones') }}/' + ms.id;
+            this.milestoneEditActionUrl = '{{ url('projects/' . $project->slug . '/milestones') }}/' + ms.id;
             this.milestoneForm = {
                 code: ms.code || ('MS-' + ms.id),
                 title: ms.title || '',
@@ -1198,7 +1198,7 @@ function milestonesDashboardData() {
             this.assignMilestoneId = ms.id;
             this.assignMilestoneCode = ms.code || ('MS-' + ms.id);
             this.assignMilestoneTitle = ms.title;
-            this.assignMilestoneActionUrl = '{{ url('projects/' . $project->id . '/milestones') }}/' + ms.id + '/assign';
+            this.assignMilestoneActionUrl = '{{ url('projects/' . $project->slug . '/milestones') }}/' + ms.id + '/assign';
             this.assignSearchQuery = '';
             this.selectedSprintIds = (sprintIds ? [...sprintIds] : []).map(Number);
             this.selectedTaskIds = (taskIds ? [...taskIds] : []).map(Number);
