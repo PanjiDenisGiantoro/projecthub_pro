@@ -1,91 +1,135 @@
 @extends('layouts.app')
-@section('title', 'Tambah Client')
-@section('page-title', 'Tambah Client Baru')
+
+@section('title', 'Tambah Klien Baru')
+@section('page-title', 'Tambah Klien Baru')
 
 @section('content')
-<div class="py-4 w-full">
-    <form method="POST" action="{{ route('clients.store') }}" class="fl-form">
+<div class="space-y-6 pt-5 pb-8 max-w-3xl mx-auto">
+
+    {{-- Breadcrumb --}}
+    <nav class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+        <a href="{{ route('clients.index') }}" class="hover:text-blue-600 transition flex items-center gap-1">
+            <span>&larr; Manajemen Klien</span>
+        </a>
+        <span>/</span>
+        <span class="text-slate-800 dark:text-slate-200 font-semibold">Tambah Klien</span>
+    </nav>
+
+    {{-- Header Banner --}}
+    <div class="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-gray-700/80 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-cyan-50/60 dark:from-gray-850 dark:via-gray-850 dark:to-gray-800 px-6 py-6 shadow-xs">
+        <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-100/70 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse"></span>
+                Portal Akses Klien
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Tambah Akun Klien
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Klien akan memiliki role <strong>Client</strong> dan hanya dapat mengakses proyek & dokumen yang ditugaskan kepada mereka.
+            </p>
+        </div>
+    </div>
+
+    {{-- Form --}}
+    <form method="POST" action="{{ route('clients.store') }}" class="space-y-6">
         @csrf
 
         @if($errors->any())
-            <div class="fl-alert fl-alert-error">{{ $errors->first() }}</div>
+        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-semibold">
+            {{ $errors->first() }}
+        </div>
         @endif
 
-        <section class="fl-section">
-            <div>
-                <h3 class="fl-section-title">Informasi Client</h3>
-                <p class="fl-section-desc">Role akan otomatis ditetapkan sebagai <strong>Client</strong>. Client hanya bisa melihat proyek yang dibagikan ke mereka.</p>
+        {{-- Section 1: Profil Klien --}}
+        <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 p-6 shadow-xs space-y-4">
+            <div class="border-b border-slate-100 dark:border-gray-700 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white">1. Identitas Klien / Perusahaan</h2>
+                <p class="text-xs text-slate-400">Informasi nama instansi dan alamat email resmi.</p>
             </div>
-            <div class="fl-fields">
-                <div>
-                    <label class="fl-label" for="name">Nama Perusahaan <span class="fl-req">*</span></label>
-                    <div class="fl-input-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus placeholder="cth. PT Maju Jaya"
-                               class="fl-input @error('name') is-invalid @enderror">
-                    </div>
-                </div>
 
+            <div class="space-y-4">
                 <div>
-                    <label class="fl-label" for="email">Email <span class="fl-req">*</span></label>
-                    <div class="fl-input-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        <input type="email" id="email" name="email" value="{{ old('email') }}" required placeholder="client@perusahaan.com"
-                               class="fl-input @error('email') is-invalid @enderror">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="fl-section">
-            <div>
-                <h3 class="fl-section-title">Login &amp; Akses</h3>
-                <p class="fl-section-desc">Password awal untuk client dan status akunnya.</p>
-            </div>
-            <div class="fl-fields">
-                <div>
-                    <label class="fl-label" for="password">Password <span class="fl-req">*</span></label>
-                    <div class="fl-input-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <input type="password" id="password" name="password" required minlength="8"
-                               class="fl-input @error('password') is-invalid @enderror">
-                    </div>
-                    <p class="fl-help">Minimal 8 karakter.</p>
-                </div>
-
-                <div>
-                    <label class="fl-label" for="password_confirmation">Konfirmasi Password <span class="fl-req">*</span></label>
-                    <div class="fl-input-icon">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <input type="password" id="password_confirmation" name="password_confirmation" required class="fl-input">
-                    </div>
-                </div>
-
-                <div>
-                    <input type="hidden" name="is_active" value="0">
-                    <label class="fl-switch">
-                        <input type="checkbox" name="is_active" value="1" id="is_active" {{ old('_token') ? (old('is_active') ? 'checked' : '') : 'checked' }}>
-                        <span class="fl-switch-track"></span>
-                        <span>Akun Aktif</span>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="name">
+                        Nama Klien / Perusahaan <span class="text-rose-500">*</span>
                     </label>
-                    <p class="fl-help">Client nonaktif tidak bisa login.</p>
+                    <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus
+                           placeholder="Contoh: PT Nusantara Digital / Bpk. Hendra"
+                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs">
                 </div>
 
                 <div>
-                    <label class="fl-switch">
-                        <input type="checkbox" name="send_verification" value="1" id="send_verification" {{ old('send_verification') ? 'checked' : '' }}>
-                        <span class="fl-switch-track"></span>
-                        <span>Kirim email verifikasi</span>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="email">
+                        Alamat Email Klien <span class="text-rose-500">*</span>
                     </label>
-                    <p class="fl-help">Jika aktif, client harus klik link verifikasi di emailnya sebelum bisa login. Jika tidak, akun langsung terverifikasi (sampaikan kredensial secara langsung).</p>
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" required
+                           placeholder="client@perusahaan.com"
+                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs">
                 </div>
             </div>
-        </section>
+        </div>
 
-        <div class="fl-actions">
-            <a href="{{ route('clients.index') }}" class="fl-btn fl-btn-secondary">Batal</a>
-            <button type="submit" class="fl-btn fl-btn-primary">Tambah Client</button>
+        {{-- Section 2: Akses & Keamanan --}}
+        <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 p-6 shadow-xs space-y-4">
+            <div class="border-b border-slate-100 dark:border-gray-700 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white">2. Kredensial & Status Akses</h2>
+                <p class="text-xs text-slate-400">Atur kata sandi login dan status aktivasi portal.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="password">
+                        Password Awal <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="password" id="password" name="password" required minlength="8"
+                           placeholder="••••••••"
+                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs">
+                    <p class="text-[11px] text-slate-400 mt-1">Minimal 8 karakter.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="password_confirmation">
+                        Konfirmasi Password <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" required
+                           placeholder="••••••••"
+                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs">
+                </div>
+
+                <div class="sm:col-span-2 pt-2 space-y-3">
+                    <label class="flex items-center gap-2.5 cursor-pointer">
+                        <input type="hidden" name="is_active" value="0">
+                        <input type="checkbox" name="is_active" value="1" id="is_active"
+                               class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                               {{ old('_token') ? (old('is_active') ? 'checked' : '') : 'checked' }}>
+                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Akun Aktif (Dapat langsung login)</span>
+                    </label>
+
+                    <label class="flex items-center gap-2.5 cursor-pointer">
+                        <input type="checkbox" name="send_verification" value="1" id="send_verification"
+                               class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                               {{ old('send_verification') ? 'checked' : '' }}>
+                        <div>
+                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Kirim email verifikasi ke klien</span>
+                            <p class="text-[11px] text-slate-400">Jika dicentang, klien harus memverifikasi email sebelum login.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        {{-- Actions --}}
+        <div class="flex items-center justify-end gap-3 pt-2">
+            <a href="{{ route('clients.index') }}"
+               class="px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 transition">
+                Batal
+            </a>
+            <button type="submit"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition-all shadow-sm shadow-blue-600/20">
+                Simpan & Tambah Klien
+            </button>
         </div>
     </form>
+
 </div>
 @endsection

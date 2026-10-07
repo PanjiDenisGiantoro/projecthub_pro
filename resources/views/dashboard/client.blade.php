@@ -115,7 +115,7 @@
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                         {{-- Header --}}
                         <div class="flex items-start justify-between gap-2">
-                            <a href="{{ route('projects.show', $project->id) }}"
+                            <a href="{{ route('projects.show', $project) }}"
                                class="font-semibold text-gray-800 hover:text-blue-600 leading-tight line-clamp-2 flex-1">
                                 {{ $project->name }}
                             </a>
@@ -164,7 +164,7 @@
                         </div>
 
                         {{-- CTA --}}
-                        <a href="{{ route('projects.show', $project->id) }}"
+                        <a href="{{ route('projects.show', $project) }}"
                            class="w-full text-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors">
                             View Details
                         </a>

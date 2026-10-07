@@ -45,7 +45,7 @@ class UserWebController extends Controller
             }
         };
 
-        $query = User::with(['roles', 'structuralLevel', 'organizationUnit', 'projects:id,name'])
+        $query = User::with(['roles', 'structuralLevel', 'organizationUnit', 'projects:id,slug,name'])
             ->tap($baseScope)
             ->when($request->role, fn($q) => $q->role($request->role))
             // Dibungkus di dalam satu grup where() supaya OR-nya cuma berlaku di antara

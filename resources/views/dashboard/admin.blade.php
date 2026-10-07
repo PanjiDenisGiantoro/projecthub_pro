@@ -331,7 +331,7 @@
                                             </span>
                                         @endif
                                     </div>
-                                    <a href="{{ route('projects.show', ['project' => $sprint->project_id, 'tab' => 'sprint']) }}"
+                                    <a href="{{ route('projects.tab', ['project' => $sprint->project ?? $sprint->project_id, 'tab' => 'sprints']) }}"
                                        class="text-sm font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-1">
                                         {{ $sprint->name }}
                                     </a>
@@ -392,7 +392,7 @@
                         <div class="flex justify-between items-center mb-1.5">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-2 h-2 rounded-full shrink-0" style="background:{{ $col }}"></span>
-                                <a href="{{ route('projects.show', $project->id) }}"
+                                <a href="{{ route('projects.show', $project) }}"
                                    class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
                                     {{ $project->name }}
                                 </a>

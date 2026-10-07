@@ -12,36 +12,45 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportWebController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user      = auth()->user();
         $activePkg = session('active_package', 'task_management');
 
-        // Beberapa laporan (mis. Payroll HRIS) berisi data sensitif yang tidak
-        // semua pemegang 'access reports' boleh lihat — entry config bisa nambah
-        // 'permission' opsional buat dibatasi lebih ketat dari itu.
         $reports = collect(config('reports'))
             ->filter(fn ($meta) => empty($meta['permission']) || $user->can($meta['permission']))
-            // Package HRIS & Task Management punya menu laporan yang terpisah,
-            // sama seperti sidebar nav — jangan campur laporan HRIS ke paket lain.
             ->filter(fn ($meta) => $activePkg === 'hris' ? $meta['category'] === 'HRIS' : $meta['category'] !== 'HRIS')
             ->groupBy('category', preserveKeys: true);
+
+        $firstKey = $reports->flatMap(fn ($cat) => $cat->keys())->first();
+        if ($firstKey) {
+            return redirect()->route('reports.show', $firstKey);
+        }
 
         return view('reports.index', compact('reports'));
     }
 
     public function show(string $key, Request $request)
     {
+        $user      = auth()->user();
+        $activePkg = session('active_package', 'task_management');
+
+        $reports = collect(config('reports'))
+            ->filter(fn ($meta) => empty($meta['permission']) || $user->can($meta['permission']))
+            ->filter(fn ($meta) => $activePkg === 'hris' ? $meta['category'] === 'HRIS' : $meta['category'] !== 'HRIS')
+            ->groupBy('category', preserveKeys: true);
+
         [$meta, $query] = $this->resolve($key);
         $filterDefs = $query->filters();
         $filters    = $this->extractFilters($request, $filterDefs);
-        $submitted  = $request->boolean('submitted');
+        $submitted  = $request->has('submitted') ? $request->boolean('submitted') : true;
 
         $rows = $submitted ? $query->rows($filters, $request->user()) : collect();
 
         return view('reports.show', [
             'key'        => $key,
             'meta'       => $meta,
+            'reports'    => $reports,
             'filterDefs' => $filterDefs,
             'filters'    => $filters,
             'submitted'  => $submitted,

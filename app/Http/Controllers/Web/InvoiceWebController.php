@@ -22,16 +22,41 @@ class InvoiceWebController extends Controller
 
     public function index(Request $request)
     {
-        $user  = auth()->user();
-        $query = Invoice::with(['project', 'client'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status));
+        $user      = auth()->user();
+        $baseQuery = Invoice::query();
 
         if ($user->hasRole('client')) {
-            $query->where('client_id', $user->id);
+            $baseQuery->where('client_id', $user->id);
+        } elseif ($user->company_id && ! $user->is_super_admin) {
+            $baseQuery->where('company_id', $user->company_id);
         }
 
+        // Summary KPI stats
+        $stats = [
+            'total_amount'   => (float) (clone $baseQuery)->sum('total'),
+            'paid_amount'    => (float) (clone $baseQuery)->where('status', 'paid')->sum('total'),
+            'pending_amount' => (float) (clone $baseQuery)->whereIn('status', ['sent', 'draft'])->sum('total'),
+            'overdue_amount' => (float) (clone $baseQuery)->where('status', 'overdue')->sum('total'),
+            'total_count'    => (clone $baseQuery)->count(),
+            'paid_count'     => (clone $baseQuery)->where('status', 'paid')->count(),
+            'pending_count'  => (clone $baseQuery)->whereIn('status', ['sent', 'draft'])->count(),
+            'overdue_count'  => (clone $baseQuery)->where('status', 'overdue')->count(),
+        ];
+
+        $query = (clone $baseQuery)->with(['project:id,slug,name', 'client:id,name,email,avatar'])
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->search, function ($q) use ($request) {
+                $term = $request->search;
+                $q->where(function ($sub) use ($term) {
+                    $sub->where('invoice_number', 'like', "%{$term}%")
+                        ->orWhereHas('client', fn($c) => $c->where('name', 'like', "%{$term}%"))
+                        ->orWhereHas('project', fn($p) => $p->where('name', 'like', "%{$term}%"));
+                });
+            });
+
         $invoices = $query->latest()->paginate($this->perPage($request))->withQueryString();
-        return view('invoices.index', compact('invoices'));
+
+        return view('invoices.index', compact('invoices', 'stats'));
     }
 
     public function create()

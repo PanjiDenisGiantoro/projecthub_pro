@@ -18,7 +18,7 @@ class ClientWebController extends Controller
         $companyId = auth()->user()->company_id;
 
         $clients = User::role('client')
-            ->with('roles', 'clientProjects:id,name,client_id,status')
+            ->with('roles', 'clientProjects:id,slug,name,client_id,status')
             ->where('company_id', $companyId)
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
                 ->orWhere('email', 'like', "%{$request->search}%"))

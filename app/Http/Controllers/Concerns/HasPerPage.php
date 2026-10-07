@@ -10,9 +10,8 @@ trait HasPerPage
      * Resolve the "per_page" value from the request, restricted to a safe allow-list.
      * Falls back to $default (10 unless a page needs otherwise) for anything invalid.
      */
-    protected function perPage(Request $request, int $default = 10, string $key = 'per_page'): int
+    protected function perPage(Request $request, int $default = 10, string $key = 'per_page', array $allowed = [6, 9, 10, 12, 24, 25, 48, 50, 100]): int
     {
-        $allowed = [10, 25, 50, 100];
         $value = (int) $request->input($key, $default);
 
         return in_array($value, $allowed, true) ? $value : $default;

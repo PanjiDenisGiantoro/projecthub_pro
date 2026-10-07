@@ -9,8 +9,9 @@
         $subIsLifetime  = is_null($subRegistrant->active_until);
         $subIsExpired   = ! $subIsLifetime && $subRegistrant->active_until->isPast();
         $subDaysLeft    = $subIsLifetime ? null : (int) now()->startOfDay()->diffInDays($subRegistrant->active_until->copy()->startOfDay(), false);
-        $subCanManage   = $subUser->can('access billing') || $subUser->can('access invoices');
-        $subManageRoute = $subUser->can('access billing') ? route('billing.history') : ($subUser->can('access invoices') ? route('invoices.index') : route('profile'));
+        $subIsFree      = strtolower($subPlanName) === 'free' || empty($subTierPkg) || ($subTierPkg->price ?? 0) == 0;
+        $subManageRoute = route('billing.renew');
+        $subBtnLabel    = $subIsFree ? 'Upgrade ke Premium' : 'Kelola / Perpanjang';
     @endphp
     <div class="px-3 pb-3 shrink-0" @if($collapsible) x-show="!sidebarCollapsed" x-cloak @endif>
         <div class="rounded-xl p-3 ph-side-divider-t">
@@ -37,13 +38,9 @@
                     </p>
                 </div>
             </div>
-            @if($subCanManage)
-                <a href="{{ $subManageRoute }}"
-                   class="ph-sub-manage-btn block text-center text-[12px] font-semibold rounded-lg py-1.5">
-                    Manage
-                </a>
-            @elseif(! $subIsLifetime)
-                <p class="text-center text-[11px]" style="color:var(--ph-user-role)">Contact admin to manage</p>
-            @endif
+            <a href="{{ $subManageRoute }}"
+               class="{{ $subIsFree ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs' : 'ph-sub-manage-btn' }} block text-center text-[12px] font-semibold rounded-lg py-1.5 transition-all">
+                {{ $subBtnLabel }}
+            </a>
         </div>
     </div>

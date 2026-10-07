@@ -175,7 +175,7 @@
                                 @endif
                             </td>
                             <td class="px-5 py-3">
-                                <a href="{{ route('tasks.show', [$task->project_id, $task->id]) }}"
+                                <a href="{{ route('tasks.show', [$task->project ?? $task->project_id, $task->id]) }}"
                                    class="font-medium text-gray-800 hover:text-blue-600 line-clamp-1">
                                     {{ $task->title }}
                                 </a>
@@ -205,7 +205,7 @@
                                 </span>
                             </td>
                             <td class="px-3 py-3 text-right">
-                                <a href="{{ route('tasks.show', [$task->project_id, $task->id]) }}"
+                                <a href="{{ route('tasks.show', [$task->project ?? $task->project_id, $task->id]) }}"
                                    class="text-blue-600 hover:text-blue-800 text-xs font-medium">
                                     Details
                                 </a>
