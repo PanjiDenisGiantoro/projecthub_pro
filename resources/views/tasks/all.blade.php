@@ -54,7 +54,7 @@
             <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Filter Proyek</option>
                 @foreach($projects as $p)
-                    <option value="{{ $p->id }}" {{ (string) request('project') === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    <option value="{{ $p->slug }}" {{ (string) request('project') === (string) $p->slug || (string) request('project') === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                 @endforeach
             </select>
             @if(request('status') || request('priority') || request('assignee') || request('project'))
@@ -110,7 +110,13 @@
                     <td class="px-4 py-3 font-medium text-gray-800 max-w-xs">
                         <span class="flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $pdot[$task->priority] ?? 'bg-gray-300' }}"></span>
-                            <span class="truncate">{{ $task->title }}</span>
+                            @if($task->project)
+                                <a href="{{ route('projects.tab', [$task->project, 'tasks']) }}?task={{ $task->id }}" class="truncate font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer">
+                                    {{ $task->title }}
+                                </a>
+                            @else
+                                <span class="truncate">{{ $task->title }}</span>
+                            @endif
                         </span>
                     </td>
                     <td class="px-4 py-3">
@@ -153,9 +159,13 @@
                     <td class="px-4 py-3 text-xs text-gray-500 {{ $task->isOverdue() ? 'text-red-500 font-medium' : '' }}">
                         {{ $task->due_date?->format('d M Y') ?? '—' }}
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 text-right">
                         @if($task->project)
-                        <a href="{{ route('tasks.show', [$task->project, $task]) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Detail</a>
+                        <a href="{{ route('projects.tab', [$task->project, 'tasks']) }}?task={{ $task->id }}"
+                           class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-400 px-2.5 py-1 rounded-lg transition cursor-pointer">
+                            <span>Detail</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        </a>
                         @endif
                     </td>
                 </tr>
@@ -226,7 +236,7 @@
                         <span class="text-[10px] font-semibold uppercase tracking-wide text-blue-500 block mb-1 truncate">{{ $task->project->name }}</span>
                         @endif
 
-                        <a href="{{ $task->project ? route('tasks.show', [$task->project, $task]) : '#' }}"
+                        <a href="{{ $task->project ? (route('projects.tab', [$task->project, 'tasks']) . '?task=' . $task->id) : '#' }}"
                            class="text-sm font-medium text-gray-800 hover:text-blue-600 leading-snug block mb-2"
                            draggable="false">{{ $task->title }}</a>
 

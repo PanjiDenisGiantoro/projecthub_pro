@@ -19,7 +19,11 @@ class NotificationService
         ]);
 
         if ($push && ($user = User::find($userId))) {
-            $user->notify(new PushNotification($title, $message, $data));
+            try {
+                $user->notify(new PushNotification($title, $message, $data));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("[PushNotification] Failed to send push to user {$userId}: " . $e->getMessage());
+            }
         }
 
         return $notification;

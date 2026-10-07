@@ -21,12 +21,64 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Global Pill Toast Notification (matches Task modal toast)
+        window.showToast = function (message, type) {
+            message = message || 'Changes saved successfully';
+            type = type || 'success';
+
+            var toast = document.getElementById('app-global-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'app-global-toast';
+                if (document.body) {
+                    document.body.appendChild(toast);
+                } else {
+                    document.addEventListener('DOMContentLoaded', function () { document.body.appendChild(toast); });
+                }
+            }
+
+            var isError = type === 'error';
+            var isWarning = type === 'warning';
+            var bgClass = isError
+                ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/20'
+                : (isWarning ? 'bg-amber-600 text-white border-amber-500 shadow-amber-900/20' : 'bg-slate-900 text-white border-slate-800 shadow-slate-950/30');
+
+            var iconHtml = '';
+            if (isError) {
+                iconHtml = '<svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>';
+            } else if (isWarning) {
+                iconHtml = '<svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+            } else {
+                iconHtml = '<svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+            }
+
+            toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2.5 px-5 py-2.5 rounded-full shadow-2xl text-xs sm:text-sm font-medium pointer-events-none transition-all duration-200 transform -translate-y-4 opacity-0 scale-95 border backdrop-blur-md ' + bgClass;
+            toast.innerHTML = iconHtml + '<span class="whitespace-nowrap font-medium max-w-[85vw] truncate">' + message + '</span>';
+
+            requestAnimationFrame(function () {
+                setTimeout(function () {
+                    toast.classList.remove('-translate-y-4', 'opacity-0', 'scale-95');
+                    toast.classList.add('translate-y-0', 'opacity-100', 'scale-100');
+                }, 10);
+            });
+
+            if (window._appGlobalToastTimer) {
+                clearTimeout(window._appGlobalToastTimer);
+            }
+
+            window._appGlobalToastTimer = setTimeout(function () {
+                toast.classList.remove('translate-y-0', 'opacity-100', 'scale-100');
+                toast.classList.add('-translate-y-4', 'opacity-0', 'scale-95');
+            }, 3000);
+        };
+    </script>
     @stack('head')
 </head>
 
 <body class="h-full font-sans antialiased" style="background-color:var(--fl-page)" x-data="{
           sidebarOpen: false,
-          sidebarCollapsed: {{ (request()->routeIs('projects.*') || request()->is('projects*')) ? 'true' : 'false' }}
+          sidebarCollapsed: {{ (request()->routeIs('projects.*') || request()->is('projects*') || request()->routeIs('chat.*') || request()->is('chat*')) ? 'true' : 'false' }}
       }">
 
     {{-- Page Loading Overlay --}}
@@ -223,19 +275,7 @@
                     </div>
                     @endcan
 
-                    {{-- 2. Meetings --}}
-                    @can('access meetings')
-                    <div class="relative group hidden sm:flex items-center">
-                        <a href="{{ route('meetings.index') }}"
-                            class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center {{ request()->routeIs('meetings.*') ? 'text-blue-500 bg-blue-500/10' : '' }}" title="Meetings">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                        </a>
-                    </div>
-                    @endcan
-
-                    {{-- 3. Chat (Proyek + Pesan + Forum) --}}
+                    {{-- 2. Chat (Proyek + Pesan + Forum) --}}
                     @php
                         $chatUser = auth()->user();
                         $chatProjectUnread = \App\Models\ProjectMessage::whereHas('project', function ($q) use ($chatUser) {
@@ -291,7 +331,7 @@
                     @endcan
 
                     {{-- 5. Notification --}}
-                    <div x-data="notificationBell()" x-init="init()" class="relative group flex items-center">
+                    <div x-data="notificationBell()" class="relative group flex items-center">
                         <button @click="open = !open"
                             class="fl-bell-btn cursor-pointer relative p-2 rounded-xl transition-colors flex items-center justify-center" title="Notifications">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,18 +346,22 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl overflow-hidden z-50"
-                        style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 10px 40px rgba(0,0,0,0.25)">
-                        <div class="px-4 py-3 flex items-center justify-between ph-drop-divider-b">
-                            <p class="text-[13px] font-semibold" style="color:var(--ph-user-name)">Notifications</p>
+                        class="absolute right-0 top-full mt-2 w-84 sm:w-96 rounded-2xl overflow-hidden z-50 flex flex-col shadow-2xl"
+                        style="background:var(--ph-drop-bg);border:1px solid var(--ph-drop-border);box-shadow:0 12px 48px rgba(0,0,0,0.22);max-height:min(580px,calc(100vh-80px));">
+                        <div class="px-4 py-3.5 flex items-center justify-between ph-drop-divider-b shrink-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md">
+                            <div class="flex items-center gap-2">
+                                <p class="text-[13px] font-bold" style="color:var(--ph-user-name)">Notifications</p>
+                                <span x-show="unreadCount > 0" class="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold" x-text="unreadCount + ' new'"></span>
+                            </div>
                             <button @click="markAllRead()" x-show="unreadCount > 0"
-                                class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer">Mark all as
-                                read</button>
+                                class="text-[11px] font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors cursor-pointer">
+                                Mark all as read
+                            </button>
                         </div>
                         <div x-show="pushAvailable && pushPermission !== 'granted'" x-cloak
-                            class="px-4 py-2.5 ph-drop-divider-b">
+                            class="px-4 py-2.5 ph-drop-divider-b shrink-0 bg-blue-50/50 dark:bg-blue-950/20">
                             <button @click="subscribePush()"
-                                class="w-full text-[11.5px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5 cursor-pointer">
+                                class="w-full text-[11.5px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1.5 cursor-pointer">
                                 <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -325,19 +369,31 @@
                                 Enable push notifications
                             </button>
                         </div>
-                        <div class="max-h-80 overflow-y-auto">
+                        <div class="flex-1 overflow-y-auto overscroll-contain max-h-[30rem] sm:max-h-[34rem] divide-y divide-slate-100 dark:divide-gray-800/60">
                             <template x-if="items.length === 0">
-                                <p class="px-4 py-6 text-center text-[12px]" style="color:var(--ph-drop-email)">No
-                                    notifications yet.</p>
+                                <div class="px-4 py-12 text-center">
+                                    <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 dark:bg-gray-800 flex items-center justify-center text-slate-400 mb-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-[12px] font-medium" style="color:var(--ph-drop-email)">No notifications yet.</p>
+                                </div>
                             </template>
                             <template x-for="n in items" :key="n.id">
                                 <button @click="markRead(n)"
-                                    class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-black/5 transition-colors cursor-pointer"
-                                    :class="!n.read_at ? 'bg-blue-500/5' : ''">
-                                    <p class="text-[12.5px] font-semibold" style="color:var(--ph-user-name)"
-                                        x-text="n.title"></p>
-                                    <p class="text-[12px] mt-0.5" style="color:var(--ph-drop-email)" x-text="n.message">
-                                    </p>
+                                    class="w-full text-left px-4 py-3 ph-drop-divider-b hover:bg-slate-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group flex items-start gap-2.5"
+                                    :class="!n.read_at ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''">
+                                    <span class="w-2 h-2 mt-1.5 rounded-full shrink-0 transition-opacity"
+                                        :class="!n.read_at ? 'bg-blue-600 dark:bg-blue-400' : 'opacity-0'"></span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <p class="text-[12.5px] font-semibold truncate" style="color:var(--ph-user-name)"
+                                                x-text="n.title"></p>
+                                            <span class="text-[10px] text-slate-400 shrink-0 font-normal" x-text="formatTime(n.created_at)"></span>
+                                        </div>
+                                        <p class="text-[12px] mt-0.5 line-clamp-2 leading-relaxed" style="color:var(--ph-drop-email)" x-text="n.message"></p>
+                                    </div>
                                 </button>
                             </template>
                         </div>
@@ -501,50 +557,46 @@
                 @endif
             @endif
 
-            {{-- Flash messages --}}
+            {{-- Flash messages (Unified Modern Pill Toast) --}}
             @if(session('success'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        if (window.showToast) {
-                            window.showToast(@json(session('success')));
-                        } else if (window.Swal) {
-                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('success')), showConfirmButton: false, timer: 3500, timerProgressBar: true, background: '#4f46e5', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
-                        }
+                        if (window.showToast) window.showToast(@json(session('success')), 'success');
                     });
                 </script>
             @endif
             @if(session('danger'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: @json(session('danger')), showConfirmButton: false, timer: 4000, timerProgressBar: true, background: '#dc2626', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                        if (window.showToast) window.showToast(@json(session('danger')), 'error');
                     });
                 </script>
             @endif
             @if(session('warning'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: @json(session('warning')), showConfirmButton: false, timer: 4000, timerProgressBar: true, background: '#d97706', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                        if (window.showToast) window.showToast(@json(session('warning')), 'warning');
                     });
                 </script>
             @endif
             @if(session('info'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: @json(session('info')), showConfirmButton: false, timer: 3500, timerProgressBar: true, background: '#4f46e5', color: '#fff', iconColor: '#fff', customClass: { popup: 'swal-toast-popup' } });
+                        if (window.showToast) window.showToast(@json(session('info')), 'info');
                     });
                 </script>
             @endif
             @if(session('error'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        Swal.fire({ icon: 'error', title: 'An Error Occurred', text: @json(session('error')), confirmButtonColor: '#6366f1', confirmButtonText: 'Close' });
+                        if (window.showToast) window.showToast(@json(session('error')), 'error');
                     });
                 </script>
             @endif
             @if($errors->any())
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        Swal.fire({ icon: 'error', title: 'Please Check Again', html: '<ul class="text-left text-sm space-y-1 mt-1">@foreach($errors->all() as $e)<li>• {{ $e }}</li>@endforeach</ul>', confirmButtonColor: '#6366f1', confirmButtonText: 'Close' });
+                        if (window.showToast) window.showToast(@json($errors->first()), 'error');
                     });
                 </script>
             @endif
@@ -575,6 +627,7 @@
         </div>
     </div>
 
+    @if(!request()->routeIs('chat.*') && !request()->is('chat*'))
     <footer class="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none px-4">
         <div
             class="pointer-events-auto flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border border-gray-100 bg-white/90 backdrop-blur shadow-lg">
@@ -583,6 +636,7 @@
             <span class="text-xs text-gray-400">&copy; {{ date('Y') }}</span>
         </div>
     </footer>
+    @endif
 
     {{-- ═══════════════════════════════════════
     AI Assistant — floating widget
@@ -942,18 +996,39 @@
                 vapidKey: document.querySelector('meta[name="vapid-public-key"]')?.getAttribute('content') ?? '',
                 pushAvailable: 'serviceWorker' in navigator && 'PushManager' in window,
                 pushPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'denied',
+                _pollTimer: null,
+                _loadingCount: false,
                 init() {
                     this.refreshCount();
                     this.$watch('open', (v) => { if (v) this.loadNotifications(); });
-                    setInterval(() => this.refreshCount(), 30000);
+                    if (this._pollTimer) clearInterval(this._pollTimer);
+                    this._pollTimer = setInterval(() => {
+                        if (!document.hidden) {
+                            this.refreshCount();
+                        }
+                    }, 60000);
+                    document.addEventListener('visibilitychange', () => {
+                        if (!document.hidden) {
+                            this.refreshCount();
+                        }
+                    });
                 },
                 async subscribePush() {
-                    if (!this.pushAvailable) { alert('This browser does not support push notifications.'); return; }
-                    if (!this.vapidKey) { alert('VAPID key is not configured on the server.'); return; }
+                    if (!this.pushAvailable) {
+                        if (window.showToast) window.showToast('Browser ini tidak mendukung push notifications.', 'warning');
+                        return;
+                    }
+                    if (!this.vapidKey) {
+                        if (window.showToast) window.showToast('VAPID key belum dikonfigurasi pada server.', 'warning');
+                        return;
+                    }
                     try {
                         const permission = await Notification.requestPermission();
                         this.pushPermission = permission;
-                        if (permission !== 'granted') { alert('Notification permission was denied. Please check browser site settings.'); return; }
+                        if (permission !== 'granted') {
+                            if (window.showToast) window.showToast('Izin notifikasi ditolak oleh browser.', 'warning');
+                            return;
+                        }
                         const registration = await navigator.serviceWorker.register('/sw.js');
                         await navigator.serviceWorker.ready;
                         const subscription = await registration.pushManager.subscribe({
@@ -966,17 +1041,40 @@
                             body: JSON.stringify(subscription.toJSON()),
                         });
                         if (!res.ok) throw new Error('Server rejected subscription (HTTP ' + res.status + ')');
-                        alert('Push notifications enabled successfully.');
+                        if (window.showToast) window.showToast('Push notifications berhasil diaktifkan.', 'success');
                     } catch (e) {
                         console.error('subscribePush failed:', e);
-                        alert('Failed to enable push notifications: ' + e.message);
+                        if (window.showToast) window.showToast('Gagal mengaktifkan push notifications: ' + e.message, 'error');
+                    }
+                },
+                formatTime(iso) {
+                    if (!iso) return '';
+                    try {
+                        const d = new Date(iso);
+                        const now = new Date();
+                        const diffSec = Math.floor((now - d) / 1000);
+                        if (diffSec < 60) return 'Baru saja';
+                        if (diffSec < 3600) return Math.floor(diffSec / 60) + 'm lalu';
+                        if (diffSec < 86400) return Math.floor(diffSec / 3600) + 'j lalu';
+                        if (diffSec < 604800) return Math.floor(diffSec / 86400) + 'h lalu';
+                        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                    } catch(e) {
+                        return '';
                     }
                 },
                 async refreshCount() {
-                    const res = await fetch('{{ route('notifications.unreadCount') }}');
-                    if (!res.ok) return;
-                    const data = await res.json();
-                    this.unreadCount = data.count;
+                    if (this._loadingCount) return;
+                    this._loadingCount = true;
+                    try {
+                        const res = await fetch('{{ route('notifications.unreadCount') }}');
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        this.unreadCount = data.count;
+                    } catch (e) {
+                        // ignore fetch error
+                    } finally {
+                        this._loadingCount = false;
+                    }
                 },
                 async loadNotifications() {
                     const res = await fetch('{{ route('notifications.index') }}');
@@ -993,8 +1091,118 @@
                         n.read_at = new Date().toISOString();
                         this.unreadCount = Math.max(0, this.unreadCount - 1);
                     }
-                    if (n.data?.project_id) {
-                        window.location.href = `/projects/${n.data.project_id}`;
+
+                    const d = n.data || {};
+                    const type = n.type || '';
+
+                    // 1. Direct custom URL
+                    if (d.url) {
+                        window.location.href = d.url;
+                        return;
+                    }
+
+                    // 2. Chat & Communication
+                    if (type === 'project_chat' || (d.project_id && d.message_id)) {
+                        window.location.href = `/chat?project=${d.project_id}`;
+                        return;
+                    }
+                    if (type === 'direct_message' || d.from_user_id || d.conversation_id) {
+                        window.location.href = `/chat?dm=${d.from_user_id || ''}`;
+                        return;
+                    }
+                    if (type === 'forum_message' || type === 'forum_mention' || d.forum_id) {
+                        window.location.href = `/chat?forum=${d.forum_id}`;
+                        return;
+                    }
+
+                    // 3. Bug Tickets & SLA
+                    if (d.ticket_id || type.startsWith('ticket_') || type.startsWith('sla_') || type === 'security_disclosed') {
+                        if (d.ticket_id) {
+                            window.location.href = `/tickets/${d.ticket_id}`;
+                            return;
+                        }
+                        window.location.href = `/tickets`;
+                        return;
+                    }
+
+                    // 4. Tasks
+                    if (d.task_id || type.startsWith('task_') || type === 'new_task') {
+                        if (d.project_id && d.task_id) {
+                            window.location.href = `/projects/${d.project_id}/tasks/${d.task_id}`;
+                            return;
+                        }
+                        if (d.task_id) {
+                            window.location.href = `/tasks/${d.task_id}`;
+                            return;
+                        }
+                    }
+
+                    // 5. Invoices
+                    if (d.invoice_id || type.startsWith('invoice_')) {
+                        if (d.invoice_id) {
+                            window.location.href = `/invoices/${d.invoice_id}`;
+                            return;
+                        }
+                        window.location.href = `/invoices`;
+                        return;
+                    }
+
+                    // 6. Customer Requests
+                    if (d.request_id || type.startsWith('request_')) {
+                        if (d.request_id) {
+                            window.location.href = `/requests/${d.request_id}`;
+                            return;
+                        }
+                        window.location.href = `/requests`;
+                        return;
+                    }
+
+                    // 7. Approvals
+                    if (d.approval_id || type.startsWith('approval_')) {
+                        window.location.href = `/approvals`;
+                        return;
+                    }
+
+                    // 8. HRIS
+                    if (type.startsWith('leave_') || d.leave_id) {
+                        window.location.href = `/hris/leaves`;
+                        return;
+                    }
+                    if (type.startsWith('overtime_') || d.overtime_id) {
+                        window.location.href = `/hris/overtimes`;
+                        return;
+                    }
+                    if (type.startsWith('reimbursement_') || d.reimbursement_id) {
+                        window.location.href = `/hris/reimbursements`;
+                        return;
+                    }
+                    if (type.startsWith('payroll_') || d.payroll_id) {
+                        window.location.href = `/hris/payrolls`;
+                        return;
+                    }
+
+                    // 9. Meeting Reminders
+                    if (type.startsWith('meeting_reminder')) {
+                        if (d.meetable_type && d.meetable_id) {
+                            if (d.meetable_type.includes('Task')) {
+                                window.location.href = `/tasks/${d.meetable_id}`;
+                                return;
+                            }
+                            if (d.meetable_type.includes('Ticket')) {
+                                window.location.href = `/tickets/${d.meetable_id}`;
+                                return;
+                            }
+                            if (d.meetable_type.includes('Project')) {
+                                window.location.href = `/projects/${d.meetable_id}`;
+                                return;
+                            }
+                        }
+                    }
+
+                    // 10. Project Member / General Project Fallback
+                    if (d.project_id) {
+                        window.location.href = `/projects/${d.project_id}`;
+                        return;
                     }
                 },
                 async markAllRead() {
@@ -1026,7 +1234,10 @@
                     }
                 },
                 async toggle() {
-                    if (!this.pushAvailable) { alert('This browser does not support push notifications.'); return; }
+                    if (!this.pushAvailable) {
+                        if (window.showToast) window.showToast('Browser ini tidak mendukung push notifications.', 'warning');
+                        return;
+                    }
                     this.loading = true;
                     try {
                         if (!this.enabled) {
@@ -1036,15 +1247,21 @@
                         }
                     } catch (e) {
                         console.error('notificationToggle failed:', e);
-                        alert('Failed to update notification settings: ' + e.message);
+                        if (window.showToast) window.showToast('Gagal memperbarui pengaturan notifikasi: ' + e.message, 'error');
                     } finally {
                         this.loading = false;
                     }
                 },
                 async subscribe() {
-                    if (!this.vapidKey) { alert('VAPID key is not configured on the server.'); return; }
+                    if (!this.vapidKey) {
+                        if (window.showToast) window.showToast('VAPID key belum dikonfigurasi.', 'warning');
+                        return;
+                    }
                     const permission = await Notification.requestPermission();
-                    if (permission !== 'granted') { alert('Notification permission was denied. Please check browser site settings.'); return; }
+                    if (permission !== 'granted') {
+                        if (window.showToast) window.showToast('Izin notifikasi ditolak.', 'warning');
+                        return;
+                    }
                     const registration = await navigator.serviceWorker.register('/sw.js');
                     await navigator.serviceWorker.ready;
                     const subscription = await registration.pushManager.subscribe({

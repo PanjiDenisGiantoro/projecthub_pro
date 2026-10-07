@@ -88,6 +88,9 @@ class TicketWebController extends Controller
             'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
             'priority'       => 'in:critical,high,medium,low',
             'milestone_id'   => 'nullable|exists:milestones,id',
+            'assignee_id'    => 'nullable|exists:users,id',
+            'assignee_ids'   => 'nullable|array',
+            'assignee_ids.*' => 'exists:users,id',
             'attachments'    => 'nullable|array|max:5',
             'attachments.*'  => 'file|max:10240',
         ]);
@@ -103,14 +106,28 @@ class TicketWebController extends Controller
             ->first();
 
         if ($duplicate) {
+            if ($request->filled('redirect_to')) {
+                return redirect($request->input('redirect_to'))->with('info', 'Tiket serupa baru saja dibuat.');
+            }
             return redirect()->route('tickets.show', $duplicate);
         }
 
+        $assigneeIds = array_filter(array_map('intval', (array) $request->input('assignee_ids', [])));
+        if (empty($assigneeIds) && $request->filled('assignee_id')) {
+            $assigneeIds = [(int) $request->input('assignee_id')];
+        }
+        $primaryAssigneeId = $assigneeIds[0] ?? null;
+
         $ticket = $project->tickets()->create([
             ...$request->only('title', 'description', 'type', 'error_category', 'priority', 'milestone_id'),
+            'assignee_id' => $primaryAssigneeId,
             'reporter_id' => auth()->id(),
-            'status'      => 'open',
+            'status'      => $primaryAssigneeId ? 'assigned' : 'open',
         ]);
+
+        if (!empty($assigneeIds)) {
+            $ticket->assignees()->sync($assigneeIds);
+        }
 
         $this->storeAttachments($ticket, $request);
 
@@ -126,10 +143,14 @@ class TicketWebController extends Controller
             }
         }
 
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Tiket berhasil dibuat.');
+        }
+
         return redirect()->route('tickets.show', $ticket)->with('success', 'Tiket berhasil dibuat.');
     }
 
-    public function createMeeting(BugTicket $ticket, GoogleCalendarService $calendar)
+    public function createMeeting(Request $request, BugTicket $ticket, GoogleCalendarService $calendar)
     {
         try {
             $calendar->createMeetingForBugTicket($ticket, auth()->user());
@@ -139,17 +160,36 @@ class TicketWebController extends Controller
             return back()->with('error', 'Gagal membuat meeting. Silakan coba lagi.');
         }
 
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Meeting berhasil dibuat.');
+        }
+
         return back()->with('success', 'Meeting berhasil dibuat.');
     }
 
-    public function show(BugTicket $ticket)
+    public function show(Request $request, BugTicket $ticket)
     {
+        if ($request->ajax() || $request->wantsJson()) {
+            $ticket->load([
+                'project', 'reporter', 'assignee', 'assignees', 'milestone', 'slaPolicy',
+                'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
+                'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
+            ]);
+            return response()->json($ticket);
+        }
+
+        // Redirect to project tickets tab with modal open parameter
+        if ($ticket->project_id) {
+            $ticket->loadMissing('project');
+            return redirect()->to(route('projects.tab', ['project' => $ticket->project ?? $ticket->project_id, 'tab' => 'tickets']) . '?ticket=' . $ticket->id);
+        }
+
         $ticket->load([
-            'project', 'reporter', 'assignee', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
+            'project', 'reporter', 'assignee', 'assignees', 'slaPolicy', 'comments.user', 'histories.actor', 'tasks', 'attachments.uploader',
             'outgoingLinks.targetTicket', 'incomingLinks.sourceTicket',
         ]);
-        $developers = User::role(['member', 'admin'])->where('is_active', true)->where('company_id', $ticket->project->company_id)->get();
-        $relatableTickets = $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']);
+        $developers = User::role(['member', 'admin'])->where('is_active', true)->where('company_id', $ticket->project?->company_id)->get();
+        $relatableTickets = $ticket->project ? $ticket->project->tickets()->where('id', '!=', $ticket->id)->orderByDesc('id')->get(['id', 'title']) : collect();
         return view('tickets.show', compact('ticket', 'developers', 'relatableTickets'));
     }
 
@@ -178,6 +218,10 @@ class TicketWebController extends Controller
 
         $ticket->update($request->only('error_category', 'solution'));
         $this->storeAttachments($ticket, $request);
+
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Detail tiket diperbarui.');
+        }
 
         return back()->with('success', 'Detail tiket diperbarui.');
     }
@@ -252,13 +296,17 @@ class TicketWebController extends Controller
         return back()->with('success', 'Referensi tiket dihapus.');
     }
 
-    public function deleteAttachment(BugTicket $ticket, TicketAttachment $attachment)
+    public function deleteAttachment(Request $request, BugTicket $ticket, TicketAttachment $attachment)
     {
         abort_unless(auth()->user()->hasRole(['admin', 'member']), 403);
         abort_unless($attachment->ticket_id === $ticket->id, 404);
 
         \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment->file_path);
         $attachment->delete();
+
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Lampiran dihapus.');
+        }
 
         return back()->with('success', 'Lampiran dihapus.');
     }
@@ -284,35 +332,76 @@ class TicketWebController extends Controller
     public function update(Request $request, BugTicket $ticket)
     {
         $request->validate([
-            'status'      => 'nullable|in:open,assigned,in_progress,pending_review,resolved,closed,reopened',
-            'assignee_id' => ['nullable', Rule::exists('users', 'id')->where('company_id', $ticket->project->company_id)],
+            'title'          => 'sometimes|required|string|max:255',
+            'description'    => 'sometimes|required|string',
+            'type'           => 'nullable|in:bug,issue,enhancement,security,performance',
+            'priority'       => 'nullable|in:critical,high,medium,low',
+            'error_category' => 'nullable|in:frontend,backend,database,api,infrastructure,integration,configuration,other',
+            'milestone_id'   => 'nullable|exists:milestones,id',
+            'status'         => 'nullable|in:open,assigned,in_progress,pending_review,resolved,closed,reopened',
+            'assignee_id'    => ['nullable', Rule::exists('users', 'id')->where('company_id', $ticket->project->company_id)],
+            'assignee_ids'   => 'nullable|array',
+            'assignee_ids.*' => 'exists:users,id',
+            'attachments'    => 'nullable|array|max:5',
+            'attachments.*'  => 'file|max:10240',
         ]);
 
         $oldStatus   = $ticket->status;
         $oldAssignee = $ticket->assignee_id;
-        $updates     = $request->only('status', 'assignee_id');
+
+        $fillableFields = ['title', 'description', 'type', 'priority', 'error_category', 'milestone_id', 'status'];
+        $updates = [];
+        foreach ($fillableFields as $field) {
+            if ($request->has($field)) {
+                $updates[$field] = $request->input($field);
+            }
+        }
+
+        if ($request->has('assignee_ids') || $request->has('assignee_id')) {
+            $assigneeIds = array_filter(array_map('intval', (array) $request->input('assignee_ids', [])));
+            if (empty($assigneeIds) && $request->filled('assignee_id')) {
+                $assigneeIds = [(int) $request->input('assignee_id')];
+            }
+            $updates['assignee_id'] = $assigneeIds[0] ?? null;
+            $ticket->assignees()->sync($assigneeIds);
+        }
 
         if (($updates['status'] ?? null) === 'resolved') $updates['resolved_at'] = now();
         if (($updates['status'] ?? null) === 'closed')   $updates['closed_at']   = now();
 
         $ticket->update($updates);
 
+        if ($request->hasFile('attachments')) {
+            $this->storeAttachments($ticket, $request);
+        }
+
         if ($request->filled('status') && $oldStatus !== $ticket->status) {
             TicketHistory::create(['ticket_id' => $ticket->id, 'actor_id' => auth()->id(), 'field_changed' => 'status', 'old_value' => $oldStatus, 'new_value' => $ticket->status]);
         }
 
-        if ($request->filled('assignee_id') && $oldAssignee !== $ticket->assignee_id) {
+        if (array_key_exists('assignee_id', $updates) && $oldAssignee !== $ticket->assignee_id) {
             TicketHistory::create(['ticket_id' => $ticket->id, 'actor_id' => auth()->id(), 'field_changed' => 'assignee_id', 'old_value' => $oldAssignee, 'new_value' => $ticket->assignee_id]);
-            $this->notifier->send($ticket->assignee_id, 'ticket_assigned', 'Tiket Ditugaskan', "Tiket \"{$ticket->title}\" ditugaskan ke Anda.", ['ticket_id' => $ticket->id]);
+            if ($ticket->assignee_id) {
+                $this->notifier->send($ticket->assignee_id, 'ticket_assigned', 'Tiket Ditugaskan', "Tiket \"{$ticket->title}\" ditugaskan ke Anda.", ['ticket_id' => $ticket->id]);
+            }
         }
 
-        return back()->with('success', 'Tiket diperbarui.');
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Tiket berhasil diperbarui.');
+        }
+
+        return back()->with('success', 'Tiket berhasil diperbarui.');
     }
 
     public function addComment(Request $request, BugTicket $ticket)
     {
         $request->validate(['body' => 'required|string']);
         $ticket->comments()->create(['user_id' => auth()->id(), 'body' => $request->body]);
+
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Komentar ditambahkan.');
+        }
+
         return back()->with('success', 'Komentar ditambahkan.');
     }
 
@@ -323,6 +412,11 @@ class TicketWebController extends Controller
         if ($ticket->closed_at && $ticket->closed_at->diffInDays(now()) > 7) return back()->withErrors(['Masa reopen sudah habis (7 hari).']);
         $ticket->update(['status' => 'reopened', 'closed_at' => null]);
         $ticket->comments()->create(['user_id' => auth()->id(), 'body' => 'Reopened: ' . $request->reason]);
+
+        if ($request->filled('redirect_to')) {
+            return redirect($request->input('redirect_to'))->with('success', 'Tiket dibuka kembali.');
+        }
+
         return back()->with('success', 'Tiket dibuka kembali.');
     }
 }

@@ -95,7 +95,7 @@
                                 Approve</button>
                         </form>
                         <form method="POST" action="{{ route('requests.reject', $customerRequest) }}" x-data="{open:false}"
-                            @submit.prevent="if(document.getElementById('rej_reason').value.trim()===''){alert('Rejection reason is required');return;}$el.submit()">
+                            @submit.prevent="if(document.getElementById('rej_reason').value.trim()===''){if(window.showToast){window.showToast('Rejection reason is required','error');}else{alert('Rejection reason is required');}return;}$el.submit()">
                             <button type="button" @click="open=!open"
                                 class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors cursor-pointer">✗
                                 Reject</button>

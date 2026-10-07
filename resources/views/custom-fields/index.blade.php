@@ -12,9 +12,6 @@
         <a href="{{ route('users.index') }}" class="text-sm text-gray-500 hover:text-gray-700 shrink-0">← Kembali</a>
     </div>
 
-    @if(session('success'))
-    <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-4 py-3 mb-4">{{ session('success') }}</div>
-    @endif
 
     <div class="bg-white rounded-xl border border-gray-200">
         <div class="flex items-center justify-between p-4 border-b border-gray-100">

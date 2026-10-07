@@ -42,7 +42,7 @@
                     </h3>
                     <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
                         @foreach($results['tasks'] as $task)
-                            <a href="{{ route('tasks.show', [$task->project_id, $task]) }}"
+                            <a href="{{ route('tasks.show', [$task->project ?? $task->project_id, $task]) }}"
                                 class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-800">{{ $task->title }}</p>

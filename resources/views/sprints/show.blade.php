@@ -32,7 +32,7 @@
             'planned'   => 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800/40',
         ];
     @endphp
-    <div class="bg-white dark:bg-gray-850 rounded-2xl border border-gray-200/90 dark:border-gray-700/80 p-5 shadow-xs">
+    <div class="bg-white dark:bg-gray-850 rounded-2xl p-5">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div class="space-y-1.5">
                 <div class="flex items-center gap-2.5 flex-wrap">
@@ -156,7 +156,7 @@
         @php
             $colTasks = $sprint->tasks->where('board_column_id', $col->id)->sortBy('sort_order');
         @endphp
-        <div class="kanban-column w-80 shrink-0 bg-gray-50/90 dark:bg-gray-850/80 rounded-2xl border border-gray-200/80 dark:border-gray-750 flex flex-col max-h-[calc(100vh-250px)] shadow-xs transition-shadow"
+        <div class="kanban-column w-80 shrink-0 bg-gray-50/90 dark:bg-gray-850/80 rounded-2xl flex flex-col max-h-[calc(100vh-250px)]"
              data-column-id="{{ $col->id }}"
              data-column-slug="{{ $col->slug }}">
 
@@ -352,7 +352,7 @@ function sprintBoardData() {
                         // 1. Move status if column changed
                         if (evt.from !== evt.to) {
                             try {
-                                await fetch(`/projects/{{ $project->id }}/tasks/${taskId}/move`, {
+                                await fetch(`/projects/{{ $project->slug }}/tasks/${taskId}/move`, {
                                     method: 'PATCH',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -368,7 +368,7 @@ function sprintBoardData() {
 
                         // 2. Persist sort order
                         try {
-                            await fetch(`/projects/{{ $project->id }}/tasks/reorder`, {
+                            await fetch(`/projects/{{ $project->slug }}/tasks/reorder`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -402,7 +402,7 @@ function sprintBoardData() {
                         const colOrder = colElements.map(el => parseInt(el.dataset.columnId, 10));
 
                         try {
-                            await fetch(`/projects/{{ $project->id }}/board-columns/reorder`, {
+                            await fetch(`/projects/{{ $project->slug }}/board-columns/reorder`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -455,7 +455,7 @@ function sprintBoardData() {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
             try {
-                const res = await fetch(`/projects/{{ $project->id }}/tasks`, {
+                const res = await fetch(`/projects/{{ $project->slug }}/tasks`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -489,7 +489,7 @@ function sprintBoardData() {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
             try {
-                const res = await fetch(`/projects/{{ $project->id }}/board-columns`, {
+                const res = await fetch(`/projects/{{ $project->slug }}/board-columns`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -540,7 +540,7 @@ function sprintBoardData() {
                 if (result.isConfirmed) {
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
                     try {
-                        const res = await fetch(`/projects/{{ $project->id }}/board-columns/${columnId}`, {
+                        const res = await fetch(`/projects/{{ $project->slug }}/board-columns/${columnId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -570,7 +570,7 @@ function sprintBoardData() {
                 if (result.isConfirmed) {
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
                     try {
-                        const res = await fetch(`/projects/{{ $project->id }}/board-columns/${columnId}`, {
+                        const res = await fetch(`/projects/{{ $project->slug }}/board-columns/${columnId}`, {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken,

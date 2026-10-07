@@ -16,6 +16,18 @@ class ProfileWebController extends Controller
         ]);
     }
 
+    public function updateProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'timezone' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        auth()->user()->update($validated);
+
+        return back()->with('success', 'Informasi profil berhasil diperbarui.');
+    }
+
     public function updateAvatar(Request $request)
     {
         $request->validate([

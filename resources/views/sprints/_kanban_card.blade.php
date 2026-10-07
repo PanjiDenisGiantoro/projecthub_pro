@@ -35,7 +35,7 @@
     $allMembers = $task->members->isNotEmpty() ? $task->members : ($task->assignee ? collect([$task->assignee]) : collect());
 @endphp
 
-<div class="kanban-card group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200/90 dark:border-gray-700 shadow-2xs hover:shadow-md hover:border-blue-400/80 dark:hover:border-blue-500/80 transition-all duration-150 cursor-pointer overflow-hidden select-none mb-3"
+<div class="kanban-card group relative bg-white dark:bg-gray-800 rounded-2xl transition-all duration-150 cursor-pointer overflow-hidden select-none mb-3"
      data-task-id="{{ $task->id }}"
      data-priority="{{ $task->priority }}"
      data-assignee-ids="{{ $allMembers->pluck('id')->join(',') }}"

@@ -70,7 +70,10 @@ class TaskWebController extends Controller
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->priority, fn ($q) => $q->where('priority', $request->priority))
             ->when($request->assignee, fn ($q) => $q->where('assigned_to', $request->assignee))
-            ->when($request->project, fn ($q) => $q->where('project_id', $request->project));
+            ->when($request->project, function ($q) use ($request) {
+                $proj = $request->project;
+                $q->whereHas('project', fn ($p) => $p->where('slug', $proj)->orWhere('id', is_numeric($proj) ? (int) $proj : 0));
+            });
 
         $kanbanLimit = 300;
         $kanbanTasks = (clone $query)->latest()->limit($kanbanLimit)->get();
@@ -81,7 +84,7 @@ class TaskWebController extends Controller
         // ── Filter dropdown options (scoped the same way, ignoring the active filters) ──
         $projects = Project::orderBy('name')
             ->when($isClient, fn ($q) => $q->where('client_id', $authUser->id))
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'slug']);
 
         $assignees = User::whereHas('assignedTasks', fn ($q) => $q->tap($companyScope)->when($isClient, $clientScope))
             ->orderBy('name')->get(['id', 'name']);
@@ -245,17 +248,14 @@ class TaskWebController extends Controller
         return back()->with('success', 'Task berhasil dibuat.');
     }
 
-    public function show(Project $project, Task $task)
+    public function show(Request $request, Project $project, Task $task)
     {
-        $task->load(['assignee', 'milestone', 'creator', 'timeLogs.user', 'comments.user', 'comments.attachments']);
-        $runningLog = $task->timeLogs()->where('user_id', auth()->id())->where('is_running', true)->first();
-        // Cuma hitung jumlah di sini (buat badge) — daftar log lengkap (dengan relasi
-        // causer) baru di-load lewat logs() saat panel riwayat dibuka user (lazy load),
-        // biar halaman detail task tidak ikut berat setiap kali dibuka.
-        $logsCount = $task->activitiesAsSubject()->count();
-        $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
+        if ($request->ajax() || $request->wantsJson()) {
+            return $this->detail($project, $task);
+        }
 
-        return view('tasks.show', compact('project', 'task', 'runningLog', 'logsCount', 'developers'));
+        // Direct browser navigation to /projects/{project}/tasks/{task} opens the modern Detail Modal in Project Tasks tab
+        return redirect()->to(route('projects.tab', [$project, 'tasks']) . '?task=' . $task->id);
     }
 
     public function addComment(Request $request, Project $project, Task $task)
