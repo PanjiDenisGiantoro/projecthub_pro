@@ -37,6 +37,11 @@ class TaskAttachment extends Model
         return $this->file_path ? Storage::url($this->file_path) : ($this->url ?? '#');
     }
 
+    public function url(): string
+    {
+        return $this->publicUrl();
+    }
+
     public function humanSize(): string
     {
         $bytes = $this->file_size ?? 0;

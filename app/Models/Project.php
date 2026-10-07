@@ -13,7 +13,7 @@ class Project extends Model
     use LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'name', 'description', 'client_id', 'manager_id',
+        'company_id', 'name', 'slug', 'description', 'client_id', 'manager_id',
         'status', 'start_date', 'end_date', 'budget', 'budget_alert_threshold', 'progress', 'images',
         'github_repo_url', 'github_token', 'slack_webhook_url', 'discord_webhook_url',
         'google_meet_enabled', 'meeting_auto_create', 'meeting_default_time', 'meeting_default_duration_minutes',
@@ -23,6 +23,25 @@ class Project extends Model
     protected $hidden = [
         'github_token', 'slack_webhook_url', 'discord_webhook_url',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function getRouteKey()
+    {
+        return $this->slug ?: ($this->id ?: parent::getRouteKey());
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $field = $field ?? $this->getRouteKeyName();
+
+        return $this->where($field, $value)
+            ->orWhere('id', is_numeric($value) ? (int) $value : 0)
+            ->first() ?? abort(404);
+    }
 
     protected static function booted(): void
     {
@@ -37,6 +56,20 @@ class Project extends Model
         static::creating(function (Project $project) {
             if (! $project->company_id && auth()->check() && auth()->user()->company_id) {
                 $project->company_id = auth()->user()->company_id;
+            }
+        });
+
+        // Auto-generate unique slug
+        static::saving(function (Project $project) {
+            if (empty($project->slug) || ($project->isDirty('name') && ! $project->isDirty('slug'))) {
+                $base = \Illuminate\Support\Str::slug($project->name) ?: 'project';
+                $slug = $base;
+                $counter = 1;
+                while (static::withoutGlobalScopes()->where('slug', $slug)->where('id', '!=', $project->id ?? 0)->exists()) {
+                    $slug = "{$base}-{$counter}";
+                    $counter++;
+                }
+                $project->slug = $slug;
             }
         });
     }
@@ -68,7 +101,18 @@ class Project extends Model
 
     public function imageUrls(): array
     {
-        return collect($this->images ?? [])->map(fn ($path) => \Illuminate\Support\Facades\Storage::url($path))->all();
+        return collect($this->images ?? [])
+            ->filter(fn ($path) => ! empty($path))
+            ->map(fn ($path) => \Illuminate\Support\Facades\Storage::disk('public')->url($path))
+            ->values()
+            ->all();
+    }
+
+    public function logoUrl(): ?string
+    {
+        $urls = $this->imageUrls();
+
+        return ! empty($urls) ? $urls[0] : null;
     }
 
     public function hasGithubIntegration(): bool

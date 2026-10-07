@@ -22,13 +22,24 @@ class ProjectFile extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    public function isLink(): bool
+    {
+        return $this->mime_type === 'link' || str_starts_with($this->stored_name, 'http://') || str_starts_with($this->stored_name, 'https://');
+    }
+
     public function url(): string
     {
+        if ($this->isLink()) {
+            return $this->stored_name;
+        }
         return Storage::disk('public')->url($this->stored_name);
     }
 
     public function humanSize(): string
     {
+        if ($this->isLink()) {
+            return 'Link';
+        }
         $bytes = $this->size;
         if ($bytes >= 1048576) return round($bytes / 1048576, 1) . ' MB';
         if ($bytes >= 1024) return round($bytes / 1024, 1) . ' KB';
@@ -37,11 +48,13 @@ class ProjectFile extends Model
 
     public function isImage(): bool
     {
+        if ($this->isLink()) return false;
         return str_starts_with($this->mime_type ?? '', 'image/');
     }
 
     public function icon(): string
     {
+        if ($this->isLink()) return '🔗';
         $ext = strtolower(pathinfo($this->original_name, PATHINFO_EXTENSION));
         return match(true) {
             in_array($ext, ['pdf']) => '📄',

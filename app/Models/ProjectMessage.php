@@ -9,9 +9,13 @@ class ProjectMessage extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['project_id', 'user_id', 'parent_id', 'body', 'edited_at'];
+    protected $fillable = ['project_id', 'user_id', 'parent_id', 'body', 'edited_at', 'is_pinned', 'pinned_by', 'pinned_at'];
 
-    protected $casts = ['edited_at' => 'datetime'];
+    protected $casts = [
+        'edited_at' => 'datetime',
+        'is_pinned' => 'boolean',
+        'pinned_at' => 'datetime',
+    ];
 
     public function project()
     {

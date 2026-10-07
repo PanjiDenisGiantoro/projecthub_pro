@@ -34,4 +34,9 @@ class KbArticleAttachment extends Model
         if ($bytes >= 1024)    return round($bytes / 1024, 1) . ' KB';
         return $bytes . ' B';
     }
+
+    public function formattedSize(): string
+    {
+        return $this->humanSize();
+    }
 }

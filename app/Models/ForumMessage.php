@@ -18,12 +18,17 @@ class ForumMessage extends Model
         'parent_id',
         'body',
         'edited_at',
+        'is_pinned',
+        'pinned_by',
+        'pinned_at',
     ];
 
     protected function casts(): array
     {
         return [
             'edited_at' => 'datetime',
+            'is_pinned' => 'boolean',
+            'pinned_at' => 'datetime',
         ];
     }
 
@@ -45,5 +50,10 @@ class ForumMessage extends Model
     public function reads(): HasMany
     {
         return $this->hasMany(ForumMessageRead::class, 'message_id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ForumMessageAttachment::class, 'message_id');
     }
 }

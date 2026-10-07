@@ -435,4 +435,15 @@ class User extends Authenticatable implements MustVerifyEmailContract
     {
         return $this->hasMany(Payroll::class);
     }
+
+    public function createdCalendarEvents()
+    {
+        return $this->hasMany(CalendarEvent::class, 'creator_id');
+    }
+
+    public function calendarEvents()
+    {
+        return $this->belongsToMany(CalendarEvent::class, 'calendar_event_attendees', 'user_id', 'calendar_event_id')
+            ->withTimestamps();
+    }
 }

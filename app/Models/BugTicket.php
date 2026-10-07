@@ -42,6 +42,7 @@ class BugTicket extends Model
     public function milestone()     { return $this->belongsTo(Milestone::class); }
     public function reporter()      { return $this->belongsTo(User::class, 'reporter_id'); }
     public function assignee()      { return $this->belongsTo(User::class, 'assignee_id'); }
+    public function assignees()     { return $this->belongsToMany(User::class, 'ticket_assignees', 'ticket_id', 'user_id')->withTimestamps(); }
     public function slaPolicy()     { return $this->belongsTo(SlaPolicy::class); }
     public function mergedInto()    { return $this->belongsTo(BugTicket::class, 'merged_into_id'); }
     public function mergedTickets() { return $this->hasMany(BugTicket::class, 'merged_into_id'); }
