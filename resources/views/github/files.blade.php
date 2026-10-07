@@ -19,13 +19,13 @@
 
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div class="flex items-center gap-2 text-sm">
-            <a href="{{ route('github.files', array_filter(['project' => $project->id, 'branch' => $activeBranch])) }}"
+            <a href="{{ route('github.files', array_filter(['project' => $project->slug, 'branch' => $activeBranch])) }}"
                class="font-mono text-gray-500 hover:text-blue-600">root</a>
             @php $crumbs = []; $acc = ''; @endphp
             @foreach(array_filter(explode('/', $path)) as $seg)
                 @php $acc = trim($acc . '/' . $seg, '/'); @endphp
                 <span class="text-gray-300">/</span>
-                <a href="{{ route('github.files', array_filter(['project' => $project->id, 'branch' => $activeBranch, 'path' => $acc])) }}"
+                <a href="{{ route('github.files', array_filter(['project' => $project->slug, 'branch' => $activeBranch, 'path' => $acc])) }}"
                    class="font-mono text-gray-500 hover:text-blue-600">{{ $seg }}</a>
             @endforeach
         </div>
@@ -53,13 +53,13 @@
             <div class="divide-y divide-gray-50">
                 @forelse($result['entries'] as $e)
                     @if($e['type'] === 'dir')
-                    <a href="{{ route('github.files', array_filter(['project' => $project->id, 'branch' => $activeBranch, 'path' => $e['path']])) }}"
+                    <a href="{{ route('github.files', array_filter(['project' => $project->slug, 'branch' => $activeBranch, 'path' => $e['path']])) }}"
                        class="flex items-center gap-2 px-5 py-3 hover:bg-gray-50 transition text-sm">
                         <span class="text-gray-400">📁</span>
                         <span class="text-gray-800 font-medium">{{ $e['name'] }}</span>
                     </a>
                     @else
-                    <a href="{{ route('github.files.edit', array_filter(['project' => $project->id, 'branch' => $activeBranch, 'path' => $e['path']])) }}"
+                    <a href="{{ route('github.files.edit', array_filter(['project' => $project->slug, 'branch' => $activeBranch, 'path' => $e['path']])) }}"
                        class="flex items-center gap-2 px-5 py-3 hover:bg-gray-50 transition text-sm">
                         <span class="text-gray-400">📄</span>
                         <span class="text-gray-700">{{ $e['name'] }}</span>

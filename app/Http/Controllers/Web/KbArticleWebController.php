@@ -13,30 +13,68 @@ class KbArticleWebController extends Controller
 {
     public function index(Request $request, Project $project)
     {
-        $query = $project->kbArticles()->with(['author', 'children', 'attachments'])->whereNull('parent_id')
-            ->when($request->search, fn($q) => $q->where('title', 'like', "%{$request->search}%")
-                ->orWhere('description', 'like', "%{$request->search}%"));
-        $articles = $query->latest()->get();
-        return view('kb.index', compact('project', 'articles'));
+        $baseQuery = $project->kbArticles()->whereNull('parent_id');
+
+        // Category counts for quick tabs / KPI metrics
+        $categoryCounts = [
+            'all'          => (clone $baseQuery)->count(),
+            'brd'          => (clone $baseQuery)->where('category', 'brd')->count(),
+            'prd'          => (clone $baseQuery)->where('category', 'prd')->count(),
+            'fsd'          => (clone $baseQuery)->where('category', 'fsd')->count(),
+            'mom'          => (clone $baseQuery)->where('category', 'mom')->count(),
+            'architecture' => (clone $baseQuery)->where('category', 'architecture')->count(),
+            'guide'        => (clone $baseQuery)->where('category', 'guide')->count(),
+            'other'        => (clone $baseQuery)->where('category', 'other')->count(),
+        ];
+
+        $query = (clone $baseQuery)->with(['author', 'children', 'attachments.uploader']);
+
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('body', 'like', "%{$search}%");
+            });
+        }
+
+        $articles = $query->orderByDesc('is_pinned')->latest()->get();
+
+        return view('kb.index', compact('project', 'articles', 'categoryCounts'));
     }
 
     public function store(Request $request, Project $project)
     {
         $request->validate([
-            'title'       => 'required|string|max:255',
-            'body'        => 'required|string',
-            'description' => 'nullable|string|max:500',
-            'files.*'     => 'nullable|file|max:20480',
+            'title'        => 'required|string|max:255',
+            'category'     => 'nullable|string|max:50',
+            'external_url' => 'nullable|url|max:2000',
+            'description'  => 'nullable|string|max:500',
+            'body'         => 'nullable|string',
+            'parent_id'    => 'nullable|exists:kb_articles,id',
+            'is_pinned'    => 'nullable|boolean',
+            'files.*'      => 'nullable|file|max:20480',
         ]);
 
         $article = $project->kbArticles()->create([
-            ...$request->only('title', 'description', 'body', 'parent_id', 'tags'),
-            'author_id' => auth()->id(),
+            'title'        => $request->title,
+            'category'     => $request->category ?: 'other',
+            'external_url' => $request->external_url,
+            'description'  => $request->description,
+            'body'         => $request->body ?? '',
+            'parent_id'    => $request->parent_id,
+            'tags'         => $request->tags ? (is_array($request->tags) ? $request->tags : array_filter(array_map('trim', explode(',', $request->tags)))) : null,
+            'is_pinned'    => $request->boolean('is_pinned'),
+            'author_id'    => auth()->id(),
         ]);
 
         $this->handleFileUploads($request, $article);
 
-        return back()->with('success', 'Artikel dibuat.');
+        return back()->with('success', 'Dokumen Knowledge Base berhasil ditambahkan.');
     }
 
     public function show(Project $project, KbArticle $article)
@@ -48,20 +86,31 @@ class KbArticleWebController extends Controller
     public function update(Request $request, Project $project, KbArticle $article)
     {
         $request->validate([
-            'title'       => 'required|string|max:255',
-            'body'        => 'required|string',
-            'description' => 'nullable|string|max:500',
-            'files.*'     => 'nullable|file|max:20480',
+            'title'        => 'required|string|max:255',
+            'category'     => 'nullable|string|max:50',
+            'external_url' => 'nullable|url|max:2000',
+            'description'  => 'nullable|string|max:500',
+            'body'         => 'nullable|string',
+            'parent_id'    => 'nullable|exists:kb_articles,id',
+            'is_pinned'    => 'nullable|boolean',
+            'files.*'      => 'nullable|file|max:20480',
         ]);
 
         $article->update([
-            ...$request->only('title', 'description', 'body', 'tags'),
-            'version' => $article->version + 1,
+            'title'        => $request->title,
+            'category'     => $request->category ?: $article->category,
+            'external_url' => $request->external_url,
+            'description'  => $request->description,
+            'body'         => $request->body ?? $article->body ?? '',
+            'parent_id'    => $request->parent_id,
+            'tags'         => $request->tags ? (is_array($request->tags) ? $request->tags : array_filter(array_map('trim', explode(',', $request->tags)))) : $article->tags,
+            'is_pinned'    => $request->has('is_pinned') ? $request->boolean('is_pinned') : $article->is_pinned,
+            'version'      => $article->version + 1,
         ]);
 
         $this->handleFileUploads($request, $article);
 
-        return back()->with('success', 'Artikel diperbarui.');
+        return back()->with('success', 'Dokumen Knowledge Base diperbarui.');
     }
 
     public function destroy(Project $project, KbArticle $article)
@@ -70,7 +119,7 @@ class KbArticleWebController extends Controller
             Storage::disk('public')->delete($att->stored_name);
         }
         $article->delete();
-        return redirect()->route('kb.index', $project)->with('success', 'Artikel dihapus.');
+        return redirect()->route('kb.index', $project)->with('success', 'Dokumen dihapus.');
     }
 
     public function deleteAttachment(KbArticleAttachment $attachment)

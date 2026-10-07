@@ -72,11 +72,11 @@
                     </select>
                 </form>
                 @endif
-                <a href="{{ route('github.files', array_filter(['project' => $project->id, 'branch' => $summary['branch'] ?? null])) }}"
+                <a href="{{ route('github.files', array_filter(['project' => $project->slug, 'branch' => $summary['branch'] ?? null])) }}"
                    class="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
                     Jelajahi File
                 </a>
-                <form method="POST" action="{{ route('github.refresh', array_filter(['project' => $project->id, 'branch' => $summary['branch'] ?? null])) }}">
+                <form method="POST" action="{{ route('github.refresh', array_filter(['project' => $project->slug, 'branch' => $summary['branch'] ?? null])) }}">
                     @csrf
                     <button type="submit" class="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
                         ↻ Refresh

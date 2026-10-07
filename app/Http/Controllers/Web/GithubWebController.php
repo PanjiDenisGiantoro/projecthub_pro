@@ -47,7 +47,7 @@ class GithubWebController extends Controller
         $branch = $request->query('branch') ?: null;
         $this->github->forgetCache($project, $branch);
 
-        return redirect()->route('github.index', array_filter(['project' => $project->id, 'branch' => $branch]))
+        return redirect()->route('github.index', array_filter(['project' => $project->slug, 'branch' => $branch]))
             ->with('success', 'Data GitHub diperbarui.');
     }
 

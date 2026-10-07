@@ -9,7 +9,7 @@
         <span class="mx-2">/</span>
         <a href="{{ route('github.index', $project) }}" class="hover:text-blue-600">GitHub</a>
         <span class="mx-2">/</span>
-        <a href="{{ route('github.files', array_filter(['project' => $project->id, 'branch' => $activeBranch, 'path' => dirname($path) === '.' ? null : dirname($path)])) }}" class="hover:text-blue-600">File</a>
+        <a href="{{ route('github.files', array_filter(['project' => $project->slug, 'branch' => $activeBranch, 'path' => dirname($path) === '.' ? null : dirname($path)])) }}" class="hover:text-blue-600">File</a>
         <span class="mx-2">/</span><span class="text-gray-700 font-mono">{{ $path }}</span>
     </nav>
 
