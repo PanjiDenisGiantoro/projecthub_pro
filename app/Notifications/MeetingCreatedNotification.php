@@ -17,6 +17,9 @@ class MeetingCreatedNotification extends Notification
 
     public function via($notifiable): array
     {
+        if (!extension_loaded('curl')) {
+            return [];
+        }
         return [WebPushChannel::class];
     }
 

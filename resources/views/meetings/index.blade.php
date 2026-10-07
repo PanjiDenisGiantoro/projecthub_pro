@@ -44,7 +44,7 @@
                 <select name="project" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Proyek</option>
                     @foreach($projects as $p)
-                        <option value="{{ $p->id }}" {{ (string) $projectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                        <option value="{{ $p->slug }}" {{ (string) request('project') === (string) $p->slug || (string) $projectId === (string) $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                     @endforeach
                 </select>
                 <select name="when" onchange="this.form.submit()" class="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -68,7 +68,8 @@
         @foreach($tabs as $key => $label)
             @php
                 $isActive = $category === $key;
-                $qs = http_build_query(array_filter(['category' => $key, 'when' => $when, 'project' => $projectId, 'company' => $companyId]));
+                $activeProjParam = request('project') ?: ($projects->firstWhere('id', $projectId)?->slug ?? $projectId);
+                $qs = http_build_query(array_filter(['category' => $key, 'when' => $when, 'project' => $activeProjParam, 'company' => $companyId]));
             @endphp
             <a href="{{ route('meetings.index') }}?{{ $qs }}"
                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors

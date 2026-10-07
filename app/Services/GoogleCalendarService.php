@@ -390,4 +390,38 @@ class GoogleCalendarService
 
         return ['event_id' => $created->getId(), 'meet_link' => $meetLink];
     }
+
+    public function createStandaloneMeeting(User $actor, string $title, ?string $description, Carbon $start, Carbon $end, array $attendees = []): array
+    {
+        $client  = $this->client($actor);
+        $service = new Calendar($client);
+
+        $eventData = [
+            'summary'     => $title,
+            'description' => $description ?? '',
+            'start'       => new EventDateTime(['dateTime' => $start->toRfc3339String(), 'timeZone' => config('app.timezone', 'UTC')]),
+            'end'         => new EventDateTime(['dateTime' => $end->toRfc3339String(), 'timeZone' => config('app.timezone', 'UTC')]),
+            'attendees'   => array_values(array_map(
+                fn (User $u) => new EventAttendee(['email' => $u->email, 'displayName' => $u->name]),
+                $attendees
+            )),
+            'conferenceData' => new ConferenceData([
+                'createRequest' => new CreateConferenceRequest([
+                    'requestId'             => (string) \Illuminate\Support\Str::uuid(),
+                    'conferenceSolutionKey' => new ConferenceSolutionKey(['type' => 'hangoutsMeet']),
+                ]),
+            ]),
+        ];
+
+        $event = new Event($eventData);
+
+        $created = $service->events->insert('primary', $event, [
+            'conferenceDataVersion' => 1,
+            'sendUpdates'           => 'all',
+        ]);
+
+        $meetLink = $created->getHangoutLink() ?? '';
+
+        return ['event_id' => $created->getId(), 'meet_link' => $meetLink];
+    }
 }

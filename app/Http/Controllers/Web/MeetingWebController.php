@@ -17,8 +17,12 @@ class MeetingWebController extends Controller
     public function index(Request $request)
     {
         $category = $request->input('category', 'all');
-        $when     = $request->input('when', 'upcoming'); // upcoming|past|all
-        $projId   = $request->input('project');
+        $projInput = $request->input('project');
+        $projId = null;
+        if ($projInput) {
+            $resolvedProject = Project::where('slug', $projInput)->orWhere('id', is_numeric($projInput) ? (int)$projInput : 0)->first();
+            $projId = $resolvedProject?->id;
+        }
 
         $user         = auth()->user();
         $isCustomer   = $user->hasRole('client');
@@ -57,8 +61,8 @@ class MeetingWebController extends Controller
                 'meetLink'   => $p->google_meet_link,
                 'recurring'  => false,
                 'organizer'  => null,
-                'url'        => route('projects.show', $p->id),
-                'createUrl'  => route('projects.meeting.create', $p->id),
+                'url'        => route('projects.show', $p),
+                'createUrl'  => route('projects.meeting.create', $p),
             ]));
         }
 
@@ -78,8 +82,8 @@ class MeetingWebController extends Controller
                 'meetLink'   => $s->google_meet_link,
                 'recurring'  => (bool) $s->google_meeting_is_recurring,
                 'organizer'  => $s->meetingOrganizer?->name,
-                'url'        => route('sprints.show', [$s->project_id, $s->id]),
-                'createUrl'  => route('sprints.meeting.create', [$s->project_id, $s->id]),
+                'url'        => route('sprints.show', [$s->project ?? $s->project_id, $s->id]),
+                'createUrl'  => route('sprints.meeting.create', [$s->project ?? $s->project_id, $s->id]),
             ]));
         }
 
@@ -99,8 +103,8 @@ class MeetingWebController extends Controller
                 'meetLink'   => $m->google_meet_link,
                 'recurring'  => false,
                 'organizer'  => $m->meetingOrganizer?->name,
-                'url'        => route('projects.show', $m->project_id),
-                'createUrl'  => route('milestones.meeting.create', [$m->project_id, $m->id]),
+                'url'        => ($m->project ?? $m->project_id) ? route('projects.show', $m->project ?? $m->project_id) : '#',
+                'createUrl'  => ($m->project ?? $m->project_id) ? route('milestones.meeting.create', [$m->project ?? $m->project_id, $m->id]) : '#',
             ]));
         }
 
@@ -121,8 +125,8 @@ class MeetingWebController extends Controller
                 'meetLink'   => $t->google_meet_link,
                 'recurring'  => false,
                 'organizer'  => $t->meetingOrganizer?->name,
-                'url'        => route('tasks.show', [$t->project_id, $t->id]),
-                'createUrl'  => route('tasks.meeting.create', [$t->project_id, $t->id]),
+                'url'        => route('tasks.show', [$t->project ?? $t->project_id, $t->id]),
+                'createUrl'  => route('tasks.meeting.create', [$t->project ?? $t->project_id, $t->id]),
             ]));
         }
 
@@ -174,9 +178,9 @@ class MeetingWebController extends Controller
         }
 
         $projects = $isCustomer
-            ? Project::where('client_id', $user->id)->orderBy('name')->get(['id', 'name'])
+            ? Project::where('client_id', $user->id)->orderBy('name')->get(['id', 'name', 'slug'])
             : Project::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId))
-                ->orderBy('name')->get(['id', 'name']);
+                ->orderBy('name')->get(['id', 'name', 'slug']);
 
         $companies = $isSuperAdmin ? Company::orderBy('name')->get(['id', 'name']) : collect();
 
