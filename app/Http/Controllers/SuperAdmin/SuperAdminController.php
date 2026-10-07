@@ -84,6 +84,53 @@ class SuperAdminController extends Controller
         return back()->with('success', "Akses company untuk {$user->name} berhasil diperbarui.");
     }
 
+    /**
+     * Ganti password seorang user dari halaman superadmin. Hash password lama
+     * disimpan di kolom previous_password agar bisa dikembalikan lewat
+     * restoreUserPassword() bila penggantian ini keliru / hanya sementara.
+     */
+    public function updateUserPassword(Request $request, User $user)
+    {
+        if ($user->is_super_admin) {
+            return back()->withErrors(['new_password' => 'Password super admin tidak bisa diubah dari sini.']);
+        }
+
+        $request->validate([
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        // Simpan hash saat ini (raw) sebagai cadangan, lalu set password baru.
+        $user->previous_password   = $user->password;
+        $user->password            = $request->new_password; // auto-hash via cast 'hashed'
+        $user->password_changed_at = now();
+        $user->save();
+
+        return back()->with('success', "Password {$user->name} berhasil diganti. Password lama disimpan dan bisa dikembalikan.");
+    }
+
+    /**
+     * Kembalikan ke password sebelumnya dengan menukar (swap) hash saat ini
+     * dengan hash di previous_password. Karena di-swap, aksi ini bisa dipakai
+     * bolak-balik untuk berpindah antara password baru dan lama.
+     */
+    public function restoreUserPassword(User $user)
+    {
+        if (empty($user->previous_password)) {
+            return back()->withErrors(['new_password' => 'Tidak ada password lama yang tersimpan untuk user ini.']);
+        }
+
+        // Tukar hash secara mentah lewat query builder supaya cast 'hashed'
+        // tidak meng-hash ulang hash yang sudah jadi.
+        DB::table('users')->where('id', $user->id)->update([
+            'password'            => $user->previous_password,
+            'previous_password'   => $user->password,
+            'password_changed_at' => now(),
+            'updated_at'          => now(),
+        ]);
+
+        return back()->with('success', "Password {$user->name} dikembalikan ke versi sebelumnya.");
+    }
+
     public function toggleCompany(Company $company)
     {
         $company->update(['is_active' => !$company->is_active]);

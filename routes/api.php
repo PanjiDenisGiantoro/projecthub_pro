@@ -1,5 +1,16 @@
 <?php
 
+use App\Http\Controllers\Api\ProjectWorkspaceController;
+use App\Http\Controllers\Web\CalendarWebController;
+use App\Http\Controllers\Web\ChatWebController;
+use App\Http\Controllers\Web\DirectMessageWebController;
+use App\Http\Controllers\Web\ForumWebController;
+use App\Http\Controllers\Api\Hris\AttendanceController;
+use App\Http\Controllers\Api\Hris\HrisAdminController;
+use App\Http\Controllers\Api\Hris\LeaveController as HrisLeaveController;
+use App\Http\Controllers\Api\Hris\OvertimeController as HrisOvertimeController;
+use App\Http\Controllers\Api\Hris\PayrollController as HrisPayrollController;
+use App\Http\Controllers\Api\Hris\ReimbursementController as HrisReimbursementController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BugTicketController;
@@ -205,6 +216,127 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
     Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf']);
+
+    // ─── Proyek: sprint, file, budget, risiko, anggota, komentar task ──────
+    Route::get('/projects/{project}/sprints', [ProjectWorkspaceController::class, 'sprints']);
+    Route::post('/projects/{project}/sprints', [ProjectWorkspaceController::class, 'storeSprint']);
+    Route::put('/projects/{project}/sprints/{sprint}', [ProjectWorkspaceController::class, 'updateSprint']);
+    Route::delete('/projects/{project}/sprints/{sprint}', [ProjectWorkspaceController::class, 'destroySprint']);
+    Route::get('/projects/{project}/files', [ProjectWorkspaceController::class, 'files']);
+    Route::post('/projects/{project}/files', [ProjectWorkspaceController::class, 'storeFile']);
+    Route::delete('/projects/{project}/files/{projectFile}', [ProjectWorkspaceController::class, 'destroyFile']);
+    Route::get('/projects/{project}/budget', [ProjectWorkspaceController::class, 'budget']);
+    Route::post('/projects/{project}/budget', [ProjectWorkspaceController::class, 'storeBudget']);
+    Route::delete('/projects/{project}/budget/{budgetEntry}', [ProjectWorkspaceController::class, 'destroyBudget']);
+    Route::patch('/projects/{project}/budget/threshold', [ProjectWorkspaceController::class, 'budgetThreshold']);
+    Route::get('/projects/{project}/risks', [ProjectWorkspaceController::class, 'risks']);
+    Route::post('/projects/{project}/risks', [ProjectWorkspaceController::class, 'storeRisk']);
+    Route::put('/projects/{project}/risks/{risk}', [ProjectWorkspaceController::class, 'updateRisk']);
+    Route::delete('/projects/{project}/risks/{risk}', [ProjectWorkspaceController::class, 'destroyRisk']);
+    Route::post('/projects/{project}/team', [ProjectWorkspaceController::class, 'addMembers']);
+    Route::delete('/projects/{project}/team/{user}', [ProjectWorkspaceController::class, 'removeMember']);
+    Route::get('/projects/{project}/tasks/{task}/comments', [ProjectWorkspaceController::class, 'taskComments']);
+    Route::post('/projects/{project}/tasks/{task}/comments', [ProjectWorkspaceController::class, 'storeTaskComment']);
+
+    // ─── Kalender (controller sama dengan web, sudah JSON) ────────────────
+    Route::get('/calendar/events', [CalendarWebController::class, 'events']);
+    Route::get('/calendar/upcoming', [CalendarWebController::class, 'upcoming']);
+
+    // ─── Chat (controller sama dengan web, semuanya sudah JSON) ─────────────
+    Route::get('/chat/inbox', [ChatWebController::class, 'inbox']);
+    Route::get('/chat/unread', [ChatWebController::class, 'unreadCount']);
+    Route::get('/projects/{project}/chat/messages', [ChatWebController::class, 'messages']);
+    Route::get('/projects/{project}/chat/members', [ChatWebController::class, 'members']);
+    Route::post('/projects/{project}/chat', [ChatWebController::class, 'store']);
+    Route::put('/projects/{project}/chat/{message}', [ChatWebController::class, 'update']);
+    Route::delete('/projects/{project}/chat/{message}', [ChatWebController::class, 'destroy']);
+    Route::post('/projects/{project}/chat/{message}/react', [ChatWebController::class, 'react']);
+    Route::post('/projects/{project}/chat/read', [ChatWebController::class, 'markRead']);
+    Route::get('/messages/{peer}/thread', [DirectMessageWebController::class, 'messages']);
+    Route::post('/messages/{peer}', [DirectMessageWebController::class, 'store']);
+    Route::put('/messages/{peer}/{message}', [DirectMessageWebController::class, 'update']);
+    Route::delete('/messages/{peer}/{message}', [DirectMessageWebController::class, 'destroy']);
+    Route::post('/messages/{peer}/read', [DirectMessageWebController::class, 'markRead']);
+    Route::post('/forums', [ForumWebController::class, 'store']);
+    Route::post('/forums/{forum}/members', [ForumWebController::class, 'addMember']);
+    Route::delete('/forums/{forum}/members/{user}', [ForumWebController::class, 'removeMember']);
+    Route::get('/forums/{forum}/members', [ForumWebController::class, 'members']);
+    Route::get('/forums/{forum}/messages', [ForumWebController::class, 'messages']);
+    Route::post('/forums/{forum}/messages', [ForumWebController::class, 'storeMessage']);
+    Route::put('/forums/{forum}/messages/{message}', [ForumWebController::class, 'update']);
+    Route::delete('/forums/{forum}/messages/{message}', [ForumWebController::class, 'destroy']);
+    Route::post('/forums/{forum}/read', [ForumWebController::class, 'markRead']);
+
+    // ─── HRIS (mobile) ──────────────────────────────────────────────────────
+    Route::prefix('hris')->middleware('package:hris')->group(function () {
+        Route::get('/me', [HrisAdminController::class, 'me']);
+
+        // Absensi
+        Route::get('/attendance/today', [AttendanceController::class, 'today']);
+        Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
+        Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut']);
+        Route::get('/attendance/history', [AttendanceController::class, 'history']);
+        Route::get('/attendance/team', [AttendanceController::class, 'team']);
+        Route::get('/attendance/holidays', [AttendanceController::class, 'holidays']);
+        Route::post('/attendance/holidays', [HrisAdminController::class, 'storeHoliday']);
+        Route::delete('/attendance/holidays/{holiday}', [HrisAdminController::class, 'destroyHoliday']);
+        Route::get('/attendance/setting', [HrisAdminController::class, 'setting']);
+        Route::put('/attendance/setting', [HrisAdminController::class, 'saveSetting']);
+        Route::get('/attendance/schedules', [HrisAdminController::class, 'schedules']);
+        Route::post('/attendance/schedules', [HrisAdminController::class, 'saveSchedule']);
+
+        // Shift kerja
+        Route::get('/shifts', [HrisAdminController::class, 'shifts']);
+        Route::post('/shifts', [HrisAdminController::class, 'storeShift']);
+        Route::put('/shifts/{shift}', [HrisAdminController::class, 'updateShift']);
+        Route::patch('/shifts/{shift}/toggle', [HrisAdminController::class, 'toggleShift']);
+        Route::delete('/shifts/{shift}', [HrisAdminController::class, 'destroyShift']);
+
+        // Karyawan & gaji
+        Route::get('/employees', [HrisAdminController::class, 'employees']);
+        Route::put('/employees/{employee}/shift', [HrisAdminController::class, 'assignShift']);
+        Route::get('/employees/{user}/salaries', [HrisPayrollController::class, 'salaries']);
+        Route::post('/employees/{user}/salaries', [HrisPayrollController::class, 'storeSalary']);
+        Route::put('/employees/{user}/salaries/{salary}', [HrisPayrollController::class, 'updateSalary']);
+
+        // Cuti
+        Route::get('/leave-types', [HrisLeaveController::class, 'types']);
+        Route::get('/leaves', [HrisLeaveController::class, 'index']);
+        Route::post('/leaves', [HrisLeaveController::class, 'store']);
+        Route::put('/leaves/{leave}', [HrisLeaveController::class, 'update']);
+        Route::delete('/leaves/{leave}', [HrisLeaveController::class, 'destroy']);
+        Route::patch('/leaves/{leave}/approve', [HrisLeaveController::class, 'approve']);
+        Route::patch('/leaves/{leave}/reject', [HrisLeaveController::class, 'reject']);
+
+        // Lembur
+        Route::get('/overtimes', [HrisOvertimeController::class, 'index']);
+        Route::post('/overtimes/preview', [HrisOvertimeController::class, 'preview']);
+        Route::post('/overtimes', [HrisOvertimeController::class, 'store']);
+        Route::put('/overtimes/{overtime}', [HrisOvertimeController::class, 'update']);
+        Route::delete('/overtimes/{overtime}', [HrisOvertimeController::class, 'destroy']);
+        Route::patch('/overtimes/{overtime}/approve', [HrisOvertimeController::class, 'approve']);
+        Route::patch('/overtimes/{overtime}/reject', [HrisOvertimeController::class, 'reject']);
+
+        // Reimburse
+        Route::get('/reimbursements', [HrisReimbursementController::class, 'index']);
+        Route::post('/reimbursements', [HrisReimbursementController::class, 'store']);
+        Route::put('/reimbursements/{reimburse}', [HrisReimbursementController::class, 'update']);
+        Route::delete('/reimbursements/{reimburse}', [HrisReimbursementController::class, 'destroy']);
+        Route::patch('/reimbursements/{reimburse}/approve', [HrisReimbursementController::class, 'approve']);
+        Route::patch('/reimbursements/{reimburse}/reject', [HrisReimbursementController::class, 'reject']);
+
+        // Payroll, bonus, kasbon
+        Route::get('/payrolls', [HrisPayrollController::class, 'index']);
+        Route::post('/payrolls/generate', [HrisPayrollController::class, 'generate']);
+        Route::get('/payrolls/{payroll}', [HrisPayrollController::class, 'show']);
+        Route::patch('/payrolls/{payroll}/finalize', [HrisPayrollController::class, 'finalize']);
+        Route::get('/bonuses', [HrisPayrollController::class, 'bonuses']);
+        Route::post('/bonuses', [HrisPayrollController::class, 'storeBonus']);
+        Route::delete('/bonuses/{bonus}', [HrisPayrollController::class, 'destroyBonus']);
+        Route::get('/kasbons', [HrisPayrollController::class, 'kasbons']);
+        Route::post('/kasbons', [HrisPayrollController::class, 'storeKasbon']);
+        Route::delete('/kasbons/{kasbon}', [HrisPayrollController::class, 'destroyKasbon']);
+    });
 
     // ─── Knowledge Base ──────────────────────────────────────────────────────
     Route::get('/projects/{project}/kb', [KbArticleController::class, 'index']);

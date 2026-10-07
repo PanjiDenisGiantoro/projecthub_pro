@@ -40,6 +40,38 @@
             font-size: 0.875rem !important;
         }
 
+        /* Select2 single (dropdown di dialog hapus anggota) */
+        .select2-container--default .select2-selection--single {
+            height: 38px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            font-size: 0.875rem !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single,
+        .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
+        }
+
+        .dark .select2-container--default .select2-selection--single,
+        .dark .select2-dropdown,
+        .dark .select2-search--dropdown .select2-search__field {
+            background-color: #111827 !important;
+            border-color: #374151 !important;
+            color: #f3f4f6 !important;
+        }
+
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #f3f4f6 !important;
+        }
+
         .select2-results__option--highlighted {
             background-color: #3b82f6 !important;
         }

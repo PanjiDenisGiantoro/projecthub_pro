@@ -23,8 +23,26 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Superadmin & admin bypass ALL permission checks
-        Gate::before(fn($user) => ($user->is_super_admin || $user->hasRole('admin')) ? true : null);
+        // Superadmin bypass SEMUA pemeriksaan. Role 'admin' juga bypass,
+        // KECUALI untuk melihat sebuah proyek (ability 'view' pada Project):
+        // admin pun wajib menjadi anggota tim proyek dulu — biar aturan ini
+        // dijalankan oleh ProjectPolicy::view, kembalikan null untuk kasus itu
+        // agar policy yang memutuskan.
+        Gate::before(function ($user, $ability, $arguments = []) {
+            if ($user->is_super_admin) {
+                return true;
+            }
+
+            if ($user->hasRole('admin')) {
+                $isProjectView = $ability === 'view'
+                    && isset($arguments[0])
+                    && $arguments[0] instanceof \App\Models\Project;
+
+                return $isProjectView ? null : true;
+            }
+
+            return null;
+        });
 
         $this->registerApprovalHandlers();
     }

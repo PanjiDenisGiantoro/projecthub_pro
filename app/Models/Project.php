@@ -72,6 +72,25 @@ class Project extends Model
                 $project->slug = $slug;
             }
         });
+
+        // Lead proyek (manager_id) otomatis jadi anggota tim saat proyek dibuat.
+        // Kalau lead diganti, lead lama dikeluarkan dari tim & diganti lead baru.
+        static::saved(function (Project $project) {
+            // Saat event "saved", original belum di-sync: isinya lead sebelum
+            // disimpan (null kalau proyek baru dibuat).
+            $oldLead = $project->getOriginal('manager_id');
+            if ($oldLead == $project->manager_id) {
+                return;
+            }
+
+            if ($oldLead) {
+                ProjectMember::where('project_id', $project->id)->where('user_id', $oldLead)->delete();
+            }
+
+            if ($project->manager_id) {
+                ProjectMember::firstOrCreate(['project_id' => $project->id, 'user_id' => $project->manager_id]);
+            }
+        });
     }
 
     public function company()

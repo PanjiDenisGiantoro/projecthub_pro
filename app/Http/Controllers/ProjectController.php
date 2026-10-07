@@ -34,9 +34,15 @@ class ProjectController extends Controller
             'status' => 'in:draft,active,on_hold,completed,cancelled',
         ]);
 
+        $request->validate([
+            'budget_alert_threshold' => 'nullable|numeric|min:0|max:100',
+            'github_repo_url' => 'nullable|string|max:255',
+        ]);
+
         $project = Project::create($request->only(
             'name', 'description', 'client_id', 'manager_id',
-            'status', 'start_date', 'end_date', 'budget'
+            'status', 'start_date', 'end_date', 'budget',
+            'budget_alert_threshold', 'github_repo_url'
         ));
 
         return response()->json($project->load(['client', 'manager']), 201);
@@ -56,11 +62,17 @@ class ProjectController extends Controller
             'progress' => 'sometimes|integer|min:0|max:100',
             'end_date' => 'sometimes|nullable|date',
             'budget' => 'sometimes|nullable|numeric|min:0',
+            'client_id' => 'sometimes|nullable|exists:users,id',
+            'manager_id' => 'sometimes|nullable|exists:users,id',
+            'start_date' => 'sometimes|nullable|date',
+            'budget_alert_threshold' => 'sometimes|nullable|numeric|min:0|max:100',
+            'github_repo_url' => 'sometimes|nullable|string|max:255',
         ]);
 
         $project->update($request->only(
             'name', 'description', 'client_id', 'manager_id',
-            'status', 'start_date', 'end_date', 'budget', 'progress'
+            'status', 'start_date', 'end_date', 'budget', 'progress',
+            'budget_alert_threshold', 'github_repo_url'
         ));
 
         return response()->json($project->fresh()->load(['client', 'manager']));

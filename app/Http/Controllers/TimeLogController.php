@@ -11,6 +11,8 @@ class TimeLogController extends Controller
 {
     public function store(Request $request, Task $task)
     {
+        $this->authorize('view', $task->project);
+
         $request->validate([
             'action' => 'in:start,stop,manual',
             'minutes' => 'required_if:action,manual|nullable|integer|min:1',
@@ -62,6 +64,8 @@ class TimeLogController extends Controller
 
     public function timesheet(Request $request, Project $project)
     {
+        $this->authorize('view', $project);
+
         $request->validate([
             'from' => 'nullable|date',
             'to' => 'nullable|date',

@@ -41,6 +41,21 @@ class ChatWebController extends Controller
 
     public function index(Request $request)
     {
+        return view('chat.index', $this->inboxData($request));
+    }
+
+    /** Daftar percakapan (proyek, DM, forum) dalam JSON — dipakai aplikasi mobile. */
+    public function inbox(Request $request)
+    {
+        $data = $this->inboxData($request);
+        $data['allPeers'] = $data['allPeers']->map(fn($p) => ['id' => $p->id, 'name' => $p->name])->values();
+
+        return response()->json($data);
+    }
+
+    private function inboxData(?Request $request = null): array
+    {
+        $request = $request ?? request();
         $user = Auth::user();
 
         // ── 1. Proyek Chat ────────────────────────────────────────────────
@@ -212,38 +227,71 @@ class ChatWebController extends Controller
 
         // Target item from query parameters
         $initialTarget = null;
+
         if ($request->filled('project')) {
             $param = $request->query('project');
-            $p = $projects->first(fn($item) => $item['id'] == $param || ($item['slug'] ?? null) == $param);
-            if ($p)
-                $initialTarget = ['type' => 'project', 'id' => $p['id']];
+
+            $p = $projects->first(
+                fn($item) =>
+                    $item['id'] == $param ||
+                    ($item['slug'] ?? null) == $param
+            );
+
+            if ($p) {
+                $initialTarget = [
+                    'type' => 'project',
+                    'id' => $p['id'],
+                ];
+            }
         } elseif ($request->filled('dm') || $request->filled('user')) {
             $dmId = (int) ($request->query('dm') ?: $request->query('user'));
+
             $d = $directMessages->firstWhere('id', $dmId);
-            if ($d)
-                $initialTarget = ['type' => 'dm', 'id' => $d['id']];
+
+            if ($d) {
+                $initialTarget = [
+                    'type' => 'dm',
+                    'id' => $d['id'],
+                ];
+            }
         } elseif ($request->filled('forum')) {
             $forumId = (int) $request->query('forum');
+
             $f = $forums->firstWhere('id', $forumId);
-            if ($f)
-                $initialTarget = ['type' => 'forum', 'id' => $f['id']];
+
+            if ($f) {
+                $initialTarget = [
+                    'type' => 'forum',
+                    'id' => $f['id'],
+                ];
+            }
         }
 
         // Default: first project, first forum, or first dm
         if (!$initialTarget) {
             if ($projects->isNotEmpty()) {
-                $initialTarget = ['type' => 'project', 'id' => $projects->first()['id']];
+                $initialTarget = [
+                    'type' => 'project',
+                    'id' => $projects->first()['id'],
+                ];
             } elseif ($forums->isNotEmpty()) {
-                $initialTarget = ['type' => 'forum', 'id' => $forums->first()['id']];
+                $initialTarget = [
+                    'type' => 'forum',
+                    'id' => $forums->first()['id'],
+                ];
             } elseif ($directMessages->isNotEmpty()) {
-                $initialTarget = ['type' => 'dm', 'id' => $directMessages->first()['id']];
+                $initialTarget = [
+                    'type' => 'dm',
+                    'id' => $directMessages->first()['id'],
+                ];
             }
         }
 
-        return view('chat.index', [
+        return [
             'projects' => $projects->values(),
             'dms' => $directMessages->values(),
             'forums' => $forums->values(),
+            'allPeers' => $peers,
             'inviteCandidates' => $peers->map(fn($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -252,7 +300,7 @@ class ChatWebController extends Controller
                 'initials' => strtoupper(mb_substr($p->name, 0, 2)),
             ])->values(),
             'initialTarget' => $initialTarget,
-        ]);
+        ];
     }
 
     public function messages(Request $request, Project $project)

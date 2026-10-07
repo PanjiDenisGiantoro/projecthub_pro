@@ -17,18 +17,24 @@ class MilestoneController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'start_date' => 'nullable|date',
             'due_date' => 'nullable|date',
+            'assigned_to' => 'nullable|exists:users,id',
             'status' => 'in:pending,in_progress,completed',
         ]);
 
-        $milestone = $project->milestones()->create($request->only('title', 'description', 'due_date', 'status'));
+        $milestone = $project->milestones()->create($request->only('title', 'description', 'start_date', 'due_date', 'assigned_to', 'status'));
 
         return response()->json($milestone, 201);
     }
 
     public function update(Request $request, Project $project, Milestone $milestone)
     {
-        $milestone->update($request->only('title', 'description', 'due_date', 'status'));
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'assigned_to' => 'nullable|exists:users,id',
+        ]);
+        $milestone->update($request->only('title', 'description', 'start_date', 'due_date', 'assigned_to', 'status'));
         return response()->json($milestone);
     }
 
