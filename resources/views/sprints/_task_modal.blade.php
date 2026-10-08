@@ -2329,10 +2329,7 @@
 
             // --- Avatar Helpers ---
             getAvatarColor(name) {
-                const colors = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
-                let hash = 0;
-                for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-                return colors[Math.abs(hash) % colors.length];
+                return window.taskAvatarColor(name);
             },
             getInitials(name) {
                 if (!name) return 'U';
@@ -3090,12 +3087,26 @@
                         body: JSON.stringify(payload)
                     });
 
-                    if (res.ok) {
-                        const data = await res.json();
-                        const updatedTask = data.task || this.task;
-                        this.isDirty = false;
-                        this.forceClose();
+                    // Baca sebagai teks dulu: kalau server membalas HTML (redirect login,
+                    // halaman error, dsb.) pesan errornya tetap jelas, bukan JSON parse error.
+                    const raw = await res.text();
+                    let data = null;
+                    try { data = JSON.parse(raw); } catch (e) { data = null; }
 
+                    if (!res.ok || !data) {
+                        console.error('Save task failed', res.status, raw.slice(0, 500));
+                        const msg = data?.message || (res.status === 419 ? 'Sesi habis, silakan refresh halaman.' : null);
+                        this.showToast(msg || `Gagal menyimpan (HTTP ${res.status}${data ? '' : ', respons bukan JSON'})`, 'error');
+                        return;
+                    }
+
+                    const updatedTask = data.task || this.task;
+                    this.isDirty = false;
+                    this.forceClose();
+
+                    // Data sudah tersimpan di server; kegagalan update tampilan kartu
+                    // tidak boleh membuat user mengira penyimpanannya gagal.
+                    try {
                         if (data.card_html) {
                             const cards = document.querySelectorAll(`.kanban-card[data-task-id="${updatedTask.id}"]`);
                             cards.forEach(oldCard => {
@@ -3111,15 +3122,14 @@
                         if (window.updateCardInDOM) {
                             window.updateCardInDOM(updatedTask);
                         }
-                        this.showToast('Changes saved successfully');
-                        window.dispatchEvent(new CustomEvent('task-updated', { detail: { taskId: updatedTask.id, task: updatedTask } }));
-                    } else {
-                        const errData = await res.json();
-                        this.showToast(errData.message || 'Failed to save changes', 'error');
+                    } catch (domErr) {
+                        console.error('Task saved, but updating the board failed:', domErr);
                     }
+                    this.showToast('Changes saved successfully');
+                    window.dispatchEvent(new CustomEvent('task-updated', { detail: { taskId: updatedTask.id, task: updatedTask } }));
                 } catch (err) {
                     console.error(err);
-                    this.showToast('A system error occurred', 'error');
+                    this.showToast(`A system error occurred: ${err?.message || err}`, 'error');
                 } finally {
                     this.saving = false;
                 }
@@ -3180,6 +3190,15 @@
             }
         };
     }
+
+    // Warna avatar dari nama. Global supaya bisa dipakai komponen modal maupun
+    // window.updateCardInDOM (yang bukan method Alpine, jadi tidak punya `this` komponen).
+    window.taskAvatarColor = function (name) {
+        const colors = ['#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
+        let hash = 0;
+        for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+    };
 
     // Global DOM card real-time updater (Option 2 - Zero Page Reload)
     window.updateCardInDOM = function (task) {
@@ -3427,7 +3446,7 @@
                         } else {
                             const parts = (m.name || '').trim().split(' ');
                             const initials = ((parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '')).toUpperCase() || 'U';
-                            const bgColor = this.getAvatarColor(m.name);
+                            const bgColor = window.taskAvatarColor(m.name);
                             return `
                             <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
                                  style="background-color: ${bgColor}"
@@ -3573,7 +3592,7 @@
                     } else {
                         const parts = (firstM.name || '').trim().split(' ');
                         const initials = ((parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '')).toUpperCase() || 'U';
-                        const bgColor = this.getAvatarColor(firstM.name);
+                        const bgColor = window.taskAvatarColor(firstM.name);
                         listAssigneeEl.innerHTML = `
                             <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
                                  style="background-color: ${bgColor}"
