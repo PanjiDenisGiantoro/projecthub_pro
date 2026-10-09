@@ -42,7 +42,14 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono font-medium text-gray-800">{{ $order->order_number }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $order->package?->name ?? $order->package_name }}</td>
-                    <td class="px-4 py-3 font-medium text-gray-800">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>
+                    <td class="px-4 py-3 font-medium text-gray-800">
+                        Rp {{ number_format($order->amount, 0, ',', '.') }}
+                        @if($order->ppn_amount > 0)
+                            <p class="text-[11px] font-normal text-gray-400">
+                                Rp {{ number_format($order->subtotal, 0, ',', '.') }} + PPN {{ \App\Models\PpnRate::formatRate($order->ppn_rate) }} Rp {{ number_format($order->ppn_amount, 0, ',', '.') }}
+                            </p>
+                        @endif
+                    </td>
                     <td class="px-4 py-3">
                         <span class="badge {{ $statusClass[$order->status] ?? 'bg-gray-100 text-gray-600' }}">
                             {{ $statusLabel[$order->status] ?? ucfirst($order->status) }}

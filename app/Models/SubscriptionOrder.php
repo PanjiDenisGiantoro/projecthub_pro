@@ -12,6 +12,9 @@ class SubscriptionOrder extends Model
         'company_id',
         'package_id',
         'package_name',
+        'subtotal',
+        'ppn_rate',
+        'ppn_amount',
         'amount',
         'duration_days',
         'status',
@@ -22,6 +25,9 @@ class SubscriptionOrder extends Model
     ];
 
     protected $casts = [
+        'subtotal'         => 'integer',
+        'ppn_rate'         => 'float',
+        'ppn_amount'       => 'integer',
         'amount'           => 'integer',
         'duration_days'    => 'integer',
         'paid_at'          => 'datetime',

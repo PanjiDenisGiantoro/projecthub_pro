@@ -73,6 +73,13 @@
                 Paket & Harga
             </a>
 
+            <a href="{{ route('superadmin.ppn-rates') }}" class="{{ request()->routeIs('superadmin.ppn-rates') ? $a : $i }}">
+                <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                </svg>
+                Master PPN
+            </a>
+
             <div class="pt-3 mt-3 border-t border-white/5">
                 <a href="{{ route('dashboard') }}" class="{{ $i }}">
                     <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -82,7 +82,7 @@ class AuthWebController extends Controller
         }
 
         if (!$user->is_super_admin && $user->isCompanyExpired()) {
-            // Tetap login supaya user bisa memperpanjang mandiri via Midtrans.
+            // Tetap login supaya user bisa memperpanjang mandiri via DOKU.
             return redirect()->route('billing.renew');
         }
 

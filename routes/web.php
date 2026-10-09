@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SuperAdmin\PpnRateController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use App\Http\Controllers\Web\ActivityLogWebController;
 use App\Http\Controllers\Web\AiAssistantWebController;
@@ -111,6 +112,11 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
     Route::put('/packages/{package}', [SuperAdminController::class, 'updatePackage'])->name('packages.update');
     Route::patch('/packages/{package}/toggle', [SuperAdminController::class, 'togglePackage'])->name('packages.toggle');
     Route::delete('/packages/{package}', [SuperAdminController::class, 'destroyPackage'])->name('packages.destroy');
+
+    Route::get('/ppn-rates', [PpnRateController::class, 'index'])->name('ppn-rates');
+    Route::post('/ppn-rates', [PpnRateController::class, 'store'])->name('ppn-rates.store');
+    Route::put('/ppn-rates/{ppnRate}', [PpnRateController::class, 'update'])->name('ppn-rates.update');
+    Route::delete('/ppn-rates/{ppnRate}', [PpnRateController::class, 'destroy'])->name('ppn-rates.destroy');
 });
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -130,7 +136,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')->name('verification.send');
 });
 
-// ─── Perpanjangan Langganan (Midtrans) ─────────────────────────────────────────
+// ─── Perpanjangan Langganan (DOKU) ────────────────────────────────────────────
 // Sengaja di luar middleware check.active supaya user yang masa aktifnya sudah
 // habis tetap bisa membuka halaman ini (tidak logout paksa / redirect loop).
 Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function () {

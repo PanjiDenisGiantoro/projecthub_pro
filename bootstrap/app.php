@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Deploy webhook dipanggil dari CI/CD, billing/notification dipanggil server-to-server oleh Midtrans — keduanya tidak butuh CSRF token
+        // Deploy webhook dipanggil dari CI/CD, billing/notification dipanggil server-to-server oleh DOKU — keduanya tidak butuh CSRF token
         $middleware->validateCsrfTokens(except: [
             'deploy/webhook',
             'billing/notification',

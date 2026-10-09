@@ -9,6 +9,7 @@ use App\Models\LeaveType;
 use App\Models\OrganizationUnit;
 use App\Models\OvertimeRule;
 use App\Models\Package;
+use App\Models\PpnRate;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,7 @@ class RegisterWebController extends Controller
             'prefillPlan'  => $request->query('plan', 'free'),
             'tiers'        => $tiers,
             'modules'      => $this->selectableModules(),
+            'ppnRate'      => PpnRate::activeOn(),
         ]);
     }
 
@@ -95,7 +97,7 @@ class RegisterWebController extends Controller
                 'is_registered'        => true,
                 'timezone'             => 'Asia/Jakarta',
                 // Free = gratis selamanya (active_until null = lifetime).
-                // Paket berbayar = belum bayar, langsung diarahkan ke Midtrans setelah akun
+                // Paket berbayar = belum bayar, langsung diarahkan ke DOKU setelah akun
                 // dibuat (lihat bawah); active_until di masa lalu supaya CheckActiveAccess
                 // memaksa ke billing.renew kalau pembayaran belum selesai/dibatalkan.
                 'active_until'         => $selectedPackage->price > 0 ? now()->subMinute() : null,

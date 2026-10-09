@@ -12,7 +12,7 @@ class CheckActiveAccess
     {
         if (Auth::check() && !Auth::user()->is_super_admin && Auth::user()->isCompanyExpired()) {
             // Semua user perusahaan yang masa aktifnya habis tetap login supaya
-            // bisa memperpanjang mandiri via Midtrans di halaman billing.renew.
+            // bisa memperpanjang mandiri via DOKU di halaman billing.renew.
             if (! $request->routeIs('billing.*', 'logout')) {
                 return redirect()->route('billing.renew');
             }

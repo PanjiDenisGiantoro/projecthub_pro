@@ -57,12 +57,18 @@
                     <p class="text-xs text-gray-400 mt-0.5">/ {{ $package->duration_days }} hari</p>
                 </div>
 
+                @if($ppnRate)
+                    <div class="mt-3 rounded-xl bg-gray-50 p-3">
+                        @include('billing._price-breakdown', \App\Models\PpnRate::breakdown((int) $package->price))
+                    </div>
+                @endif
+
                 @if($registrant)
                     <form method="POST" action="{{ route('billing.checkout', $package) }}" class="mt-5">
                         @csrf
                         <button type="submit"
                                 class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-                            {{ $owned ? 'Perpanjang dengan Midtrans' : 'Berlangganan dengan Midtrans' }}
+                            {{ $owned ? 'Perpanjang dengan DOKU' : 'Berlangganan dengan DOKU' }}
                         </button>
                     </form>
                 @endif
@@ -71,7 +77,7 @@
             <p class="text-sm text-gray-500 col-span-2">Belum ada paket tersedia.</p>
         @endforelse
 
-        {{-- Paket contact-sales (mis. Enterprise) — bukan lewat Midtrans --}}
+        {{-- Paket contact-sales (mis. Enterprise) — bukan lewat DOKU --}}
         @if($contactPackage)
             <div class="rounded-2xl border border-gray-200 bg-white p-6 flex flex-col shadow-sm">
                 <h3 class="text-base font-bold text-gray-900">{{ $contactPackage->name }}</h3>

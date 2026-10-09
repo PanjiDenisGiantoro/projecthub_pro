@@ -72,6 +72,9 @@
                             <p class="text-xs text-gray-500 mt-0.5">{{ $tier->tagline }}</p>
                             <p class="text-lg font-bold text-gray-900 mt-2">{{ $tier->priceDisplay() }}</p>
                             <p class="text-xs text-gray-500 -mt-0.5">{{ $tier->price_period }}</p>
+                            @if($ppnRate && $tier->price > 0)
+                                <p class="text-[11px] text-gray-400">belum termasuk PPN {{ \App\Models\PpnRate::formatRate($ppnRate->rate) }}</p>
+                            @endif
                             <ul class="mt-3 space-y-1 text-gray-500">
                                 @foreach($tier->features as $feature)
                                     <li class="text-xs">✓ {{ $feature->label }}</li>
@@ -96,8 +99,18 @@
                 @endforeach
             </div>
 
+            {{-- Rincian pembayaran paket berbayar (harga + PPN) --}}
+            @foreach($tiers as $tier)
+                @if($tier->cta_type === 'register' && $tier->price > 0)
+                    <div x-show="plan === '{{ $tier->slug }}'" x-cloak class="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-medium text-gray-700 mb-2">Rincian Pembayaran — {{ $tier->name }}</p>
+                        @include('billing._price-breakdown', \App\Models\PpnRate::breakdown((int) $tier->price))
+                    </div>
+                @endif
+            @endforeach
+
             <p class="text-xs text-gray-500 mt-3" x-show="plan === 'free'">Mulai gratis selamanya, tanpa kartu kredit.</p>
-            <p class="text-xs text-gray-500 mt-3" x-show="plan !== 'free'">Setelah mendaftar, Anda akan diarahkan ke halaman pembayaran Midtrans untuk menyelesaikan langganan.</p>
+            <p class="text-xs text-gray-500 mt-3" x-show="plan !== 'free'">Setelah mendaftar, Anda akan diarahkan ke halaman pembayaran DOKU untuk menyelesaikan langganan.</p>
         </div>
 
         <form method="POST" action="{{ route('register.post') }}" class="space-y-4">

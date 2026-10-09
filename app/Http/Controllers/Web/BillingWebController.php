@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Package;
+use App\Models\PpnRate;
 use App\Models\SubscriptionOrder;
-use App\Services\MidtransService;
+use App\Services\DokuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class BillingWebController extends Controller
 {
     use HasPerPage;
 
-    public function __construct(protected MidtransService $midtrans)
+    public function __construct(protected DokuService $doku)
     {
     }
 
@@ -38,6 +39,7 @@ class BillingWebController extends Controller
 
         return view('billing.renew', [
             'packages'       => $packages,
+            'ppnRate'        => PpnRate::activeOn(),
             'contactPackage' => $contactPackage,
             'ownedSlugs'     => $ownedSlugs,
             'registrant'     => $registrant,
@@ -58,7 +60,7 @@ class BillingWebController extends Controller
         return view('billing.history', compact('orders'));
     }
 
-    /** POST /billing/checkout/{package} — buat transaksi Midtrans & redirect ke halaman pembayaran. */
+    /** POST /billing/checkout/{package} — buat transaksi DOKU Checkout & redirect ke halaman pembayaran. */
     public function checkout(Request $request, Package $package)
     {
         $user       = Auth::user();
@@ -67,31 +69,36 @@ class BillingWebController extends Controller
         abort_unless($registrant, 404, 'Data pendaftar perusahaan tidak ditemukan.');
         abort_unless($package->is_active, 404);
 
+        $price = PpnRate::breakdown((int) $package->price);
+
         $order = SubscriptionOrder::create([
             'order_number'  => 'SUB-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(6)),
             'user_id'       => $registrant->id,
             'company_id'    => $registrant->company_id,
             'package_id'    => $package->id,
             'package_name'  => $package->name,
-            'amount'        => $package->price,
+            'subtotal'      => $price['subtotal'],
+            'ppn_rate'      => $price['rate'],
+            'ppn_amount'    => $price['ppn'],
+            'amount'        => $price['total'],
             'duration_days' => $package->duration_days,
             'status'        => 'pending',
         ]);
 
         try {
-            $result = $this->midtrans->createTransaction($order);
+            $result = $this->doku->createPayment($order);
         } catch (\Throwable $e) {
-            Log::error('Checkout Midtrans gagal', ['order_number' => $order->order_number, 'error' => $e->getMessage()]);
+            Log::error('Checkout DOKU gagal', ['order_number' => $order->order_number, 'error' => $e->getMessage()]);
 
             return back()->with('error', 'Gagal membuat transaksi pembayaran. Silakan coba lagi.');
         }
 
-        $order->update(['snap_token' => $result['token'] ?? null]);
+        $order->update(['snap_token' => $result['token_id'] ?? null]);
 
-        return redirect()->away($result['redirect_url']);
+        return redirect()->away($result['url']);
     }
 
-    /** GET /billing/finish — halaman kembali setelah user menyelesaikan/membatalkan pembayaran di Midtrans. */
+    /** GET /billing/finish — halaman kembali setelah user menyelesaikan/membatalkan pembayaran di DOKU. */
     public function finish(Request $request)
     {
         $order = SubscriptionOrder::where('order_number', $request->query('order_id'))->first();
@@ -107,18 +114,18 @@ class BillingWebController extends Controller
         return response()->json(['status' => $order->status]);
     }
 
-    /** POST /billing/notification — webhook server-to-server dari Midtrans. */
+    /** POST /billing/notification — HTTP Notification server-to-server dari DOKU. */
     public function notification(Request $request)
     {
-        $payload = $request->all();
+        $payload = $request->json()->all();
 
-        if (! $this->midtrans->isValidSignature($payload)) {
-            Log::warning('Midtrans notification: signature tidak valid', ['payload' => $payload]);
+        if (! $this->doku->isValidNotification($request)) {
+            Log::warning('DOKU notification: signature tidak valid', ['payload' => $payload]);
 
             return response()->json(['message' => 'Invalid signature'], 403);
         }
 
-        $order = SubscriptionOrder::where('order_number', $payload['order_id'] ?? null)->first();
+        $order = SubscriptionOrder::where('order_number', data_get($payload, 'order.invoice_number'))->first();
 
         if (! $order) {
             return response()->json(['message' => 'Order not found'], 404);
@@ -128,19 +135,22 @@ class BillingWebController extends Controller
             return response()->json(['message' => 'Already processed']);
         }
 
-        $transactionStatus = $payload['transaction_status'] ?? null;
-        $fraudStatus        = $payload['fraud_status'] ?? null;
+        if ((int) data_get($payload, 'order.amount') !== $order->amount) {
+            Log::warning('DOKU notification: nominal tidak cocok', ['order_number' => $order->order_number, 'payload' => $payload]);
 
-        $newStatus = match (true) {
-            in_array($transactionStatus, ['capture', 'settlement']) && $fraudStatus !== 'challenge' => 'paid',
-            in_array($transactionStatus, ['deny', 'cancel', 'expire']) => 'failed',
-            default => 'pending',
+            return response()->json(['message' => 'Amount mismatch'], 422);
+        }
+
+        $newStatus = match (data_get($payload, 'transaction.status')) {
+            'SUCCESS' => 'paid',
+            'FAILED'  => 'failed',
+            default   => 'pending',
         };
 
         DB::transaction(function () use ($order, $newStatus, $payload) {
             $order->update([
                 'status'                  => $newStatus,
-                'midtrans_transaction_id' => $payload['transaction_id'] ?? $order->midtrans_transaction_id,
+                'midtrans_transaction_id' => data_get($payload, 'transaction.original_request_id', $order->midtrans_transaction_id),
                 'raw_notification'        => $payload,
                 'paid_at'                 => $newStatus === 'paid' ? now() : $order->paid_at,
             ]);

@@ -40,13 +40,13 @@
             </div>
             <h2 class="text-lg font-bold text-gray-900">Pembayaran Sedang Diproses</h2>
             <p class="text-sm text-gray-500 mt-2" id="processing-msg">
-                Terima kasih! Status pembayaran Anda sedang diverifikasi oleh Midtrans.
+                Terima kasih! Status pembayaran Anda sedang diverifikasi oleh DOKU.
                 Untuk transfer Virtual Account, halaman ini akan otomatis memperbarui diri
                 begitu pembayaran dikonfirmasi.
             </p>
             <p class="text-sm text-amber-600 mt-2 hidden" id="processing-timeout-msg">
                 Verifikasi memakan waktu lebih lama dari biasanya. Pembayaran Anda mungkin
-                masih diproses bank/Midtrans — cek lagi beberapa saat lagi, atau hubungi kami
+                masih diproses bank/DOKU — cek lagi beberapa saat lagi, atau hubungi kami
                 jika sudah transfer lebih dari 15 menit.
             </p>
             <button type="button" id="processing-refresh-btn"
@@ -62,6 +62,11 @@
                 <p class="text-gray-500">No. Order: <span class="font-mono text-gray-800">{{ $order->order_number }}</span></p>
                 <p class="text-gray-500">Paket: <span class="font-medium text-gray-800">{{ $order->package_name }}</span></p>
                 <p class="text-gray-500">Status: <span class="font-medium text-gray-800 capitalize">{{ $order->status }}</span></p>
+                @if($order->subtotal !== null)
+                    <div class="pt-2">
+                        @include('billing._price-breakdown', ['subtotal' => $order->subtotal, 'rate' => $order->ppn_rate, 'ppn' => $order->ppn_amount, 'total' => $order->amount])
+                    </div>
+                @endif
             </div>
         @endif
 
