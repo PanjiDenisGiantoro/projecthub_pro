@@ -64,7 +64,7 @@
                 <p class="text-gray-500">Status: <span class="font-medium text-gray-800 capitalize">{{ $order->status }}</span></p>
                 @if($order->subtotal !== null)
                     <div class="pt-2">
-                        @include('billing._price-breakdown', ['subtotal' => $order->subtotal, 'rate' => $order->ppn_rate, 'ppn' => $order->ppn_amount, 'total' => $order->amount])
+                        @include('billing._price-breakdown', ['subtotal' => $order->subtotal, 'rate' => $order->ppn_rate, 'ppn' => $order->ppn_amount, 'fee' => $order->fee_amount, 'feeLabel' => $order->payment_method_name, 'total' => $order->amount])
                     </div>
                 @endif
             </div>

@@ -133,7 +133,7 @@ class RegisterWebController extends Controller
         if ($selectedPackage->price > 0) {
             Auth::login($user);
 
-            return app(BillingWebController::class)->checkout($request, $selectedPackage);
+            return redirect()->route('billing.checkout.show', $selectedPackage);
         }
 
         return redirect()->route('login')

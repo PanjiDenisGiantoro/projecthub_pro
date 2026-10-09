@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SuperAdmin\PaymentMethodController;
 use App\Http\Controllers\SuperAdmin\PpnRateController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use App\Http\Controllers\Web\ActivityLogWebController;
@@ -117,6 +118,12 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
     Route::post('/ppn-rates', [PpnRateController::class, 'store'])->name('ppn-rates.store');
     Route::put('/ppn-rates/{ppnRate}', [PpnRateController::class, 'update'])->name('ppn-rates.update');
     Route::delete('/ppn-rates/{ppnRate}', [PpnRateController::class, 'destroy'])->name('ppn-rates.destroy');
+
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods');
+    Route::post('/payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+    Route::put('/payment-methods/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('payment-methods.update');
+    Route::patch('/payment-methods/{paymentMethod}/toggle', [PaymentMethodController::class, 'toggle'])->name('payment-methods.toggle');
+    Route::delete('/payment-methods/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
 });
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -143,6 +150,7 @@ Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function
     Route::get('/renew', [BillingWebController::class, 'renew'])->name('renew');
     Route::get('/history', [BillingWebController::class, 'history'])->name('history');
     Route::get('/history/{order:order_number}/invoice', [BillingWebController::class, 'invoice'])->name('invoice');
+    Route::get('/checkout/{package}', [BillingWebController::class, 'checkoutForm'])->name('checkout.show');
     Route::post('/checkout/{package}', [BillingWebController::class, 'checkout'])->name('checkout');
     Route::get('/finish', [BillingWebController::class, 'finish'])->name('finish');
     Route::get('/status/{order:order_number}', [BillingWebController::class, 'status'])->name('status');

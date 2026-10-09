@@ -48,9 +48,11 @@ class DokuService
                 'callback_url'   => route('billing.finish', ['order_id' => $order->order_number]),
                 'line_items'     => $this->lineItems($order),
             ],
-            'payment' => [
-                'payment_due_date' => (int) config('services.doku.payment_due_minutes', 60),
-            ],
+            'payment' => array_filter([
+                'payment_due_date'     => (int) config('services.doku.payment_due_minutes', 60),
+                // Kunci halaman DOKU ke metode yang dipilih customer (biaya layanan dihitung per metode).
+                'payment_method_types' => $order->payment_method_code ? [$order->payment_method_code] : null,
+            ]),
             'customer' => [
                 'id'    => (string) $order->user_id,
                 'name'  => $order->user->name,
@@ -90,7 +92,7 @@ class DokuService
         ];
     }
 
-    /** Total line_items harus sama dengan order.amount (paket + PPN). */
+    /** Total line_items harus sama dengan order.amount (paket + PPN + biaya layanan). */
     protected function lineItems(SubscriptionOrder $order): array
     {
         $items = [[
@@ -105,6 +107,15 @@ class DokuService
                 'id'       => 'PPN',
                 'name'     => 'PPN ' . PpnRate::formatRate($order->ppn_rate),
                 'price'    => $order->ppn_amount,
+                'quantity' => 1,
+            ];
+        }
+
+        if ($order->fee_amount > 0) {
+            $items[] = [
+                'id'       => 'FEE',
+                'name'     => 'Biaya layanan ' . $order->payment_method_name,
+                'price'    => $order->fee_amount,
                 'quantity' => 1,
             ];
         }

@@ -60,17 +60,15 @@
                 @if($ppnRate)
                     <div class="mt-3 rounded-xl bg-gray-50 p-3">
                         @include('billing._price-breakdown', \App\Models\PpnRate::breakdown((int) $package->price))
+                        <p class="text-[11px] text-gray-400 mt-1">+ biaya layanan sesuai metode bayar</p>
                     </div>
                 @endif
 
                 @if($registrant)
-                    <form method="POST" action="{{ route('billing.checkout', $package) }}" class="mt-5">
-                        @csrf
-                        <button type="submit"
-                                class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-                            {{ $owned ? 'Perpanjang dengan DOKU' : 'Berlangganan dengan DOKU' }}
-                        </button>
-                    </form>
+                    <a href="{{ route('billing.checkout.show', $package) }}"
+                       class="mt-5 block w-full text-center py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+                        {{ $owned ? 'Perpanjang' : 'Berlangganan' }}
+                    </a>
                 @endif
             </div>
         @empty

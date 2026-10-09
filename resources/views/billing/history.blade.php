@@ -48,6 +48,9 @@
                         @if($order->ppn_amount > 0)
                             <p class="text-[11px] font-normal text-gray-400">
                                 Rp {{ number_format($order->subtotal, 0, ',', '.') }} + PPN {{ \App\Models\PpnRate::formatRate($order->ppn_rate) }} Rp {{ number_format($order->ppn_amount, 0, ',', '.') }}
+                                @if($order->fee_amount > 0)
+                                    + biaya layanan Rp {{ number_format($order->fee_amount, 0, ',', '.') }}
+                                @endif
                             </p>
                         @endif
                     </td>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\Package;
+use App\Models\PaymentMethod;
 use App\Models\PpnRate;
 use App\Models\SubscriptionOrder;
 use App\Services\DokuService;
@@ -73,6 +74,23 @@ class BillingWebController extends Controller
             ->stream("invoice-{$order->order_number}.pdf");
     }
 
+    /** GET /billing/checkout/{package} — pilih metode bayar & lihat rincian (harga + PPN + biaya layanan). */
+    public function checkoutForm(Package $package)
+    {
+        abort_unless(Auth::user()->companyRegistrant(), 404, 'Data pendaftar perusahaan tidak ditemukan.');
+        abort_unless($package->is_active && $package->price > 0, 404);
+
+        $price   = PpnRate::breakdown((int) $package->price);
+        $methods = PaymentMethod::active()->ordered()->get();
+
+        return view('billing.checkout', [
+            'package' => $package,
+            'price'   => $price,
+            'methods' => $methods,
+            'fees'    => $methods->mapWithKeys(fn ($m) => [$m->code => $m->feeFor($price['total'])]),
+        ]);
+    }
+
     /** POST /billing/checkout/{package} — buat transaksi DOKU Checkout & redirect ke halaman pembayaran. */
     public function checkout(Request $request, Package $package)
     {
@@ -82,20 +100,34 @@ class BillingWebController extends Controller
         abort_unless($registrant, 404, 'Data pendaftar perusahaan tidak ditemukan.');
         abort_unless($package->is_active, 404);
 
+        $request->validate(
+            ['payment_method' => 'required|string'],
+            ['payment_method.required' => 'Pilih metode pembayaran terlebih dahulu.']
+        );
+        $method = PaymentMethod::active()->where('code', $request->input('payment_method'))->first();
+
+        if (! $method) {
+            return back()->withErrors(['payment_method' => 'Metode pembayaran tidak tersedia.']);
+        }
+
         $price = PpnRate::breakdown((int) $package->price);
+        $fee   = $method->feeFor($price['total']);
 
         $order = SubscriptionOrder::create([
-            'order_number'  => 'SUB-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(6)),
-            'user_id'       => $registrant->id,
-            'company_id'    => $registrant->company_id,
-            'package_id'    => $package->id,
-            'package_name'  => $package->name,
-            'subtotal'      => $price['subtotal'],
-            'ppn_rate'      => $price['rate'],
-            'ppn_amount'    => $price['ppn'],
-            'amount'        => $price['total'],
-            'duration_days' => $package->duration_days,
-            'status'        => 'pending',
+            'order_number'          => 'SUB-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(6)),
+            'user_id'               => $registrant->id,
+            'company_id'            => $registrant->company_id,
+            'package_id'            => $package->id,
+            'package_name'          => $package->name,
+            'subtotal'              => $price['subtotal'],
+            'ppn_rate'              => $price['rate'],
+            'ppn_amount'            => $price['ppn'],
+            'payment_method_code'   => $method->code,
+            'payment_method_name'   => $method->name,
+            'fee_amount'            => $fee,
+            'amount'                => $price['total'] + $fee,
+            'duration_days'         => $package->duration_days,
+            'status'                => 'pending',
         ]);
 
         try {

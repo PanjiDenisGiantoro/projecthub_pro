@@ -105,12 +105,13 @@
                     <div x-show="plan === '{{ $tier->slug }}'" x-cloak class="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <p class="text-xs font-medium text-gray-700 mb-2">Rincian Pembayaran — {{ $tier->name }}</p>
                         @include('billing._price-breakdown', \App\Models\PpnRate::breakdown((int) $tier->price))
+                        <p class="text-[11px] text-gray-400 mt-1">+ biaya layanan sesuai metode bayar yang dipilih</p>
                     </div>
                 @endif
             @endforeach
 
             <p class="text-xs text-gray-500 mt-3" x-show="plan === 'free'">Mulai gratis selamanya, tanpa kartu kredit.</p>
-            <p class="text-xs text-gray-500 mt-3" x-show="plan !== 'free'">Setelah mendaftar, Anda akan diarahkan ke halaman pembayaran DOKU untuk menyelesaikan langganan.</p>
+            <p class="text-xs text-gray-500 mt-3" x-show="plan !== 'free'">Setelah mendaftar, Anda memilih metode pembayaran lalu diarahkan ke halaman pembayaran DOKU.</p>
         </div>
 
         <form method="POST" action="{{ route('register.post') }}" class="space-y-4">

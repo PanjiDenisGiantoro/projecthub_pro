@@ -9,7 +9,7 @@
     };
 
     // DOKU mengirim channel.id seperti "VIRTUAL_ACCOUNT_BCA" / "QRIS" di HTTP Notification.
-    $channel = data_get($order->raw_notification, 'channel.id') ?? data_get($order->raw_notification, 'service.id');
+    $channel = data_get($order->raw_notification, 'channel.id') ?? data_get($order->raw_notification, 'service.id') ?? $order->payment_method_code;
     $acronyms = ['BCA', 'BNI', 'BRI', 'BSI', 'BTN', 'CIMB', 'QRIS', 'OVO', 'DOKU', 'VA'];
     $channel  = $channel
         ? collect(explode('_', $channel))->map(fn ($w) => in_array($w, $acronyms, true) ? $w : ucfirst(strtolower($w)))->implode(' ')
@@ -118,6 +118,12 @@
         <tr>
             <td class="muted">PPN {{ \App\Models\PpnRate::formatRate($order->ppn_rate) }}</td>
             <td class="right">{{ $rp($order->ppn_amount) }}</td>
+        </tr>
+    @endif
+    @if($order->fee_amount > 0)
+        <tr>
+            <td class="muted">Biaya layanan ({{ $order->payment_method_name }})</td>
+            <td class="right">{{ $rp($order->fee_amount) }}</td>
         </tr>
     @endif
     <tr class="grand">
