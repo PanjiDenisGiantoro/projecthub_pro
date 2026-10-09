@@ -8,6 +8,7 @@ use App\Models\Package;
 use App\Models\PpnRate;
 use App\Models\SubscriptionOrder;
 use App\Services\DokuService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,18 @@ class BillingWebController extends Controller
             ->withQueryString();
 
         return view('billing.history', compact('orders'));
+    }
+
+    /** GET /billing/history/{order}/invoice — invoice PDF untuk satu order langganan. */
+    public function invoice(SubscriptionOrder $order)
+    {
+        abort_unless(Auth::user()->can('access billing'), 403);
+        abort_unless($order->company_id === Auth::user()->company_id, 403);
+
+        $order->load(['company', 'user', 'package']);
+
+        return Pdf::loadView('billing.invoice-pdf', ['order' => $order])
+            ->stream("invoice-{$order->order_number}.pdf");
     }
 
     /** POST /billing/checkout/{package} — buat transaksi DOKU Checkout & redirect ke halaman pembayaran. */

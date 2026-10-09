@@ -21,6 +21,7 @@
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Tanggal Dibuat</th>
                     <th class="px-4 py-3 text-left">Tanggal Dibayar</th>
+                    <th class="px-4 py-3 text-right">Invoice</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -57,10 +58,19 @@
                     </td>
                     <td class="px-4 py-3 text-gray-500">{{ $order->created_at->translatedFormat('d M Y H:i') }}</td>
                     <td class="px-4 py-3 text-gray-500">{{ $order->paid_at?->translatedFormat('d M Y H:i') ?? '—' }}</td>
+                    <td class="px-4 py-3 text-right">
+                        <a href="{{ route('billing.invoice', $order->order_number) }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            PDF
+                        </a>
+                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">Belum ada riwayat pembayaran.</td>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-400">Belum ada riwayat pembayaran.</td>
                 </tr>
                 @endforelse
             </tbody>

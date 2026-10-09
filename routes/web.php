@@ -142,6 +142,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function () {
     Route::get('/renew', [BillingWebController::class, 'renew'])->name('renew');
     Route::get('/history', [BillingWebController::class, 'history'])->name('history');
+    Route::get('/history/{order:order_number}/invoice', [BillingWebController::class, 'invoice'])->name('invoice');
     Route::post('/checkout/{package}', [BillingWebController::class, 'checkout'])->name('checkout');
     Route::get('/finish', [BillingWebController::class, 'finish'])->name('finish');
     Route::get('/status/{order:order_number}', [BillingWebController::class, 'status'])->name('status');

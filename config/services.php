@@ -56,4 +56,13 @@ return [
         'payment_due_minutes' => env('DOKU_PAYMENT_DUE_MINUTES', 60),
     ],
 
+    // Identitas penerbit yang tercetak di invoice langganan (billing/invoice-pdf).
+    'billing_issuer' => [
+        'name'    => env('INVOICE_ISSUER_NAME', 'Flovig'),
+        'address' => env('INVOICE_ISSUER_ADDRESS'),
+        'email'   => env('INVOICE_ISSUER_EMAIL'),
+        'phone'   => env('INVOICE_ISSUER_PHONE'),
+        'npwp'    => env('INVOICE_ISSUER_NPWP'),
+    ],
+
 ];
