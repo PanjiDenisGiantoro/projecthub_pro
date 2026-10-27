@@ -174,6 +174,10 @@ class ProjectWebController extends Controller
 
         BoardColumnTemplate::default()?->applyTo($project);
 
+        // Pembuat & Lead otomatis masuk tim, supaya tidak kehilangan akses ke
+        // proyek (non-superadmin hanya melihat proyek yang ia pimpin/ikuti).
+        $this->ensureMembers($project, [auth()->id(), $project->manager_id]);
+
         $this->notifier->notifyManagers(
             'new_project',
             'Proyek Baru Dibuat',
@@ -450,6 +454,8 @@ class ProjectWebController extends Controller
             'images' => [...$keptImages, ...$newImages],
         ]);
 
+        $this->ensureMembers($project, [$project->manager_id]);
+
         if ($request->input('redirect_to') === 'index') {
             return redirect()->route('projects.index')->with('success', 'Proyek berhasil diperbarui.');
         }
@@ -458,6 +464,13 @@ class ProjectWebController extends Controller
     }
 
     /** Upload file gambar dari $request['images'] ke disk public, dibatasi $limit file (default Project::MAX_IMAGES). Kelebihan diabaikan. */
+    private function ensureMembers(Project $project, array $userIds): void
+    {
+        foreach (array_unique(array_filter($userIds)) as $userId) {
+            ProjectMember::firstOrCreate(['project_id' => $project->id, 'user_id' => $userId]);
+        }
+    }
+
     private function storeProjectImages(Request $request, ?int $limit = null): array
     {
         if (! $request->hasFile('images')) {
