@@ -107,15 +107,14 @@
 
         {{-- Title Row with Radio Complete Button --}}
         <div class="flex items-start gap-2.5 pt-0.5">
-            {{-- Radio / Checkbox Complete Button --}}
-            <button type="button"
-                    @click.stop="toggleTaskComplete({{ $task->id }}, $el.closest('[data-is-done]').dataset.isDone !== '1')"
-                    class="mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 hover:border-emerald-500 text-transparent' }}"
-                    title="{{ $isDone ? 'Tandai belum selesai' : 'Tandai selesai' }}">
+            {{-- Penanda selesai (hanya tampilan; diubah lewat modal detail) --}}
+            <span data-complete-btn
+                    class="mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 text-transparent' }}"
+                    title="{{ $isDone ? 'Selesai' : 'Belum selesai' }}">
                 <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-            </button>
+            </span>
 
             <h4 class="card-title-text text-[13px] font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2 {{ $isDone ? 'line-through text-gray-400 dark:text-gray-500' : '' }}">
                 {{ $task->title }}

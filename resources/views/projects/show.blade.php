@@ -1162,15 +1162,14 @@
                                                                         d="M9 5a2 2 0 11-4 0 2 2 0 014 0zM9 12a2 2 0 11-4 0 2 2 0 014 0zM9 19a2 2 0 11-4 0 2 2 0 014 0zM19 5a2 2 0 11-4 0 2 2 0 014 0zM19 12a2 2 0 11-4 0 2 2 0 014 0zM19 19a2 2 0 11-4 0 2 2 0 014 0z" />
                                                                 </svg>
                                                             </span>
-                                                            <button type="button"
-                                                                @click.stop="toggleTaskComplete({{ $task->id }}, $el.closest('[data-is-done]').dataset.isDone !== '1')"
-                                                                class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 hover:border-emerald-500 text-transparent' }}">
+                                                            <span data-complete-btn
+                                                                class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 text-transparent' }}">
                                                                 <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor"
                                                                     viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                                         d="M5 13l4 4L19 7" />
                                                                 </svg>
-                                                            </button>
+                                                            </span>
                                                             <span
                                                                 class="text-xs font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 truncate {{ $isDone ? 'line-through text-gray-400 dark:text-gray-500' : '' }}">
                                                                 {{ $task->title }}
@@ -2643,11 +2642,10 @@
                                                 <span class="list-drag-handle cursor-grab active:cursor-grabbing text-gray-300 group-hover:text-gray-500 p-0.5 shrink-0" onclick="event.stopPropagation()">
                                                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 5a2 2 0 11-4 0 2 2 0 014 0zM9 12a2 2 0 11-4 0 2 2 0 014 0zM9 19a2 2 0 11-4 0 2 2 0 014 0zM19 5a2 2 0 11-4 0 2 2 0 014 0zM19 12a2 2 0 11-4 0 2 2 0 014 0zM19 19a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                                 </span>
-                                                <button type="button"
-                                                        onclick="event.stopPropagation(); window.toggleTaskFromRow(${data.task.id}, true)"
-                                                        class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 border-2 border-gray-300 hover:border-emerald-500 text-transparent">
+                                                <span data-complete-btn
+                                                        class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 border-2 border-gray-300 text-transparent">
                                                     <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                </button>
+                                                </span>
                                                 <span class="text-xs font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 truncate">
                                                     ${data.task.title}
                                                 </span>
@@ -2694,76 +2692,6 @@
                     }
                 },
 
-                async toggleTaskComplete(taskId, targetCompleted) {
-                    // Optimistic DOM update
-                    const card = document.querySelector(`.kanban-card[data-task-id="${taskId}"]`);
-                    if (card) {
-                        card.dataset.isDone = targetCompleted ? '1' : '0';
-                        const btn = card.querySelector('button[title*="selesai"], button[title*="Selesai"]');
-                        const titleEl = card.querySelector('.card-title-text, h4');
-                        if (btn) {
-                            if (targetCompleted) {
-                                btn.className = 'mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors bg-emerald-500 text-white';
-                                btn.title = 'Tandai belum selesai';
-                            } else {
-                                btn.className = 'mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors border-2 border-gray-300 hover:border-emerald-500 text-transparent';
-                                btn.title = 'Tandai selesai';
-                            }
-                        }
-                        if (titleEl) {
-                            if (targetCompleted) {
-                                titleEl.classList.add('line-through', 'text-gray-400', 'dark:text-gray-500');
-                            } else {
-                                titleEl.classList.remove('line-through', 'text-gray-400', 'dark:text-gray-500');
-                            }
-                        }
-                    }
-
-                    const row = document.querySelector(`.list-task-row[data-task-id="${taskId}"]`);
-                    if (row) {
-                        row.dataset.isDone = targetCompleted ? '1' : '0';
-                        const btn = row.querySelector('button');
-                        const titleEl = row.querySelector('span.truncate, span.text-xs');
-                        if (btn) {
-                            if (targetCompleted) {
-                                btn.className = 'w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 bg-emerald-500 text-white';
-                            } else {
-                                btn.className = 'w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 border-2 border-gray-300 hover:border-emerald-500 text-transparent';
-                            }
-                        }
-                        if (titleEl) {
-                            if (targetCompleted) {
-                                titleEl.classList.add('line-through', 'text-gray-400', 'dark:text-gray-500');
-                            } else {
-                                titleEl.classList.remove('line-through', 'text-gray-400', 'dark:text-gray-500');
-                            }
-                        }
-                    }
-
-                    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content;
-                    try {
-                        const res = await fetch(`/projects/{{ $project->slug }}/tasks/${taskId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': CSRF,
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                completed: targetCompleted
-                            })
-                        });
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data.task && window.updateCardInDOM) {
-                                window.updateCardInDOM(data.task);
-                            }
-                            this.updateCounters();
-                        }
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
             };
         }
 
@@ -2776,12 +2704,6 @@
             }
         };
 
-        window.toggleTaskFromRow = function (taskId, targetCompleted) {
-            const alpineEl = document.querySelector('[x-data*="projectPageData"]');
-            if (alpineEl && alpineEl._x_dataStack && alpineEl._x_dataStack[0]) {
-                alpineEl._x_dataStack[0].toggleTaskComplete(taskId, targetCompleted);
-            }
-        };
 
         window.removeCardFromDOM = function (taskId) {
             if (!taskId) return;

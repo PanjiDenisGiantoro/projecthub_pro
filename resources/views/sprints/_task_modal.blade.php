@@ -2211,10 +2211,31 @@
             },
 
             // Centang hanya tanda selesai; bucket tidak berubah.
-            setCompleted(done) {
+            async setCompleted(done) {
                 if (done === !!this.task.completed_at) return;
+                const prev = this.task.completed_at;
                 this.task.completed_at = done ? new Date().toISOString() : null;
-                this.markDirty();
+                try {
+                    const res = await fetch(`/projects/{{ $project->slug }}/tasks/${this.task.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ completed: done })
+                    });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    if (data.task) {
+                        this.task.completed_at = data.task.completed_at;
+                        if (window.updateCardInDOM) window.updateCardInDOM(data.task);
+                    }
+                } catch (err) {
+                    this.task.completed_at = prev;
+                    console.error(err);
+                    this.showToast('Gagal menyimpan status selesai', 'error');
+                }
             },
             toggleComplete() {
                 this.setCompleted(!this.task.completed_at);
@@ -3269,7 +3290,10 @@
             // 6. Due Date Badge
             const dueContainer = card.querySelector('.card-due-container');
             if (dueContainer) {
-                if (task.due_date) {
+                if (task.completed_at) {
+                    const doneAt = new Date(task.completed_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                    dueContainer.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400"><svg class="w-3 h-3 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>Completed ${doneAt}</span>`;
+                } else if (task.due_date) {
                     const dateClean = (typeof task.due_date === 'string' && task.due_date.includes('T'))
                         ? task.due_date.split('T')[0]
                         : task.due_date;
@@ -3523,6 +3547,23 @@
                 }
             }
         });
+
+        // Tanda selesai (centang bulat + coret judul) di kartu & baris list
+        if (task.completed_at !== undefined) {
+            const done = !!task.completed_at;
+            document.querySelectorAll(`.kanban-card[data-task-id="${task.id}"], .list-task-row[data-task-id="${task.id}"]`).forEach(el => {
+                el.dataset.isDone = done ? '1' : '0';
+                const isCard = el.classList.contains('kanban-card');
+                const btn = el.querySelector('[data-complete-btn]');
+                if (btn) {
+                    btn.className = (isCard ? 'mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors ' : 'w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 ')
+                        + (done ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 text-transparent');
+                    if (isCard) btn.title = done ? 'Selesai' : 'Belum selesai';
+                }
+                const titleEl = el.querySelector(isCard ? '.card-title-text' : 'span.truncate');
+                if (titleEl) ['line-through', 'text-gray-400', 'dark:text-gray-500'].forEach(c => titleEl.classList.toggle(c, done));
+            });
+        }
 
         // Update column counters
         window.updateColumnCounters();
