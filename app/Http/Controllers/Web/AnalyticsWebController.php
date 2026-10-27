@@ -20,22 +20,34 @@ class AnalyticsWebController extends Controller
         $period = (int) $request->input('period', 30);
         $since  = now()->subDays($period)->startOfDay();
 
+        // Task/BugTicket/Milestone/TimeLog tidak punya global scope company → filter lewat project
+        // (Project & CustomerRequest sudah ter-scope otomatis). Super admin melihat semua perusahaan.
+        $user      = auth()->user();
+        $companyId = $user->is_super_admin ? null : (int) $user->company_id;
+        $inCompany = fn (string $relation) => fn ($q) => $user->is_super_admin
+            ? $q
+            : $q->whereHas($relation, fn ($p) => $p->where('projects.company_id', $companyId));
+        $tasks      = fn () => Task::query()->tap($inCompany('project'));
+        $tickets    = fn () => BugTicket::query()->tap($inCompany('project'));
+        $milestones = fn () => Milestone::query()->tap($inCompany('project'));
+        $timeLogs   = fn () => TimeLog::query()->tap($inCompany('task.project'));
+
         // ── KPI ──────────────────────────────────────────────────────────────
-        $totalTasks    = Task::whereNull('deleted_at')->count();
-        $doneTasks     = Task::whereNull('deleted_at')->where('status', 'done')->count();
-        $overdueCount  = Task::whereNull('deleted_at')
+        $totalTasks    = $tasks()->whereNull('deleted_at')->count();
+        $doneTasks     = $tasks()->whereNull('deleted_at')->where('status', 'done')->count();
+        $overdueCount  = $tasks()->whereNull('deleted_at')
             ->whereNotNull('due_date')->where('due_date', '<', now())
             ->whereNotIn('status', ['done'])->count();
         $totalProjects = Project::whereNull('deleted_at')->count();
         $activeProjects = Project::whereNull('deleted_at')->where('status', 'active')->count();
-        $openTickets   = BugTicket::whereNotIn('status', ['resolved', 'closed'])->count();
-        $slaBreached   = BugTicket::where('sla_breached', true)
+        $openTickets   = $tickets()->whereNotIn('status', ['resolved', 'closed'])->count();
+        $slaBreached   = $tickets()->where('sla_breached', true)
             ->whereNotIn('status', ['resolved', 'closed'])->count();
         $newRequests   = CustomerRequest::where('status', 'waiting_approval')
             ->where('created_at', '>=', $since)->count();
 
         // ── Task status breakdown ─────────────────────────────────────────────
-        $tasksByStatus = Task::selectRaw('status, count(*) as count')
+        $tasksByStatus = $tasks()->selectRaw('status, count(*) as count')
             ->whereNull('deleted_at')
             ->groupBy('status')
             ->pluck('count', 'status');
@@ -47,13 +59,13 @@ class AnalyticsWebController extends Controller
             $wEnd   = now()->subWeeks($i)->endOfWeek();
             $weeks->push([
                 'label'     => $wStart->format('d M'),
-                'created'   => Task::whereBetween('created_at', [$wStart, $wEnd])->whereNull('deleted_at')->count(),
-                'completed' => Task::whereBetween('updated_at', [$wStart, $wEnd])->where('status', 'done')->whereNull('deleted_at')->count(),
+                'created'   => $tasks()->whereBetween('created_at', [$wStart, $wEnd])->whereNull('deleted_at')->count(),
+                'completed' => $tasks()->whereBetween('updated_at', [$wStart, $wEnd])->where('status', 'done')->whereNull('deleted_at')->count(),
             ]);
         }
 
         // ── Daily completions (period) ────────────────────────────────────────
-        $completions = Task::selectRaw('DATE(updated_at) as date, count(*) as count')
+        $completions = $tasks()->selectRaw('DATE(updated_at) as date, count(*) as count')
             ->where('status', 'done')->where('updated_at', '>=', $since)
             ->whereNull('deleted_at')->groupBy('date')->orderBy('date')
             ->pluck('count', 'date');
@@ -63,15 +75,15 @@ class AnalyticsWebController extends Controller
             ->whereNull('deleted_at')->groupBy('status')->pluck('count', 'status');
 
         // ── Ticket stats ──────────────────────────────────────────────────────
-        $ticketsByStatus = BugTicket::selectRaw('status, count(*) as count')
+        $ticketsByStatus = $tickets()->selectRaw('status, count(*) as count')
             ->groupBy('status')->pluck('count', 'status');
 
-        $ticketsByPriority = BugTicket::selectRaw('priority, count(*) as count')
+        $ticketsByPriority = $tickets()->selectRaw('priority, count(*) as count')
             ->whereNotIn('status', ['resolved', 'closed'])
             ->groupBy('priority')->pluck('count', 'priority');
 
         // ── Top developers by hours logged ────────────────────────────────────
-        $topDevs = TimeLog::selectRaw('user_id, sum(minutes) as total_minutes')
+        $topDevs = $timeLogs()->selectRaw('user_id, sum(minutes) as total_minutes')
             ->where('started_at', '>=', $since)
             ->groupBy('user_id')->orderByDesc('total_minutes')->limit(8)
             ->with('user')->get();
@@ -90,8 +102,8 @@ class AnalyticsWebController extends Controller
           ]);
 
         // ── Milestone completion ──────────────────────────────────────────────
-        $totalMilestones    = Milestone::count();
-        $completedMilestones = Milestone::where('status', 'completed')->count();
+        $totalMilestones    = $milestones()->count();
+        $completedMilestones = $milestones()->where('status', 'completed')->count();
 
         // ── New tasks trend (last 14 days) ────────────────────────────────────
         $dailyCreated = collect();
@@ -99,7 +111,7 @@ class AnalyticsWebController extends Controller
             $day = now()->subDays($i);
             $dailyCreated->push([
                 'label' => $day->format('d/m'),
-                'count' => Task::whereDate('created_at', $day)->whereNull('deleted_at')->count(),
+                'count' => $tasks()->whereDate('created_at', $day)->whereNull('deleted_at')->count(),
             ]);
         }
 
