@@ -334,6 +334,11 @@ class TaskWebController extends Controller
             $data['due_date'] = $request->filled('due_date') ? \Carbon\Carbon::parse($request->due_date)->format('Y-m-d') : null;
         }
 
+        // Centang selesai hanya tanda; tidak mengubah status maupun bucket.
+        if ($request->has('completed')) {
+            $data['completed_at'] = $request->boolean('completed') ? ($task->completed_at ?? now()) : null;
+        }
+
         if ($request->filled('board_column_id') && !$request->filled('status')) {
             $col = BoardColumn::where('project_id', $project->id)->find($request->board_column_id);
             if ($col) {

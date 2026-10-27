@@ -1110,7 +1110,7 @@
                                                 @foreach($colTasks as $task)
                                                     @php
                                                         $allMembers = $task->members->isNotEmpty() ? $task->members : ($task->assignee ? collect([$task->assignee]) : collect());
-                                                        $isDone = $task->isDone() || ($col->is_done ?? false) || in_array($task->status, ['done', 'completed']);
+                                                        $isDone = $task->isMarkedDone();
                                                         $overdue = !$isDone && $task->isOverdue();
                                                         $days = $task->daysRemaining();
 
@@ -1163,7 +1163,7 @@
                                                                 </svg>
                                                             </span>
                                                             <button type="button"
-                                                                @click.stop="toggleTaskComplete({{ $task->id }}, {{ $isDone ? 'false' : 'true' }})"
+                                                                @click.stop="toggleTaskComplete({{ $task->id }}, $el.closest('[data-is-done]').dataset.isDone !== '1')"
                                                                 class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 hover:border-emerald-500 text-transparent' }}">
                                                                 <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor"
                                                                     viewBox="0 0 24 24">
@@ -2750,7 +2750,7 @@
                                 'Accept': 'application/json'
                             },
                             body: JSON.stringify({
-                                status: targetCompleted ? 'done' : 'todo'
+                                completed: targetCompleted
                             })
                         });
                         if (res.ok) {

@@ -2,7 +2,7 @@
     $doneCount = $task->checklists->flatMap->items->where('is_done', true)->count();
     $totalCount = $task->checklists->flatMap->items->count();
     $pctChecklist = $totalCount > 0 ? round(($doneCount / $totalCount) * 100) : 0;
-    $isDone = $task->isDone() || ($col->is_done ?? false) || in_array($task->status, ['done', 'completed']);
+    $isDone = $task->isMarkedDone();
     $overdue = !$isDone && $task->isOverdue();
     $days = $task->daysRemaining();
 
@@ -109,7 +109,7 @@
         <div class="flex items-start gap-2.5 pt-0.5">
             {{-- Radio / Checkbox Complete Button --}}
             <button type="button"
-                    @click.stop="toggleTaskComplete({{ $task->id }}, {{ $isDone ? 'false' : 'true' }})"
+                    @click.stop="toggleTaskComplete({{ $task->id }}, $el.closest('[data-is-done]').dataset.isDone !== '1')"
                     class="mt-0.5 w-4 h-4 rounded-full shrink-0 flex items-center justify-center transition-colors {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 hover:border-emerald-500 text-transparent' }}"
                     title="{{ $isDone ? 'Tandai belum selesai' : 'Tandai selesai' }}">
                 <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +154,7 @@
                 @if($isDone)
                     <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                         <svg class="w-3 h-3 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        Completed {{ $task->updated_at?->format('d M') ?? '' }}
+                        Completed {{ $task->completed_at?->format('d M') ?? '' }}
                     </span>
                 @elseif($task->due_date)
                     @if($overdue)

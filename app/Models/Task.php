@@ -13,7 +13,7 @@ class Task extends Model
 
     protected $fillable = [
         'project_id', 'milestone_id', 'ticket_id', 'sprint_id', 'title', 'description',
-        'completion_notes', 'assigned_to', 'created_by', 'status', 'board_column_id', 'priority', 'start_date', 'due_date',
+        'completion_notes', 'assigned_to', 'created_by', 'status', 'completed_at', 'board_column_id', 'priority', 'start_date', 'due_date',
         'estimated_hours', 'story_points', 'sort_order', 'recurring_definition_id',
         'google_event_id', 'google_meet_link', 'meeting_starts_at', 'google_meeting_organizer_id',
         'cover_image_path',
@@ -25,6 +25,7 @@ class Task extends Model
             'start_date' => 'date',
             'due_date' => 'date',
             'meeting_starts_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 
@@ -57,6 +58,12 @@ class Task extends Model
     public function isDone(): bool
     {
         return $this->boardColumn ? (bool) $this->boardColumn->is_done : $this->status === 'done';
+    }
+
+    /** Tanda centang selesai — terpisah dari status/bucket. */
+    public function isMarkedDone(): bool
+    {
+        return $this->completed_at !== null;
     }
 
     public function timeProgressPercent(): int
