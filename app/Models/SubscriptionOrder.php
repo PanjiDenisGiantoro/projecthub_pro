@@ -28,6 +28,8 @@ class SubscriptionOrder extends Model
         'status',
         'midtrans_transaction_id',
         'snap_token',
+        'payment_url',
+        'payment_expires_at',
         'paid_at',
         'raw_notification',
     ];
@@ -41,7 +43,8 @@ class SubscriptionOrder extends Model
         'fee_amount'       => 'integer',
         'amount'           => 'integer',
         'duration_days'    => 'integer',
-        'paid_at'          => 'datetime',
+        'paid_at'            => 'datetime',
+        'payment_expires_at' => 'datetime',
         'raw_notification' => 'array',
     ];
 
@@ -87,5 +90,24 @@ class SubscriptionOrder extends Model
     public function isFailed(): bool
     {
         return in_array($this->status, ['failed', 'expired']);
+    }
+
+    /** Batas bayar DOKU; order lama tanpa payment_expires_at dihitung dari created_at. */
+    public function paymentExpiresAt(): \Illuminate\Support\Carbon
+    {
+        return $this->payment_expires_at
+            ?? $this->created_at->copy()->addMinutes((int) config('services.doku.payment_due_minutes', 60));
+    }
+
+    /** Pending, link DOKU tersimpan, dan belum lewat batas bayar. */
+    public function isPayable(): bool
+    {
+        return $this->status === 'pending' && $this->payment_url && $this->paymentExpiresAt()->isFuture();
+    }
+
+    /** Status untuk tampilan: pending yang sudah lewat batas bayar dianggap kedaluwarsa (DOKU tidak selalu kirim notifikasi expired). */
+    public function displayStatus(): string
+    {
+        return $this->status === 'pending' && $this->paymentExpiresAt()->isPast() ? 'expired' : $this->status;
     }
 }

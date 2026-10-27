@@ -85,6 +85,20 @@ class BillingWebController extends Controller
             ->stream("invoice-{$order->order_number}.pdf");
     }
 
+    /** GET /billing/history/{order}/pay — lanjutkan pembayaran order pending lewat link DOKU yang tersimpan. */
+    public function pay(SubscriptionOrder $order)
+    {
+        abort_unless(Auth::user()->can('access billing'), 403);
+        abort_unless($order->company_id === Auth::user()->company_id, 403);
+
+        if (! $order->isPayable()) {
+            return redirect()->route('billing.history')
+                ->with('error', "Order {$order->order_number} sudah tidak bisa dibayar. Silakan buat pembayaran baru.");
+        }
+
+        return redirect()->away($order->payment_url);
+    }
+
     /** GET /billing/checkout/{package}?users=&cycle=&method= — pilih jumlah user, siklus & metode bayar; rincian harga + PPN + biaya layanan. */
     public function checkoutForm(Request $request, Package $package)
     {
@@ -159,7 +173,11 @@ class BillingWebController extends Controller
             return back()->with('error', 'Gagal membuat transaksi pembayaran. Silakan coba lagi.');
         }
 
-        $order->update(['snap_token' => $result['token_id'] ?? null]);
+        $order->update([
+            'snap_token'         => $result['token_id'] ?? null,
+            'payment_url'        => $result['url'],
+            'payment_expires_at' => now()->addMinutes((int) config('services.doku.payment_due_minutes', 60)),
+        ]);
 
         return redirect()->away($result['url']);
     }

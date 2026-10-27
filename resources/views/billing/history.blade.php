@@ -21,7 +21,7 @@
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Tanggal Dibuat</th>
                     <th class="px-4 py-3 text-left">Tanggal Dibayar</th>
-                    <th class="px-4 py-3 text-right">Invoice</th>
+                    <th class="px-4 py-3 text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -40,6 +40,7 @@
                     ];
                 @endphp
                 @forelse($orders as $order)
+                @php $status = $order->displayStatus(); @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono font-medium text-gray-800">{{ $order->order_number }}</td>
                     <td class="px-4 py-3 text-gray-600">
@@ -59,13 +60,22 @@
                         @endif
                     </td>
                     <td class="px-4 py-3">
-                        <span class="badge {{ $statusClass[$order->status] ?? 'bg-gray-100 text-gray-600' }}">
-                            {{ $statusLabel[$order->status] ?? ucfirst($order->status) }}
+                        <span class="badge {{ $statusClass[$status] ?? 'bg-gray-100 text-gray-600' }}">
+                            {{ $statusLabel[$status] ?? ucfirst($status) }}
                         </span>
+                        @if($order->isPayable())
+                            <p class="text-[11px] text-gray-400 mt-1">Bayar sebelum {{ $order->paymentExpiresAt()->translatedFormat('d M Y H:i') }}</p>
+                        @endif
                     </td>
                     <td class="px-4 py-3 text-gray-500">{{ $order->created_at->translatedFormat('d M Y H:i') }}</td>
                     <td class="px-4 py-3 text-gray-500">{{ $order->paid_at?->translatedFormat('d M Y H:i') ?? '—' }}</td>
-                    <td class="px-4 py-3 text-right">
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                        @if($order->isPayable())
+                            <a href="{{ route('billing.pay', $order->order_number) }}"
+                               class="inline-flex items-center gap-1.5 mr-3 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">
+                                Bayar
+                            </a>
+                        @endif
                         <a href="{{ route('billing.invoice', $order->order_number) }}" target="_blank"
                            class="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
