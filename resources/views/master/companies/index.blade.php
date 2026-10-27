@@ -128,10 +128,13 @@
 
                     {{-- Actions --}}
                     <div class="flex items-center gap-3 pt-3 border-t border-gray-100">
+                        {{-- Struktur organisasi bagian dari HRIS — disembunyikan saat modul Task Management aktif --}}
+                        @if(session('active_package', 'task_management') !== 'task_management')
                         <a href="{{ route('organization-units.index', ['company_id' => $company->id]) }}"
                            class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
                             Lihat Organisasi →
                         </a>
+                        @endif
                         <div class="flex-1"></div>
                         <a href="{{ route('companies.edit', $company) }}" class="text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors">Edit</a>
                         <form method="POST" action="{{ route('companies.destroy', $company) }}"
