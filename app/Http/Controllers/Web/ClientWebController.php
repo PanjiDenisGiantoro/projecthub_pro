@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 
 class ClientWebController extends Controller
 {
@@ -47,7 +48,7 @@ class ClientWebController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
-            'password' => 'required|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $sendVerification = $request->boolean('send_verification');
@@ -88,7 +89,7 @@ class ClientWebController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email,' . $client->id,
-            'password' => 'nullable|min:8|confirmed',
+            'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
         $client->update(array_filter([

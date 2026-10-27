@@ -95,7 +95,8 @@
                     <input type="password" id="password" name="password" minlength="8"
                            placeholder="••••••••"
                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs">
-                    <p class="text-[11px] text-slate-400 mt-1">Minimal 8 karakter jika diisi.</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika tidak diganti.</p>
+                    <x-password-strength name="password" />
                 </div>
 
                 <div>

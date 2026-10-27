@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Support\EmploymentType;
 use App\Support\PlanLimits;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
@@ -241,7 +242,7 @@ class UserWebController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
             'role' => 'required|exists:roles,name|not_in:client',
             'structural_level_id' => 'nullable|exists:structural_levels,id',
             'organization_unit_id' => 'nullable|exists:organization_units,id',

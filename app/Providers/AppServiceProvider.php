@@ -9,6 +9,7 @@ use App\Services\ApprovalService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Aturan kekuatan password untuk semua form yang menyetel password (lihat juga <x-password-strength>).
+        Password::defaults(fn () => Password::min(8)->letters()->mixedCase()->numbers()->symbols());
+
         // Superadmin bypass SEMUA pemeriksaan. Role 'admin' juga bypass,
         // KECUALI untuk melihat sebuah proyek (ability 'view' pada Project):
         // admin pun wajib menjadi anggota tim proyek dulu — biar aturan ini

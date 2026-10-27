@@ -45,7 +45,7 @@
                             <input type="password" id="password" name="password" required minlength="8"
                                 class="fl-input @error('password') is-invalid @enderror">
                         </div>
-                        <p class="fl-help">Minimum 8 characters.</p>
+                        <x-password-strength name="password" />
                         @error('password') <p class="fl-error">{{ $message }}</p> @enderror
                     </div>
 

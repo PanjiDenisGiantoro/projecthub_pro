@@ -358,6 +358,7 @@
                 <input type="password" name="password" required minlength="8"
                        placeholder="Minimal 8 karakter"
                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60 transition-all">
+                <x-password-strength name="password" />
             </div>
 
             {{-- Nama Perusahaan --}}

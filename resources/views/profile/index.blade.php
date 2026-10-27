@@ -409,6 +409,7 @@
                                 Baru</label>
                             <input type="password" name="password" required placeholder="Minimal 8 karakter"
                                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all shadow-sm @error('password') border-rose-500 ring-1 ring-rose-500 @enderror">
+                            <x-password-strength name="password" />
                             @error('password')
                                 <p class="text-xs text-rose-500 mt-1 font-medium">{{ $message }}</p>
                             @enderror

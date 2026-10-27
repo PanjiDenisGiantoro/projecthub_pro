@@ -198,6 +198,7 @@
                         </svg>
                     </button>
                 </div>
+                <x-password-strength name="password" />
                 @error('password') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 

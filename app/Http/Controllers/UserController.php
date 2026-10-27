@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Support\PlanLimits;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -28,7 +29,7 @@ class UserController extends Controller
         $request->validate([
             'name'                 => 'required|string|max:255',
             'email'                => 'required|email|unique:users',
-            'password'             => 'required|min:8',
+            'password'             => ['required', Password::defaults()],
             'role'                 => 'required|exists:roles,name',
             'organization_unit_id' => 'nullable|exists:organization_units,id',
         ]);

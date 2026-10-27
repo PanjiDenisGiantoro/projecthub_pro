@@ -13,6 +13,7 @@ use App\Models\PpnRate;
 use App\Models\Promo;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -69,7 +70,7 @@ class RegisterWebController extends Controller
             'name'         => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
             'company_name' => 'required|string|max:255',
-            'password'     => 'required|string|min:8|confirmed',
+            'password'     => ['required', 'string', 'confirmed', Password::defaults()],
             'plan'         => ['required', \Illuminate\Validation\Rule::in($selectablePlans)],
             'modules'      => [$selectableModules->isEmpty() ? 'nullable' : 'required', 'array'],
             'modules.*'    => [\Illuminate\Validation\Rule::in($selectableModules)],

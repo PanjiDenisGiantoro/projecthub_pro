@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\StructuralLevel;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -96,7 +97,7 @@ class SuperAdminController extends Controller
         }
 
         $request->validate([
-            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+            'new_password' => ['required', 'string', 'confirmed', Password::defaults()],
         ]);
 
         // Simpan hash saat ini (raw) sebagai cadangan, lalu set password baru.
@@ -168,7 +169,7 @@ class SuperAdminController extends Controller
         $request->validate([
             'name'         => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
-            'password'     => 'required|string|min:8',
+            'password'     => ['required', 'string', Password::defaults()],
             'company_name' => 'required|string|max:255',
             'packages'     => 'required|array|min:1',
             'packages.*'   => 'exists:packages,slug',

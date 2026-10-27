@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileWebController extends Controller
@@ -78,7 +79,7 @@ class ProfileWebController extends Controller
     {
         $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password'          => ['required', 'string', 'min:8', 'confirmed'],
+            'password'          => ['required', 'string', 'confirmed', Password::defaults()],
         ], [
             'current_password.current_password' => 'Password saat ini salah.',
             'password.min'                       => 'Password minimal 8 karakter.',
