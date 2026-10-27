@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\PlanLimits;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -31,6 +32,11 @@ class UserController extends Controller
             'role'                 => 'required|exists:roles,name',
             'organization_unit_id' => 'nullable|exists:organization_units,id',
         ]);
+
+        $limits = PlanLimits::current();
+        if ($request->boolean('is_active', true) && ! $limits->canAddUser()) {
+            return response()->json(['message' => $limits->limitMessage('user'), 'upgrade_url' => route('billing.renew')], 403);
+        }
 
         $user = User::create([
             'name'                 => $request->name,

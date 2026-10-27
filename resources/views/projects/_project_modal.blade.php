@@ -558,6 +558,10 @@
 
     // Global helper triggers
     window.openCreateProjectModal = function (redirect = 'index') {
+        if (window.flovigPlanLimits?.project) {
+            window.showUpgradePrompt(window.flovigPlanLimits.project);
+            return;
+        }
         window.dispatchEvent(new CustomEvent('open-project-modal', { detail: { mode: 'create', redirect: redirect } }));
     };
 

@@ -45,7 +45,8 @@ class DokuService
                 'amount'         => $order->amount,
                 'invoice_number' => $order->order_number,
                 'currency'       => 'IDR',
-                'callback_url'   => route('billing.finish', ['order_id' => $order->order_number]),
+                // DOKU menolak "?" di callback_url, jadi order number dikirim sebagai path, bukan query string.
+                'callback_url'   => route('billing.finish', ['orderNumber' => $order->order_number]),
                 'line_items'     => $this->lineItems($order),
             ],
             'payment' => array_filter([
@@ -55,7 +56,7 @@ class DokuService
             ]),
             'customer' => [
                 'id'    => (string) $order->user_id,
-                'name'  => $order->user->name,
+                'name'  => $this->dokuText($order->user->name),
                 'email' => $order->user->email,
             ],
         ]);
@@ -97,7 +98,8 @@ class DokuService
     {
         $items = [[
             'id'       => (string) $order->package_id,
-            'name'     => $order->package_name,
+            // Subtotal sudah dipotong promo (DOKU tidak menerima item bernilai negatif).
+            'name'     => $this->dokuText($order->package_name . ($order->user_count ? ' (' . $order->cycleLabel() . ')' : '') . ($order->promo_name ? ' - Promo ' . $order->promo_name : '')),
             'price'    => $order->subtotal ?? $order->amount,
             'quantity' => 1,
         ]];
@@ -105,7 +107,7 @@ class DokuService
         if ($order->ppn_amount > 0) {
             $items[] = [
                 'id'       => 'PPN',
-                'name'     => 'PPN ' . PpnRate::formatRate($order->ppn_rate),
+                'name'     => $this->dokuText('PPN ' . PpnRate::formatRate($order->ppn_rate)),
                 'price'    => $order->ppn_amount,
                 'quantity' => 1,
             ];
@@ -114,13 +116,23 @@ class DokuService
         if ($order->fee_amount > 0) {
             $items[] = [
                 'id'       => 'FEE',
-                'name'     => 'Biaya layanan ' . $order->payment_method_name,
+                'name'     => $this->dokuText('Biaya layanan ' . $order->payment_method_name),
                 'price'    => $order->fee_amount,
                 'quantity' => 1,
             ];
         }
 
         return $items;
+    }
+
+    /** DOKU menolak karakter di luar a-z A-Z 0-9 . - / + , = _ : ' @ % ( ) dan spasi (mis. "·"). */
+    protected function dokuText(string $text): string
+    {
+        $text = str_replace(['·', '•', '–', '—', '&'], ['-', '-', '-', '-', 'dan'], $text);
+        $text = Str::ascii($text);
+        $text = preg_replace("/[^a-zA-Z0-9.\\-\/+,=_:'@%() ]/", '', $text);
+
+        return trim(preg_replace('/\s+/', ' ', $text));
     }
 
     /**

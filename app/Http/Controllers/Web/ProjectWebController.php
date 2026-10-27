@@ -11,6 +11,7 @@ use App\Models\TimeLog;
 use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
+use App\Support\PlanLimits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -148,6 +149,11 @@ class ProjectWebController extends Controller
 
     public function store(Request $request)
     {
+        $limits = PlanLimits::current();
+        if (! $limits->canAddProject()) {
+            return back()->withInput()->with('plan_limit', $limits->limitNotice('project'));
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'client_id' => 'nullable|exists:users,id',

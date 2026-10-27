@@ -46,6 +46,14 @@
             'duration_days'   => $p->duration_days,
             'max_users'       => $p->max_users,
             'is_custom_users' => $p->max_users === null,
+            'price_yearly'    => $p->price_yearly,
+            'min_users'       => $p->min_users,
+            'max_workspaces'  => $p->max_workspaces,
+            'max_projects'    => $p->max_projects,
+            'storage_label'   => $p->storage_label,
+            'has_android'     => (bool) $p->has_android,
+            'has_ios'         => (bool) $p->has_ios,
+            'support_label'   => $p->support_label,
             'is_active'       => (bool) $p->is_active,
             'is_popular'      => (bool) $p->is_popular,
             'cta_label'       => $p->cta_label,
@@ -117,15 +125,75 @@
                     </thead>
                     <tbody class="divide-y divide-white/5">
                         <tr>
-                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Harga Package</td>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Bulanan / user / bln</td>
                             @foreach($tierPackages as $p)
-                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->priceDisplay() }}</td>
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->price > 0 ? $p::rupiah($p->price) : $p->priceDisplay() }}</td>
                             @endforeach
                         </tr>
                         <tr>
-                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Pengguna</td>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Tahunan / user / thn</td>
                             @foreach($tierPackages as $p)
-                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->maxUsersDisplay() }}</td>
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->price > 0 ? $p::rupiah($p->pricePerUser('yearly') * 12) : $p->priceDisplay() }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">User</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->usersRangeDisplay() }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Workspace (Team)</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p::limitDisplay($p->max_workspaces) }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Project</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p::limitDisplay($p->max_projects) }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Task / Board / List</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">Unlimited</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Storage</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->storage_label ?? '—' }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Web</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{!! $check !!}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Android</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{!! $p->has_android ? $check : '<span class="text-slate-600">—</span>' !!}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">iOS</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{!! $p->has_ios ? $check : '<span class="text-slate-600">—</span>' !!}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">AI</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{!! $check !!}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">Support</td>
+                            @foreach($tierPackages as $p)
+                                <td class="px-5 py-3 text-center text-slate-200 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->support_label ?? '—' }}</td>
                             @endforeach
                         </tr>
                         <tr>
@@ -134,14 +202,6 @@
                                 <td class="px-5 py-3 text-center text-slate-300 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{{ $p->fitur_text ?? '—' }}</td>
                             @endforeach
                         </tr>
-                        @foreach(['Unlimited Storage', 'Support Intensif', 'iOS, Web, Android', 'AI'] as $label)
-                            <tr>
-                                <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400">{{ $label }}</td>
-                                @foreach($tierPackages as $p)
-                                    <td class="px-5 py-3 {{ $p->is_popular ? 'bg-white/[0.03]' : '' }}">{!! $check !!}</td>
-                                @endforeach
-                            </tr>
-                        @endforeach
                         <tr>
                             <td class="sticky left-0 z-10 bg-slate-800 px-5 py-3 text-xs font-medium text-slate-400 align-top">Fitur HRIS</td>
                             @foreach($tierPackages as $p)
@@ -366,7 +426,7 @@
                     </label>
                     <div class="grid grid-cols-3 gap-3">
                         <div class="space-y-1.5">
-                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Harga (Rp)</label>
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Harga Bulanan (Rp)</label>
                             <input type="number" name="price" x-model.number="form.price" min="0" :disabled="form.is_custom_price"
                                    :class="form.is_custom_price ? 'opacity-40 cursor-not-allowed' : ''"
                                    class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
@@ -384,17 +444,62 @@
                     </div>
                 </div>
 
-                {{-- Pengguna --}}
+                <div x-show="form.type === 'tier'" class="grid grid-cols-2 gap-3 -mt-1">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Harga Tahunan / user / bln (Rp)</label>
+                        <input type="number" name="price_yearly" x-model.number="form.price_yearly" min="0" :disabled="form.is_custom_price" placeholder="kosong = sama dgn bulanan"
+                               class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
+                    </div>
+                    <p class="text-[11px] text-slate-500 self-end pb-2">Harga tier = per user per bulan. Tagihan = harga × jumlah user × bulan (1 atau 12), lalu promo & PPN.</p>
+                </div>
+
+                {-- Pengguna --}
                 <div class="space-y-2 p-3 bg-slate-800/60 rounded-xl border border-white/5">
                     <label class="flex items-center gap-2 text-xs font-medium text-slate-300">
                         <input type="checkbox" name="is_custom_users" value="1" x-model="form.is_custom_users" class="accent-blue-500">
                         Pengguna custom (tanpa batas angka tetap, mis. Enterprise → "Custom")
                     </label>
+                    <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Min. Pengguna</label>
+                        <input type="number" name="min_users" x-model.number="form.min_users" min="1" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
+                    </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Maks. Pengguna</label>
                         <input type="number" name="max_users" x-model.number="form.max_users" min="0" :disabled="form.is_custom_users"
                                :class="form.is_custom_users ? 'opacity-40 cursor-not-allowed' : ''"
                                class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60">
+                    </div>
+                    </div>
+                </div>
+
+                {-- Kuota & platform (tabel perbandingan) --}
+                <div x-show="form.type === 'tier'" class="space-y-3 p-3 bg-slate-800/60 rounded-xl border border-white/5">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Maks. Workspace</label>
+                            <input type="number" name="max_workspaces" x-model.number="form.max_workspaces" min="0" placeholder="kosong = unlimited" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Maks. Project</label>
+                            <input type="number" name="max_projects" x-model.number="form.max_projects" min="0" placeholder="kosong = unlimited" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Storage</label>
+                            <input type="text" name="storage_label" x-model="form.storage_label" maxlength="30" placeholder="25 GB" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 items-end">
+                        <div class="space-y-1.5 col-span-1">
+                            <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Support</label>
+                            <input type="text" name="support_label" x-model="form.support_label" maxlength="255" placeholder="Priority Support" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/60">
+                        </div>
+                        <label class="flex items-center gap-2 text-xs font-medium text-slate-300 pb-3">
+                            <input type="checkbox" name="has_android" value="1" x-model="form.has_android" class="accent-blue-500"> Android
+                        </label>
+                        <label class="flex items-center gap-2 text-xs font-medium text-slate-300 pb-3">
+                            <input type="checkbox" name="has_ios" value="1" x-model="form.has_ios" class="accent-blue-500"> iOS
+                        </label>
                     </div>
                 </div>
 
@@ -527,6 +632,8 @@ function packagesPage() {
         id: null, type: 'tier', slug: '', name: '', description: '', tagline: '',
         price: 0, is_custom_price: false, price_display: '', price_period: '',
         duration_days: 30, max_users: 0, is_custom_users: false,
+        price_yearly: null, min_users: 1, max_workspaces: null, max_projects: null,
+        storage_label: '', has_android: true, has_ios: true, support_label: '',
         is_active: true, is_popular: false,
         cta_label: '', cta_type: 'register', sort_order: 0,
         icon: 'paper-plane', color: 'blue', fitur_text: '', hris_feature: '',

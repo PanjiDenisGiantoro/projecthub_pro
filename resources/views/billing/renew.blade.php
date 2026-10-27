@@ -19,13 +19,24 @@
         </h2>
         <p class="text-sm mt-1 {{ $registrant?->isExpired() ? 'text-red-700' : 'text-amber-700' }}">
             @if(!$registrant || $registrant->isLifetime())
-                Perusahaan Anda memiliki akses lifetime / belum ada data masa aktif.
+                Perusahaan Anda memakai paket {{ $limits->planName() }} tanpa masa berakhir. Upgrade untuk menambah kuota.
             @elseif($registrant->isExpired())
                 Berakhir sejak {{ $registrant->active_until->translatedFormat('d M Y') }}. Pilih paket di bawah untuk memperpanjang.
             @else
                 Aktif hingga {{ $registrant->active_until->translatedFormat('d M Y') }}.
             @endif
         </p>
+        @if($limits->plan())
+            <div class="mt-3 flex flex-wrap gap-2 text-xs font-medium">
+                <span class="px-2.5 py-1 rounded-full bg-white/70 border border-gray-200 text-gray-700">Paket: {{ $limits->planName() }}</span>
+                <span class="px-2.5 py-1 rounded-full bg-white/70 border {{ $limits->canAddProject() ? 'border-gray-200 text-gray-700' : 'border-red-300 text-red-700' }}">
+                    Project: {{ $limits->projectCount() }} / {{ \App\Models\Package::limitDisplay($limits->maxProjects()) }}
+                </span>
+                <span class="px-2.5 py-1 rounded-full bg-white/70 border {{ $limits->canAddUser() ? 'border-gray-200 text-gray-700' : 'border-red-300 text-red-700' }}">
+                    User: {{ $limits->userCount() }} / {{ \App\Models\Package::limitDisplay($limits->maxUsers()) }}
+                </span>
+            </div>
+        @endif
     </div>
 
     @if(!$registrant)
@@ -52,20 +63,28 @@
                 </div>
                 <p class="text-sm text-gray-500 mt-2 flex-1">{{ $package->description }}</p>
 
+                @php $quote = $package->quote($userCount, 'monthly', $registrant?->company_id); @endphp
                 <div class="mt-4">
-                    <p class="text-2xl font-bold text-gray-900">{{ $package->priceDisplay() }}</p>
-                    <p class="text-xs text-gray-400 mt-0.5">/ {{ $package->duration_days }} hari</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $package::rupiah($package->price) }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">/ user / bulan · {{ $package->usersRangeDisplay() }} user</p>
+                    @if($package->yearlySavingPercent())
+                        <p class="text-xs text-emerald-600 mt-1">Tahunan {{ $package::rupiah($package->pricePerUser('yearly') * 12) }} / user / tahun (hemat {{ $package->yearlySavingPercent() }}%)</p>
+                    @endif
                 </div>
 
                 @if($ppnRate)
                     <div class="mt-3 rounded-xl bg-gray-50 p-3">
-                        @include('billing._price-breakdown', \App\Models\PpnRate::breakdown((int) $package->price))
+                        <p class="text-[11px] text-gray-500 mb-1">Estimasi bulanan untuk {{ $quote['users'] }} user</p>
+                        @include('billing._price-breakdown', $quote + [
+                            'priceLabel' => $package::rupiah($quote['price_per_user']) . ' × ' . $quote['users'] . ' user',
+                            'promoLabel' => $quote['promo']?->name,
+                        ])
                         <p class="text-[11px] text-gray-400 mt-1">+ biaya layanan sesuai metode bayar</p>
                     </div>
                 @endif
 
                 @if($registrant)
-                    <a href="{{ route('billing.checkout.show', $package) }}"
+                    <a href="{{ route('billing.checkout.show', [$package, 'users' => $quote['users']]) }}"
                        class="mt-5 block w-full text-center py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
                         {{ $owned ? 'Perpanjang' : 'Berlangganan' }}
                     </a>

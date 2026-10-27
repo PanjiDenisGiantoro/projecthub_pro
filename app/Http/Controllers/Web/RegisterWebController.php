@@ -10,6 +10,7 @@ use App\Models\OrganizationUnit;
 use App\Models\OvertimeRule;
 use App\Models\Package;
 use App\Models\PpnRate;
+use App\Models\Promo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +35,16 @@ class RegisterWebController extends Controller
             'tiers'        => $tiers,
             'modules'      => $this->selectableModules(),
             'ppnRate'      => PpnRate::activeOn(),
+            'tierData'     => $tiers->where('cta_type', 'register')->mapWithKeys(fn (Package $t) => [$t->slug => [
+                'name'         => $t->name,
+                'price'        => (int) $t->price,
+                'price_yearly' => $t->pricePerUser('yearly'),
+                'min'          => $t->min_users ?? 1,
+                'max'          => $t->max_users,
+            ]]),
+            // Saat daftar belum ada perusahaan → hanya promo untuk semua perusahaan.
+            'promoData'    => Promo::applicable()->whereNull('company_id')->get()
+                ->map(fn (Promo $p) => ['name' => $p->name, 'type' => $p->discount_type, 'value' => $p->discount_value])->values(),
         ]);
     }
 
@@ -62,6 +73,8 @@ class RegisterWebController extends Controller
             'plan'         => ['required', \Illuminate\Validation\Rule::in($selectablePlans)],
             'modules'      => [$selectableModules->isEmpty() ? 'nullable' : 'required', 'array'],
             'modules.*'    => [\Illuminate\Validation\Rule::in($selectableModules)],
+            'users'        => 'nullable|integer|min:1',
+            'cycle'        => 'nullable|in:' . implode(',', array_keys(Package::CYCLE_MONTHS)),
         ], [
             'email.unique'       => 'Email ini sudah terdaftar.',
             'password.min'       => 'Password minimal 8 karakter.',
@@ -133,7 +146,11 @@ class RegisterWebController extends Controller
         if ($selectedPackage->price > 0) {
             Auth::login($user);
 
-            return redirect()->route('billing.checkout.show', $selectedPackage);
+            return redirect()->route('billing.checkout.show', [
+                $selectedPackage,
+                'users' => $selectedPackage->clampUsers($request->integer('users')),
+                'cycle' => $request->input('cycle', 'monthly'),
+            ]);
         }
 
         return redirect()->route('login')

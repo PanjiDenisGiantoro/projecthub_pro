@@ -16,6 +16,7 @@ use App\Models\Shift;
 use App\Models\StructuralLevel;
 use App\Models\User;
 use App\Support\EmploymentType;
+use App\Support\PlanLimits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -214,6 +215,11 @@ class UserWebController extends Controller
 
     public function create()
     {
+        $limits = PlanLimits::current();
+        if (! $limits->canAddUser()) {
+            return redirect()->route('users.index')->with('plan_limit', $limits->limitNotice('user'));
+        }
+
         $roles = Role::whereNotIn('name', ['tester', 'client'])->get();
         $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
@@ -225,6 +231,11 @@ class UserWebController extends Controller
 
     public function store(Request $request)
     {
+        $limits = PlanLimits::current();
+        if ($request->boolean('is_active', true) && ! $limits->canAddUser()) {
+            return back()->withInput($request->except('password', 'password_confirmation'))->with('plan_limit', $limits->limitNotice('user'));
+        }
+
         $customFields = $this->activeCustomFields();
 
         $request->validate([
@@ -309,6 +320,11 @@ class UserWebController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $limits = PlanLimits::current();
+        if (! $user->is_active && $request->boolean('is_active') && ! $user->hasRole('client') && ! $limits->canAddUser()) {
+            return back()->withInput()->with('plan_limit', $limits->limitNotice('user'));
+        }
+
         $customFields = $this->activeCustomFields();
 
         $request->validate([

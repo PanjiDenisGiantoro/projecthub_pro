@@ -42,7 +42,11 @@
                 @forelse($orders as $order)
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono font-medium text-gray-800">{{ $order->order_number }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $order->package?->name ?? $order->package_name }}</td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {{ $order->package?->name ?? $order->package_name }}
+                        @if($order->user_count)<p class="text-[11px] text-gray-400">{{ $order->cycleLabel() }}</p>@endif
+                        @if($order->promo_name)<p class="text-[11px] text-emerald-600">Promo {{ $order->promo_name }} −Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</p>@endif
+                    </td>
                     <td class="px-4 py-3 font-medium text-gray-800">
                         Rp {{ number_format($order->amount, 0, ',', '.') }}
                         @if($order->ppn_amount > 0)

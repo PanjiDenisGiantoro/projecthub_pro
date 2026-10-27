@@ -3,6 +3,7 @@
 use App\Http\Controllers\DeployWebhookController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SuperAdmin\PaymentMethodController;
+use App\Http\Controllers\SuperAdmin\PromoController;
 use App\Http\Controllers\SuperAdmin\PpnRateController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use App\Http\Controllers\Web\ActivityLogWebController;
@@ -88,6 +89,7 @@ Route::prefix('deploy')->name('deploy.')->group(function () {
 // ─── Public ───────────────────────────────────────────────────────────────────
 Route::get('/', fn() => view('landing', [
     'pricingTiers' => Package::tiers()->active()->orderBy('sort_order')->with('features')->get(),
+    'promos'       => \App\Models\Promo::applicable()->whereNull('company_id')->orderBy('end_date')->get(),
 ]))->name('home');
 Route::get('/daftar', [RegisterWebController::class, 'show'])->name('register');
 Route::post('/daftar', [RegisterWebController::class, 'store'])->name('register.post');
@@ -118,6 +120,12 @@ Route::middleware(['auth', 'check.active', 'verified', 'superadmin'])->prefix('s
     Route::post('/ppn-rates', [PpnRateController::class, 'store'])->name('ppn-rates.store');
     Route::put('/ppn-rates/{ppnRate}', [PpnRateController::class, 'update'])->name('ppn-rates.update');
     Route::delete('/ppn-rates/{ppnRate}', [PpnRateController::class, 'destroy'])->name('ppn-rates.destroy');
+
+    Route::get('/promos', [PromoController::class, 'index'])->name('promos');
+    Route::post('/promos', [PromoController::class, 'store'])->name('promos.store');
+    Route::put('/promos/{promo}', [PromoController::class, 'update'])->name('promos.update');
+    Route::patch('/promos/{promo}/toggle', [PromoController::class, 'toggle'])->name('promos.toggle');
+    Route::delete('/promos/{promo}', [PromoController::class, 'destroy'])->name('promos.destroy');
 
     Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods');
     Route::post('/payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
@@ -152,7 +160,7 @@ Route::middleware(['auth'])->prefix('billing')->name('billing.')->group(function
     Route::get('/history/{order:order_number}/invoice', [BillingWebController::class, 'invoice'])->name('invoice');
     Route::get('/checkout/{package}', [BillingWebController::class, 'checkoutForm'])->name('checkout.show');
     Route::post('/checkout/{package}', [BillingWebController::class, 'checkout'])->name('checkout');
-    Route::get('/finish', [BillingWebController::class, 'finish'])->name('finish');
+    Route::get('/finish/{orderNumber?}', [BillingWebController::class, 'finish'])->name('finish');
     Route::get('/status/{order:order_number}', [BillingWebController::class, 'status'])->name('status');
 });
 Route::post('/billing/notification', [BillingWebController::class, 'notification'])->name('billing.notification');

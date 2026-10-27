@@ -15,7 +15,7 @@ class PaymentMethod extends Model
         'sort_order'  => 'integer',
     ];
 
-    public const GROUPS = ['Virtual Account', 'QRIS', 'E-Wallet', 'Kartu Kredit'];
+    public const GROUPS = ['Virtual Account', 'QRIS', 'E-Wallet', 'Gerai Retail', 'Kartu Kredit'];
 
     public function scopeActive($query)
     {

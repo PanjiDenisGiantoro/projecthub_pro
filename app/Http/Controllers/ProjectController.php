@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Support\PlanLimits;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -38,6 +39,11 @@ class ProjectController extends Controller
             'budget_alert_threshold' => 'nullable|numeric|min:0|max:100',
             'github_repo_url' => 'nullable|string|max:255',
         ]);
+
+        $limits = PlanLimits::current();
+        if (! $limits->canAddProject()) {
+            return response()->json(['message' => $limits->limitMessage('project'), 'upgrade_url' => route('billing.renew')], 403);
+        }
 
         $project = Project::create($request->only(
             'name', 'description', 'client_id', 'manager_id',

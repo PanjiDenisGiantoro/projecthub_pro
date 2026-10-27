@@ -309,6 +309,14 @@ class SuperAdminController extends Controller
             'duration_days'   => 'nullable|integer|min:1',
             'is_custom_users' => 'sometimes|boolean',
             'max_users'       => 'nullable|integer|min:0',
+            'price_yearly'    => 'nullable|integer|min:0',
+            'min_users'       => 'nullable|integer|min:1',
+            'max_workspaces'  => 'nullable|integer|min:0',
+            'max_projects'    => 'nullable|integer|min:0',
+            'storage_label'   => 'nullable|string|max:30',
+            'support_label'   => 'nullable|string|max:255',
+            'has_android'     => 'sometimes|boolean',
+            'has_ios'         => 'sometimes|boolean',
             'is_active'       => 'sometimes|boolean',
             'is_popular'      => 'sometimes|boolean',
             'cta_label'       => 'nullable|string|max:100',
@@ -335,10 +343,14 @@ class SuperAdminController extends Controller
             'price_display', 'price_period', 'duration_days',
             'cta_label', 'cta_type', 'sort_order',
             'icon', 'color', 'fitur_text', 'hris_feature',
+            'min_users', 'max_workspaces', 'max_projects', 'storage_label', 'support_label',
         ]);
 
         $data['price']       = $request->boolean('is_custom_price') ? null : $request->input('price', 0);
         $data['max_users']   = $request->boolean('is_custom_users') ? null : $request->input('max_users', 0);
+        $data['price_yearly'] = $request->boolean('is_custom_price') ? null : $request->input('price_yearly');
+        $data['has_android']  = $request->boolean('has_android');
+        $data['has_ios']      = $request->boolean('has_ios');
         $data['is_active']   = $request->boolean('is_active');
         $data['is_popular']  = $request->boolean('is_popular');
         $data['sort_order']  = $data['sort_order'] ?? 0;

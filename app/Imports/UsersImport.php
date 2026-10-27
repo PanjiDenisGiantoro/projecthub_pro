@@ -9,6 +9,7 @@ use App\Models\Shift;
 use App\Models\StructuralLevel;
 use App\Models\User;
 use App\Support\EmploymentType;
+use App\Support\PlanLimits;
 use App\Support\RoleLabel;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -173,6 +174,13 @@ class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
 
             if ($this->customFields->isNotEmpty()) {
                 $data['custom_fields'] = $this->collectCustomFieldValues($row, $existing);
+            }
+
+            // User baru / diaktifkan kembali menambah kuota user paket.
+            $activating = ($data['is_active'] ?? true) && ! $existing?->is_active;
+            if ($activating && ! PlanLimits::forCompany($this->companyId)->canAddUser()) {
+                $this->errors[] = "Baris {$line}: " . PlanLimits::forCompany($this->companyId)->limitMessage('user');
+                continue;
             }
 
             if ($existing) {

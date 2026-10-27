@@ -17,6 +17,9 @@
 
     // Order lama (sebelum ada PPN) tidak punya subtotal — anggap seluruh amount sebagai harga paket.
     $subtotal = $order->subtotal ?? $order->amount;
+    $gross    = $order->grossAmount();
+    // Order per user: qty = user × bulan, harga = per user / bulan.
+    $qty      = $order->user_count ? $order->user_count * ($order->billing_cycle === 'yearly' ? 12 : 1) : 1;
 @endphp
 <!DOCTYPE html>
 <html>
@@ -100,16 +103,25 @@
         <tr>
             <td>
                 <strong>Langganan Flovig — Paket {{ $order->package_name }}</strong><br>
-                <span class="muted">Durasi {{ $order->duration_days }} hari</span>
+                <span class="muted">
+                    @if($order->user_count){{ $order->cycleLabel() }} · @endif
+                    Durasi {{ $order->duration_days }} hari
+                </span>
             </td>
-            <td class="right">1</td>
-            <td class="right">{{ $rp($subtotal) }}</td>
-            <td class="right">{{ $rp($subtotal) }}</td>
+            <td class="right">{{ $qty }}</td>
+            <td class="right">{{ $rp(intdiv($gross, max(1, $qty))) }}</td>
+            <td class="right">{{ $rp($gross) }}</td>
         </tr>
     </tbody>
 </table>
 
 <table class="totals" style="width: 300px; margin-left: auto; margin-top: 8px;">
+    @if($order->discount_amount > 0)
+        <tr>
+            <td class="muted">Promo {{ $order->promo_name }}</td>
+            <td class="right">-{{ $rp($order->discount_amount) }}</td>
+        </tr>
+    @endif
     <tr>
         <td class="muted">Subtotal</td>
         <td class="right">{{ $rp($subtotal) }}</td>

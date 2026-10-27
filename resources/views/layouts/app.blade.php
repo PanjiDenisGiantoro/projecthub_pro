@@ -557,6 +557,15 @@
                 @endif
             @endif
 
+            {{-- Popup upgrade saat kuota paket (project / user) habis --}}
+            @if(session('plan_limit'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        window.showUpgradePrompt(@json(session('plan_limit')));
+                    });
+                </script>
+            @endif
+
             {{-- Flash messages (Unified Modern Pill Toast) --}}
             @if(session('success'))
                 <script>
@@ -1293,6 +1302,31 @@
                 },
             }
         }
+
+        @auth
+            @php $planLimits = \App\Support\PlanLimits::current(); @endphp
+            // Kuota paket yang sudah habis → tombol tambah langsung menampilkan popup upgrade.
+            window.flovigPlanLimits = {
+                project: @json($planLimits->canAddProject() ? null : $planLimits->limitNotice('project')),
+                user: @json($planLimits->canAddUser() ? null : $planLimits->limitNotice('user')),
+            };
+        @endauth
+
+        window.showUpgradePrompt = function (notice) {
+            Swal.fire({
+                title: notice.title || 'Batas paket tercapai',
+                text: notice.message,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Upgrade Paket',
+                cancelButtonText: 'Nanti saja',
+                reverseButtons: true,
+            }).then(function (result) {
+                if (result.isConfirmed && notice.url) { window.location.href = notice.url; }
+            });
+        };
 
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('form[data-confirm-delete]').forEach(function (form) {

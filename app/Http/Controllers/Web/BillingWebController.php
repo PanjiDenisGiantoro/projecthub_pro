@@ -8,7 +8,9 @@ use App\Models\Package;
 use App\Models\PaymentMethod;
 use App\Models\PpnRate;
 use App\Models\SubscriptionOrder;
+use App\Models\User;
 use App\Services\DokuService;
+use App\Support\PlanLimits;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,16 +30,17 @@ class BillingWebController extends Controller
     public function renew(Request $request)
     {
         $user       = Auth::user();
-        $registrant = $user->companyRegistrant();
+        $registrant = $user->companyOwner();
 
         $packages = Package::tiers()->active()
             ->where('cta_type', 'register')
             ->whereNotNull('price')
             ->where('price', '>', 0)
-            ->orderBy('price')
+            ->orderBy('sort_order')
             ->get();
         $contactPackage = Package::tiers()->active()->where('cta_type', 'contact')->orderBy('sort_order')->first();
         $ownedSlugs = $registrant?->packages->pluck('slug')->toArray() ?? [];
+        $limits     = PlanLimits::forUser($user);
 
         return view('billing.renew', [
             'packages'       => $packages,
@@ -45,7 +48,15 @@ class BillingWebController extends Controller
             'contactPackage' => $contactPackage,
             'ownedSlugs'     => $ownedSlugs,
             'registrant'     => $registrant,
+            'userCount'      => $registrant ? $this->companyUserCount($registrant->company_id) : 1,
+            'limits'         => $limits,
         ]);
+    }
+
+    /** Jumlah user aktif perusahaan — default jumlah user yang ditagih. */
+    private function companyUserCount(?int $companyId): int
+    {
+        return max(1, User::where('company_id', $companyId)->where('is_active', true)->count());
     }
 
     /** GET /billing/history — riwayat pembayaran perusahaan. */
@@ -74,20 +85,23 @@ class BillingWebController extends Controller
             ->stream("invoice-{$order->order_number}.pdf");
     }
 
-    /** GET /billing/checkout/{package} — pilih metode bayar & lihat rincian (harga + PPN + biaya layanan). */
-    public function checkoutForm(Package $package)
+    /** GET /billing/checkout/{package}?users=&cycle=&method= — pilih jumlah user, siklus & metode bayar; rincian harga + PPN + biaya layanan. */
+    public function checkoutForm(Request $request, Package $package)
     {
-        abort_unless(Auth::user()->companyRegistrant(), 404, 'Data pendaftar perusahaan tidak ditemukan.');
+        $registrant = Auth::user()->companyOwner();
+        abort_unless($registrant, 404, 'Data pendaftar perusahaan tidak ditemukan.');
         abort_unless($package->is_active && $package->price > 0, 404);
 
-        $price   = PpnRate::breakdown((int) $package->price);
+        $users = $request->integer('users') ?: $this->companyUserCount($registrant->company_id);
+        $quote = $package->quote($users, (string) $request->query('cycle', 'monthly'), $registrant->company_id);
+
         $methods = PaymentMethod::active()->ordered()->get();
 
         return view('billing.checkout', [
             'package' => $package,
-            'price'   => $price,
+            'quote'   => $quote,
             'methods' => $methods,
-            'fees'    => $methods->mapWithKeys(fn ($m) => [$m->code => $m->feeFor($price['total'])]),
+            'fees'    => $methods->mapWithKeys(fn ($m) => [$m->code => $m->feeFor($quote['total'])]),
         ]);
     }
 
@@ -95,23 +109,25 @@ class BillingWebController extends Controller
     public function checkout(Request $request, Package $package)
     {
         $user       = Auth::user();
-        $registrant = $user->companyRegistrant();
+        $registrant = $user->companyOwner();
 
         abort_unless($registrant, 404, 'Data pendaftar perusahaan tidak ditemukan.');
-        abort_unless($package->is_active, 404);
+        abort_unless($package->is_active && $package->price > 0, 404);
 
-        $request->validate(
-            ['payment_method' => 'required|string'],
-            ['payment_method.required' => 'Pilih metode pembayaran terlebih dahulu.']
-        );
+        $request->validate([
+            'users' => 'required|integer|min:1',
+            'cycle'          => 'required|in:' . implode(',', array_keys(Package::CYCLE_MONTHS)),
+            'payment_method' => 'required|string',
+        ], ['payment_method.required' => 'Pilih metode pembayaran terlebih dahulu.']);
+
         $method = PaymentMethod::active()->where('code', $request->input('payment_method'))->first();
-
         if (! $method) {
             return back()->withErrors(['payment_method' => 'Metode pembayaran tidak tersedia.']);
         }
 
-        $price = PpnRate::breakdown((int) $package->price);
-        $fee   = $method->feeFor($price['total']);
+        // Biaya layanan ditanggung customer, dihitung dari harga + PPN; DOKU dikunci ke metode terpilih.
+        $quote = $package->quote($request->integer('users'), $request->input('cycle'), $registrant->company_id);
+        $fee   = $method->feeFor($quote['total']);
 
         $order = SubscriptionOrder::create([
             'order_number'          => 'SUB-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(6)),
@@ -119,14 +135,19 @@ class BillingWebController extends Controller
             'company_id'            => $registrant->company_id,
             'package_id'            => $package->id,
             'package_name'          => $package->name,
-            'subtotal'              => $price['subtotal'],
-            'ppn_rate'              => $price['rate'],
-            'ppn_amount'            => $price['ppn'],
+            'billing_cycle'         => $quote['cycle'],
+            'user_count'            => $quote['users'],
+            'promo_id'              => $quote['promo']?->id,
+            'promo_name'            => $quote['promo']?->name,
+            'discount_amount'       => $quote['discount'],
+            'subtotal'              => $quote['subtotal'],
+            'ppn_rate'              => $quote['rate'],
+            'ppn_amount'            => $quote['ppn'],
             'payment_method_code'   => $method->code,
             'payment_method_name'   => $method->name,
             'fee_amount'            => $fee,
-            'amount'                => $price['total'] + $fee,
-            'duration_days'         => $package->duration_days,
+            'amount'                => $quote['total'] + $fee,
+            'duration_days'         => $quote['duration_days'],
             'status'                => 'pending',
         ]);
 
@@ -144,9 +165,9 @@ class BillingWebController extends Controller
     }
 
     /** GET /billing/finish — halaman kembali setelah user menyelesaikan/membatalkan pembayaran di DOKU. */
-    public function finish(Request $request)
+    public function finish(Request $request, ?string $orderNumber = null)
     {
-        $order = SubscriptionOrder::where('order_number', $request->query('order_id'))->first();
+        $order = SubscriptionOrder::where('order_number', $orderNumber ?? $request->query('order_id'))->first();
 
         return view('billing.finish', ['order' => $order]);
     }
@@ -193,7 +214,12 @@ class BillingWebController extends Controller
         };
 
         DB::transaction(function () use ($order, $newStatus, $payload) {
+            // Catat metode yang dipilih customer di halaman DOKU (mis. VIRTUAL_ACCOUNT_BRI).
+            $channel = data_get($payload, 'channel.id') ?? data_get($payload, 'service.id');
+
             $order->update([
+                'payment_method_code'     => $order->payment_method_code ?? $channel,
+                'payment_method_name'     => $order->payment_method_name ?? ($channel ? (PaymentMethod::where('code', $channel)->value('name') ?? Str::headline(Str::lower($channel))) : null),
                 'status'                  => $newStatus,
                 'midtrans_transaction_id' => data_get($payload, 'transaction.original_request_id', $order->midtrans_transaction_id),
                 'raw_notification'        => $payload,
@@ -217,7 +243,15 @@ class BillingWebController extends Controller
                     );
                 }
 
+                // Satu perusahaan hanya punya satu tier aktif: lepas tier lama saat ganti/upgrade paket.
+                if ($order->package?->type === 'tier') {
+                    $registrant->packages()->detach(
+                        Package::tiers()->whereKeyNot($order->package_id)->pluck('id')->all()
+                    );
+                }
+
                 $registrant->packages()->syncWithoutDetaching($packageIds);
+                PlanLimits::flush($order->company_id);
             }
         });
 

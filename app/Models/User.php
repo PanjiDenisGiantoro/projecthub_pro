@@ -213,6 +213,16 @@ class User extends Authenticatable implements MustVerifyEmailContract
             ->first();
     }
 
+    /** User pendaftar perusahaan (pemilik langganan), termasuk yang lifetime/Free. */
+    public function companyOwner(): ?self
+    {
+        if (! $this->company_id) {
+            return null;
+        }
+
+        return static::where('company_id', $this->company_id)->where('is_registered', true)->orderBy('id')->first();
+    }
+
     public function isCompanyExpired(): bool
     {
         return $this->companyRegistrant()?->isExpired() ?? false;

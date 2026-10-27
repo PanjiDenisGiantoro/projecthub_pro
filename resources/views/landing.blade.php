@@ -697,6 +697,60 @@
             text-align: center;
         }
 
+        .pricing-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin: 32px auto 0;
+            padding: 4px;
+            width: fit-content;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: white;
+        }
+
+        .pricing-toggle button {
+            border: 0;
+            background: transparent;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .pricing-toggle button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .pricing-toggle span {
+            font-size: 11.5px;
+            opacity: .85;
+        }
+
+        .pricing-promo {
+            margin: 16px auto 0;
+            width: fit-content;
+            max-width: 100%;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .pricing-footnote {
+            margin-top: 28px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            font-style: italic;
+        }
+
         /* ── CTA ── */
         .cta {
             padding: 100px 0;
@@ -1412,6 +1466,19 @@
                 <p>Pilih paket sesuai ukuran tim Anda. Ganti kapan saja.</p>
             </div>
 
+            <div x-data="{ cycle: 'monthly' }">
+            <div class="pricing-toggle">
+                <button type="button" @click="cycle = 'monthly'" :class="cycle === 'monthly' && 'active'">Bulanan</button>
+                <button type="button" @click="cycle = 'yearly'" :class="cycle === 'yearly' && 'active'">Tahunan <span>hemat 30%</span></button>
+            </div>
+
+            @foreach($promos as $promo)
+                <div class="pricing-promo">
+                    🎉 <strong>{{ $promo->name }}</strong> — potongan {{ $promo->valueLabel() }}
+                    @if($promo->end_date) s/d {{ $promo->end_date->translatedFormat('d M Y') }} @endif
+                </div>
+            @endforeach
+
             <div class="pricing-grid">
                 @foreach($pricingTiers as $tier)
                     <div class="pricing-card @if($tier->is_popular) popular @endif">
@@ -1420,8 +1487,16 @@
                         @endif
                         <h3>{{ $tier->name }}</h3>
                         <p>{{ $tier->tagline }}</p>
-                        <div class="price">{{ $tier->priceDisplay() }}</div>
-                        <div class="price-note">{{ $tier->price_period }}</div>
+                        @if($tier->price > 0)
+                            <div class="price" x-text="cycle === 'yearly' ? @js($tier::rupiah($tier->pricePerUser('yearly') * 12)) : @js($tier::rupiah($tier->price))">{{ $tier::rupiah($tier->price) }}</div>
+                            <div class="price-note">
+                                <span x-show="cycle === 'monthly'">/ user / bulan</span>
+                                <span x-show="cycle === 'yearly'" x-cloak>/ user / tahun · <s>{{ $tier::rupiah($tier->price * 12) }}</s></span>
+                            </div>
+                        @else
+                            <div class="price">{{ $tier->priceDisplay() }}</div>
+                            <div class="price-note">{{ $tier->price_period }}</div>
+                        @endif
                         <a href="{{ $tier->cta_type === 'contact' ? 'mailto:sales@projecthubpro.id' : route('register', ['plan' => $tier->slug]) }}"
                             class="btn {{ $tier->is_popular ? 'btn-primary' : 'btn-outline' }}">{{ $tier->cta_label }}</a>
                         <ul>
@@ -1431,6 +1506,8 @@
                         </ul>
                     </div>
                 @endforeach
+            </div>
+            <p class="pricing-footnote">All Features. One Simple Price. Mulai gratis hingga 8 user, upgrade saat tim Anda bertambah.</p>
             </div>
         </div>
     </section>

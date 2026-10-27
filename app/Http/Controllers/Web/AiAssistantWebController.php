@@ -7,6 +7,7 @@ use App\Models\BoardColumn;
 use App\Models\Project;
 use App\Models\Task;
 use App\Services\NotificationService;
+use App\Support\PlanLimits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
@@ -391,6 +392,11 @@ class AiAssistantWebController extends Controller
             ])->validate();
         } catch (ValidationException $e) {
             return response()->json(['error' => 'Nama proyek tidak valid: ' . $e->getMessage()], 422);
+        }
+
+        $limits = PlanLimits::current();
+        if (! $limits->canAddProject()) {
+            return response()->json(['error' => $limits->limitMessage('project')], 403);
         }
 
         $project = Project::create([

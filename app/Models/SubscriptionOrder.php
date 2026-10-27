@@ -12,6 +12,11 @@ class SubscriptionOrder extends Model
         'company_id',
         'package_id',
         'package_name',
+        'billing_cycle',
+        'user_count',
+        'promo_id',
+        'promo_name',
+        'discount_amount',
         'subtotal',
         'ppn_rate',
         'ppn_amount',
@@ -29,6 +34,8 @@ class SubscriptionOrder extends Model
 
     protected $casts = [
         'subtotal'         => 'integer',
+        'user_count'       => 'integer',
+        'discount_amount'  => 'integer',
         'ppn_rate'         => 'float',
         'ppn_amount'       => 'integer',
         'fee_amount'       => 'integer',
@@ -51,6 +58,25 @@ class SubscriptionOrder extends Model
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function promo()
+    {
+        return $this->belongsTo(Promo::class);
+    }
+
+    /** Harga paket sebelum promo (subtotal sudah dipotong promo). */
+    public function grossAmount(): int
+    {
+        return (int) ($this->subtotal ?? $this->amount) + (int) $this->discount_amount;
+    }
+
+    /** "12 user · Tahunan" */
+    public function cycleLabel(): string
+    {
+        $cycle = $this->billing_cycle === 'yearly' ? 'Tahunan' : 'Bulanan';
+
+        return $this->user_count ? "{$this->user_count} user · {$cycle}" : $cycle;
     }
 
     public function isPaid(): bool

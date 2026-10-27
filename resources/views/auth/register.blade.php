@@ -70,8 +70,13 @@
                                 </svg>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">{{ $tier->tagline }}</p>
-                            <p class="text-lg font-bold text-gray-900 mt-2">{{ $tier->priceDisplay() }}</p>
-                            <p class="text-xs text-gray-500 -mt-0.5">{{ $tier->price_period }}</p>
+                            @if($tier->price > 0)
+                                <p class="text-lg font-bold text-gray-900 mt-2" x-text="rp(cycle === 'yearly' ? {{ $tier->pricePerUser('yearly') * 12 }} : {{ $tier->price }})">{{ $tier::rupiah($tier->price) }}</p>
+                                <p class="text-xs text-gray-500 -mt-0.5" x-text="cycle === 'yearly' ? '/ user / tahun' : '/ user / bulan'">/ user / bulan</p>
+                            @else
+                                <p class="text-lg font-bold text-gray-900 mt-2">{{ $tier->priceDisplay() }}</p>
+                                <p class="text-xs text-gray-500 -mt-0.5">{{ $tier->price_period }}</p>
+                            @endif
                             @if($ppnRate && $tier->price > 0)
                                 <p class="text-[11px] text-gray-400">belum termasuk PPN {{ \App\Models\PpnRate::formatRate($ppnRate->rate) }}</p>
                             @endif
@@ -99,16 +104,48 @@
                 @endforeach
             </div>
 
-            {{-- Rincian pembayaran paket berbayar (harga + PPN) --}}
-            @foreach($tiers as $tier)
-                @if($tier->cta_type === 'register' && $tier->price > 0)
-                    <div x-show="plan === '{{ $tier->slug }}'" x-cloak class="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-medium text-gray-700 mb-2">Rincian Pembayaran — {{ $tier->name }}</p>
-                        @include('billing._price-breakdown', \App\Models\PpnRate::breakdown((int) $tier->price))
-                        <p class="text-[11px] text-gray-400 mt-1">+ biaya layanan sesuai metode bayar yang dipilih</p>
+            {{-- Jumlah user, siklus & rincian pembayaran paket berbayar (final dihitung ulang di checkout) --}}
+            <div x-show="tier && tier.price > 0" x-cloak class="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <p class="text-xs font-medium text-gray-700 mb-1.5">Siklus Tagihan</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" @click="cycle = 'monthly'" class="rounded-lg border-2 px-3 py-1.5 text-sm font-semibold"
+                                    :class="cycle === 'monthly' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-700'">Bulanan</button>
+                            <button type="button" @click="cycle = 'yearly'" class="rounded-lg border-2 px-3 py-1.5 text-sm font-semibold"
+                                    :class="cycle === 'yearly' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-700'">
+                                Tahunan <span class="text-[11px] font-medium text-emerald-600">hemat 30%</span>
+                            </button>
+                        </div>
                     </div>
-                @endif
-            @endforeach
+                    <div>
+                        <label for="user_count" class="block text-xs font-medium text-gray-700 mb-1.5">Jumlah User</label>
+                        <input id="user_count" type="number" x-model.number="users" :min="tier?.min" :max="tier?.max" @blur="users = clampedUsers"
+                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-[11px] text-gray-400 mt-1" x-text="'Paket ' + tier?.name + ' untuk ' + tier?.min + (tier?.max ? '–' + tier.max : '+') + ' user'"></p>
+                    </div>
+                </div>
+
+                <div class="text-sm space-y-1 border-t border-gray-200 pt-3">
+                    <div class="flex justify-between gap-3 text-gray-500">
+                        <span x-text="rp(perUser * months) + ' × ' + clampedUsers + ' user' + (cycle === 'yearly' ? ' (1 tahun)' : ' (1 bulan)')"></span>
+                        <span class="text-gray-800 whitespace-nowrap" x-text="rp(gross)"></span>
+                    </div>
+                    <div x-show="discount > 0" class="flex justify-between gap-3 text-emerald-600">
+                        <span x-text="'Promo ' + (promo?.name ?? '')"></span>
+                        <span class="whitespace-nowrap" x-text="'−' + rp(discount)"></span>
+                    </div>
+                    <div class="flex justify-between text-gray-500">
+                        <span>PPN {{ $ppnRate ? \App\Models\PpnRate::formatRate($ppnRate->rate) : '0%' }}</span>
+                        <span class="text-gray-800" x-text="rp(ppn)"></span>
+                    </div>
+                    <div class="flex justify-between font-semibold text-gray-900 border-t border-gray-200 pt-1">
+                        <span>Total</span>
+                        <span x-text="rp(total)"></span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400">+ biaya layanan sesuai metode bayar yang dipilih</p>
+            </div>
 
             <p class="text-xs text-gray-500 mt-3" x-show="plan === 'free'">Mulai gratis selamanya, tanpa kartu kredit.</p>
             <p class="text-xs text-gray-500 mt-3" x-show="plan !== 'free'">Setelah mendaftar, Anda memilih metode pembayaran lalu diarahkan ke halaman pembayaran DOKU.</p>
@@ -117,6 +154,8 @@
         <form method="POST" action="{{ route('register.post') }}" class="space-y-4">
             @csrf
             <input type="hidden" name="plan" x-model="plan">
+            <input type="hidden" name="cycle" x-model="cycle">
+            <input type="hidden" name="users" :value="clampedUsers">
 
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
@@ -226,7 +265,36 @@
 <script>
 function registerForm() {
     return {
+        tiers: @json($tierData),
+        promos: @json($promoData),
+        ppnRate: {{ (float) ($ppnRate?->rate ?? 0) }},
+        cycle: @json(old('cycle', 'monthly')),
+        users: {{ (int) old('users', 0) }},
         plan: @json(old('plan', $prefillPlan)),
+        init() {
+            if (! this.users) this.users = this.tier?.min ?? 1;
+            this.$watch('plan', () => { this.users = this.tier?.min ?? 1; });
+        },
+        get tier() { return this.tiers[this.plan] ?? null; },
+        get clampedUsers() {
+            const t = this.tier; if (! t) return 1;
+            let u = Math.max(parseInt(this.users) || 0, t.min);
+            return t.max ? Math.min(u, t.max) : u;
+        },
+        get months() { return this.cycle === 'yearly' ? 12 : 1; },
+        get perUser() { return this.cycle === 'yearly' ? this.tier?.price_yearly : this.tier?.price; },
+        get gross() { return (this.perUser ?? 0) * this.clampedUsers * this.months; },
+        promoDiscount(p) {
+            const d = p.type === 'percent' ? Math.round(this.gross * p.value / 100) : Math.round(p.value);
+            return Math.max(0, Math.min(d, this.gross));
+        },
+        get promo() {
+            return this.promos.reduce((best, p) => (! best || this.promoDiscount(p) > this.promoDiscount(best)) ? p : best, null);
+        },
+        get discount() { return this.promo ? this.promoDiscount(this.promo) : 0; },
+        get ppn() { return Math.round((this.gross - this.discount) * this.ppnRate / 100); },
+        get total() { return this.gross - this.discount + this.ppn; },
+        rp(v) { return 'Rp ' + Number(v ?? 0).toLocaleString('id-ID'); },
         modules: @json(old('modules', $modules->pluck('slug')->values())),
         showPassword: false,
         showPasswordConfirmation: false,

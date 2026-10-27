@@ -1,9 +1,15 @@
-{{-- Rincian harga paket + PPN (+ biaya layanan opsional). Butuh: $subtotal, $rate, $ppn, $total; opsional: $fee, $feeLabel --}}
+{{-- Rincian harga paket + PPN (+ promo & biaya layanan opsional). Butuh: $subtotal (setelah promo), $rate, $ppn, $total; opsional: $gross, $discount, $promoLabel, $priceLabel, $fee, $feeLabel --}}
 <div class="text-sm space-y-1">
-    <div class="flex justify-between text-gray-500">
-        <span>Harga paket</span>
-        <span class="text-gray-800">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+    <div class="flex justify-between gap-3 text-gray-500">
+        <span>{{ $priceLabel ?? 'Harga paket' }}</span>
+        <span class="text-gray-800 whitespace-nowrap">Rp {{ number_format(($discount ?? 0) > 0 ? $gross : $subtotal, 0, ',', '.') }}</span>
     </div>
+    @if(($discount ?? 0) > 0)
+        <div class="flex justify-between gap-3 text-emerald-600">
+            <span>Promo{{ ! empty($promoLabel) ? ' ' . $promoLabel : '' }}</span>
+            <span class="whitespace-nowrap">−Rp {{ number_format($discount, 0, ',', '.') }}</span>
+        </div>
+    @endif
     <div class="flex justify-between text-gray-500">
         <span>PPN {{ \App\Models\PpnRate::formatRate($rate) }}</span>
         <span class="text-gray-800">Rp {{ number_format($ppn, 0, ',', '.') }}</span>
