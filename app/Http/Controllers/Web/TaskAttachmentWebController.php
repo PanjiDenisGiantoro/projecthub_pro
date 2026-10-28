@@ -212,6 +212,10 @@ class TaskAttachmentWebController extends Controller
                 'id'        => $attachment->id,
                 'type'      => $attachment->type,
                 'file_name' => $attachment->file_name,
+                // Field mentah juga dikirim: template modal memakai file_size & file_path seperti data dari DB.
+                'file_path' => $attachment->file_path,
+                'file_size' => $attachment->file_size,
+                'mime_type' => $attachment->mime_type,
                 'url'       => $attachment->publicUrl(),
                 'is_image'  => $attachment->isImage(),
                 'size'      => $attachment->humanSize(),

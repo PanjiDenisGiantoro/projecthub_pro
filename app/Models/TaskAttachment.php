@@ -31,10 +31,14 @@ class TaskAttachment extends Model
 
     public function publicUrl(): string
     {
+        // Baca kolom langsung: $this->url akan dianggap relasi karena ada method url(),
+        // dan meledak (LogicException) pada model baru yang kolom url-nya belum di-set.
+        $url = $this->attributes['url'] ?? null;
+
         if ($this->type === 'link') {
-            return $this->url ?? '#';
+            return $url ?? '#';
         }
-        return $this->file_path ? Storage::url($this->file_path) : ($this->url ?? '#');
+        return $this->file_path ? Storage::url($this->file_path) : ($url ?? '#');
     }
 
     public function url(): string
