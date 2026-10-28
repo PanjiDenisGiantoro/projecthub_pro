@@ -280,6 +280,9 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
 
         // Attachments & Cover
         Route::post('/projects/{project}/tasks/{task}/attachments', [TaskAttachmentWebController::class, 'store'])->name('tasks.attachments.store');
+        Route::post('/projects/{project}/tasks/{task}/attachments/chunk', [TaskAttachmentWebController::class, 'storeChunk'])->name('tasks.attachments.chunk');
+        Route::get('/projects/{project}/tasks/{task}/attachments/chunk/{uploadId}', [TaskAttachmentWebController::class, 'chunkStatus'])->name('tasks.attachments.chunk-status');
+        Route::post('/projects/{project}/tasks/{task}/attachments/complete', [TaskAttachmentWebController::class, 'completeChunks'])->name('tasks.attachments.complete');
         Route::delete('/projects/{project}/tasks/{task}/attachments/{attachment}', [TaskAttachmentWebController::class, 'destroy'])->name('tasks.attachments.destroy');
         Route::post('/projects/{project}/tasks/{task}/cover', [TaskAttachmentWebController::class, 'updateCover'])->name('tasks.cover.update');
     });

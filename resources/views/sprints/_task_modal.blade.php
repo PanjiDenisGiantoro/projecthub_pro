@@ -1401,7 +1401,11 @@
 
                                 {{-- Drag & Drop File Area --}}
                                 <div x-show="attachmentMode === 'file'"
-                                    class="border-2 border-dashed border-blue-200 dark:border-blue-800/60 bg-blue-50/40 dark:bg-blue-950/20 rounded-2xl p-6 text-center transition-all hover:bg-blue-50/60">
+                                    @dragover.prevent="attachmentDragOver = true"
+                                    @dragleave.prevent="attachmentDragOver = false"
+                                    @drop.prevent="attachmentDragOver = false; uploadAttachmentFiles($event.dataTransfer.files)"
+                                    class="border-2 border-dashed border-blue-200 dark:border-blue-800/60 bg-blue-50/40 dark:bg-blue-950/20 rounded-2xl p-6 text-center transition-all hover:bg-blue-50/60"
+                                    :class="attachmentDragOver ? 'border-blue-500 bg-blue-50/80' : ''">
                                     <svg class="w-9 h-9 mx-auto text-blue-500 mb-2" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
@@ -1411,13 +1415,35 @@
                                         <label
                                             class="text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer">
                                             Choose from computer
-                                            <input type="file" class="hidden" x-ref="attachmentFileInput"
-                                                @change="uploadAttachmentFile($event)">
+                                            <input type="file" class="hidden" multiple x-ref="attachmentFileInput"
+                                                @change="uploadAttachmentFiles($event.target.files); $event.target.value = ''">
                                         </label>
                                         <span>or drag & drop files</span>
                                     </p>
-                                    <p class="text-[11px] text-slate-400 mt-1">Max 25MB • PDF, PNG, SQL, ZIP</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">Max 200MB per file • large files resume automatically if the connection drops</p>
                                 </div>
+
+                                {{-- Upload Progress --}}
+                                <template x-for="up in uploads.filter(u => u.taskId == task.id)" :key="up.id">
+                                    <div class="p-3 rounded-xl border bg-white dark:bg-slate-900"
+                                        :class="up.error ? 'border-red-200 dark:border-red-900/60' : 'border-slate-200 dark:border-slate-700'">
+                                        <div class="flex items-center justify-between gap-3 text-xs">
+                                            <span class="font-medium text-slate-700 dark:text-slate-200 truncate" x-text="up.name"></span>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                <span :class="up.error ? 'text-red-600' : 'text-slate-500'"
+                                                    x-text="up.error || up.status"></span>
+                                                <button type="button" x-show="up.error && up.rec" @click="retryUpload(up)"
+                                                    class="text-blue-600 hover:text-blue-700 font-semibold">Retry</button>
+                                                <button type="button" @click="cancelUpload(up)"
+                                                    class="text-slate-400 hover:text-red-600 font-semibold"
+                                                    x-text="up.error ? 'Close' : 'Cancel'"></button>
+                                            </div>
+                                        </div>
+                                        <div x-show="!up.error" class="h-1.5 mt-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                            <div class="h-full bg-blue-600 transition-all" :style="`width: ${up.progress}%`"></div>
+                                        </div>
+                                    </div>
+                                </template>
 
                                 {{-- Add Web Link Section --}}
                                 <div x-show="attachmentMode === 'link'"
@@ -1979,9 +2005,55 @@
                     </div>
                 </div>
     </template>
+    {{-- Upload yang masih berjalan saat modal ditutup / setelah refresh --}}
+    <template x-teleport="body">
+        <div x-show="!isOpen && uploads.length" x-cloak
+            class="fixed bottom-4 right-4 z-[90] w-72 max-w-[calc(100vw-2rem)] space-y-2">
+            <template x-for="up in uploads" :key="up.id">
+                <div class="p-3 rounded-xl border bg-white dark:bg-slate-900 shadow-lg cursor-pointer"
+                    :class="up.error ? 'border-red-200 dark:border-red-900/60' : 'border-slate-200 dark:border-slate-700'"
+                    @click="openModal(up.taskId)">
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                        <span class="font-medium text-slate-700 dark:text-slate-200 truncate" x-text="up.name"></span>
+                        <span class="shrink-0" :class="up.error ? 'text-red-600' : 'text-slate-500'"
+                            x-text="up.error ? 'Failed' : up.status"></span>
+                    </div>
+                    <div x-show="!up.error" class="h-1.5 mt-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div class="h-full bg-blue-600 transition-all" :style="`width: ${up.progress}%`"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </template>
 </div>
 
 <script>
+    // File upload disimpan di IndexedDB supaya bisa dilanjutkan otomatis setelah halaman di-refresh.
+    window.taskUploadStore ??= {
+        db: null,
+        open() {
+            return this.db ??= new Promise((resolve, reject) => {
+                const req = indexedDB.open('flovig-task-uploads', 1);
+                req.onupgradeneeded = () => req.result.createObjectStore('uploads', { keyPath: 'id' });
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        },
+        async run(mode, fn) {
+            const db = await this.open();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('uploads', mode);
+                const req = fn(tx.objectStore('uploads'));
+                tx.oncomplete = () => resolve(req?.result);
+                tx.onerror = () => reject(tx.error);
+                tx.onabort = () => reject(tx.error);
+            });
+        },
+        put(rec) { return this.run('readwrite', store => store.put(rec)); },
+        remove(id) { return this.run('readwrite', store => store.delete(id)).catch(() => {}); },
+        all() { return this.run('readonly', store => store.getAll()); },
+    };
+
     function taskModalComponent() {
         return {
             isOpen: false,
@@ -2034,6 +2106,8 @@
 
             // Attachments Panel
             attachmentMode: 'file',
+            attachmentDragOver: false,
+            uploads: [],
             linkUrl: '',
             linkName: '',
 
@@ -2117,6 +2191,14 @@
                         this.openModal(queryTaskId);
                     });
                 }
+
+                window.addEventListener('beforeunload', (e) => {
+                    if (this.uploads.some(u => !u.error)) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+                this.resumePendingUploads();
             },
 
             showToast(message, type = 'success') {
@@ -2684,31 +2766,186 @@
             },
 
             // --- Attachments ---
-            async uploadAttachmentFile(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+            // File dikirim per potongan 2MB; potongan yang gagal diulang otomatis supaya
+            // upload besar tidak putus di koneksi lambat/tidak stabil (lihat TaskAttachmentWebController).
+            // File juga disimpan di IndexedDB, jadi kalau halaman di-refresh upload dilanjutkan dari
+            // potongan terakhir yang sudah sampai di server.
+            async uploadAttachmentFiles(fileList) {
+                for (const file of Array.from(fileList || [])) {
+                    await this.uploadAttachmentFile(file);
+                }
+            },
 
-                const fd = new FormData();
-                fd.append('type', 'file');
-                fd.append('file', file);
+            async uploadAttachmentFile(file) {
+                const MAX_FILE_SIZE = 200 * 1024 * 1024;
+                if (file.size > MAX_FILE_SIZE) {
+                    this.showToast(`"${file.name}" is larger than 200MB`, 'error');
+                    return;
+                }
+
+                const rec = {
+                    id: crypto.randomUUID(),
+                    taskId: this.task.id,
+                    base: `/projects/{{ $project->slug }}/tasks/${this.task.id}/attachments`,
+                    name: file.name,
+                    size: file.size,
+                    file,
+                    createdAt: Date.now(),
+                };
+                const up = this.trackUpload(rec, 'Preparing...');
+                // Gagal simpan (mode private / storage penuh) tidak menghalangi upload, hanya tidak bisa dilanjutkan setelah refresh.
+                await window.taskUploadStore.put(rec).catch(() => {});
+                await this.runUpload(up);
+            },
+
+            async resumePendingUploads() {
+                let recs = [];
+                try { recs = await window.taskUploadStore.all(); } catch (e) { return; }
+
+                for (const rec of recs) {
+                    // Potongan di server dihapus setelah 24 jam (attachments:purge-chunks).
+                    if (Date.now() - rec.createdAt > 24 * 3600 * 1000) {
+                        window.taskUploadStore.remove(rec.id);
+                        continue;
+                    }
+                    // Dilanjutkan saat halaman proyek yang sama dibuka.
+                    if (!rec.base.startsWith('/projects/{{ $project->slug }}/') || this.uploads.some(u => u.id === rec.id)) continue;
+                    this.runUpload(this.trackUpload(rec, 'Resuming...'));
+                }
+            },
+
+            trackUpload(rec, status) {
+                this.uploads.push({ id: rec.id, taskId: rec.taskId, name: rec.name, progress: 0, status, error: '', rec, abort: null, cancelled: false });
+                return this.uploads.find(u => u.id === rec.id);
+            },
+
+            async runUpload(up) {
+                // Kalau halaman dibuka di 2 tab, cukup satu tab yang melanjutkan upload yang sama.
+                if (navigator.locks) {
+                    return navigator.locks.request(`task-upload-${up.id}`, { ifAvailable: true }, lock => {
+                        if (!lock) {
+                            this.uploads = this.uploads.filter(u => u.id !== up.id);
+                            return;
+                        }
+                        return this.sendChunks(up);
+                    });
+                }
+                return this.sendChunks(up);
+            },
+
+            async sendChunks(up) {
+                const CHUNK_SIZE = 2 * 1024 * 1024;
+                const MAX_RETRIES = 8;
+                const rec = up.rec;
+                const total = Math.max(1, Math.ceil(rec.size / CHUNK_SIZE));
+                up.error = '';
+                up.cancelled = false;
+
+                const send = (method, url, body, onProgress) => new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    up.abort = () => xhr.abort();
+                    xhr.open(method, url);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+                    xhr.setRequestHeader('Accept', 'application/json');
+                    if (onProgress) xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);
+                    xhr.onload = () => {
+                        let data = {};
+                        try { data = JSON.parse(xhr.responseText); } catch (e) {}
+                        resolve({ status: xhr.status, data });
+                    };
+                    xhr.onerror = () => reject(new Error('network'));
+                    xhr.onabort = () => reject(new Error('abort'));
+                    xhr.send(body);
+                });
+
+                // Status 0/5xx/408/429 = koneksi/server sementara bermasalah → ulangi; 4xx lain = ditolak.
+                const sendWithRetry = async (method, url, makeBody, onProgress) => {
+                    for (let attempt = 0; ; attempt++) {
+                        if (up.cancelled) throw new Error('abort');
+                        try {
+                            const res = await send(method, url, makeBody(), onProgress);
+                            if (res.status < 500 && ![408, 429].includes(res.status)) return res;
+                        } catch (e) {
+                            if (e.message === 'abort') throw e;
+                        }
+                        if (attempt >= MAX_RETRIES) return null;
+                        up.status = navigator.onLine ? `Retrying (${attempt + 1})...` : 'Waiting for connection...';
+                        await new Promise(r => setTimeout(r, Math.min(1000 * 2 ** attempt, 15000)));
+                    }
+                };
+
+                // 4xx = ditolak server (kuota, validasi): tidak bisa diulang, buang dari antrian.
+                const fail = (res, fallback) => {
+                    up.error = res?.data?.message || res?.data?.error || fallback;
+                    if (res) {
+                        up.rec = null;
+                        window.taskUploadStore.remove(up.id);
+                    }
+                };
 
                 try {
-                    const res = await fetch(`/projects/{{ $project->slug }}/tasks/${this.task.id}/attachments`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: fd
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        this.task.attachments.unshift(data.attachment);
-                        this.showToast('Attachment uploaded successfully');
+                    const status = await sendWithRetry('GET', `${rec.base}/chunk/${up.id}`, () => null);
+                    if (!status || status.status >= 400) return fail(status, 'Upload failed, check your connection');
+                    const done = new Set(status.data.uploaded || []);
+                    const setProgress = bytes => {
+                        up.progress = Math.min(99, Math.round(bytes / rec.size * 100));
+                        up.status = `${up.progress}%`;
+                    };
+                    setProgress(done.size * CHUNK_SIZE);
+
+                    for (let i = 0; i < total; i++) {
+                        if (done.has(i)) continue;
+                        const blob = rec.file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                        const res = await sendWithRetry('POST', `${rec.base}/chunk`, () => {
+                            const fd = new FormData();
+                            fd.append('upload_id', up.id);
+                            fd.append('index', i);
+                            fd.append('total', total);
+                            fd.append('file_size', rec.size);
+                            fd.append('chunk', blob, 'chunk');
+                            return fd;
+                        }, loaded => setProgress(done.size * CHUNK_SIZE + loaded));
+                        if (!res || res.status >= 400) return fail(res, 'Upload failed, check your connection');
+                        done.add(i);
+                        setProgress(done.size * CHUNK_SIZE);
                     }
+
+                    up.status = 'Processing...';
+                    const res = await sendWithRetry('POST', `${rec.base}/complete`, () => {
+                        const fd = new FormData();
+                        fd.append('upload_id', up.id);
+                        fd.append('total', total);
+                        fd.append('file_name', rec.name);
+                        fd.append('file_size', rec.size);
+                        return fd;
+                    });
+                    if (!res || res.status >= 400) return fail(res, 'Upload failed, please try again');
+
+                    window.taskUploadStore.remove(up.id);
+                    this.uploads = this.uploads.filter(u => u.id !== up.id);
+                    // Modal bisa sudah pindah ke task lain selama upload berjalan.
+                    if (this.task?.id == rec.taskId) {
+                        if (!this.task.attachments) this.task.attachments = [];
+                        this.task.attachments.unshift(res.data.attachment);
+                    }
+                    this.showToast(`"${rec.name}" uploaded`);
                 } catch (err) {
-                    console.error(err);
+                    if (err.message !== 'abort') {
+                        console.error(err);
+                        up.error = 'Upload failed';
+                    }
                 }
+            },
+
+            retryUpload(up) {
+                this.runUpload(up);
+            },
+
+            cancelUpload(up) {
+                up.cancelled = true;
+                up.abort?.();
+                window.taskUploadStore.remove(up.id);
+                this.uploads = this.uploads.filter(u => u.id !== up.id);
             },
 
             async submitAttachmentLink() {

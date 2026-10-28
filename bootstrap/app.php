@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('approvals:expire')->everyFifteenMinutes();
         $schedule->command('companies:check-expiring')->dailyAt('08:00');
         $schedule->command('meetings:send-reminders')->everyFifteenMinutes();
+        $schedule->command('attachments:purge-chunks')->hourly();
 
         // Jaga model AI Assistant (Ollama, CPU-only) tetap di RAM. keep_alive di
         // AiAssistantWebController::KEEP_ALIVE diset 60m, tapi kalau tidak ada
