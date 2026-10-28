@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div x-data="{ deleteTarget: null, confirmInput: '' }">
+<div x-data="companyStorage()">
 
 <div class="bg-slate-800/60 border border-white/5 rounded-2xl overflow-hidden">
     <div class="px-6 py-4 border-b border-white/5">
@@ -17,6 +17,7 @@
                 <th class="text-left px-6 py-3 font-medium">Perusahaan</th>
                 <th class="text-left px-6 py-3 font-medium">Kontak</th>
                 <th class="text-center px-6 py-3 font-medium">Unit Organisasi</th>
+                <th class="text-left px-6 py-3 font-medium">Storage</th>
                 <th class="text-left px-6 py-3 font-medium">Terdaftar</th>
                 <th class="text-center px-6 py-3 font-medium">Status</th>
                 <th class="px-6 py-3"></th>
@@ -42,6 +43,23 @@
                     <p class="text-slate-500 text-xs">{{ $company->phone ?? '-' }}</p>
                 </td>
                 <td class="px-6 py-4 text-center text-slate-300">{{ $company->root_organization_units_count }}</td>
+                @php
+                    $limits     = $storage[$company->id];
+                    $usedBytes  = $limits->storageUsedBytes();
+                    $maxBytes   = $limits->maxStorageBytes();
+                    $usedPct    = $maxBytes ? min(100, $usedBytes / $maxBytes * 100) : null;
+                    $barColor   = $usedPct === null ? 'bg-slate-500' : ($usedPct >= 90 ? 'bg-red-500' : ($usedPct >= 70 ? 'bg-amber-500' : 'bg-blue-500'));
+                @endphp
+                <td class="px-6 py-4 min-w-[160px]">
+                    <p class="text-xs text-slate-300">
+                        {{ \App\Support\PlanLimits::humanBytes($usedBytes) }}
+                        <span class="text-slate-500">/ {{ $limits->storageLimitLabel() }}</span>
+                    </p>
+                    <div class="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                        <div class="h-full rounded-full {{ $barColor }}" style="width: {{ $usedPct === null ? 0 : max(1, $usedPct) }}%"></div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1">{{ $limits->plan() ? $limits->planName() : 'Internal' }}{{ $usedPct !== null ? ' · ' . round($usedPct, 1) . '%' : '' }}</p>
+                </td>
                 <td class="px-6 py-4 text-slate-400 text-xs">{{ $company->created_at->format('d M Y, H:i') }}</td>
                 <td class="px-6 py-4 text-center">
                     @if($company->is_active)
@@ -52,6 +70,10 @@
                 </td>
                 <td class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
+                        <button type="button" @click="openStorage(@js(route('superadmin.companies.storage', $company)))"
+                                class="text-xs text-blue-400 hover:text-blue-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+                            Storage
+                        </button>
                         <form method="POST" action="{{ route('superadmin.companies.toggle', $company) }}">
                             @csrf @method('PATCH')
                             <button type="submit"
@@ -69,7 +91,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-slate-500">Belum ada perusahaan.</td>
+                <td colspan="7" class="px-6 py-12 text-center text-slate-500">Belum ada perusahaan.</td>
             </tr>
             @endforelse
         </tbody>
@@ -80,6 +102,64 @@
         @if($companies->hasPages())
         {{ $companies->links() }}
         @endif
+    </div>
+</div>
+
+{{-- Modal monitoring storage perusahaan --}}
+<div x-show="storageOpen"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+     style="display: none;">
+    <div @click.outside="storageOpen = false"
+         class="bg-slate-800 border border-white/10 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-3">
+            <div>
+                <h3 class="text-white font-semibold text-base">Monitoring Storage</h3>
+                <p class="text-slate-400 text-sm mt-0.5" x-text="storage?.company ?? 'Memuat…'"></p>
+            </div>
+            <button type="button" @click="storageOpen = false" class="text-slate-500 hover:text-white text-lg leading-none px-1">&times;</button>
+        </div>
+
+        <template x-if="storageLoading">
+            <p class="text-slate-500 text-sm py-10 text-center">Menghitung pemakaian storage…</p>
+        </template>
+        <template x-if="storageError">
+            <p class="text-red-400 text-sm py-10 text-center" x-text="storageError"></p>
+        </template>
+
+        <template x-if="storage && !storageLoading">
+            <div>
+                <div class="mt-5 rounded-xl bg-slate-900/60 border border-white/5 p-4">
+                    <div class="flex items-end justify-between gap-3">
+                        <div>
+                            <p class="text-2xl font-semibold text-white" x-text="storage.used"></p>
+                            <p class="text-xs text-slate-500 mt-0.5">dari <span x-text="storage.limit"></span> · paket <span x-text="storage.plan"></span></p>
+                        </div>
+                        <p class="text-sm font-medium" :class="barText(storage.percent)" x-text="storage.percent === null ? 'Tanpa batas' : storage.percent + '%'"></p>
+                    </div>
+                    <div class="mt-3 h-2 w-full rounded-full bg-white/5 overflow-hidden">
+                        <div class="h-full rounded-full" :class="barBg(storage.percent)" :style="'width:' + (storage.percent ?? 0) + '%'"></div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2" x-show="storage.remaining">Sisa: <span class="text-slate-300" x-text="storage.remaining"></span></p>
+                </div>
+
+                <p class="text-xs text-slate-500 uppercase tracking-wide mt-5 mb-2">Rincian per menu</p>
+                <div class="divide-y divide-white/5">
+                    <template x-for="item in storage.items" :key="item.label">
+                        <div class="py-2.5">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-300" x-text="item.label"></span>
+                                <span class="text-slate-400 tabular-nums"><span x-text="item.size"></span> <span class="text-slate-600 text-xs" x-text="'(' + item.percent + '%)'"></span></span>
+                            </div>
+                            <div class="mt-1.5 h-1 w-full rounded-full bg-white/5 overflow-hidden">
+                                <div class="h-full rounded-full bg-blue-400" :style="'width:' + item.percent + '%'"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-4">Avatar, logo perusahaan & foto wajah absensi tidak dihitung. Data yang sudah dihapus tidak masuk hitungan.</p>
+            </div>
+        </template>
     </div>
 </div>
 
@@ -121,5 +201,35 @@
 </div>
 
 </div>
+
+<script>
+    function companyStorage() {
+        return {
+            deleteTarget: null,
+            confirmInput: '',
+            storageOpen: false,
+            storageLoading: false,
+            storageError: null,
+            storage: null,
+            async openStorage(url) {
+                this.storageOpen = true;
+                this.storageLoading = true;
+                this.storageError = null;
+                this.storage = null;
+                try {
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    this.storage = await res.json();
+                } catch (e) {
+                    this.storageError = 'Gagal memuat data storage (' + e.message + ').';
+                } finally {
+                    this.storageLoading = false;
+                }
+            },
+            barBg(pct) { return pct === null ? 'bg-slate-500' : pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-blue-500'; },
+            barText(pct) { return pct === null ? 'text-slate-400' : pct >= 90 ? 'text-red-400' : pct >= 70 ? 'text-amber-400' : 'text-blue-400'; },
+        };
+    }
+</script>
 
 @endsection

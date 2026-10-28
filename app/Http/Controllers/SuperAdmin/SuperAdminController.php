@@ -10,6 +10,7 @@ use App\Models\Package;
 use App\Models\Project;
 use App\Models\StructuralLevel;
 use App\Models\User;
+use App\Support\PlanLimits;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,33 @@ class SuperAdminController extends Controller
             ->paginate($this->perPage($request))
             ->withQueryString();
 
-        return view('superadmin.companies', compact('companies'));
+        // Kuota & pemakaian storage tiap perusahaan di halaman ini
+        $storage = $companies->getCollection()->mapWithKeys(fn ($c) => [$c->id => PlanLimits::forCompany($c->id)]);
+
+        return view('superadmin.companies', compact('companies', 'storage'));
+    }
+
+    /** GET /superadmin/companies/{company}/storage — rincian pemakaian storage per menu (modal monitoring). */
+    public function companyStorage(Company $company)
+    {
+        $limits    = PlanLimits::forCompany($company->id);
+        $breakdown = $limits->storageBreakdown();
+        $used      = array_sum($breakdown);
+        $max       = $limits->maxStorageBytes();
+
+        return response()->json([
+            'company'   => $company->name,
+            'plan'      => $limits->plan() ? $limits->planName() : 'Internal (tanpa batas)',
+            'used'      => PlanLimits::humanBytes($used),
+            'limit'     => $limits->storageLimitLabel(),
+            'remaining' => $max === null ? null : PlanLimits::humanBytes(max(0, $max - $used)),
+            'percent'   => $max ? min(100, round($used / $max * 100, 1)) : null,
+            'items'     => collect($breakdown)->sortDesc()->map(fn ($bytes, $label) => [
+                'label'   => $label,
+                'size'    => PlanLimits::humanBytes($bytes),
+                'percent' => $used ? round($bytes / $used * 100, 1) : 0,
+            ])->values(),
+        ]);
     }
 
     public function users(Request $request)

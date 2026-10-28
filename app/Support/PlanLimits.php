@@ -6,9 +6,11 @@ use App\Models\Package;
 use App\Models\Project;
 use App\Models\SubscriptionOrder;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
- * Kuota paket (FLOVIG PRICE) per perusahaan: jumlah project & user.
+ * Kuota paket (FLOVIG PRICE) per perusahaan: jumlah project, user & storage.
  *
  * Paket aktif = tier milik user pendaftar (is_registered) dengan urutan tertinggi; perusahaan
  * yang punya pendaftar tapi belum punya tier = Free. Perusahaan tanpa pendaftar (dibuat
@@ -17,6 +19,8 @@ use App\Models\User;
 class PlanLimits
 {
     private static array $cache = [];
+
+    private ?int $storageUsed = null;
 
     private function __construct(private ?int $companyId, private ?Package $plan, private bool $unlimited)
     {
@@ -130,11 +134,107 @@ class PlanLimits
         return $remaining === null || $remaining >= $count;
     }
 
+    // ── Storage ────────────────────────────────────────────────────────────
+
+    /** Batas storage dalam byte, dibaca dari storage_label paket ("1 GB", "1 TB"). null = unlimited / custom. */
+    public function maxStorageBytes(): ?int
+    {
+        if ($this->unlimited || ! preg_match('/([\d.,]+)\s*(KB|MB|GB|TB)/i', (string) $this->plan->storage_label, $m)) {
+            return null;
+        }
+
+        $power = ['KB' => 1, 'MB' => 2, 'GB' => 3, 'TB' => 4][strtoupper($m[2])];
+
+        return (int) round((float) str_replace(',', '.', $m[1]) * 1024 ** $power);
+    }
+
+    /**
+     * Total ukuran file upload milik perusahaan: lampiran project, task, komentar, chat, DM, forum,
+     * KB, tiket, cover task, gambar project, cuti, reimburse & invoice. Data yang sudah dihapus
+     * (soft delete) tidak dihitung. Avatar, logo & foto wajah absensi tidak masuk kuota.
+     */
+    public function storageUsedBytes(): int
+    {
+        return $this->storageUsed ??= array_sum($this->storageBreakdown());
+    }
+
+    /** Pemakaian storage per menu dalam byte, mis. ['Project Files' => 1048576, ...]. */
+    public function storageBreakdown(): array
+    {
+        $cid      = $this->companyId;
+        $projects = fn ($q) => $q->from('projects')->select('id')->where('company_id', $cid)->whereNull('deleted_at');
+        $tasks    = fn ($q) => $q->from('tasks')->select('id')->whereIn('project_id', $projects)->whereNull('deleted_at');
+
+        // File yang hanya disimpan path-nya (tanpa kolom ukuran) → ukuran dibaca dari disk.
+        $disk      = Storage::disk('public');
+        $diskBytes = fn ($paths) => collect($paths)->filter(fn ($p) => is_string($p) && $p !== '')
+            ->sum(fn ($path) => (int) @filesize($disk->path($path)));
+
+        return array_map('intval', [
+            'Project Files'    => DB::table('project_files')->whereIn('project_id', $projects)->sum('size'),
+            'Lampiran Task'    => DB::table('task_attachments')->where('type', 'file')->whereIn('task_id', $tasks)->sum('file_size'),
+            'Komentar Task'    => DB::table('task_comment_attachments')->whereIn('task_comment_id', fn ($q) => $q->from('task_comments')->select('id')->whereIn('task_id', $tasks))->sum('file_size'),
+            'Chat Proyek'      => DB::table('message_attachments')->whereIn('message_id', fn ($q) => $q->from('project_messages')->select('id')->whereIn('project_id', $projects)->whereNull('deleted_at'))->sum('file_size'),
+            'Direct Message'   => DB::table('direct_message_attachments')->whereIn('message_id', fn ($q) => $q->from('direct_messages')->select('id')->whereNull('deleted_at')
+                ->whereIn('conversation_id', fn ($q) => $q->from('conversations')->select('id')->where('company_id', $cid)))->sum('file_size'),
+            'Forum'            => DB::table('forum_message_attachments')->whereIn('message_id', fn ($q) => $q->from('forum_messages')->select('id')->whereNull('deleted_at')
+                ->whereIn('forum_id', fn ($q) => $q->from('forums')->select('id')->where('company_id', $cid)))->sum('file_size'),
+            'Knowledge Base'   => DB::table('kb_article_attachments')->whereIn('article_id', fn ($q) => $q->from('kb_articles')->select('id')->whereIn('project_id', $projects)->whereNull('deleted_at'))->sum('size'),
+            'Tiket'            => DB::table('ticket_attachments')->whereIn('ticket_id', fn ($q) => $q->from('bug_tickets')->select('id')->whereIn('project_id', $projects)->whereNull('deleted_at'))->sum('file_size'),
+            'Cover Task'       => $diskBytes(DB::table('tasks')->whereIn('id', $tasks)->whereNotNull('cover_image_path')->pluck('cover_image_path')),
+            'Gambar Project'   => $diskBytes(DB::table('projects')->where('company_id', $cid)->whereNull('deleted_at')->whereNotNull('images')->pluck('images')
+                ->flatMap(fn ($json) => (array) json_decode($json, true))),
+            'Cuti (HRIS)'      => $diskBytes(DB::table('leave_requests')->where('company_id', $cid)->whereNotNull('attachment')->pluck('attachment')),
+            'Reimburse (HRIS)' => $diskBytes(DB::table('reimbursements')->where('company_id', $cid)->whereNotNull('receipt')->pluck('receipt')),
+            'Invoice'          => $diskBytes(DB::table('invoices')->where('company_id', $cid)->whereNull('deleted_at')->whereNotNull('attachment')->pluck('attachment')),
+        ]);
+    }
+
+    /** Label batas storage untuk tampilan: "1 GB", "Custom", "Unlimited". */
+    public function storageLimitLabel(): string
+    {
+        $max = $this->maxStorageBytes();
+
+        return $max !== null ? self::humanBytes($max) : ($this->plan?->storage_label ?: 'Unlimited');
+    }
+
+    public function canStore(int $bytes): bool
+    {
+        $max = $this->maxStorageBytes();
+
+        return $max === null || $this->storageUsedBytes() + $bytes <= $max;
+    }
+
+    /** 1536 → "1.5 KB" */
+    public static function humanBytes(int|float $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $i     = 0;
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            $i++;
+        }
+
+        return round($bytes, $i ? 1 : 0) . ' ' . $units[$i];
+    }
+
     // ── Pesan upgrade ──────────────────────────────────────────────────────
 
     /** Payload flash 'plan_limit' yang ditampilkan sebagai popup upgrade di layout. */
     public function limitNotice(string $resource): array
     {
+        if ($resource === 'storage') {
+            $used = $this->storageUsedBytes();
+
+            return [
+                'title'   => 'Storage tidak cukup',
+                'message' => "Storage paket {$this->planName()} Anda maksimal {$this->plan->storage_label} (terpakai " . self::humanBytes($used)
+                    . ', sisa ' . self::humanBytes(max(0, $this->maxStorageBytes() - $used)) . '). File yang di-upload melebihi sisa kapasitas. '
+                    . 'Hapus file lama atau upgrade paket untuk menambah kapasitas.',
+                'url'     => route('billing.renew'),
+            ];
+        }
+
         [$label, $max] = $resource === 'user'
             ? ['user', $this->maxUsers()]
             : ['project', $this->maxProjects()];

@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'billing/notification',
         ]);
 
+        // Kuota storage paket untuk semua upload file (lihat PlanLimits::storageUsedBytes)
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnforceStorageQuota::class);
+        $middleware->appendToGroup('api', \App\Http\Middleware\EnforceStorageQuota::class);
+
         $middleware->alias([
             'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'         => \Spatie\Permission\Middleware\PermissionMiddleware::class,

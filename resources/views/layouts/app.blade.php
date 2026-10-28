@@ -1328,6 +1328,32 @@
             });
         };
 
+        // Upload via fetch/XHR yang ditolak kuota paket (403 + plan_limit, mis. storage penuh) →
+        // popup upgrade, berlaku untuk semua modul tanpa perlu ditangani satu per satu.
+        (function () {
+            const notify = function (data) {
+                if (data && data.plan_limit) setTimeout(function () { window.showUpgradePrompt(data.plan_limit); }, 300);
+            };
+            const nativeFetch = window.fetch;
+            window.fetch = function () {
+                return nativeFetch.apply(this, arguments).then(function (res) {
+                    if (res.status === 403) res.clone().json().then(notify).catch(function () {});
+                    return res;
+                });
+            };
+            const nativeSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function () {
+                this.addEventListener('load', function () {
+                    if (this.status !== 403) return;
+                    try {
+                        notify(this.responseType === 'json' ? this.response
+                            : (this.responseType === '' || this.responseType === 'text') ? JSON.parse(this.responseText) : null);
+                    } catch (e) {}
+                });
+                return nativeSend.apply(this, arguments);
+            };
+        })();
+
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('form[data-confirm-delete]').forEach(function (form) {
                 form.addEventListener('submit', function (e) {

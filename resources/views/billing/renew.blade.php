@@ -35,6 +35,10 @@
                 <span class="px-2.5 py-1 rounded-full bg-white/70 border {{ $limits->canAddUser() ? 'border-gray-200 text-gray-700' : 'border-red-300 text-red-700' }}">
                     User: {{ $limits->userCount() }} / {{ \App\Models\Package::limitDisplay($limits->maxUsers()) }}
                 </span>
+                @php $maxStorage = $limits->maxStorageBytes(); @endphp
+                <span class="px-2.5 py-1 rounded-full bg-white/70 border {{ $maxStorage === null || $limits->storageUsedBytes() < $maxStorage * 0.9 ? 'border-gray-200 text-gray-700' : 'border-red-300 text-red-700' }}">
+                    Storage: {{ \App\Support\PlanLimits::humanBytes($limits->storageUsedBytes()) }} / {{ $limits->storageLimitLabel() }}
+                </span>
             </div>
         @endif
     </div>
