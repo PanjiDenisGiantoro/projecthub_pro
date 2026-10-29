@@ -63,8 +63,7 @@
                         class="px-5 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 bg-white dark:bg-slate-900 shrink-0">
                         <div class="flex items-center gap-3 flex-wrap min-w-0">
                             {{-- Status Pill Dropdown (Card 01 Trigger) --}}
-                            <div class="relative"
-                                x-data="{ open: false }">
+                            <div class="relative" x-data="{ open: false }">
                                 <button type="button" @click="open = !open"
                                     class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 shadow-2xs"
                                     :class="statusPillClass()">
@@ -87,22 +86,55 @@
                                         class="px-3.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                                         STATUS</div>
                                     <div class="space-y-0.5 mt-1 px-1.5 max-h-52 overflow-y-auto">
-                                        <template x-for="s in statusOptions" :key="s.value">
-                                            <button type="button" @click="setCompleted(s.value === 'completed'); open = false"
+                                        <template x-for="s in statusOptions" :key="s.name">
+                                            <button type="button" @click="setStatus(s.name); open = false"
                                                 class="w-full text-left px-3 py-2 text-xs flex items-center justify-between rounded-lg transition"
-                                                :class="completionValue() === s.value ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                                                :class="normStatus(currentStatus()) === normStatus(s.name) ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
                                                 <span class="flex items-center gap-2.5">
                                                     <span class="w-2.5 h-2.5 rounded-full shrink-0"
-                                                        :class="s.dotClass"></span>
-                                                    <span x-text="s.label"></span>
+                                                        :class="statusDotColor(s.color)"></span>
+                                                    <span x-text="s.name"></span>
                                                 </span>
-                                                <svg x-show="completionValue() === s.value"
+                                                <svg x-show="normStatus(currentStatus()) === normStatus(s.name)"
                                                     class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none"
                                                     stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2.5" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             </button>
+                                        </template>
+                                    </div>
+                                    {{-- Inline Create New Status --}}
+                                    <div class="mt-2 pt-2 px-1.5 border-t border-slate-100 dark:border-slate-700/60"
+                                        x-data="{ isCreatingStatus: false, newStatusName: '', newStatusColor: 'blue' }">
+                                        <template x-if="!isCreatingStatus">
+                                            <button type="button" @click="isCreatingStatus = true"
+                                                class="w-full text-left text-xs text-blue-600 hover:text-blue-700 font-medium py-1 px-2 flex items-center gap-1">
+                                                + Create new status
+                                            </button>
+                                        </template>
+                                        <template x-if="isCreatingStatus">
+                                            <div class="space-y-2 p-1">
+                                                <input type="text" x-model="newStatusName" placeholder="Status name..."
+                                                    class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <template
+                                                        x-for="c in ['blue', 'amber', 'purple', 'indigo', 'emerald', 'rose', 'teal', 'slate']"
+                                                        :key="c">
+                                                        <button type="button" @click="newStatusColor = c"
+                                                            class="w-4 h-4 rounded-full transition-transform"
+                                                            :class="[statusDotColor(c), newStatusColor === c ? 'ring-2 ring-offset-1 ring-blue-500 scale-110' : 'opacity-80']"></button>
+                                                    </template>
+                                                </div>
+                                                <div class="flex items-center justify-end gap-1 pt-1">
+                                                    <button type="button"
+                                                        @click="isCreatingStatus = false; newStatusName = ''"
+                                                        class="px-2 py-1 text-xs text-slate-500 hover:text-slate-700">Cancel</button>
+                                                    <button type="button"
+                                                        @click="createNewStatus(newStatusName, newStatusColor); isCreatingStatus = false; newStatusName = ''; open = false"
+                                                        class="px-2.5 py-1 text-xs bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">Save</button>
+                                                </div>
+                                            </div>
                                         </template>
                                     </div>
                                 </div>
@@ -280,9 +312,9 @@
                                 <div class="flex items-start gap-3">
                                     <button type="button" @click="toggleComplete()"
                                         class="mt-1 w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 shadow-2xs"
-                                        :class="task.completed_at ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600 hover:border-blue-500'">
-                                        <svg x-show="task.completed_at" class="w-4 h-4" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
+                                        :class="isCompleted() ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600 hover:border-blue-500'">
+                                        <svg x-show="isCompleted()" class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                                 d="M5 13l4 4L19 7" />
                                         </svg>
@@ -512,8 +544,7 @@
                                     <div>
                                         <label
                                             class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Status</label>
-                                        <div class="relative"
-                                            x-data="{ open: false }">
+                                        <div class="relative" x-data="{ open: false }">
                                             <button type="button" @click="open = !open"
                                                 class="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium hover:border-slate-300 dark:hover:border-slate-600 transition shadow-2xs">
                                                 <span class="flex items-center gap-2.5">
@@ -529,8 +560,8 @@
                                                 </svg>
                                             </button>
 
-                                            <div x-show="open" @click.outside="open = false"
-                                                x-cloak x-transition:enter="transition ease-out duration-150"
+                                            <div x-show="open" @click.outside="open = false" x-cloak
+                                                x-transition:enter="transition ease-out duration-150"
                                                 x-transition:enter-start="opacity-0 scale-95"
                                                 x-transition:enter-end="opacity-100 scale-100"
                                                 class="absolute left-0 top-full mt-1.5 w-full bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 py-2 z-50">
@@ -538,22 +569,56 @@
                                                     class="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                                     STATUS</div>
                                                 <div class="space-y-0.5 mt-1 px-1.5 max-h-52 overflow-y-auto">
-                                                    <template x-for="s in statusOptions" :key="s.value">
-                                                        <button type="button" @click="setCompleted(s.value === 'completed'); open = false"
+                                                    <template x-for="s in statusOptions" :key="s.name">
+                                                        <button type="button" @click="setStatus(s.name); open = false"
                                                             class="w-full text-left px-3 py-2 text-xs flex items-center justify-between rounded-lg transition"
-                                                            :class="completionValue() === s.value ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
+                                                            :class="normStatus(currentStatus()) === normStatus(s.name) ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'">
                                                             <span class="flex items-center gap-2.5">
                                                                 <span class="w-2.5 h-2.5 rounded-full shrink-0"
-                                                                    :class="s.dotClass"></span>
-                                                                <span x-text="s.label"></span>
+                                                                    :class="statusDotColor(s.color)"></span>
+                                                                <span x-text="s.name"></span>
                                                             </span>
-                                                            <svg x-show="completionValue() === s.value"
+                                                            <svg x-show="normStatus(currentStatus()) === normStatus(s.name)"
                                                                 class="w-4 h-4 text-blue-600" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     stroke-width="2.5" d="M5 13l4 4L19 7" />
                                                             </svg>
                                                         </button>
+                                                    </template>
+                                                </div>
+                                                {{-- Inline Create New Status --}}
+                                                <div class="mt-2 pt-2 px-1.5 border-t border-slate-100 dark:border-slate-700/60"
+                                                    x-data="{ isCreatingStatus: false, newStatusName: '', newStatusColor: 'blue' }">
+                                                    <template x-if="!isCreatingStatus">
+                                                        <button type="button" @click="isCreatingStatus = true"
+                                                            class="w-full text-left text-xs text-blue-600 hover:text-blue-700 font-medium py-1 px-2 flex items-center gap-1">
+                                                            + Create new status
+                                                        </button>
+                                                    </template>
+                                                    <template x-if="isCreatingStatus">
+                                                        <div class="space-y-2 p-1">
+                                                            <input type="text" x-model="newStatusName"
+                                                                placeholder="Status name..."
+                                                                class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                                <template
+                                                                    x-for="c in ['blue', 'amber', 'purple', 'indigo', 'emerald', 'rose', 'teal', 'slate']"
+                                                                    :key="c">
+                                                                    <button type="button" @click="newStatusColor = c"
+                                                                        class="w-4 h-4 rounded-full transition-transform"
+                                                                        :class="[statusDotColor(c), newStatusColor === c ? 'ring-2 ring-offset-1 ring-blue-500 scale-110' : 'opacity-80']"></button>
+                                                                </template>
+                                                            </div>
+                                                            <div class="flex items-center justify-end gap-1 pt-1">
+                                                                <button type="button"
+                                                                    @click="isCreatingStatus = false; newStatusName = ''"
+                                                                    class="px-2 py-1 text-xs text-slate-500 hover:text-slate-700">Cancel</button>
+                                                                <button type="button"
+                                                                    @click="createNewStatus(newStatusName, newStatusColor); isCreatingStatus = false; newStatusName = ''; open = false"
+                                                                    class="px-2.5 py-1 text-xs bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">Save</button>
+                                                            </div>
+                                                        </div>
                                                     </template>
                                                 </div>
                                             </div>
@@ -1400,8 +1465,7 @@
                                 </div>
 
                                 {{-- Drag & Drop File Area --}}
-                                <div x-show="attachmentMode === 'file'"
-                                    @dragover.prevent="attachmentDragOver = true"
+                                <div x-show="attachmentMode === 'file'" @dragover.prevent="attachmentDragOver = true"
                                     @dragleave.prevent="attachmentDragOver = false"
                                     @drop.prevent="attachmentDragOver = false; uploadAttachmentFiles($event.dataTransfer.files)"
                                     class="border-2 border-dashed border-blue-200 dark:border-blue-800/60 bg-blue-50/40 dark:bg-blue-950/20 rounded-2xl p-6 text-center transition-all hover:bg-blue-50/60"
@@ -1420,7 +1484,8 @@
                                         </label>
                                         <span>or drag & drop files</span>
                                     </p>
-                                    <p class="text-[11px] text-slate-400 mt-1">Max 200MB per file • large files resume automatically if the connection drops</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">Max 200MB per file • large files resume
+                                        automatically if the connection drops</p>
                                 </div>
 
                                 {{-- Upload Progress --}}
@@ -1428,19 +1493,23 @@
                                     <div class="p-3 rounded-xl border bg-white dark:bg-slate-900"
                                         :class="up.error ? 'border-red-200 dark:border-red-900/60' : 'border-slate-200 dark:border-slate-700'">
                                         <div class="flex items-center justify-between gap-3 text-xs">
-                                            <span class="font-medium text-slate-700 dark:text-slate-200 truncate" x-text="up.name"></span>
+                                            <span class="font-medium text-slate-700 dark:text-slate-200 truncate"
+                                                x-text="up.name"></span>
                                             <div class="flex items-center gap-2 shrink-0">
                                                 <span :class="up.error ? 'text-red-600' : 'text-slate-500'"
                                                     x-text="up.error || up.status"></span>
-                                                <button type="button" x-show="up.error && up.rec" @click="retryUpload(up)"
+                                                <button type="button" x-show="up.error && up.rec"
+                                                    @click="retryUpload(up)"
                                                     class="text-blue-600 hover:text-blue-700 font-semibold">Retry</button>
                                                 <button type="button" @click="cancelUpload(up)"
                                                     class="text-slate-400 hover:text-red-600 font-semibold"
                                                     x-text="up.error ? 'Close' : 'Cancel'"></button>
                                             </div>
                                         </div>
-                                        <div x-show="!up.error" class="h-1.5 mt-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                            <div class="h-full bg-blue-600 transition-all" :style="`width: ${up.progress}%`"></div>
+                                        <div x-show="!up.error"
+                                            class="h-1.5 mt-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                            <div class="h-full bg-blue-600 transition-all"
+                                                :style="`width: ${up.progress}%`"></div>
                                         </div>
                                     </div>
                                 </template>
@@ -2018,7 +2087,8 @@
                         <span class="shrink-0" :class="up.error ? 'text-red-600' : 'text-slate-500'"
                             x-text="up.error ? 'Failed' : up.status"></span>
                     </div>
-                    <div x-show="!up.error" class="h-1.5 mt-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div x-show="!up.error"
+                        class="h-1.5 mt-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div class="h-full bg-blue-600 transition-all" :style="`width: ${up.progress}%`"></div>
                     </div>
                 </div>
@@ -2050,7 +2120,7 @@
             });
         },
         put(rec) { return this.run('readwrite', store => store.put(rec)); },
-        remove(id) { return this.run('readwrite', store => store.delete(id)).catch(() => {}); },
+        remove(id) { return this.run('readwrite', store => store.delete(id)).catch(() => { }); },
         all() { return this.run('readonly', store => store.getAll()); },
     };
 
@@ -2114,12 +2184,8 @@
             // Notes Editor Mode
             noteTab: 'write',
 
-            // Options
-            // Status = tanda selesai (completed_at); tahap kerja diatur lewat Bucket.
-            statusOptions: [
-                { value: 'uncompleted', label: 'Uncompleted', dotClass: 'bg-slate-400' },
-                { value: 'completed', label: 'Completed', dotClass: 'bg-emerald-500' },
-            ],
+            // Status Options: default 5 + custom project statuses
+            statusOptions: {!! json_encode($projectStatuses ?? (isset($project) ? $project->getProjectStatuses() : \App\Models\ProjectStatus::$defaultStatuses)) !!},
 
             priorityOptions: [
                 { value: 'urgent', label: 'Urgent', color: '#ef4444', icon: '<svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7M5 9l7-7 7 7"/></svg>' },
@@ -2231,19 +2297,141 @@
             },
 
             // --- Status & Priority ---
-            completionValue() {
-                return this.task.completed_at ? 'completed' : 'uncompleted';
+            statusDotColor(color) {
+                const map = {
+                    blue: 'bg-blue-500',
+                    green: 'bg-emerald-500',
+                    emerald: 'bg-emerald-500',
+                    amber: 'bg-amber-500',
+                    yellow: 'bg-amber-400',
+                    purple: 'bg-purple-500',
+                    indigo: 'bg-indigo-500',
+                    red: 'bg-rose-500',
+                    rose: 'bg-rose-500',
+                    orange: 'bg-orange-500',
+                    slate: 'bg-slate-400',
+                    gray: 'bg-gray-400',
+                };
+                return map[color] || 'bg-blue-500';
+            },
+            normStatus(str) {
+                return (str || '').toString().toLowerCase().replace(/[_-]/g, ' ').trim();
+            },
+            formatStatus(str) {
+                if (!str) return 'In Progress';
+                const norm = this.normStatus(str);
+                const match = this.statusOptions.find(o => o.name && this.normStatus(o.name) === norm);
+                if (match) return match.name;
+                const specialMap = {
+                    'todo': 'To Do',
+                    'to do': 'To Do',
+                    'in progress': 'In Progress',
+                    'inprogress': 'In Progress',
+                    'in_progress': 'In Progress',
+                    'review': 'Review',
+                    'done': 'Completed',
+                    'completed': 'Completed',
+                    'on hold': 'On Hold',
+                    'onhold': 'On Hold',
+                    'on_hold': 'On Hold',
+                    'qa': 'QA',
+                };
+                if (specialMap[norm]) return specialMap[norm];
+                return str.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            },
+            currentStatus() {
+                if (this.task && this.task.status) {
+                    return this.formatStatus(this.task.status);
+                }
+                return (this.task && this.task.completed_at) ? 'Completed' : 'In Progress';
             },
             statusLabel() {
-                return this.statusOptions.find(s => s.value === this.completionValue()).label;
+                return this.currentStatus();
             },
             statusDotClass() {
-                return this.statusOptions.find(s => s.value === this.completionValue()).dotClass;
+                const s = this.statusOptions.find(opt => opt.name && this.normStatus(opt.name) === this.normStatus(this.currentStatus()));
+                return this.statusDotColor(s ? s.color : (this.isCompleted() ? 'emerald' : 'blue'));
             },
             statusPillClass() {
-                return this.task.completed_at
+                return this.isCompleted()
                     ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+            },
+            isCompleted() {
+                const s = this.normStatus(this.task && this.task.status ? this.task.status : '');
+                return s === 'completed' || s === 'done';
+            },
+            async setStatus(statusName) {
+                this.task.status = statusName;
+                const isComp = this.normStatus(statusName) === 'completed' || this.normStatus(statusName) === 'done';
+                this.task.completed_at = isComp ? (this.task.completed_at || new Date().toISOString()) : null;
+
+                const slug = statusName.toLowerCase().replace(/\s+/g, '_');
+                const col = this.columns.find(c => c.slug === slug || c.slug === statusName.toLowerCase());
+                if (col) this.task.board_column_id = col.id;
+                this.markDirty();
+
+                try {
+                    const res = await fetch(`/projects/{{ $project->slug }}/tasks/${this.task.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            status: this.task.status,
+                            completed: isComp
+                        })
+                    });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    if (data.task) {
+                        this.task.completed_at = data.task.completed_at;
+                        this.task.status = data.task.status;
+                        if (window.updateCardInDOM) window.updateCardInDOM(data.task);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    this.showToast('Gagal mengubah status', 'error');
+                }
+            },
+            toggleComplete() {
+                if (this.isCompleted()) {
+                    this.setStatus('In Progress');
+                } else {
+                    this.setStatus('Completed');
+                }
+            },
+            async createNewStatus(name, color) {
+                if (!name || !name.trim()) return;
+                try {
+                    const res = await fetch(`/projects/{{ $project->slug }}/statuses`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ name: name.trim(), color: color || 'blue' })
+                    });
+                    if (res.ok) {
+                        const newStatus = await res.json();
+                        if (!this.statusOptions.some(s => s.name.toLowerCase() === newStatus.name.toLowerCase())) {
+                            this.statusOptions.push(newStatus);
+                        }
+                        this.setStatus(newStatus.name);
+                        this.showToast('Status baru berhasil ditambahkan');
+                    } else {
+                        this.showToast('Gagal menambahkan status', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    this.showToast('Gagal menambahkan status', 'error');
+                }
+            },
+            completionValue() {
+                return this.isCompleted() ? 'completed' : 'uncompleted';
             },
             priorityLabel() {
                 const opt = this.priorityOptions.find(p => p.value === this.task.priority);
@@ -2272,12 +2460,6 @@
                 if (this.task.sprint) return this.task.sprint.name;
                 return 'Sprint #' + this.task.sprint_id;
             },
-            setStatus(status) {
-                this.task.status = status;
-                const col = this.columns.find(c => c.slug === status);
-                if (col) this.task.board_column_id = col.id;
-                this.markDirty();
-            },
             setBucket(columnId) {
                 this.task.board_column_id = columnId;
                 const col = this.columns.find(c => c.id === columnId);
@@ -2289,38 +2471,7 @@
             },
             isOverdue() {
                 if (!this.task.due_date) return false;
-                return new Date(this.task.due_date) < new Date() && this.task.status !== 'done';
-            },
-
-            // Centang hanya tanda selesai; bucket tidak berubah.
-            async setCompleted(done) {
-                if (done === !!this.task.completed_at) return;
-                const prev = this.task.completed_at;
-                this.task.completed_at = done ? new Date().toISOString() : null;
-                try {
-                    const res = await fetch(`/projects/{{ $project->slug }}/tasks/${this.task.id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ completed: done })
-                    });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const data = await res.json();
-                    if (data.task) {
-                        this.task.completed_at = data.task.completed_at;
-                        if (window.updateCardInDOM) window.updateCardInDOM(data.task);
-                    }
-                } catch (err) {
-                    this.task.completed_at = prev;
-                    console.error(err);
-                    this.showToast('Gagal menyimpan status selesai', 'error');
-                }
-            },
-            toggleComplete() {
-                this.setCompleted(!this.task.completed_at);
+                return new Date(this.task.due_date) < new Date() && this.task.status !== 'done' && !this.isCompleted();
             },
 
 
@@ -2374,6 +2525,11 @@
                     if (!res.ok) throw new Error('Failed to fetch task data');
                     const data = await res.json();
                     this.task = data.task;
+                    if (!this.task.status) {
+                        this.task.status = this.task.completed_at ? 'Completed' : 'In Progress';
+                    } else if (this.task.status.toLowerCase() === 'done') {
+                        this.task.status = 'Completed';
+                    }
                     if (this.task.start_date) {
                         this.task.start_date = (typeof this.task.start_date === 'string' && this.task.start_date.includes('T')) ? this.task.start_date.split('T')[0] : this.task.start_date;
                     }
@@ -2794,7 +2950,7 @@
                 };
                 const up = this.trackUpload(rec, 'Preparing...');
                 // Gagal simpan (mode private / storage penuh) tidak menghalangi upload, hanya tidak bisa dilanjutkan setelah refresh.
-                await window.taskUploadStore.put(rec).catch(() => {});
+                await window.taskUploadStore.put(rec).catch(() => { });
                 await this.runUpload(up);
             },
 
@@ -2850,7 +3006,7 @@
                     if (onProgress) xhr.upload.onprogress = e => e.lengthComputable && onProgress(e.loaded);
                     xhr.onload = () => {
                         let data = {};
-                        try { data = JSON.parse(xhr.responseText); } catch (e) {}
+                        try { data = JSON.parse(xhr.responseText); } catch (e) { }
                         resolve({ status: xhr.status, data });
                     };
                     xhr.onerror = () => reject(new Error('network'));
@@ -3224,7 +3380,7 @@
                     description: this.task.description,
                     completion_notes: this.task.completion_notes,
                     status: this.task.status,
-                    completed: !!this.task.completed_at,
+                    completed: this.isCompleted(),
                     priority: this.task.priority,
                     board_column_id: this.task.board_column_id,
                     milestone_id: this.task.milestone_id || null,

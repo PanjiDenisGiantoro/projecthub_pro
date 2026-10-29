@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
+use App\Models\CompanyRolePermission;
 use App\Models\RoleCompany;
 use App\Support\SystemRoles;
 use Illuminate\Http\Request;
@@ -51,6 +52,39 @@ class RoleWebController extends Controller
         $cid = $this->tenantId();
         if ($cid !== null) {
             RoleCompany::create(['role_id' => $role->id, 'company_id' => $cid]);
+        }
+
+        // Default permission role custom ini dibikin seperti member defaultnya
+        $memberRole = Role::where('name', 'member')->first();
+        if ($memberRole) {
+            $memberPermissions = $memberRole->permissions;
+            $role->syncPermissions($memberPermissions);
+
+            if ($cid !== null) {
+                // Cek apakah company memiliki kustomisasi permission untuk role member
+                $customizedMemberPerms = CompanyRolePermission::where('company_id', $cid)
+                    ->where('role_id', $memberRole->id)
+                    ->get();
+
+                if ($customizedMemberPerms->isNotEmpty()) {
+                    foreach ($customizedMemberPerms as $cmp) {
+                        CompanyRolePermission::create([
+                            'company_id'    => $cid,
+                            'role_id'       => $role->id,
+                            'permission_id' => $cmp->permission_id,
+                        ]);
+                    }
+                } else {
+                    foreach ($memberPermissions as $perm) {
+                        CompanyRolePermission::create([
+                            'company_id'    => $cid,
+                            'role_id'       => $role->id,
+                            'permission_id' => $perm->id,
+                        ]);
+                    }
+                }
+            }
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
 
         return redirect()->route('roles.index')->with('success', 'Role berhasil dibuat.');

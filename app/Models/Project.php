@@ -210,6 +210,43 @@ class Project extends Model
         return $this->hasMany(Label::class);
     }
 
+    public function statuses()
+    {
+        return $this->hasMany(ProjectStatus::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Get all task statuses for this project (default 5 + custom).
+     */
+    public function getProjectStatuses(): \Illuminate\Support\Collection
+    {
+        $customs = $this->statuses()->get();
+        $defaults = collect(ProjectStatus::$defaultStatuses)->map(function ($d, $i) {
+            return (object) [
+                'id' => null,
+                'name' => $d['name'],
+                'color' => $d['color'],
+                'sort_order' => $i,
+                'is_default' => true,
+            ];
+        });
+
+        if ($customs->isEmpty()) {
+            return $defaults;
+        }
+
+        $customNames = $customs->pluck('name')->map(fn($n) => strtolower($n))->all();
+        $merged = $defaults->filter(fn($d) => !in_array(strtolower($d->name), $customNames))->values();
+
+        return $merged->concat($customs->map(fn($c) => (object) [
+            'id' => $c->id,
+            'name' => $c->name,
+            'color' => $c->color,
+            'sort_order' => $c->sort_order,
+            'is_default' => in_array(strtolower($c->name), ['in progress', 'on hold', 'review', 'qa', 'completed']),
+        ]))->values();
+    }
+
     public function tickets()
     {
         return $this->hasMany(BugTicket::class);

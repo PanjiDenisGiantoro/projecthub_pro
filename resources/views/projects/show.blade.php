@@ -145,8 +145,7 @@
 @endpush
 
 @section('content')
-    <div class="pt-4 pb-6 w-full max-w-full min-w-0" x-data="projectPageData()"
-        x-init="initProjectPage()">
+    <div class="pt-4 pb-6 w-full max-w-full min-w-0" x-data="projectPageData()" x-init="initProjectPage()">
 
         {{-- ============================================================
         PROJECT DATA INITIALIZATION
@@ -206,1542 +205,1563 @@
                     <span class="text-gray-600 dark:text-gray-300 font-semibold">{{ $project->name }}</span>
                     <span>&gt;</span>
                     <span class="text-blue-600 dark:text-blue-400 font-semibold" x-text="{
-                                'overview': 'Overview',
-                                'timesheet': 'Timesheet',
-                                'tasks': 'Tasks',
-                                'sprints': 'Sprints',
-                                'milestones': 'Milestones',
-                                'team': 'Team',
-                                'tickets': 'Tickets',
-                                'files': 'Files',
-                                'kb': 'Knowledge Base',
-                                'portal': 'Portal',
-                                'budget': 'Budget',
-                                'notif': 'Notifications',
-                                'chat': 'Chat'
-                            }[tab] || (tab.charAt(0).toUpperCase() + tab.slice(1))">
+                                            'overview': 'Overview',
+                                            'timesheet': 'Timesheet',
+                                            'tasks': 'Tasks',
+                                            'sprints': 'Sprints',
+                                            'milestones': 'Milestones',
+                                            'team': 'Team',
+                                            'tickets': 'Tickets',
+                                            'files': 'Files',
+                                            'kb': 'Knowledge Base',
+                                            'portal': 'Portal',
+                                            'budget': 'Budget',
+                                            'notif': 'Notifications',
+                                            'chat': 'Chat'
+                                        }[tab] || (tab.charAt(0).toUpperCase() + tab.slice(1))">
                         Overview
                     </span>
                 </div>
 
                 @if($tab === 'overview')
-                {{-- ============================================================
-                TOP HEADER & 4 STAT CARDS (ONLY FOR OVERVIEW TAB)
-                ============================================================ --}}
-                <div x-show="tab === 'overview'" x-cloak class="space-y-5">
-                    {{-- Top Header Card --}}
-                    <div
-                        class="bg-white dark:bg-gray-850 rounded-2xl p-5 sm:p-6 space-y-4">
-
-
-                        {{-- Title Row + Action Buttons --}}
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            @php $projectImages = $project->imageUrls(); @endphp
-                            <div class="flex items-center gap-3 flex-wrap">
-                                @if(!empty($projectImages))
-                                    <img src="{{ $projectImages[0] }}" alt="{{ $project->name }}"
-                                        class="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="w-12 h-12 rounded-xl items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40" style="display:none;">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.25v4.5a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25v-4.5m16.5 0v-4.5A2.25 2.25 0 0 0 18 7.5H6a2.25 2.25 0 0 0-2.25 2.25v4.5m16.5 0h-4.5a2.25 2.25 0 0 1-2.25-2.25v-.75m-6 3H3.75m16.5 0h-3.75a2.25 2.25 0 0 1-2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-3A2.25 2.25 0 0 0 7.5 9v1.5a2.25 2.25 0 0 1-2.25 2.25H3.75M9 7.5V6a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 15 6v1.5"/></svg>
-                                    </div>
-                                @else
-                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.25v4.5a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25v-4.5m16.5 0v-4.5A2.25 2.25 0 0 0 18 7.5H6a2.25 2.25 0 0 0-2.25 2.25v4.5m16.5 0h-4.5a2.25 2.25 0 0 1-2.25-2.25v-.75m-6 3H3.75m16.5 0h-3.75a2.25 2.25 0 0 1-2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-3A2.25 2.25 0 0 0 7.5 9v1.5a2.25 2.25 0 0 1-2.25 2.25H3.75M9 7.5V6a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 15 6v1.5"/></svg>
-                                    </div>
-                                @endif
-                                @foreach(array_slice($projectImages, 1) as $img)
-                                    <a href="{{ $img }}" target="_blank" rel="noopener" class="order-last">
-                                        <img src="{{ $img }}" alt="" class="w-7 h-7 rounded-md object-cover border border-gray-200 hover:opacity-80 transition">
-                                    </a>
-                                @endforeach
-                                <h1 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                                    {{ $project->name }}
-                                </h1>
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border {{ $sc['class'] }}">
-                                    <span class="w-2 h-2 rounded-full {{ $sc['dot'] }}"></span>
-                                    {{ $sc['label'] }}
-                                </span>
-                            </div>
-
-                            <div class="flex items-center gap-2.5 shrink-0">
-                                @if($project->google_meet_link)
-                                    <a href="{{ $project->google_meet_link }}" target="_blank" rel="noopener"
-                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 transition shadow-2xs">
-                                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
-                                        </svg>
-                                        Join Meeting
-                                    </a>
-                                @elseif(!auth()->user()->hasRole('client') && $project->google_meet_enabled)
-                                    <form method="POST" action="{{ route('projects.meeting.create', $project) }}">
-                                        @csrf
-                                        <button type="submit"
-                                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-750 transition shadow-2xs">
-                                            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                            Create Meeting
-                                        </button>
-                                    </form>
-                                @endif
-
-                                @if(!auth()->user()->hasRole('client'))
-                                    @php
-                                        $projectShowPayload = json_encode([
-                                            'id' => $project->id,
-                                            'slug' => $project->slug,
-                                            'name' => $project->name,
-                                            'description' => $project->description,
-                                            'client_id' => $project->client_id,
-                                            'manager_id' => $project->manager_id,
-                                            'start_date' => $project->start_date ? $project->start_date->format('Y-m-d') : null,
-                                            'end_date' => $project->end_date ? $project->end_date->format('Y-m-d') : null,
-                                            'budget' => $project->budget,
-                                            'status' => $project->status,
-                                            'images' => $project->images ?? [],
-                                            'image_urls' => $project->imageUrls(),
-                                        ]);
-                                    @endphp
-                                    <button type="button" @click="openEditProjectModal({{ $projectShowPayload }}, 'show')"
-                                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold rounded-xl transition shadow-2xs cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                                        </svg>
-                                        Edit Project
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- Meta Info Line --}}
-                        <div
-                            class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400 pt-1">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                                Client: <strong
-                                    class="text-gray-800 dark:text-gray-200 font-semibold">{{ $project->client?->name ?? 'Client One Global' }}</strong>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                Lead: <strong
-                                    class="text-gray-800 dark:text-gray-200 font-semibold">{{ $project->manager?->name ?? 'Admin ProjectHub' }}</strong>
-                            </span>
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                Timeline: <strong class="text-gray-800 dark:text-gray-200 font-semibold">
-                                    {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '01 Sep 2026' }}
-                                    –
-                                    {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : '30 Nov 2026' }}
-                                </strong>
-                            </span>
-                        </div>
-
-                        {{-- Sprint Progress Bar --}}
-                        <div class="pt-2 space-y-1.5">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-gray-700 dark:text-gray-300">Overall Sprint Progress</span>
-                                <span class="font-extrabold text-blue-600 dark:text-blue-400">{{ $progress }}%
-                                    Complete</span>
-                            </div>
-                            <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                                <div class="h-2.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition-all duration-500 shadow-2xs"
-                                    style="width: {{ min($progress, 100) }}%"></div>
-                            </div>
-                        </div>
-                    </div> {{-- 4 Stat Cards (Redesigned matching Sprint Style CSS) --}}
-                    <div
-                        class="bg-white dark:bg-gray-850 rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
-                        {{-- Col 1: TOTAL TASKS --}}
-                        <div class="p-5 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">TOTAL
-                                    TASKS</span>
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                </svg>
-                            </div>
-                            <p class="text-3xl font-black text-gray-900 dark:text-white leading-none my-2.5">
-                                {{ $totalTasks }}</p>
-                            <div class="flex items-center gap-1.5 text-xs font-semibold">
-                                <span class="text-blue-600 dark:text-blue-400">↑ {{ $totalTasks }} in scope</span>
-                                <span class="text-gray-300 dark:text-gray-600">·</span>
-                                <span
-                                    class="text-gray-400 dark:text-gray-500 font-normal">{{ $project->tasks->sum('story_points') ?: ($totalTasks * 3) }}
-                                    pts</span>
-                            </div>
-                        </div>
-
-                        {{-- Col 2: COMPLETED --}}
-                        <div class="p-5 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">COMPLETED</span>
-                                <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none my-2.5">
-                                {{ $doneTasks }}</p>
-                            <div
-                                class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                        d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>{{ $progress }}% delivered</span>
-                            </div>
-                        </div>
-
-                        {{-- Col 3: SPRINT MEMBERS --}}
-                        <div class="p-5 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">SPRINT
-                                    MEMBERS</span>
-                                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </div>
-                            <p class="text-3xl font-black text-gray-900 dark:text-white leading-none my-2.5">
-                                {{ $project->members->count() ?: 1 }}
-                            </p>
-                            <div
-                                class="flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                                <span>{{ $project->members->count() ?: 1 }} active team</span>
-                            </div>
-                        </div>
-
-                        {{-- Col 4: WORKING DAYS LEFT --}}
-                        <div class="p-5 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">WORKING
-                                    DAYS LEFT</span>
-                                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <p class="text-3xl font-black text-blue-600 dark:text-blue-400 leading-none my-2.5">
-                                {{ $daysLeft !== null ? $daysLeft . 'd' : '—' }}
-                            </p>
-                            <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span>Target:
-                                    {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : 'Ongoing' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- ============================================================
-                    TAB: OVERVIEW CONTENT (DASHBOARD, DIRECT SHORTCUTS, ANALYTICS)
+                    TOP HEADER & 4 STAT CARDS (ONLY FOR OVERVIEW TAB)
                     ============================================================ --}}
-                    <div x-show="tab === 'overview'" x-cloak class="pt-1">
-                        @include('projects.partials.overview-content')
-                    </div>
-                </div>
+                    <div x-show="tab === 'overview'" x-cloak class="space-y-5">
+                        {{-- Top Header Card --}}
+                        <div class="bg-white dark:bg-gray-850 rounded-2xl p-5 sm:p-6 space-y-4">
 
-                @endif {{-- /tab overview --}}
-                @if($tab === 'tasks')
-                {{-- ============================================================
-                TAB: TASKS (FILTERS, BOARD & LIST VIEWS)
-                ============================================================ --}}
-                <div x-show="tab === 'tasks'" x-cloak class="space-y-4 w-full max-w-full min-w-0">
 
-                    {{-- FILTER TOOLBAR & VIEW TOGGLE (MATCHING REFERENCE DESIGN) --}}
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                        {{-- Left: View Switcher (Board vs List) --}}
-                        <div class="inline-flex items-center gap-1 bg-gray-100/90 dark:bg-gray-800 p-1 rounded-xl shrink-0">
-                            <button type="button" @click="taskView = 'board'"
-                                :class="taskView === 'board' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'"
-                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
-                                </svg>
-                                Board
-                            </button>
-                            <button type="button" @click="taskView = 'list'"
-                                :class="taskView === 'list' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'"
-                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                                </svg>
-                                List
-                            </button>
-                        </div>
-
-                        {{-- Right: Dropdown Filters --}}
-                        <div class="flex items-center gap-2 flex-wrap">
-                            {{-- Assignee Filter --}}
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" @click.away="open = false" type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
-                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    <span>Assignee: <strong class="font-semibold"
-                                            x-text="filterAssigneeName || 'All'"></strong></span>
-                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" x-cloak
-                                    class="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5">
-                                    <button
-                                        @click="filterAssignee = ''; filterAssigneeName = 'All'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterAssignee === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
-                                        Assignees</button>
-                                    @foreach($assignableUsers as $u)
-                                        <button
-                                            @click="filterAssignee = '{{ $u->id }}'; filterAssigneeName = '{{ addslashes($u->name) }}'; open = false; applyFilters()"
-                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
-                                            :class="filterAssignee === '{{ $u->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
-                                            <span
-                                                class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px] font-bold">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
-                                            <span class="truncate">{{ $u->name }}</span>
-                                        </button>
+                            {{-- Title Row + Action Buttons --}}
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                @php $projectImages = $project->imageUrls(); @endphp
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    @if(!empty($projectImages))
+                                        <img src="{{ $projectImages[0] }}" alt="{{ $project->name }}"
+                                            class="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-12 h-12 rounded-xl items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40"
+                                            style="display:none;">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M20.25 14.25v4.5a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25v-4.5m16.5 0v-4.5A2.25 2.25 0 0 0 18 7.5H6a2.25 2.25 0 0 0-2.25 2.25v4.5m16.5 0h-4.5a2.25 2.25 0 0 1-2.25-2.25v-.75m-6 3H3.75m16.5 0h-3.75a2.25 2.25 0 0 1-2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-3A2.25 2.25 0 0 0 7.5 9v1.5a2.25 2.25 0 0 1-2.25 2.25H3.75M9 7.5V6a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 15 6v1.5" />
+                                            </svg>
+                                        </div>
+                                    @else
+                                        <div
+                                            class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-900/40">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M20.25 14.25v4.5a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25v-4.5m16.5 0v-4.5A2.25 2.25 0 0 0 18 7.5H6a2.25 2.25 0 0 0-2.25 2.25v4.5m16.5 0h-4.5a2.25 2.25 0 0 1-2.25-2.25v-.75m-6 3H3.75m16.5 0h-3.75a2.25 2.25 0 0 1-2.25-2.25V9a2.25 2.25 0 0 0-2.25-2.25h-3A2.25 2.25 0 0 0 7.5 9v1.5a2.25 2.25 0 0 1-2.25 2.25H3.75M9 7.5V6a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 15 6v1.5" />
+                                            </svg>
+                                        </div>
+                                    @endif
+                                    @foreach(array_slice($projectImages, 1) as $img)
+                                        <a href="{{ $img }}" target="_blank" rel="noopener" class="order-last">
+                                            <img src="{{ $img }}" alt=""
+                                                class="w-7 h-7 rounded-md object-cover border border-gray-200 hover:opacity-80 transition">
+                                        </a>
                                     @endforeach
+                                    <h1 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                                        {{ $project->name }}
+                                    </h1>
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border {{ $sc['class'] }}">
+                                        <span class="w-2 h-2 rounded-full {{ $sc['dot'] }}"></span>
+                                        {{ $sc['label'] }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2.5 shrink-0">
+                                    @if($project->google_meet_link)
+                                        <a href="{{ $project->google_meet_link }}" target="_blank" rel="noopener"
+                                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 transition shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+                                            </svg>
+                                            Join Meeting
+                                        </a>
+                                    @elseif(!auth()->user()->hasRole('client') && $project->google_meet_enabled)
+                                        <form method="POST" action="{{ route('projects.meeting.create', $project) }}">
+                                            @csrf
+                                            <button type="submit"
+                                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-750 transition shadow-2xs">
+                                                <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                                Create Meeting
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    @if(!auth()->user()->hasRole('client'))
+                                        @php
+                                            $projectShowPayload = json_encode([
+                                                'id' => $project->id,
+                                                'slug' => $project->slug,
+                                                'name' => $project->name,
+                                                'description' => $project->description,
+                                                'client_id' => $project->client_id,
+                                                'manager_id' => $project->manager_id,
+                                                'start_date' => $project->start_date ? $project->start_date->format('Y-m-d') : null,
+                                                'end_date' => $project->end_date ? $project->end_date->format('Y-m-d') : null,
+                                                'budget' => $project->budget,
+                                                'status' => $project->status,
+                                                'images' => $project->images ?? [],
+                                                'image_urls' => $project->imageUrls(),
+                                            ]);
+                                        @endphp
+                                        <button type="button" @click="openEditProjectModal({{ $projectShowPayload }}, 'show')"
+                                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold rounded-xl transition shadow-2xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                            </svg>
+                                            Edit Project
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
 
-                            {{-- Due Date Filter --}}
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" @click.away="open = false" type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
+                            {{-- Meta Info Line --}}
+                            <div
+                                class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400 pt-1">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                    Client: <strong
+                                        class="text-gray-800 dark:text-gray-200 font-semibold">{{ $project->client?->name ?? 'Client One Global' }}</strong>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Lead: <strong
+                                        class="text-gray-800 dark:text-gray-200 font-semibold">{{ $project->manager?->name ?? 'Admin ProjectHub' }}</strong>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Timeline: <strong class="text-gray-800 dark:text-gray-200 font-semibold">
+                                        {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '01 Sep 2026' }}
+                                        –
+                                        {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : '30 Nov 2026' }}
+                                    </strong>
+                                </span>
+                            </div>
+
+                            {{-- Sprint Progress Bar --}}
+                            <div class="pt-2 space-y-1.5">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-bold text-gray-700 dark:text-gray-300">Overall Sprint Progress</span>
+                                    <span class="font-extrabold text-blue-600 dark:text-blue-400">{{ $progress }}%
+                                        Complete</span>
+                                </div>
+                                <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                                    <div class="h-2.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition-all duration-500 shadow-2xs"
+                                        style="width: {{ min($progress, 100) }}%"></div>
+                                </div>
+                            </div>
+                        </div> {{-- 4 Stat Cards (Redesigned matching Sprint Style CSS) --}}
+                        <div
+                            class="bg-white dark:bg-gray-850 rounded-2xl grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-gray-800">
+                            {{-- Col 1: TOTAL TASKS --}}
+                            <div class="p-5 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">TOTAL
+                                        TASKS</span>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                </div>
+                                <p class="text-3xl font-black text-gray-900 dark:text-white leading-none my-2.5">
+                                    {{ $totalTasks }}
+                                </p>
+                                <div class="flex items-center gap-1.5 text-xs font-semibold">
+                                    <span class="text-blue-600 dark:text-blue-400">↑ {{ $totalTasks }} in scope</span>
+                                </div>
+                            </div>
+
+                            {{-- Col 2: COMPLETED --}}
+                            <div class="p-5 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">COMPLETED</span>
+                                    <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none my-2.5">
+                                    {{ $doneTasks }}
+                                </p>
+                                <div
+                                    class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>{{ $progress }}% delivered</span>
+                                </div>
+                            </div>
+
+                            {{-- Col 3: SPRINT MEMBERS --}}
+                            <div class="p-5 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">MEMBERS</span>
+                                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                                <p class="text-3xl font-black text-gray-900 dark:text-white leading-none my-2.5">
+                                    {{ $project->members->count() ?: 1 }}
+                                </p>
+                                <div
+                                    class="flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    <span>{{ $project->members->count() ?: 1 }} active team</span>
+                                </div>
+                            </div>
+
+                            {{-- Col 4: WORKING DAYS LEFT --}}
+                            <div class="p-5 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider">WORKING
+                                        DAYS LEFT</span>
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <p class="text-3xl font-black text-blue-600 dark:text-blue-400 leading-none my-2.5">
+                                    {{ $daysLeft !== null ? $daysLeft . 'd' : '—' }}
+                                </p>
+                                <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
                                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <span>Due Date: <strong class="font-semibold"
-                                            x-text="filterDueDateName || 'Any time'"></strong></span>
-                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" x-cloak
-                                    class="absolute right-0 top-full mt-1.5 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5">
-                                    <button
-                                        @click="filterDueDate = ''; filterDueDateName = 'Any time'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterDueDate === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">Any
-                                        time</button>
-                                    <button
-                                        @click="filterDueDate = 'today'; filterDueDateName = 'Today'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterDueDate === 'today' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">Today</button>
-                                    <button
-                                        @click="filterDueDate = 'week'; filterDueDateName = 'This Week'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterDueDate === 'week' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">This
-                                        Week</button>
-                                    <button
-                                        @click="filterDueDate = 'overdue'; filterDueDateName = 'Overdue'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 font-medium">Overdue</button>
-                                    <button
-                                        @click="filterDueDate = 'completed'; filterDueDateName = 'Completed'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-emerald-600 font-medium">Completed</button>
+                                    <span>Target:
+                                        {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : 'Ongoing' }}</span>
                                 </div>
                             </div>
+                        </div>
 
-                            {{-- Label Filter --}}
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" @click.away="open = false" type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
-                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                    </svg>
-                                    <span>Label: <strong class="font-semibold"
-                                            x-text="filterLabelName || 'All'"></strong></span>
-                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" x-cloak
-                                    class="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5 max-h-60 overflow-y-auto">
-                                    <button @click="filterLabel = ''; filterLabelName = 'All'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterLabel === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
-                                        Labels</button>
-                                    @foreach($projectLabels as $lbl)
-                                        <button
-                                            @click="filterLabel = '{{ $lbl->id }}'; filterLabelName = '{{ addslashes($lbl->name) }}'; open = false; applyFilters()"
-                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-1.5"
-                                            :class="filterLabel === '{{ $lbl->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
-                                            <span class="w-2 h-2 rounded-full {{ $lbl->colorClasses()['dot'] }}"></span>
-                                            <span class="truncate">{{ $lbl->name }}</span>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            {{-- Priority Filter --}}
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" @click.away="open = false" type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
-                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                                    </svg>
-                                    <span>Priority: <strong class="font-semibold"
-                                            x-text="filterPriorityName || 'All'"></strong></span>
-                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" x-cloak
-                                    class="absolute right-0 top-full mt-1.5 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5">
-                                    <button
-                                        @click="filterPriority = ''; filterPriorityName = 'All'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterPriority === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All</button>
-                                    <button
-                                        @click="filterPriority = 'urgent'; filterPriorityName = 'Urgent'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-rose-600 font-semibold">Urgent</button>
-                                    <button
-                                        @click="filterPriority = 'high'; filterPriorityName = 'Important'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-amber-600 font-semibold">Important</button>
-                                    <button
-                                        @click="filterPriority = 'medium'; filterPriorityName = 'Medium'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-blue-600 font-semibold">Medium</button>
-                                    <button
-                                        @click="filterPriority = 'low'; filterPriorityName = 'Low'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 font-semibold">Low</button>
-                                </div>
-                            </div>
-
-                            {{-- Milestone Filter --}}
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" @click.away="open = false" type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition"
-                                    :class="filterMilestone ? 'border-purple-300 dark:border-purple-600 bg-purple-50/50 text-purple-700 dark:text-purple-300' : ''">
-                                    <svg class="w-3.5 h-3.5"
-                                        :class="filterMilestone ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'"
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                                    </svg>
-                                    <span>Milestone: <strong class="font-semibold"
-                                            x-text="filterMilestoneName || 'All'"></strong></span>
-                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" x-cloak
-                                    class="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5 max-h-60 overflow-y-auto">
-                                    <button
-                                        @click="filterMilestone = ''; filterMilestoneName = 'All'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterMilestone === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
-                                        Milestones</button>
-                                    @foreach($project->milestones as $m)
-                                        <button
-                                            @click="filterMilestone = '{{ $m->id }}'; filterMilestoneName = '{{ addslashes($m->title) }}'; open = false; applyFilters()"
-                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
-                                            :class="filterMilestone === '{{ $m->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
-                                            <span class="truncate">{{ $m->title }}</span>
-                                            @if($m->code)
-                                                <span class="text-[10px] font-mono text-gray-400 shrink-0">{{ $m->code }}</span>
-                                            @endif
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            {{-- Sprint Filter --}}
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" @click.away="open = false" type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition"
-                                    :class="filterSprint ? 'border-indigo-300 dark:border-indigo-600 bg-indigo-50/50 text-indigo-700 dark:text-indigo-300' : ''">
-                                    <svg class="w-3.5 h-3.5"
-                                        :class="filterSprint ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'"
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                    <span>Sprint: <strong class="font-semibold"
-                                            x-text="filterSprintName || 'All'"></strong></span>
-                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" x-cloak
-                                    class="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5 max-h-60 overflow-y-auto">
-                                    <button
-                                        @click="filterSprint = ''; filterSprintName = 'All'; open = false; applyFilters()"
-                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-                                        :class="filterSprint === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
-                                        Sprints</button>
-                                    @foreach($project->sprints as $s)
-                                        <button
-                                            @click="filterSprint = '{{ $s->id }}'; filterSprintName = '{{ addslashes($s->name) }}'; open = false; applyFilters()"
-                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
-                                            :class="filterSprint === '{{ $s->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
-                                            <span class="truncate">{{ $s->name }}</span>
-                                            @if($s->code)
-                                                <span class="text-[10px] font-mono text-gray-400 shrink-0">{{ $s->code }}</span>
-                                            @endif
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            {{-- Clear Filters Button --}}
-                            <button type="button"
-                                x-show="filterAssignee || filterDueDate || filterLabel || filterPriority || filterMilestone || filterSprint || searchQuery"
-                                @click="clearAllFilters()" x-cloak
-                                class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-500 hover:text-red-500 transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear filters
-                            </button>
+                        {{-- ============================================================
+                        TAB: OVERVIEW CONTENT (DASHBOARD, DIRECT SHORTCUTS, ANALYTICS)
+                        ============================================================ --}}
+                        <div x-show="tab === 'overview'" x-cloak class="pt-1">
+                            @include('projects.partials.overview-content')
                         </div>
                     </div>
 
+                @endif {{-- /tab overview --}}
+                @if($tab === 'tasks')
                     {{-- ============================================================
-                    EMPTY STATE (WHEN NO BUCKETS EXIST)
+                    TAB: TASKS (FILTERS, BOARD & LIST VIEWS)
                     ============================================================ --}}
-                    @if($columns->isEmpty())
-                        <div
-                            class="bg-white dark:bg-gray-850 rounded-3xl p-8 sm:p-12 text-center space-y-6">
-                            {{-- Illustration Blueprint Box --}}
-                            <div
-                                class="relative w-20 h-20 mx-auto rounded-3xl bg-blue-50 dark:bg-blue-950/60 border-2 border-blue-200/70 dark:border-blue-800/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
-                                <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
-                                    <circle cx="8" cy="13" r="1" fill="currentColor" />
-                                    <circle cx="12" cy="13" r="1" fill="currentColor" />
-                                    <circle cx="16" cy="13" r="1" fill="currentColor" />
-                                    <circle cx="8" cy="16" r="1" fill="currentColor" />
-                                    <circle cx="12" cy="16" r="1" fill="currentColor" />
-                                    <circle cx="16" cy="16" r="1" fill="currentColor" />
-                                </svg>
-                                <span
-                                    class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 ring-4 ring-white dark:ring-gray-850"></span>
+                    <div x-show="tab === 'tasks'" x-cloak class="space-y-4 w-full max-w-full min-w-0">
+
+                        {{-- FILTER TOOLBAR & VIEW TOGGLE (MATCHING REFERENCE DESIGN) --}}
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                            {{-- Left: View Switcher (Board vs List) --}}
+                            <div class="inline-flex items-center gap-1 bg-gray-100/90 dark:bg-gray-800 p-1 rounded-xl shrink-0">
+                                <button type="button" @click="taskView = 'board'"
+                                    :class="taskView === 'board' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
+                                    </svg>
+                                    Board
+                                </button>
+                                <button type="button" @click="taskView = 'list'"
+                                    :class="taskView === 'list' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-xs font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                    </svg>
+                                    List
+                                </button>
                             </div>
 
-                            <div class="space-y-2 max-w-md mx-auto">
-                                <h3 class="text-xl font-black text-gray-900 dark:text-white">No Buckets in this Sprint Yet</h3>
-                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                    Organize your sprint workflow by creating custom stages or instantly bootstrap with standard
-                                    agile buckets.
-                                </p>
-                            </div>
-
-                            {{-- Action Buttons --}}
-                            <div class="flex items-center justify-center gap-3 flex-wrap pt-2">
-                                @if(!auth()->user()->hasRole('client'))
-                                    <button type="button" @click="bootstrapDefaultBuckets()" :disabled="isBootstrapping"
-                                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-full transition shadow-sm cursor-pointer disabled:opacity-50">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {{-- Right: Dropdown Filters --}}
+                            <div class="flex items-center gap-2 flex-wrap">
+                                {{-- Assignee Filter --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
-                                        <span x-text="isBootstrapping ? 'Creating Buckets...' : 'Use Default Buckets'">Use Default
-                                            Buckets</span>
-                                    </button>
-                                    <button type="button" @click="openCreateBucketModal()"
-                                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-650 text-xs sm:text-sm font-bold rounded-full transition shadow-2xs cursor-pointer">
-                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <span>Assignee: <strong class="font-semibold"
+                                                x-text="filterAssigneeName || 'All'"></strong></span>
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4v16m8-8H4" />
+                                                d="M19 9l-7 7-7-7" />
                                         </svg>
-                                        Create Custom Bucket
                                     </button>
-                                @endif
-                            </div>
-
-                            {{-- Auto-Generates Preview Badge Line --}}
-                            <div
-                                class="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2 text-xs flex-wrap text-gray-400">
-                                <span
-                                    class="font-bold tracking-wider text-[10px] uppercase text-gray-400">AUTO-GENERATES:</span>
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> To Do
-                                </span>
-                                <span>&rarr;</span>
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold text-[11px]">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> IN PROGRESS
-                                </span>
-                                <span>&rarr;</span>
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold text-[11px]">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> REVIEW
-                                </span>
-                                <span>&rarr;</span>
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px]">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> COMPLETED
-                                </span>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- ============================================================
-                    BOARD VIEW (KANBAN)
-                    ============================================================ --}}
-                    @if($columns->isNotEmpty())
-                        <div x-show="taskView === 'board'" x-cloak class="pt-1 w-full max-w-full min-w-0 overflow-x-hidden">
-                            <div id="project-detail-kanban-columns"
-                                class="flex gap-5 overflow-x-auto pb-6 pt-1 items-start min-h-[calc(100vh-320px)] w-full max-w-full min-w-0 hide-scrollbar select-none">
-
-                                @foreach($columns as $col)
-                                    @php
-                                        $colTasks = $project->tasks->where('board_column_id', $col->id)->sortBy('sort_order');
-                                        $dotColor = \App\Support\BoardColumnPalette::dot($col->color);
-                                        $pillBg = \App\Support\BoardColumnPalette::pill($col->color);
-                                        $slug = strtolower($col->slug ?? '');
-                                    @endphp
-                                    <div class="kanban-column w-80 shrink-0 flex flex-col space-y-3" data-column-id="{{ $col->id }}"
-                                        data-column-slug="{{ $col->slug }}" data-column-name="{{ $col->name }}"
-                                        data-column-color="{{ $col->color }}" data-column-icon="{{ $col->icon }}">
-                                        {{-- Column Header Row (Pixel-Perfect with Reference Image & Draggable Handle) --}}
-                                        <div
-                                            class="kanban-column-header flex items-center justify-between gap-2 px-1 shrink-0 cursor-grab active:cursor-grabbing">
-                                            @if(in_array($slug, ['todo', 'to_do', 'backlog']) && $col->color === 'slate')
-                                                <div class="flex items-center gap-2 min-w-0">
-                                                    <svg class="w-4 h-4 text-slate-700 dark:text-slate-300 shrink-0" fill="none"
-                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                    </svg>
-                                                    <h3
-                                                        class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-slate-100 truncate">
-                                                        {{ $col->name }}
-                                                    </h3>
-                                                    <span
-                                                        class="column-counter text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full shadow-2xs">{{ $colTasks->count() }}</span>
-                                                </div>
-                                            @else
-                                                <div class="flex items-center gap-2 min-w-0">
-                                                    <span
-                                                        class="column-badge inline-flex items-center gap-1.5 {{ $pillBg }} text-white font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full shadow-2xs truncate">
-                                                        {!! $col->renderIcon('w-3.5 h-3.5 text-white shrink-0') !!}
-                                                        <span class="truncate">{{ $col->name }}</span>
-                                                        <span
-                                                            class="column-counter bg-white/25 text-white text-[10.5px] px-1.5 py-0.2 rounded-full font-bold">{{ $colTasks->count() }}</span>
-                                                    </span>
-                                                </div>
-                                            @endif
-
-                                            {{-- Bucket 3-Dots Dropdown Trigger (Crisp Black Dots) --}}
-                                            <div class="relative shrink-0" x-data="{ open: false }">
-                                                <button type="button" @click="open = !open" @click.away="open = false"
-                                                    class="w-7 h-7 flex items-center justify-center rounded-lg text-black hover:text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 transition cursor-pointer"
-                                                    title="Bucket Options">
-                                                    <svg class="w-4 h-4 text-black dark:text-white" fill="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <circle cx="5" cy="12" r="1.75" />
-                                                        <circle cx="12" cy="12" r="1.75" />
-                                                        <circle cx="19" cy="12" r="1.75" />
-                                                    </svg>
-                                                </button>
-
-                                                {{-- 3-Dots Dropdown Menu Modal with Clean SVG Icons --}}
-                                                <div x-show="open" x-cloak
-                                                    class="absolute right-0 top-full mt-1.5 w-64 bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700 rounded-2xl shadow-xl p-2 z-50 space-y-1">
-                                                    {{-- Header with Bucket Name & Count Pill --}}
-                                                    <div
-                                                        class="px-2.5 py-2 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-2 mb-1">
-                                                        <div class="flex items-center gap-2 truncate">
-                                                            <span class="w-2.5 h-2.5 rounded-full {{ $dotColor }} shrink-0"></span>
-                                                            <span
-                                                                class="text-xs font-bold uppercase truncate text-gray-900 dark:text-white">{{ $col->name }}</span>
-                                                        </div>
-                                                        <span
-                                                            class="text-[10.5px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 shrink-0">{{ $colTasks->count() }}</span>
-                                                    </div>
-
-                                                    <p
-                                                        class="px-2.5 pt-1 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                                                        BUCKET ACTIONS</p>
-
-                                                    {{-- Edit Bucket --}}
-                                                    <button type="button"
-                                                        @click="open = false; openEditBucketModal({{ $col->id }}, '{{ addslashes($col->name) }}', '{{ $col->color }}', '{{ $col->icon }}')"
-                                                        class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
-                                                        <div
-                                                            class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-105 transition-transform">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                            </svg>
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p
-                                                                class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                                Edit Bucket</p>
-                                                            <p class="text-[10px] text-gray-400 truncate">Rename, change color &
-                                                                icon</p>
-                                                        </div>
-                                                    </button>
-
-                                                    {{-- Add Task to Bucket --}}
-                                                    <button type="button" @click="open = false; openQuickAddTask({{ $col->id }})"
-                                                        class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
-                                                        <div
-                                                            class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-105 transition-transform">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2" d="M12 4v16m8-8H4" />
-                                                            </svg>
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p
-                                                                class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                                                Add Task to Bucket</p>
-                                                            <p class="text-[10px] text-gray-400 truncate">Quick create a task in
-                                                                this bucket</p>
-                                                        </div>
-                                                    </button>
-
-                                                    {{-- Delete Bucket --}}
-                                                    <button type="button"
-                                                        @click="open = false; promptDeleteBucketModal({{ $col->id }}, '{{ addslashes($col->name) }}', {{ $colTasks->count() }})"
-                                                        class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-3 cursor-pointer group">
-                                                        <div
-                                                            class="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200/60 dark:border-red-800/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 group-hover:scale-105 transition-transform">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-xs font-bold text-red-600 dark:text-red-400">Delete
-                                                                Bucket</p>
-                                                            <p class="text-[10px] text-red-400/90 dark:text-red-400/80 truncate">
-                                                                Move tasks or delete completely</p>
-                                                        </div>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Full Width + Add Task Button below Header --}}
-                                        @if(!auth()->user()->hasRole('client'))
-                                            <div>
-                                                <button type="button" @click="openQuickAddTask({{ $col->id }})"
-                                                    class="w-full py-2 px-3 rounded-xl border border-dashed border-gray-300/80 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-blue-50/50 hover:border-blue-300 dark:hover:border-blue-700 text-xs font-bold text-gray-500 hover:text-blue-600 transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M12 4v16m8-8H4" />
-                                                    </svg>
-                                                    Add Task
-                                                </button>
-                                            </div>
-                                        @endif
-
-                                        {{-- Cards Droppable Container --}}
-                                        <div id="detail-cards-column-{{ $col->id }}" data-column-id="{{ $col->id }}"
-                                            class="project-detail-cards-dropzone space-y-3 min-h-[160px] pb-6">
-                                            @foreach($colTasks as $task)
-                                                @include('sprints._kanban_card', ['task' => $task, 'col' => $col])
-                                            @endforeach
-                                        </div>
-
-                                        {{-- Inline Quick Add Input (if active) --}}
-                                        <div x-show="quickAddColumnId === {{ $col->id }}" x-cloak
-                                            class="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-                                            <form @submit.prevent="submitQuickTask({{ $col->id }})" class="space-y-2">
-                                                <textarea x-model="quickTaskTitle" x-ref="quickTaskInput_{{ $col->id }}" rows="2"
-                                                    placeholder="Task title and press Enter..."
-                                                    class="w-full text-xs p-2.5 rounded-xl border border-blue-300 dark:border-blue-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
-                                                <div class="flex items-center justify-end gap-2">
-                                                    <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''"
-                                                        class="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
-                                                    <button type="submit"
-                                                        class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-2xs hover:bg-blue-700">Save
-                                                        Task</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endforeach
-
-                                {{-- + Add Another Bucket Column at the End (Matching Reference Design) --}}
-                                @if(!auth()->user()->hasRole('client'))
-                                    <div class="add-bucket-column-wrapper w-80 shrink-0">
-                                        <button type="button" @click="openCreateBucketModal()"
-                                            class="w-full h-[220px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 bg-white/60 dark:bg-gray-850/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all flex flex-col items-center justify-center gap-2.5 group cursor-pointer p-6 text-center">
-                                            <div
-                                                class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-blue-600 group-hover:text-white text-gray-400 flex items-center justify-center transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                        d="M12 4v16m8-8H4" />
-                                                </svg>
-                                            </div>
-                                            <div>
+                                    <div x-show="open" x-cloak
+                                        class="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5">
+                                        <button
+                                            @click="filterAssignee = ''; filterAssigneeName = 'All'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterAssignee === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
+                                            Assignees</button>
+                                        @foreach($assignableUsers as $u)
+                                            <button
+                                                @click="filterAssignee = '{{ $u->id }}'; filterAssigneeName = '{{ addslashes($u->name) }}'; open = false; applyFilters()"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                                                :class="filterAssignee === '{{ $u->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
                                                 <span
-                                                    class="text-xs font-bold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors block">Add
-                                                    Another Bucket</span>
-                                                <span class="text-[11px] text-gray-400 block mt-0.5">e.g. Backlog, Blocked,
-                                                    Testing</span>
-                                            </div>
-                                        </button>
+                                                    class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px] font-bold">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+                                                <span class="truncate">{{ $u->name }}</span>
+                                            </button>
+                                        @endforeach
                                     </div>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- ============================================================
-                    LIST VIEW (WITH DRAG & DROP & EXACT REFERENCE DESIGN)
-                    ============================================================ --}}
-                    @if($columns->isNotEmpty())
-                        <div x-show="taskView === 'list'" x-cloak class="pt-1 w-full max-w-full min-w-0">
-                            <div
-                                class="bg-white dark:bg-gray-850 rounded-2xl p-6 space-y-6">
-                                {{-- Table Header Row --}}
-                                <div
-                                    class="grid grid-cols-12 gap-2 text-[12px] font-bold text-gray-400 dark:text-gray-500 pb-3 border-b border-gray-100 dark:border-gray-800 px-3 items-center">
-                                    <div class="col-span-4">Name</div>
-                                    <div class="col-span-1">Priority</div>
-                                    <div class="col-span-1">Assignee</div>
-                                    <div class="col-span-2">Labels</div>
-                                    <div class="col-span-2">Due Date</div>
-                                    <div class="col-span-1">Checklists</div>
-                                    <div class="col-span-1 text-right">Details</div>
                                 </div>
 
-                                {{-- Buckets Accordion List --}}
-                                @foreach($columns as $col)
-                                    @php
-                                        $colTasks = $project->tasks->where('board_column_id', $col->id)->sortBy('sort_order');
-                                        $dotColor = \App\Support\BoardColumnPalette::dot($col->color);
-                                        $pillBg = \App\Support\BoardColumnPalette::pill($col->color);
-                                        $slug = strtolower($col->slug ?? '');
-                                    @endphp
-                                    <div class="space-y-2" x-data="{ accordionOpen: true }">
-                                        {{-- Bucket Accordion Header --}}
-                                        <div class="flex items-center gap-2.5 cursor-pointer pt-1"
-                                            @click="accordionOpen = !accordionOpen">
-                                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
-                                                :class="accordionOpen ? '' : '-rotate-90'" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                    d="M19 9l-7 7-7-7" />
+                                {{-- Due Date Filter --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>Due Date: <strong class="font-semibold"
+                                                x-text="filterDueDateName || 'Any time'"></strong></span>
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-cloak
+                                        class="absolute right-0 top-full mt-1.5 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5">
+                                        <button
+                                            @click="filterDueDate = ''; filterDueDateName = 'Any time'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterDueDate === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">Any
+                                            time</button>
+                                        <button
+                                            @click="filterDueDate = 'today'; filterDueDateName = 'Today'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterDueDate === 'today' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">Today</button>
+                                        <button
+                                            @click="filterDueDate = 'week'; filterDueDateName = 'This Week'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterDueDate === 'week' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">This
+                                            Week</button>
+                                        <button
+                                            @click="filterDueDate = 'overdue'; filterDueDateName = 'Overdue'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 font-medium">Overdue</button>
+                                        <button
+                                            @click="filterDueDate = 'completed'; filterDueDateName = 'Completed'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-emerald-600 font-medium">Completed</button>
+                                    </div>
+                                </div>
+
+                                {{-- Label Filter --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                        </svg>
+                                        <span>Label: <strong class="font-semibold"
+                                                x-text="filterLabelName || 'All'"></strong></span>
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-cloak
+                                        class="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5 max-h-60 overflow-y-auto">
+                                        <button @click="filterLabel = ''; filterLabelName = 'All'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterLabel === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
+                                            Labels</button>
+                                        @foreach($projectLabels as $lbl)
+                                            <button
+                                                @click="filterLabel = '{{ $lbl->id }}'; filterLabelName = '{{ addslashes($lbl->name) }}'; open = false; applyFilters()"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-1.5"
+                                                :class="filterLabel === '{{ $lbl->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
+                                                <span class="w-2 h-2 rounded-full {{ $lbl->colorClasses()['dot'] }}"></span>
+                                                <span class="truncate">{{ $lbl->name }}</span>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- Priority Filter --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                        </svg>
+                                        <span>Priority: <strong class="font-semibold"
+                                                x-text="filterPriorityName || 'All'"></strong></span>
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-cloak
+                                        class="absolute right-0 top-full mt-1.5 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5">
+                                        <button
+                                            @click="filterPriority = ''; filterPriorityName = 'All'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterPriority === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All</button>
+                                        <button
+                                            @click="filterPriority = 'urgent'; filterPriorityName = 'Urgent'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-rose-600 font-semibold">Urgent</button>
+                                        <button
+                                            @click="filterPriority = 'high'; filterPriorityName = 'Important'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-amber-600 font-semibold">Important</button>
+                                        <button
+                                            @click="filterPriority = 'medium'; filterPriorityName = 'Medium'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-blue-600 font-semibold">Medium</button>
+                                        <button
+                                            @click="filterPriority = 'low'; filterPriorityName = 'Low'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 font-semibold">Low</button>
+                                    </div>
+                                </div>
+
+                                {{-- Milestone Filter --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition"
+                                        :class="filterMilestone ? 'border-purple-300 dark:border-purple-600 bg-purple-50/50 text-purple-700 dark:text-purple-300' : ''">
+                                        <svg class="w-3.5 h-3.5"
+                                            :class="filterMilestone ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                        </svg>
+                                        <span>Milestone: <strong class="font-semibold"
+                                                x-text="filterMilestoneName || 'All'"></strong></span>
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-cloak
+                                        class="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5 max-h-60 overflow-y-auto">
+                                        <button
+                                            @click="filterMilestone = ''; filterMilestoneName = 'All'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterMilestone === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
+                                            Milestones</button>
+                                        @foreach($project->milestones as $m)
+                                            <button
+                                                @click="filterMilestone = '{{ $m->id }}'; filterMilestoneName = '{{ addslashes($m->title) }}'; open = false; applyFilters()"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                                                :class="filterMilestone === '{{ $m->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
+                                                <span class="truncate">{{ $m->title }}</span>
+                                                @if($m->code)
+                                                    <span class="text-[10px] font-mono text-gray-400 shrink-0">{{ $m->code }}</span>
+                                                @endif
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- Sprint Filter --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" type="button"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 border border-gray-200/90 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 shadow-2xs transition"
+                                        :class="filterSprint ? 'border-indigo-300 dark:border-indigo-600 bg-indigo-50/50 text-indigo-700 dark:text-indigo-300' : ''">
+                                        <svg class="w-3.5 h-3.5"
+                                            :class="filterSprint ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                        <span>Sprint: <strong class="font-semibold"
+                                                x-text="filterSprintName || 'All'"></strong></span>
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-cloak
+                                        class="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-1.5 z-40 space-y-0.5 max-h-60 overflow-y-auto">
+                                        <button
+                                            @click="filterSprint = ''; filterSprintName = 'All'; open = false; applyFilters()"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            :class="filterSprint === '' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">All
+                                            Sprints</button>
+                                        @foreach($project->sprints as $s)
+                                            <button
+                                                @click="filterSprint = '{{ $s->id }}'; filterSprintName = '{{ addslashes($s->name) }}'; open = false; applyFilters()"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between gap-2"
+                                                :class="filterSprint === '{{ $s->id }}' ? 'text-blue-600 font-bold' : 'text-gray-700 dark:text-gray-200'">
+                                                <span class="truncate">{{ $s->name }}</span>
+                                                @if($s->code)
+                                                    <span class="text-[10px] font-mono text-gray-400 shrink-0">{{ $s->code }}</span>
+                                                @endif
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- Clear Filters Button --}}
+                                <button type="button"
+                                    x-show="filterAssignee || filterDueDate || filterLabel || filterPriority || filterMilestone || filterSprint || searchQuery"
+                                    @click="clearAllFilters()" x-cloak
+                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-500 hover:text-red-500 transition cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Clear filters
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- ============================================================
+                        EMPTY STATE (WHEN NO BUCKETS EXIST)
+                        ============================================================ --}}
+                        @if($columns->isEmpty())
+                            <div class="bg-white dark:bg-gray-850 rounded-3xl p-8 sm:p-12 text-center space-y-6">
+                                {{-- Illustration Blueprint Box --}}
+                                <div
+                                    class="relative w-20 h-20 mx-auto rounded-3xl bg-blue-50 dark:bg-blue-950/60 border-2 border-blue-200/70 dark:border-blue-800/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
+                                    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
+                                        <circle cx="8" cy="13" r="1" fill="currentColor" />
+                                        <circle cx="12" cy="13" r="1" fill="currentColor" />
+                                        <circle cx="16" cy="13" r="1" fill="currentColor" />
+                                        <circle cx="8" cy="16" r="1" fill="currentColor" />
+                                        <circle cx="12" cy="16" r="1" fill="currentColor" />
+                                        <circle cx="16" cy="16" r="1" fill="currentColor" />
+                                    </svg>
+                                    <span
+                                        class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 ring-4 ring-white dark:ring-gray-850"></span>
+                                </div>
+
+                                <div class="space-y-2 max-w-md mx-auto">
+                                    <h3 class="text-xl font-black text-gray-900 dark:text-white">No Buckets in this Sprint Yet</h3>
+                                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                                        Organize your sprint workflow by creating custom stages or instantly bootstrap with standard
+                                        agile buckets.
+                                    </p>
+                                </div>
+
+                                {{-- Action Buttons --}}
+                                <div class="flex items-center justify-center gap-3 flex-wrap pt-2">
+                                    @if(!auth()->user()->hasRole('client'))
+                                        <button type="button" @click="bootstrapDefaultBuckets()" :disabled="isBootstrapping"
+                                            class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-full transition shadow-sm cursor-pointer disabled:opacity-50">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                             </svg>
+                                            <span x-text="isBootstrapping ? 'Creating Buckets...' : 'Use Default Buckets'">Use Default
+                                                Buckets</span>
+                                        </button>
+                                        <button type="button" @click="openCreateBucketModal()"
+                                            class="inline-flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-650 text-xs sm:text-sm font-bold rounded-full transition shadow-2xs cursor-pointer">
+                                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Create Custom Bucket
+                                        </button>
+                                    @endif
+                                </div>
 
-                                            @if(in_array($slug, ['todo', 'to_do', 'backlog']) && $col->color === 'slate')
-                                                <span
-                                                    class="column-badge inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-bold px-3 py-0.5 rounded-full text-xs shadow-2xs">
-                                                    <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                    </svg>
-                                                    <span>{{ $col->name }}</span>
-                                                </span>
-                                            @else
-                                                <span
-                                                    class="column-badge inline-flex items-center gap-1.5 {{ $pillBg }} text-white font-bold px-3 py-0.5 rounded-full text-xs shadow-2xs">
-                                                    {!! $col->renderIcon('w-3 h-3 text-white shrink-0') !!}
-                                                    <span>{{ $col->name }}</span>
-                                                </span>
-                                            @endif
+                                {{-- Auto-Generates Preview Badge Line --}}
+                                <div
+                                    class="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2 text-xs flex-wrap text-gray-400">
+                                    <span
+                                        class="font-bold tracking-wider text-[10px] uppercase text-gray-400">AUTO-GENERATES:</span>
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> To Do
+                                    </span>
+                                    <span>&rarr;</span>
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> IN PROGRESS
+                                    </span>
+                                    <span>&rarr;</span>
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> REVIEW
+                                    </span>
+                                    <span>&rarr;</span>
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> COMPLETED
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
 
-                                            <span class="text-xs text-gray-400 font-semibold">{{ $colTasks->count() }}</span>
-                                        </div>
+                        {{-- ============================================================
+                        BOARD VIEW (KANBAN)
+                        ============================================================ --}}
+                        @if($columns->isNotEmpty())
+                            <div x-show="taskView === 'board'" x-cloak class="pt-1 w-full max-w-full min-w-0 overflow-x-hidden">
+                                <div id="project-detail-kanban-columns"
+                                    class="flex gap-5 overflow-x-auto pb-6 pt-1 items-start min-h-[calc(100vh-320px)] w-full max-w-full min-w-0 hide-scrollbar select-none">
 
-                                        {{-- Task Rows with SortableJS --}}
-                                        <div x-show="accordionOpen" class="space-y-1 pt-1">
-                                            <div id="list-tasks-column-{{ $col->id }}" data-column-id="{{ $col->id }}"
-                                                data-column-name="{{ $col->name }}"
-                                                class="project-detail-list-dropzone space-y-1 min-h-[44px]">
-                                                @foreach($colTasks as $task)
-                                                    @php
-                                                        $allMembers = $task->members->isNotEmpty() ? $task->members : ($task->assignee ? collect([$task->assignee]) : collect());
-                                                        $isDone = $task->isMarkedDone();
-                                                        $overdue = !$isDone && $task->isOverdue();
-                                                        $days = $task->daysRemaining();
-
-                                                        $doneCount = $task->checklists->flatMap->items->where('is_done', true)->count();
-                                                        $totalCount = $task->checklists->flatMap->items->count();
-                                                        $pctChecklist = $totalCount > 0 ? round(($doneCount / $totalCount) * 100) : 0;
-
-                                                        $pListCfg = [
-                                                            'urgent' => ['class' => 'text-rose-600', 'label' => 'Urgent'],
-                                                            'critical' => ['class' => 'text-rose-600', 'label' => 'Urgent'],
-                                                            'high' => ['class' => 'text-amber-500', 'label' => 'High'],
-                                                            'medium' => ['class' => 'text-blue-600', 'label' => 'Normal'],
-                                                            'low' => ['class' => 'text-gray-400', 'label' => 'Low'],
-                                                        ];
-                                                        $plc = $pListCfg[$task->priority] ?? $pListCfg['medium'];
-
-                                                        $lblPalette = [
-                                                            'ux stages' => 'bg-rose-100/80 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'research' => 'bg-amber-100/80 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'it frontend' => 'bg-sky-100/80 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'core' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'design system' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'backend' => 'bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'api' => 'bg-amber-100/80 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'frontend' => 'bg-teal-100/80 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'qa' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'performance' => 'bg-rose-100/80 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'auth' => 'bg-amber-100/80 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'data' => 'bg-rose-100/80 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                            'infra' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
-                                                        ];
-                                                    @endphp
-                                                    <div class="list-task-row grid grid-cols-12 gap-2 py-2.5 px-3 hover:bg-gray-50/90 dark:hover:bg-gray-800/60 rounded-xl transition-all items-center group cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-gray-750"
-                                                        data-task-id="{{ $task->id }}" data-priority="{{ $task->priority }}"
-                                                        data-assignee-ids="{{ $allMembers->pluck('id')->join(',') }}"
-                                                        data-labels="{{ $task->labels->pluck('id')->join(',') }}"
-                                                        data-due="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
-                                                        data-is-done="{{ $isDone ? '1' : '0' }}"
-                                                        data-sprint-id="{{ $task->sprint_id ?? '' }}"
-                                                        data-milestone-id="{{ $task->milestone_id ?? '' }}"
-                                                        @click="openTask({{ $task->id }})">
-                                                        {{-- 1. Name + Drag handle + Checkbox (col-span-4) --}}
-                                                        <div class="col-span-4 flex items-center gap-2.5 min-w-0 pr-2">
+                                    @foreach($columns as $col)
+                                        @php
+                                            $colTasks = $project->tasks->where('board_column_id', $col->id)->sortBy('sort_order');
+                                            $dotColor = \App\Support\BoardColumnPalette::dot($col->color);
+                                            $pillBg = \App\Support\BoardColumnPalette::pill($col->color);
+                                            $slug = strtolower($col->slug ?? '');
+                                        @endphp
+                                        <div class="kanban-column w-80 shrink-0 flex flex-col space-y-3" data-column-id="{{ $col->id }}"
+                                            data-column-slug="{{ $col->slug }}" data-column-name="{{ $col->name }}"
+                                            data-column-color="{{ $col->color }}" data-column-icon="{{ $col->icon }}">
+                                            {{-- Column Header Row (Pixel-Perfect with Reference Image & Draggable Handle) --}}
+                                            <div
+                                                class="kanban-column-header flex items-center justify-between gap-2 px-1 shrink-0 cursor-grab active:cursor-grabbing">
+                                                @if(in_array($slug, ['todo', 'to_do', 'backlog']) && $col->color === 'slate')
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <svg class="w-4 h-4 text-slate-700 dark:text-slate-300 shrink-0" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                        </svg>
+                                                        <h3
+                                                            class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-slate-100 truncate">
+                                                            {{ $col->name }}
+                                                        </h3>
+                                                        <span
+                                                            class="column-counter text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full shadow-2xs">{{ $colTasks->count() }}</span>
+                                                    </div>
+                                                @else
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <span
+                                                            class="column-badge inline-flex items-center gap-1.5 {{ $pillBg }} text-white font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full shadow-2xs truncate">
+                                                            {!! $col->renderIcon('w-3.5 h-3.5 text-white shrink-0') !!}
+                                                            <span class="truncate">{{ $col->name }}</span>
                                                             <span
-                                                                class="list-drag-handle cursor-grab active:cursor-grabbing text-gray-300 group-hover:text-gray-500 p-0.5 shrink-0"
-                                                                @click.stop>
-                                                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                                                                    <path
-                                                                        d="M9 5a2 2 0 11-4 0 2 2 0 014 0zM9 12a2 2 0 11-4 0 2 2 0 014 0zM9 19a2 2 0 11-4 0 2 2 0 014 0zM19 5a2 2 0 11-4 0 2 2 0 014 0zM19 12a2 2 0 11-4 0 2 2 0 014 0zM19 19a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                </svg>
-                                                            </span>
-                                                            <span data-complete-btn
-                                                                class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 text-transparent' }}">
-                                                                <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor"
-                                                                    viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                                        d="M5 13l4 4L19 7" />
-                                                                </svg>
-                                                            </span>
-                                                            <span
-                                                                class="text-xs font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 truncate {{ $isDone ? 'line-through text-gray-400 dark:text-gray-500' : '' }}">
-                                                                {{ $task->title }}
-                                                            </span>
-                                                        </div>
+                                                                class="column-counter bg-white/25 text-white text-[10.5px] px-1.5 py-0.2 rounded-full font-bold">{{ $colTasks->count() }}</span>
+                                                        </span>
+                                                    </div>
+                                                @endif
 
-                                                        {{-- 2. Priority (col-span-1) --}}
+                                                {{-- Bucket 3-Dots Dropdown Trigger (Crisp Black Dots) --}}
+                                                <div class="relative shrink-0" x-data="{ open: false }">
+                                                    <button type="button" @click="open = !open" @click.away="open = false"
+                                                        class="w-7 h-7 flex items-center justify-center rounded-lg text-black hover:text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 transition cursor-pointer"
+                                                        title="Bucket Options">
+                                                        <svg class="w-4 h-4 text-black dark:text-white" fill="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <circle cx="5" cy="12" r="1.75" />
+                                                            <circle cx="12" cy="12" r="1.75" />
+                                                            <circle cx="19" cy="12" r="1.75" />
+                                                        </svg>
+                                                    </button>
+
+                                                    {{-- 3-Dots Dropdown Menu Modal with Clean SVG Icons --}}
+                                                    <div x-show="open" x-cloak
+                                                        class="absolute right-0 top-full mt-1.5 w-64 bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700 rounded-2xl shadow-xl p-2 z-50 space-y-1">
+                                                        {{-- Header with Bucket Name & Count Pill --}}
                                                         <div
-                                                            class="col-span-1 list-priority-container flex items-center gap-1.5 text-xs font-bold {{ $plc['class'] }}">
-                                                            <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                                                                <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                            </svg>
-                                                            <span class="truncate">{{ $plc['label'] }}</span>
-                                                        </div>
-
-                                                        {{-- 3. Assignee (col-span-1) --}}
-                                                        <div class="col-span-1 list-assignee-container flex items-center">
-                                                            @if($allMembers->isNotEmpty())
-                                                                @php $assignee = $allMembers->first(); @endphp
-                                                                @if($assignee->avatar)
-                                                                    <img src="{{ Storage::url($assignee->avatar) }}" alt="{{ $assignee->name }}"
-                                                                        title="{{ $assignee->name }}"
-                                                                        class="w-6 h-6 rounded-full object-cover shadow-2xs">
-                                                                @else
-                                                                    <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
-                                                                        style="background-color: {{ $assignee->avatarColor() }};"
-                                                                        title="{{ $assignee->name }}">
-                                                                        {{ $assignee->initials() }}
-                                                                    </div>
-                                                                @endif
-                                                            @else
-                                                                <span class="text-xs text-gray-300">—</span>
-                                                            @endif
-                                                        </div>
-
-                                                        {{-- 4. Labels (col-span-2) --}}
-                                                        <div
-                                                            class="col-span-2 list-labels-container flex items-center gap-1.5 flex-wrap">
-                                                            @if($task->labels->isNotEmpty())
-                                                                @foreach($task->labels->take(2) as $lbl)
-                                                                    @php
-                                                                        $lKey = strtolower(trim($lbl->name));
-                                                                        $lStyle = $lblPalette[$lKey] ?? null;
-                                                                        if (!$lStyle) {
-                                                                            $c = $lbl->colorClasses();
-                                                                            $lStyle = $c['bg'] . ' ' . $c['text'];
-                                                                        }
-                                                                    @endphp
-                                                                    <span
-                                                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold {{ $lStyle }} truncate max-w-[120px]">
-                                                                        {{ $lbl->name }}
-                                                                    </span>
-                                                                @endforeach
-                                                                @if($task->labels->count() > 2)
-                                                                    <span
-                                                                        class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 shrink-0">
-                                                                        +{{ $task->labels->count() - 2 }}
-                                                                    </span>
-                                                                @endif
-                                                            @else
-                                                                <span class="text-xs text-gray-300">—</span>
-                                                            @endif
-                                                        </div>
-
-                                                        {{-- 5. Due Date (col-span-2) --}}
-                                                        <div class="col-span-2 list-due-container flex items-center text-xs">
-                                                            @if($isDone)
+                                                            class="px-2.5 py-2 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-2 mb-1">
+                                                            <div class="flex items-center gap-2 truncate">
+                                                                <span class="w-2.5 h-2.5 rounded-full {{ $dotColor }} shrink-0"></span>
                                                                 <span
-                                                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                                                                    <svg class="w-3 h-3 shrink-0 text-emerald-500" fill="none"
-                                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                                            stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                                                    </svg>
-                                                                    Completed {{ $task->updated_at?->format('d M') ?? '' }}
-                                                                </span>
-                                                            @elseif($task->due_date)
-                                                                @if($overdue)
-                                                                    <span
-                                                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400">
-                                                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
-                                                                        {{ $task->due_date->format('d M') }} (Overdue)
-                                                                    </span>
-                                                                @elseif($days !== null && $days <= 2)
-                                                                    <span
-                                                                        class="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 dark:text-red-400">
-                                                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
-                                                                        Due: {{ $task->due_date->format('d M') }}
-                                                                    </span>
-                                                                @else
-                                                                    <span
-                                                                        class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 dark:text-gray-400">
-                                                                        <svg class="w-3 h-3 shrink-0 text-gray-400" fill="none"
-                                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                                stroke-width="2"
-                                                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                                        </svg>
-                                                                        {{ $task->due_date->format('d M') }}
-                                                                    </span>
-                                                                @endif
-                                                            @else
-                                                                <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
-                                                            @endif
-                                                        </div>
-
-                                                        {{-- 6. Checklists (col-span-1) --}}
-                                                        <div class="col-span-1 list-checklist-container flex items-center">
-                                                            @if($totalCount > 0)
-                                                                <span
-                                                                    class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold {{ $pctChecklist === 100 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400' }}">
-                                                                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor"
-                                                                        viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                                            stroke-width="2"
-                                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                                                    </svg>
-                                                                    <span>{{ $doneCount }}/{{ $totalCount }}</span>
-                                                                </span>
-                                                            @else
-                                                                <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
-                                                            @endif
-                                                        </div>
-
-                                                        {{-- 7. Details (col-span-1: Comments, Attachments, Link Arrow) --}}
-                                                        <div
-                                                            class="col-span-1 list-details-container flex items-center justify-end gap-2 text-xs">
-                                                            {{-- Comments count --}}
+                                                                    class="text-xs font-bold uppercase truncate text-gray-900 dark:text-white">{{ $col->name }}</span>
+                                                            </div>
                                                             <span
-                                                                class="inline-flex items-center gap-1 text-[11px] {{ $task->comments_count > 0 ? 'text-gray-500 dark:text-gray-400 font-medium' : 'text-gray-300 dark:text-gray-600' }}"
-                                                                title="{{ $task->comments_count }} comments">
-                                                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor"
+                                                                class="text-[10.5px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 shrink-0">{{ $colTasks->count() }}</span>
+                                                        </div>
+
+                                                        <p
+                                                            class="px-2.5 pt-1 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                                            BUCKET ACTIONS</p>
+
+                                                        {{-- Edit Bucket --}}
+                                                        <button type="button"
+                                                            @click="open = false; openEditBucketModal({{ $col->id }}, '{{ addslashes($col->name) }}', '{{ $col->color }}', '{{ $col->icon }}')"
+                                                            class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
+                                                            <div
+                                                                class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-105 transition-transform">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                                     viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                                         stroke-width="2"
-                                                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                                 </svg>
-                                                                <span>{{ $task->comments_count }}</span>
-                                                            </span>
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p
+                                                                    class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                                    Edit Bucket</p>
+                                                                <p class="text-[10px] text-gray-400 truncate">Rename, change color &
+                                                                    icon</p>
+                                                            </div>
+                                                        </button>
 
-                                                            {{-- Attachments count --}}
-                                                            @if($task->attachments_count > 0)
-                                                                <span
-                                                                    class="inline-flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 font-medium"
-                                                                    title="{{ $task->attachments_count }} attachments">
-                                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor"
-                                                                        viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                                            stroke-width="2"
-                                                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                                                    </svg>
-                                                                    <span>{{ $task->attachments_count }}</span>
-                                                                </span>
-                                                            @endif
+                                                        {{-- Add Task to Bucket --}}
+                                                        <button type="button" @click="open = false; openQuickAddTask({{ $col->id }})"
+                                                            class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
+                                                            <div
+                                                                class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-105 transition-transform">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2" d="M12 4v16m8-8H4" />
+                                                                </svg>
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p
+                                                                    class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                                                    Add Task to Bucket</p>
+                                                                <p class="text-[10px] text-gray-400 truncate">Quick create a task in
+                                                                    this bucket</p>
+                                                            </div>
+                                                        </button>
 
-                                                            {{-- Detail Link Arrow --}}
-                                                            <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 dark:text-gray-600 dark:group-hover:text-gray-400 shrink-0"
-                                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                    d="M9 5l7 7-7 7" />
-                                                            </svg>
-                                                        </div>
+                                                        {{-- Delete Bucket --}}
+                                                        <button type="button"
+                                                            @click="open = false; promptDeleteBucketModal({{ $col->id }}, '{{ addslashes($col->name) }}', {{ $colTasks->count() }})"
+                                                            class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-3 cursor-pointer group">
+                                                            <div
+                                                                class="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200/60 dark:border-red-800/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 group-hover:scale-105 transition-transform">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p class="text-xs font-bold text-red-600 dark:text-red-400">Delete
+                                                                    Bucket</p>
+                                                                <p class="text-[10px] text-red-400/90 dark:text-red-400/80 truncate">
+                                                                    Move tasks or delete completely</p>
+                                                            </div>
+                                                        </button>
                                                     </div>
-                                                @endforeach
+                                                </div>
                                             </div>
 
-                                            {{-- Inline Quick Add Input (if active in List View) --}}
-                                            <div x-show="quickAddColumnId === {{ $col->id }}" x-cloak
-                                                class="my-2 p-2.5 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800/50 shadow-2xs">
-                                                <form @submit.prevent="submitQuickTask({{ $col->id }})"
-                                                    class="flex items-center gap-3">
-                                                    <div
-                                                        class="w-4 h-4 rounded-full border-2 border-dashed border-gray-300 shrink-0 ml-1">
-                                                    </div>
-                                                    <input type="text" x-model="quickTaskTitle"
-                                                        x-ref="quickTaskListInput_{{ $col->id }}"
-                                                        @keydown.escape="quickAddColumnId = null; quickTaskTitle = ''"
-                                                        placeholder="Type task title and press Enter..."
-                                                        class="flex-1 text-xs font-semibold px-3.5 py-2 rounded-xl border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                                    <div class="flex items-center gap-2 shrink-0">
-                                                        <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''"
-                                                            class="px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
-                                                            Cancel
-                                                        </button>
-                                                        <button type="submit"
-                                                            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">
-                                                            Save Task
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-
-                                            {{-- Bucket Bottom Actions --}}
-                                            <div class="flex items-center justify-between px-3 pt-2 text-xs">
-                                                @if(!auth()->user()->hasRole('client'))
-                                                    <button type="button" x-show="quickAddColumnId !== {{ $col->id }}"
-                                                        @click="openQuickAddTask({{ $col->id }})"
-                                                        class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition cursor-pointer pl-6">
+                                            {{-- Full Width + Add Task Button below Header --}}
+                                            @if(!auth()->user()->hasRole('client'))
+                                                <div>
+                                                    <button type="button" @click="openQuickAddTask({{ $col->id }})"
+                                                        class="w-full py-2 px-3 rounded-xl border border-dashed border-gray-300/80 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-blue-50/50 hover:border-blue-300 dark:hover:border-blue-700 text-xs font-bold text-gray-500 hover:text-blue-600 transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                                 d="M12 4v16m8-8H4" />
                                                         </svg>
-                                                        Add task
+                                                        Add Task
                                                     </button>
-                                                    <div x-show="quickAddColumnId === {{ $col->id }}"></div>
-                                                @else
-                                                    <div></div>
-                                                @endif
+                                                </div>
+                                            @endif
 
-                                                <span class="text-[11px] font-semibold text-gray-400">Count
-                                                    {{ $colTasks->count() }}</span>
+                                            {{-- Cards Droppable Container --}}
+                                            <div id="detail-cards-column-{{ $col->id }}" data-column-id="{{ $col->id }}"
+                                                class="project-detail-cards-dropzone space-y-3 min-h-[160px] pb-6">
+                                                @foreach($colTasks as $task)
+                                                    @include('sprints._kanban_card', ['task' => $task, 'col' => $col])
+                                                @endforeach
+                                            </div>
+
+                                            {{-- Inline Quick Add Input (if active) --}}
+                                            <div x-show="quickAddColumnId === {{ $col->id }}" x-cloak
+                                                class="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
+                                                <form @submit.prevent="submitQuickTask({{ $col->id }})" class="space-y-2">
+                                                    <textarea x-model="quickTaskTitle" x-ref="quickTaskInput_{{ $col->id }}" rows="2"
+                                                        placeholder="Task title and press Enter..."
+                                                        class="w-full text-xs p-2.5 rounded-xl border border-blue-300 dark:border-blue-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
+                                                    <div class="flex items-center justify-end gap-2">
+                                                        <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''"
+                                                            class="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                                                        <button type="submit"
+                                                            class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-2xs hover:bg-blue-700">Save
+                                                            Task</button>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
+                                    @endforeach
+
+                                    {{-- + Add Another Bucket Column at the End (Matching Reference Design) --}}
+                                    @if(!auth()->user()->hasRole('client'))
+                                        <div class="add-bucket-column-wrapper w-80 shrink-0">
+                                            <button type="button" @click="openCreateBucketModal()"
+                                                class="w-full h-[220px] rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 bg-white/60 dark:bg-gray-850/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all flex flex-col items-center justify-center gap-2.5 group cursor-pointer p-6 text-center">
+                                                <div
+                                                    class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-blue-600 group-hover:text-white text-gray-400 flex items-center justify-center transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                            d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <span
+                                                        class="text-xs font-bold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors block">Add
+                                                        Another Bucket</span>
+                                                    <span class="text-[11px] text-gray-400 block mt-0.5">e.g. Backlog, Blocked,
+                                                        Testing</span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- ============================================================
+                        LIST VIEW (WITH DRAG & DROP & EXACT REFERENCE DESIGN)
+                        ============================================================ --}}
+                        @if($columns->isNotEmpty())
+                            <div x-show="taskView === 'list'" x-cloak class="pt-1 w-full max-w-full min-w-0">
+                                <div class="bg-white dark:bg-gray-850 rounded-2xl p-6 space-y-6">
+                                    {{-- Table Header Row --}}
+                                    <div
+                                        class="grid grid-cols-12 gap-2 text-[12px] font-bold text-gray-400 dark:text-gray-500 pb-3 border-b border-gray-100 dark:border-gray-800 px-3 items-center">
+                                        <div class="col-span-4">Name</div>
+                                        <div class="col-span-1">Priority</div>
+                                        <div class="col-span-1">Assignee</div>
+                                        <div class="col-span-2">Labels</div>
+                                        <div class="col-span-2">Due Date</div>
+                                        <div class="col-span-1">Checklists</div>
+                                        <div class="col-span-1 text-right">Details</div>
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                </div>
 
-                {{-- ============================================================
-                CREATE & EDIT BUCKET MODAL DIALOG
-                ============================================================ --}}
-                <template x-teleport="body">
-                    <div x-show="showBucketModal" x-cloak
-                        class="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
-                        @click.self="showBucketModal = false">
-                        <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
-                            @click.stop>
-                        {{-- Modal Header --}}
-                        <div
-                            class="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-black text-gray-900 dark:text-white"
-                                        x-text="bucketModalMode === 'edit' ? 'Edit Bucket' : 'Create New Bucket'">Create New
-                                        Bucket</h3>
-                                    <p class="text-[11px] text-gray-400">Define pipeline phase and cadence rules</p>
-                                </div>
-                            </div>
-                            <button type="button" @click="showBucketModal = false"
-                                class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
+                                    {{-- Buckets Accordion List --}}
+                                    @foreach($columns as $col)
+                                        @php
+                                            $colTasks = $project->tasks->where('board_column_id', $col->id)->sortBy('sort_order');
+                                            $dotColor = \App\Support\BoardColumnPalette::dot($col->color);
+                                            $pillBg = \App\Support\BoardColumnPalette::pill($col->color);
+                                            $slug = strtolower($col->slug ?? '');
+                                        @endphp
+                                        <div class="space-y-2" x-data="{ accordionOpen: true }">
+                                            {{-- Bucket Accordion Header --}}
+                                            <div class="flex items-center gap-2.5 cursor-pointer pt-1"
+                                                @click="accordionOpen = !accordionOpen">
+                                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                                                    :class="accordionOpen ? '' : '-rotate-90'" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                        d="M19 9l-7 7-7-7" />
+                                                </svg>
 
-                        {{-- Form Content --}}
-                        <form @submit.prevent="saveBucket()" class="p-6 space-y-5">
-                            {{-- Bucket Title --}}
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Bucket Title /
-                                    Name</label>
-                                <div class="relative">
-                                    <input type="text" x-model="bucketForm.name"
-                                        placeholder="e.g. Quality Assurance & Testing" required
-                                        class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                                    <span x-show="bucketForm.name.trim().length > 0"
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </span>
-                                </div>
-                            </div>
+                                                @if(in_array($slug, ['todo', 'to_do', 'backlog']) && $col->color === 'slate')
+                                                    <span
+                                                        class="column-badge inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-bold px-3 py-0.5 rounded-full text-xs shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                        </svg>
+                                                        <span>{{ $col->name }}</span>
+                                                    </span>
+                                                @else
+                                                    <span
+                                                        class="column-badge inline-flex items-center gap-1.5 {{ $pillBg }} text-white font-bold px-3 py-0.5 rounded-full text-xs shadow-2xs">
+                                                        {!! $col->renderIcon('w-3 h-3 text-white shrink-0') !!}
+                                                        <span>{{ $col->name }}</span>
+                                                    </span>
+                                                @endif
 
-                            {{-- Bucket Icon Selector --}}
-                            <div class="space-y-2">
-                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Bucket Icon</label>
-                                <div class="grid grid-cols-7 gap-2">
-                                    <template
-                                        x-for="ic in ['clipboard', 'flame', 'shield', 'check', 'bug', 'rocket', 'window']"
-                                        :key="ic">
-                                        <button type="button" @click="bucketForm.icon = ic"
-                                            :class="bucketForm.icon === ic ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
-                                            class="h-10 rounded-xl border flex items-center justify-center text-sm transition-all cursor-pointer">
-                                            <template x-if="ic === 'clipboard'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                </svg>
-                                            </template>
-                                            <template x-if="ic === 'flame'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                                                </svg>
-                                            </template>
-                                            <template x-if="ic === 'shield'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                                </svg>
-                                            </template>
-                                            <template x-if="ic === 'check'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </template>
-                                            <template x-if="ic === 'bug'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a8 8 0 01-8 8m0 0a8 8 0 01-8-8m8-8a8 8 0 018 8m-8-8a8 8 0 00-8 8" />
-                                                </svg>
-                                            </template>
-                                            <template x-if="ic === 'rocket'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                </svg>
-                                            </template>
-                                            <template x-if="ic === 'window'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
-                                                </svg>
-                                            </template>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
+                                                <span class="text-xs text-gray-400 font-semibold">{{ $colTasks->count() }}</span>
+                                            </div>
 
-                            {{-- Theme Accent Color --}}
-                            <div class="space-y-2">
-                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Theme Accent
-                                    Color</label>
-                                <div class="flex items-center gap-3">
-                                    @php
-                                        $paletteOptions = [
-                                            ['key' => 'blue', 'bg' => 'bg-blue-600', 'label' => 'Blue'],
-                                            ['key' => 'purple', 'bg' => 'bg-purple-600', 'label' => 'Purple'],
-                                            ['key' => 'teal', 'bg' => 'bg-cyan-500', 'label' => 'Cyan'],
-                                            ['key' => 'green', 'bg' => 'bg-emerald-600', 'label' => 'Green'],
-                                            ['key' => 'red', 'bg' => 'bg-red-600', 'label' => 'Red'],
-                                            ['key' => 'slate', 'bg' => 'bg-slate-700', 'label' => 'Slate'],
-                                        ];
-                                    @endphp
-                                    @foreach($paletteOptions as $pCol)
-                                        <button type="button" @click="bucketForm.color = '{{ $pCol['key'] }}'"
-                                            class="w-8 h-8 rounded-full {{ $pCol['bg'] }} flex items-center justify-center text-white transition-transform cursor-pointer"
-                                            :class="bucketForm.color === '{{ $pCol['key'] }}' ? 'ring-4 ring-blue-200 scale-110' : 'hover:scale-105'">
-                                            <span x-show="bucketForm.color === '{{ $pCol['key'] }}'">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                                        d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </span>
-                                        </button>
+                                            {{-- Task Rows with SortableJS --}}
+                                            <div x-show="accordionOpen" class="space-y-1 pt-1">
+                                                <div id="list-tasks-column-{{ $col->id }}" data-column-id="{{ $col->id }}"
+                                                    data-column-name="{{ $col->name }}"
+                                                    class="project-detail-list-dropzone space-y-1 min-h-[44px]">
+                                                    @foreach($colTasks as $task)
+                                                        @php
+                                                            $allMembers = $task->members->isNotEmpty() ? $task->members : ($task->assignee ? collect([$task->assignee]) : collect());
+                                                            $isDone = $task->isMarkedDone();
+                                                            $overdue = !$isDone && $task->isOverdue();
+                                                            $days = $task->daysRemaining();
+
+                                                            $doneCount = $task->checklists->flatMap->items->where('is_done', true)->count();
+                                                            $totalCount = $task->checklists->flatMap->items->count();
+                                                            $pctChecklist = $totalCount > 0 ? round(($doneCount / $totalCount) * 100) : 0;
+
+                                                            $pListCfg = [
+                                                                'urgent' => ['class' => 'text-rose-600', 'label' => 'Urgent'],
+                                                                'critical' => ['class' => 'text-rose-600', 'label' => 'Urgent'],
+                                                                'high' => ['class' => 'text-amber-500', 'label' => 'High'],
+                                                                'medium' => ['class' => 'text-blue-600', 'label' => 'Normal'],
+                                                                'low' => ['class' => 'text-gray-400', 'label' => 'Low'],
+                                                            ];
+                                                            $plc = $pListCfg[$task->priority] ?? $pListCfg['medium'];
+
+                                                            $lblPalette = [
+                                                                'ux stages' => 'bg-rose-100/80 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'research' => 'bg-amber-100/80 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'it frontend' => 'bg-sky-100/80 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'core' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'design system' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'backend' => 'bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'api' => 'bg-amber-100/80 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'frontend' => 'bg-teal-100/80 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'qa' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'performance' => 'bg-rose-100/80 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'auth' => 'bg-amber-100/80 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'data' => 'bg-rose-100/80 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                                'infra' => 'bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 font-bold text-[10.5px] uppercase tracking-wider',
+                                                            ];
+                                                        @endphp
+                                                        <div class="list-task-row grid grid-cols-12 gap-2 py-2.5 px-3 hover:bg-gray-50/90 dark:hover:bg-gray-800/60 rounded-xl transition-all items-center group cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-gray-750"
+                                                            data-task-id="{{ $task->id }}" data-priority="{{ $task->priority }}"
+                                                            data-assignee-ids="{{ $allMembers->pluck('id')->join(',') }}"
+                                                            data-labels="{{ $task->labels->pluck('id')->join(',') }}"
+                                                            data-due="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
+                                                            data-is-done="{{ $isDone ? '1' : '0' }}"
+                                                            data-sprint-id="{{ $task->sprint_id ?? '' }}"
+                                                            data-milestone-id="{{ $task->milestone_id ?? '' }}"
+                                                            @click="openTask({{ $task->id }})">
+                                                            {{-- 1. Name + Drag handle + Checkbox (col-span-4) --}}
+                                                            <div class="col-span-4 flex items-center gap-2.5 min-w-0 pr-2">
+                                                                <span
+                                                                    class="list-drag-handle cursor-grab active:cursor-grabbing text-gray-300 group-hover:text-gray-500 p-0.5 shrink-0"
+                                                                    @click.stop>
+                                                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                                                        <path
+                                                                            d="M9 5a2 2 0 11-4 0 2 2 0 014 0zM9 12a2 2 0 11-4 0 2 2 0 014 0zM9 19a2 2 0 11-4 0 2 2 0 014 0zM19 5a2 2 0 11-4 0 2 2 0 014 0zM19 12a2 2 0 11-4 0 2 2 0 014 0zM19 19a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                    </svg>
+                                                                </span>
+                                                                <span data-complete-btn
+                                                                    class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 {{ $isDone ? 'bg-emerald-500 text-white' : 'border-2 border-gray-300 text-transparent' }}">
+                                                                    <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor"
+                                                                        viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                                            d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                </span>
+                                                                <span
+                                                                    class="text-xs font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 truncate {{ $isDone ? 'line-through text-gray-400 dark:text-gray-500' : '' }}">
+                                                                    {{ $task->title }}
+                                                                </span>
+                                                            </div>
+
+                                                            {{-- 2. Priority (col-span-1) --}}
+                                                            <div
+                                                                class="col-span-1 list-priority-container flex items-center gap-1.5 text-xs font-bold {{ $plc['class'] }}">
+                                                                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                                                    <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                                </svg>
+                                                                <span class="truncate">{{ $plc['label'] }}</span>
+                                                            </div>
+
+                                                            {{-- 3. Assignee (col-span-1) --}}
+                                                            <div class="col-span-1 list-assignee-container flex items-center">
+                                                                @if($allMembers->isNotEmpty())
+                                                                    @php $assignee = $allMembers->first(); @endphp
+                                                                    @if($assignee->avatar)
+                                                                        <img src="{{ Storage::url($assignee->avatar) }}" alt="{{ $assignee->name }}"
+                                                                            title="{{ $assignee->name }}"
+                                                                            class="w-6 h-6 rounded-full object-cover shadow-2xs">
+                                                                    @else
+                                                                        <div class="w-6 h-6 rounded-full ring-2 ring-white dark:ring-gray-800 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs"
+                                                                            style="background-color: {{ $assignee->avatarColor() }};"
+                                                                            title="{{ $assignee->name }}">
+                                                                            {{ $assignee->initials() }}
+                                                                        </div>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-xs text-gray-300">—</span>
+                                                                @endif
+                                                            </div>
+
+                                                            {{-- 4. Labels (col-span-2) --}}
+                                                            <div
+                                                                class="col-span-2 list-labels-container flex items-center gap-1.5 flex-wrap">
+                                                                @if($task->labels->isNotEmpty())
+                                                                    @foreach($task->labels->take(2) as $lbl)
+                                                                        @php
+                                                                            $lKey = strtolower(trim($lbl->name));
+                                                                            $lStyle = $lblPalette[$lKey] ?? null;
+                                                                            if (!$lStyle) {
+                                                                                $c = $lbl->colorClasses();
+                                                                                $lStyle = $c['bg'] . ' ' . $c['text'];
+                                                                            }
+                                                                        @endphp
+                                                                        <span
+                                                                            class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold {{ $lStyle }} truncate max-w-[120px]">
+                                                                            {{ $lbl->name }}
+                                                                        </span>
+                                                                    @endforeach
+                                                                    @if($task->labels->count() > 2)
+                                                                        <span
+                                                                            class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 shrink-0">
+                                                                            +{{ $task->labels->count() - 2 }}
+                                                                        </span>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-xs text-gray-300">—</span>
+                                                                @endif
+                                                            </div>
+
+                                                            {{-- 5. Due Date (col-span-2) --}}
+                                                            <div class="col-span-2 list-due-container flex items-center text-xs">
+                                                                @if($isDone)
+                                                                    <span
+                                                                        class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                                                        <svg class="w-3 h-3 shrink-0 text-emerald-500" fill="none"
+                                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                        </svg>
+                                                                        Completed {{ $task->updated_at?->format('d M') ?? '' }}
+                                                                    </span>
+                                                                @elseif($task->due_date)
+                                                                    @if($overdue)
+                                                                        <span
+                                                                            class="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400">
+                                                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+                                                                            {{ $task->due_date->format('d M') }} (Overdue)
+                                                                        </span>
+                                                                    @elseif($days !== null && $days <= 2)
+                                                                        <span
+                                                                            class="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 dark:text-red-400">
+                                                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+                                                                            Due: {{ $task->due_date->format('d M') }}
+                                                                        </span>
+                                                                    @else
+                                                                        <span
+                                                                            class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                                                                            <svg class="w-3 h-3 shrink-0 text-gray-400" fill="none"
+                                                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                    stroke-width="2"
+                                                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                            </svg>
+                                                                            {{ $task->due_date->format('d M') }}
+                                                                        </span>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
+                                                                @endif
+                                                            </div>
+
+                                                            {{-- 6. Checklists (col-span-1) --}}
+                                                            <div class="col-span-1 list-checklist-container flex items-center">
+                                                                @if($totalCount > 0)
+                                                                    <span
+                                                                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-semibold {{ $pctChecklist === 100 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400' }}">
+                                                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor"
+                                                                            viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                stroke-width="2"
+                                                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                                                        </svg>
+                                                                        <span>{{ $doneCount }}/{{ $totalCount }}</span>
+                                                                    </span>
+                                                                @else
+                                                                    <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
+                                                                @endif
+                                                            </div>
+
+                                                            {{-- 7. Details (col-span-1: Comments, Attachments, Link Arrow) --}}
+                                                            <div
+                                                                class="col-span-1 list-details-container flex items-center justify-end gap-2 text-xs">
+                                                                {{-- Comments count --}}
+                                                                <span
+                                                                    class="inline-flex items-center gap-1 text-[11px] {{ $task->comments_count > 0 ? 'text-gray-500 dark:text-gray-400 font-medium' : 'text-gray-300 dark:text-gray-600' }}"
+                                                                    title="{{ $task->comments_count }} comments">
+                                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor"
+                                                                        viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                                            stroke-width="2"
+                                                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                                    </svg>
+                                                                    <span>{{ $task->comments_count }}</span>
+                                                                </span>
+
+                                                                {{-- Attachments count --}}
+                                                                @if($task->attachments_count > 0)
+                                                                    <span
+                                                                        class="inline-flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 font-medium"
+                                                                        title="{{ $task->attachments_count }} attachments">
+                                                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor"
+                                                                            viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                stroke-width="2"
+                                                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                                        </svg>
+                                                                        <span>{{ $task->attachments_count }}</span>
+                                                                    </span>
+                                                                @endif
+
+                                                                {{-- Detail Link Arrow --}}
+                                                                <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 dark:text-gray-600 dark:group-hover:text-gray-400 shrink-0"
+                                                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                        d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                {{-- Inline Quick Add Input (if active in List View) --}}
+                                                <div x-show="quickAddColumnId === {{ $col->id }}" x-cloak
+                                                    class="my-2 p-2.5 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800/50 shadow-2xs">
+                                                    <form @submit.prevent="submitQuickTask({{ $col->id }})"
+                                                        class="flex items-center gap-3">
+                                                        <div
+                                                            class="w-4 h-4 rounded-full border-2 border-dashed border-gray-300 shrink-0 ml-1">
+                                                        </div>
+                                                        <input type="text" x-model="quickTaskTitle"
+                                                            x-ref="quickTaskListInput_{{ $col->id }}"
+                                                            @keydown.escape="quickAddColumnId = null; quickTaskTitle = ''"
+                                                            placeholder="Type task title and press Enter..."
+                                                            class="flex-1 text-xs font-semibold px-3.5 py-2 rounded-xl border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                                        <div class="flex items-center gap-2 shrink-0">
+                                                            <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''"
+                                                                class="px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
+                                                                Cancel
+                                                            </button>
+                                                            <button type="submit"
+                                                                class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">
+                                                                Save Task
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+
+                                                {{-- Bucket Bottom Actions --}}
+                                                <div class="flex items-center justify-between px-3 pt-2 text-xs">
+                                                    @if(!auth()->user()->hasRole('client'))
+                                                        <button type="button" x-show="quickAddColumnId !== {{ $col->id }}"
+                                                            @click="openQuickAddTask({{ $col->id }})"
+                                                            class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition cursor-pointer pl-6">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                            Add task
+                                                        </button>
+                                                        <div x-show="quickAddColumnId === {{ $col->id }}"></div>
+                                                    @else
+                                                        <div></div>
+                                                    @endif
+
+                                                    <span class="text-[11px] font-semibold text-gray-400">Count
+                                                        {{ $colTasks->count() }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>
-
-                            {{-- Actions --}}
-                            <div
-                                class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-                                <button type="button" @click="showBucketModal = false"
-                                    class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 cursor-pointer">
-                                    Cancel
-                                </button>
-                                <button type="submit" :disabled="isSavingBucket || !bucketForm.name.trim()"
-                                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer">
-                                    <span
-                                        x-text="isSavingBucket ? 'Saving...' : (bucketModalMode === 'edit' ? 'Save Changes' : 'Create Bucket')">Create
-                                        Bucket</span>
-                                </button>
-                            </div>
-                        </form>
+                        @endif
                     </div>
-                </div>
-                </template>
 
-                {{-- ============================================================
-                DELETE BUCKET CONFIRMATION MODAL
-                ============================================================ --}}
-                <template x-teleport="body">
-                    <div x-show="showDeleteBucketModal" x-cloak
-                        class="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
-                        @click.self="showDeleteBucketModal = false">
-                        <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
-                            @click.stop>
-                        <div class="p-6 space-y-4">
-                            {{-- Icon + Title --}}
-                            <div class="flex items-center gap-3.5">
+                    {{-- ============================================================
+                    CREATE & EDIT BUCKET MODAL DIALOG
+                    ============================================================ --}}
+                    <template x-teleport="body">
+                        <div x-show="showBucketModal" x-cloak
+                            class="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+                            @click.self="showBucketModal = false">
+                            <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
+                                @click.stop>
+                                {{-- Modal Header --}}
                                 <div
-                                    class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800/80 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-black text-gray-900 dark:text-white">Delete Bucket</h3>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Bucket: <strong
-                                            class="text-gray-800 dark:text-gray-200"
-                                            x-text="deleteBucketData.name"></strong></p>
-                                </div>
-                            </div>
-
-                            {{-- Warning text & Task handling --}}
-                            <template x-if="deleteBucketData.taskCount > 0">
-                                <div
-                                    class="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl space-y-2.5 text-xs text-amber-900 dark:text-amber-300">
-                                    <p class="font-semibold flex items-center gap-1.5">
-                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                        <span>This bucket contains <strong x-text="deleteBucketData.taskCount"></strong>
-                                            task(s).</span>
-                                    </p>
-
-                                    <div class="space-y-2 pt-1">
-                                        <label class="block text-[11px] font-bold text-gray-700 dark:text-gray-300">Choose
-                                            what to do with the tasks:</label>
-
-                                        <div class="space-y-2">
-                                            <label class="flex items-center gap-2 cursor-pointer">
-                                                <input type="radio" value="move" x-model="deleteBucketData.action"
-                                                    class="text-blue-600 focus:ring-blue-500">
-                                                <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">Move
-                                                    tasks to another bucket:</span>
-                                            </label>
-
-                                            <div x-show="deleteBucketData.action === 'move'" class="pl-6 pt-0.5">
-                                                <select x-model="deleteBucketData.moveToColumnId"
-                                                    class="w-full text-xs p-2.5 rounded-xl border border-gray-300 dark:border-gray-650 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20">
-                                                    @foreach($columns as $otherCol)
-                                                        <option value="{{ $otherCol->id }}"
-                                                            x-show="deleteBucketData.id !== {{ $otherCol->id }}">
-                                                                {{ $otherCol->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <label class="flex items-center gap-2 cursor-pointer pt-1">
-                                                <input type="radio" value="delete_all" x-model="deleteBucketData.action"
-                                                    class="text-red-600 focus:ring-red-500">
-                                                <span class="text-xs text-red-600 dark:text-red-400 font-medium">Permanently
-                                                    delete all tasks in this bucket</span>
-                                            </label>
+                                    class="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-base font-black text-gray-900 dark:text-white"
+                                                x-text="bucketModalMode === 'edit' ? 'Edit Bucket' : 'Create New Bucket'">Create
+                                                New
+                                                Bucket</h3>
+                                            <p class="text-[11px] text-gray-400">Define pipeline phase and cadence rules</p>
                                         </div>
                                     </div>
+                                    <button type="button" @click="showBucketModal = false"
+                                        class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
-                            </template>
 
-                            <template x-if="deleteBucketData.taskCount === 0">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                    Are you sure you want to delete this empty bucket? This action cannot be undone.
+                                {{-- Form Content --}}
+                                <form @submit.prevent="saveBucket()" class="p-6 space-y-5">
+                                    {{-- Bucket Title --}}
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Bucket Title /
+                                            Name</label>
+                                        <div class="relative">
+                                            <input type="text" x-model="bucketForm.name"
+                                                placeholder="e.g. Quality Assurance & Testing" required
+                                                class="w-full text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                            <span x-show="bucketForm.name.trim().length > 0"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                        d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Bucket Icon Selector --}}
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Bucket
+                                            Icon</label>
+                                        <div class="grid grid-cols-7 gap-2">
+                                            <template
+                                                x-for="ic in ['clipboard', 'flame', 'shield', 'check', 'bug', 'rocket', 'window']"
+                                                :key="ic">
+                                                <button type="button" @click="bucketForm.icon = ic"
+                                                    :class="bucketForm.icon === ic ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
+                                                    class="h-10 rounded-xl border flex items-center justify-center text-sm transition-all cursor-pointer">
+                                                    <template x-if="ic === 'clipboard'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="ic === 'flame'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="ic === 'shield'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="ic === 'check'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="ic === 'bug'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a8 8 0 01-8 8m0 0a8 8 0 01-8-8m8-8a8 8 0 018 8m-8-8a8 8 0 00-8 8" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="ic === 'rocket'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                        </svg>
+                                                    </template>
+                                                    <template x-if="ic === 'window'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5zm0 4h16v10a1 1 0 01-1 1H5a1 1 0 01-1-1V9z" />
+                                                        </svg>
+                                                    </template>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    {{-- Theme Accent Color --}}
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Theme Accent
+                                            Color</label>
+                                        <div class="flex items-center gap-3">
+                                            @php
+                                                $paletteOptions = [
+                                                    ['key' => 'blue', 'bg' => 'bg-blue-600', 'label' => 'Blue'],
+                                                    ['key' => 'purple', 'bg' => 'bg-purple-600', 'label' => 'Purple'],
+                                                    ['key' => 'teal', 'bg' => 'bg-cyan-500', 'label' => 'Cyan'],
+                                                    ['key' => 'green', 'bg' => 'bg-emerald-600', 'label' => 'Green'],
+                                                    ['key' => 'red', 'bg' => 'bg-red-600', 'label' => 'Red'],
+                                                    ['key' => 'slate', 'bg' => 'bg-slate-700', 'label' => 'Slate'],
+                                                ];
+                                            @endphp
+                                            @foreach($paletteOptions as $pCol)
+                                                <button type="button" @click="bucketForm.color = '{{ $pCol['key'] }}'"
+                                                    class="w-8 h-8 rounded-full {{ $pCol['bg'] }} flex items-center justify-center text-white transition-transform cursor-pointer"
+                                                    :class="bucketForm.color === '{{ $pCol['key'] }}' ? 'ring-4 ring-blue-200 scale-110' : 'hover:scale-105'">
+                                                    <span x-show="bucketForm.color === '{{ $pCol['key'] }}'">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                                d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </span>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    {{-- Actions --}}
+                                    <div
+                                        class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                        <button type="button" @click="showBucketModal = false"
+                                            class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 cursor-pointer">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" :disabled="isSavingBucket || !bucketForm.name.trim()"
+                                            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer">
+                                            <span
+                                                x-text="isSavingBucket ? 'Saving...' : (bucketModalMode === 'edit' ? 'Save Changes' : 'Create Bucket')">Create
+                                                Bucket</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </template>
+
+                    {{-- ============================================================
+                    DELETE BUCKET CONFIRMATION MODAL
+                    ============================================================ --}}
+                    <template x-teleport="body">
+                        <div x-show="showDeleteBucketModal" x-cloak
+                            class="fixed inset-0 z-[100] w-screen h-screen flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+                            @click.self="showDeleteBucketModal = false">
+                            <div class="bg-white dark:bg-gray-850 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl w-full max-w-md overflow-hidden transform transition-all"
+                                @click.stop>
+                                <div class="p-6 space-y-4">
+                                    {{-- Icon + Title --}}
+                                    <div class="flex items-center gap-3.5">
+                                        <div
+                                            class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800/80 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-base font-black text-gray-900 dark:text-white">Delete Bucket</h3>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Bucket: <strong
+                                                    class="text-gray-800 dark:text-gray-200"
+                                                    x-text="deleteBucketData.name"></strong></p>
+                                        </div>
+                                    </div>
+
+                                    {{-- Warning text & Task handling --}}
+                                    <template x-if="deleteBucketData.taskCount > 0">
+                                        <div
+                                            class="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-2xl space-y-2.5 text-xs text-amber-900 dark:text-amber-300">
+                                            <p class="font-semibold flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                <span>This bucket contains <strong x-text="deleteBucketData.taskCount"></strong>
+                                                    task(s).</span>
+                                            </p>
+
+                                            <div class="space-y-2 pt-1">
+                                                <label
+                                                    class="block text-[11px] font-bold text-gray-700 dark:text-gray-300">Choose
+                                                    what to do with the tasks:</label>
+
+                                                <div class="space-y-2">
+                                                    <label class="flex items-center gap-2 cursor-pointer">
+                                                        <input type="radio" value="move" x-model="deleteBucketData.action"
+                                                            class="text-blue-600 focus:ring-blue-500">
+                                                        <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">Move
+                                                            tasks to another bucket:</span>
+                                                    </label>
+
+                                                    <div x-show="deleteBucketData.action === 'move'" class="pl-6 pt-0.5">
+                                                        <select x-model="deleteBucketData.moveToColumnId"
+                                                            class="w-full text-xs p-2.5 rounded-xl border border-gray-300 dark:border-gray-650 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500/20">
+                                                            @foreach($columns as $otherCol)
+                                                                <option value="{{ $otherCol->id }}"
+                                                                    x-show="deleteBucketData.id !== {{ $otherCol->id }}">
+                                                                    {{ $otherCol->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+
+                                                    <label class="flex items-center gap-2 cursor-pointer pt-1">
+                                                        <input type="radio" value="delete_all" x-model="deleteBucketData.action"
+                                                            class="text-red-600 focus:ring-red-500">
+                                                        <span
+                                                            class="text-xs text-red-600 dark:text-red-400 font-medium">Permanently
+                                                            delete all tasks in this bucket</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="deleteBucketData.taskCount === 0">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            Are you sure you want to delete this empty bucket? This action cannot be undone.
+                                        </div>
+                                    </template>
                                 </div>
-                            </template>
-                        </div>
 
-                        {{-- Footer Actions --}}
-                        <div
-                            class="px-6 py-4 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-2.5">
-                            <button type="button" @click="showDeleteBucketModal = false"
-                                class="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer">
-                                Cancel
-                            </button>
-                            <button type="button" @click="executeDeleteBucket()" :disabled="isDeletingBucket"
-                                class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
-                                <span x-text="isDeletingBucket ? 'Deleting...' : 'Delete Bucket'">Delete Bucket</span>
-                            </button>
+                                {{-- Footer Actions --}}
+                                <div
+                                    class="px-6 py-4 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-100 dark:border-gray-800 flex items-center justify-end gap-2.5">
+                                    <button type="button" @click="showDeleteBucketModal = false"
+                                        class="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer">
+                                        Cancel
+                                    </button>
+                                    <button type="button" @click="executeDeleteBucket()" :disabled="isDeletingBucket"
+                                        class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
+                                        <span x-text="isDeletingBucket ? 'Deleting...' : 'Delete Bucket'">Delete Bucket</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                </template>
+                    </template>
 
                 @endif {{-- /tab tasks --}}
                 {{-- Include Task Detail Modal --}}
                 @include('sprints._task_modal')
 
                 @if($tab === 'milestones')
-                {{-- ============================================================
-                TAB: MILESTONES
-                ============================================================ --}}
-                <div x-show="tab === 'milestones'" x-cloak>
-                    @include('projects.partials.milestones-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: MILESTONES
+                    ============================================================ --}}
+                    <div x-show="tab === 'milestones'" x-cloak>
+                        @include('projects.partials.milestones-content')
+                    </div>
 
                 @endif {{-- /tab milestones --}}
                 @if($tab === 'tickets')
-                {{-- ============================================================
-                TAB: TICKETS
-                ============================================================ --}}
-                <div x-show="tab === 'tickets'" x-cloak>
-                    @include('projects.partials.tickets-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: TICKETS
+                    ============================================================ --}}
+                    <div x-show="tab === 'tickets'" x-cloak>
+                        @include('projects.partials.tickets-content')
+                    </div>
 
                 @endif {{-- /tab tickets --}}
                 @if($tab === 'team')
-                {{-- ============================================================
-                TAB: TEAM (Modernized & Redesigned)
-                ============================================================ --}}
-                <div x-show="tab === 'team'" x-cloak>
-                    @include('projects.partials.team-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: TEAM (Modernized & Redesigned)
+                    ============================================================ --}}
+                    <div x-show="tab === 'team'" x-cloak>
+                        @include('projects.partials.team-content')
+                    </div>
                 @endif {{-- /tab team --}}
                 @if($tab === 'timesheet')
-                {{-- ============================================================
-                TAB: TIMESHEET
-                ============================================================ --}}
-                <div x-show="tab === 'timesheet'" x-cloak>
-                    @include('projects.partials.timesheet-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: TIMESHEET
+                    ============================================================ --}}
+                    <div x-show="tab === 'timesheet'" x-cloak>
+                        @include('projects.partials.timesheet-content')
+                    </div>
 
                 @endif {{-- /tab timesheet --}}
                 @if($tab === 'sprints')
-                {{-- ============================================================
-                TAB: SPRINTS
-                ============================================================ --}}
-                <div x-show="tab === 'sprints'" x-cloak>
-                    @include('projects.partials.sprints-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: SPRINTS
+                    ============================================================ --}}
+                    <div x-show="tab === 'sprints'" x-cloak>
+                        @include('projects.partials.sprints-content')
+                    </div>
 
                 @endif {{-- /tab sprints --}}
                 @if($tab === 'files')
-                {{-- ============================================================
-                TAB: FILES
-                ============================================================ --}}
-                <div x-show="tab === 'files'" x-cloak>
-                    @include('files._manager')
-                </div>
+                    {{-- ============================================================
+                    TAB: FILES
+                    ============================================================ --}}
+                    <div x-show="tab === 'files'" x-cloak>
+                        @include('files._manager')
+                    </div>
 
                 @endif {{-- /tab files --}}
                 @if($tab === 'budget')
-                {{-- ============================================================
-                TAB: BUDGET
-                ============================================================ --}}
-                <div x-show="tab === 'budget'" x-cloak>
-                    @include('budget._content')
-                </div>
+                    {{-- ============================================================
+                    TAB: BUDGET
+                    ============================================================ --}}
+                    <div x-show="tab === 'budget'" x-cloak>
+                        @include('budget._content')
+                    </div>
 
                 @endif {{-- /tab budget --}}
                 @if($tab === 'recurring')
-                {{-- ============================================================
-                TAB: RECURRING
-                ============================================================ --}}
-                <div x-show="tab === 'recurring'" x-cloak>
-                    @include('projects.partials.recurring-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: RECURRING
+                    ============================================================ --}}
+                    <div x-show="tab === 'recurring'" x-cloak>
+                        @include('projects.partials.recurring-content')
+                    </div>
 
                 @endif {{-- /tab recurring --}}
                 @if($tab === 'portal')
-                {{-- ============================================================
-                TAB: PORTAL
-                ============================================================ --}}
-                <div x-show="tab === 'portal'" x-cloak>
-                    @include('portal._manage')
-                </div>
+                    {{-- ============================================================
+                    TAB: PORTAL
+                    ============================================================ --}}
+                    <div x-show="tab === 'portal'" x-cloak>
+                        @include('portal._manage')
+                    </div>
 
                 @endif {{-- /tab portal --}}
                 @if($tab === 'notif')
-                {{-- ============================================================
-                TAB: NOTIFICATIONS (SLACK/DISCORD)
-                ============================================================ --}}
-                <div x-show="tab === 'notif'" x-cloak>
-                    @include('projects.partials.notifications-content')
-                </div>
+                    {{-- ============================================================
+                    TAB: NOTIFICATIONS (SLACK/DISCORD)
+                    ============================================================ --}}
+                    <div x-show="tab === 'notif'" x-cloak>
+                        @include('projects.partials.notifications-content')
+                    </div>
 
                 @endif {{-- /tab notif --}}
 
@@ -1758,7 +1778,7 @@
 @push('scripts')
     <script>
         window.projectTabUrl = function (tab, params = {}) {
-            const urls = @js(collect(\App\Http\Controllers\Web\ProjectWebController::TABS)->mapWithKeys(fn ($key, $slug) => [$key => route('projects.tab', [$project, $slug])]));
+            const urls = @js(collect(\App\Http\Controllers\Web\ProjectWebController::TABS)->mapWithKeys(fn($key, $slug) => [$key => route('projects.tab', [$project, $slug])]));
             const url = new URL(urls[tab] || urls.tasks, window.location.origin);
             Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
             return url.toString();
@@ -2268,100 +2288,100 @@
                                     const bgClass = this.getColBgClass(col.color);
                                     const iconSvg = this.getIconSvg(col.icon, 'w-3.5 h-3.5 text-white shrink-0');
                                     const colHtml = `
-                                            <div class="kanban-column w-80 shrink-0 flex flex-col space-y-3"
-                                                 data-column-id="${col.id}"
-                                                 data-column-slug="${col.slug}"
-                                                 data-column-name="${col.name}"
-                                                 data-column-color="${col.color}"
-                                                 data-column-icon="${col.icon}">
-                                                <div class="kanban-column-header flex items-center justify-between gap-2 px-1 shrink-0 cursor-grab active:cursor-grabbing">
-                                                    <div class="flex items-center gap-1.5 min-w-0">
-                                                        <span class="column-badge inline-flex items-center gap-1.5 ${bgClass} text-white font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full shadow-2xs truncate">
-                                                            ${iconSvg}
-                                                            <span class="truncate">${col.name}</span>
-                                                            <span class="column-counter bg-white/25 text-white text-[10.5px] px-1.5 py-0.2 rounded-full font-bold">0</span>
-                                                        </span>
-                                                    </div>
-                                                    <div class="relative shrink-0" x-data="{ open: false }">
-                                                        <button type="button" @click="open = !open" @click.away="open = false"
-                                                                class="w-7 h-7 flex items-center justify-center rounded-lg text-black hover:text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 transition cursor-pointer"
-                                                                title="Bucket Options">
-                                                            <svg class="w-4 h-4 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                                <circle cx="5" cy="12" r="1.75"/>
-                                                                <circle cx="12" cy="12" r="1.75"/>
-                                                                <circle cx="19" cy="12" r="1.75"/>
-                                                            </svg>
-                                                        </button>
-                                                        <div x-show="open" x-cloak
-                                                             class="absolute right-0 top-full mt-1.5 w-64 bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700 rounded-2xl shadow-xl p-2 z-50 space-y-1">
-                                                            <div class="px-2.5 py-2 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-2 mb-1">
-                                                                <span class="text-xs font-bold uppercase truncate text-gray-900 dark:text-white">${col.name}</span>
-                                                                <span class="text-[10.5px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 shrink-0">0</span>
+                                                        <div class="kanban-column w-80 shrink-0 flex flex-col space-y-3"
+                                                             data-column-id="${col.id}"
+                                                             data-column-slug="${col.slug}"
+                                                             data-column-name="${col.name}"
+                                                             data-column-color="${col.color}"
+                                                             data-column-icon="${col.icon}">
+                                                            <div class="kanban-column-header flex items-center justify-between gap-2 px-1 shrink-0 cursor-grab active:cursor-grabbing">
+                                                                <div class="flex items-center gap-1.5 min-w-0">
+                                                                    <span class="column-badge inline-flex items-center gap-1.5 ${bgClass} text-white font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full shadow-2xs truncate">
+                                                                        ${iconSvg}
+                                                                        <span class="truncate">${col.name}</span>
+                                                                        <span class="column-counter bg-white/25 text-white text-[10.5px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="relative shrink-0" x-data="{ open: false }">
+                                                                    <button type="button" @click="open = !open" @click.away="open = false"
+                                                                            class="w-7 h-7 flex items-center justify-center rounded-lg text-black hover:text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 transition cursor-pointer"
+                                                                            title="Bucket Options">
+                                                                        <svg class="w-4 h-4 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <circle cx="5" cy="12" r="1.75"/>
+                                                                            <circle cx="12" cy="12" r="1.75"/>
+                                                                            <circle cx="19" cy="12" r="1.75"/>
+                                                                        </svg>
+                                                                    </button>
+                                                                    <div x-show="open" x-cloak
+                                                                         class="absolute right-0 top-full mt-1.5 w-64 bg-white dark:bg-gray-850 border border-gray-200/90 dark:border-gray-700 rounded-2xl shadow-xl p-2 z-50 space-y-1">
+                                                                        <div class="px-2.5 py-2 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-2 mb-1">
+                                                                            <span class="text-xs font-bold uppercase truncate text-gray-900 dark:text-white">${col.name}</span>
+                                                                            <span class="text-[10.5px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 shrink-0">0</span>
+                                                                        </div>
+                                                                        <p class="px-2.5 pt-1 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">BUCKET ACTIONS</p>
+                                                                        <button type="button"
+                                                                                @click="open = false; openEditBucketModal(${col.id}, '${col.name.replace(/'/g, "\\'")}', '${col.color}', '${col.icon}')"
+                                                                                class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
+                                                                            <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-105 transition-transform">
+                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                                            </div>
+                                                                            <div class="flex-1 min-w-0">
+                                                                                <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Edit Bucket</p>
+                                                                                <p class="text-[10px] text-gray-400 truncate">Rename, change color & icon</p>
+                                                                            </div>
+                                                                        </button>
+                                                                        <button type="button"
+                                                                                @click="open = false; openQuickAddTask(${col.id})"
+                                                                                class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
+                                                                            <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-105 transition-transform">
+                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                                            </div>
+                                                                            <div class="flex-1 min-w-0">
+                                                                                <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Add Task to Bucket</p>
+                                                                                <p class="text-[10px] text-gray-400 truncate">Quick create a task</p>
+                                                                            </div>
+                                                                        </button>
+                                                                        <button type="button"
+                                                                                @click="open = false; promptDeleteBucketModal(${col.id}, '${col.name.replace(/'/g, "\\'")}', 0)"
+                                                                                class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-3 cursor-pointer group">
+                                                                            <div class="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200/60 dark:border-red-800/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 group-hover:scale-105 transition-transform">
+                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                            </div>
+                                                                            <div class="flex-1 min-w-0">
+                                                                                <p class="text-xs font-bold text-red-600 dark:text-red-400">Delete Bucket</p>
+                                                                                <p class="text-[10px] text-red-400/90 dark:text-red-400/80 truncate">Move tasks or delete</p>
+                                                                            </div>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <p class="px-2.5 pt-1 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">BUCKET ACTIONS</p>
-                                                            <button type="button"
-                                                                    @click="open = false; openEditBucketModal(${col.id}, '${col.name.replace(/'/g, "\\'")}', '${col.color}', '${col.icon}')"
-                                                                    class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
-                                                                <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-105 transition-transform">
-                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                                </div>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Edit Bucket</p>
-                                                                    <p class="text-[10px] text-gray-400 truncate">Rename, change color & icon</p>
-                                                                </div>
-                                                            </button>
-                                                            <button type="button"
-                                                                    @click="open = false; openQuickAddTask(${col.id})"
-                                                                    class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center gap-3 cursor-pointer group">
-                                                                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 group-hover:scale-105 transition-transform">
-                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                                                </div>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Add Task to Bucket</p>
-                                                                    <p class="text-[10px] text-gray-400 truncate">Quick create a task</p>
-                                                                </div>
-                                                            </button>
-                                                            <button type="button"
-                                                                    @click="open = false; promptDeleteBucketModal(${col.id}, '${col.name.replace(/'/g, "\\'")}', 0)"
-                                                                    class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-3 cursor-pointer group">
-                                                                <div class="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200/60 dark:border-red-800/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 group-hover:scale-105 transition-transform">
-                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                                </div>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <p class="text-xs font-bold text-red-600 dark:text-red-400">Delete Bucket</p>
-                                                                    <p class="text-[10px] text-red-400/90 dark:text-red-400/80 truncate">Move tasks or delete</p>
-                                                                </div>
-                                                            </button>
+                                                            <div>
+                                                                <button type="button"
+                                                                        @click="openQuickAddTask(${col.id})"
+                                                                        class="w-full py-2 px-3 rounded-xl border border-dashed border-gray-300/80 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-blue-50/50 hover:border-blue-300 text-xs font-bold text-gray-500 hover:text-blue-600 transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                                    Add Task
+                                                                </button>
+                                                            </div>
+                                                            <div id="detail-cards-column-${col.id}"
+                                                                 data-column-id="${col.id}"
+                                                                 class="project-detail-cards-dropzone space-y-3 min-h-[160px] pb-6">
+                                                            </div>
+                                                            <div x-show="quickAddColumnId === ${col.id}" x-cloak class="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
+                                                                <form @submit.prevent="submitQuickTask(${col.id})" class="space-y-2">
+                                                                    <textarea x-model="quickTaskTitle"
+                                                                              x-ref="quickTaskInput_${col.id}"
+                                                                              rows="2"
+                                                                              placeholder="Task title and press Enter..."
+                                                                              class="w-full text-xs p-2.5 rounded-xl border border-blue-300 dark:border-blue-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
+                                                                    <div class="flex items-center justify-end gap-2">
+                                                                        <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''" class="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                                                                        <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-2xs hover:bg-blue-700">Save Task</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <button type="button"
-                                                            @click="openQuickAddTask(${col.id})"
-                                                            class="w-full py-2 px-3 rounded-xl border border-dashed border-gray-300/80 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-blue-50/50 hover:border-blue-300 text-xs font-bold text-gray-500 hover:text-blue-600 transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                                        Add Task
-                                                    </button>
-                                                </div>
-                                                <div id="detail-cards-column-${col.id}"
-                                                     data-column-id="${col.id}"
-                                                     class="project-detail-cards-dropzone space-y-3 min-h-[160px] pb-6">
-                                                </div>
-                                                <div x-show="quickAddColumnId === ${col.id}" x-cloak class="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-                                                    <form @submit.prevent="submitQuickTask(${col.id})" class="space-y-2">
-                                                        <textarea x-model="quickTaskTitle"
-                                                                  x-ref="quickTaskInput_${col.id}"
-                                                                  rows="2"
-                                                                  placeholder="Task title and press Enter..."
-                                                                  class="w-full text-xs p-2.5 rounded-xl border border-blue-300 dark:border-blue-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
-                                                        <div class="flex items-center justify-end gap-2">
-                                                            <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''" class="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
-                                                            <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-2xs hover:bg-blue-700">Save Task</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        `;
+                                                    `;
                                     const tempDiv = document.createElement('div');
                                     tempDiv.innerHTML = colHtml.trim();
                                     if (tempDiv.firstElementChild) {
@@ -2374,54 +2394,54 @@
                                 if (listWrap) {
                                     const bgClass = this.getColBgClass(col.color);
                                     const listSecHtml = `
-                                            <div class="space-y-2" x-data="{ accordionOpen: true }">
-                                                <div class="flex items-center gap-2.5 cursor-pointer pt-1" @click="accordionOpen = !accordionOpen">
-                                                    <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="accordionOpen ? '' : '-rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                                                    <span class="column-badge inline-flex items-center gap-1.5 ${bgClass} text-white font-bold px-3 py-0.5 rounded-full text-xs shadow-2xs">
-                                                        ${this.getIconSvg(col.icon, 'w-3 h-3 text-white shrink-0')}
-                                                        <span>${col.name}</span>
-                                                    </span>
-                                                    <span class="text-xs text-gray-400 font-semibold">0</span>
-                                                </div>
-                                                <div x-show="accordionOpen" class="space-y-1 pt-1">
-                                                    <div id="list-tasks-column-${col.id}"
-                                                         data-column-id="${col.id}"
-                                                         data-column-name="${col.name}"
-                                                         class="project-detail-list-dropzone space-y-1 min-h-[44px]">
-                                                    </div>
-                                                    <div x-show="quickAddColumnId === ${col.id}" x-cloak class="my-2 p-2.5 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800/50 shadow-2xs">
-                                                        <form @submit.prevent="submitQuickTask(${col.id})" class="flex items-center gap-3">
-                                                            <div class="w-4 h-4 rounded-full border-2 border-dashed border-gray-300 shrink-0 ml-1"></div>
-                                                            <input type="text"
-                                                                   x-model="quickTaskTitle"
-                                                                   x-ref="quickTaskListInput_${col.id}"
-                                                                   @keydown.escape="quickAddColumnId = null; quickTaskTitle = ''"
-                                                                   placeholder="Type task title and press Enter..."
-                                                                   class="flex-1 text-xs font-semibold px-3.5 py-2 rounded-xl border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                                            <div class="flex items-center gap-2 shrink-0">
-                                                                <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''" class="px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
-                                                                    Cancel
-                                                                </button>
-                                                                <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">
-                                                                    Save Task
-                                                                </button>
+                                                        <div class="space-y-2" x-data="{ accordionOpen: true }">
+                                                            <div class="flex items-center gap-2.5 cursor-pointer pt-1" @click="accordionOpen = !accordionOpen">
+                                                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="accordionOpen ? '' : '-rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                                                                <span class="column-badge inline-flex items-center gap-1.5 ${bgClass} text-white font-bold px-3 py-0.5 rounded-full text-xs shadow-2xs">
+                                                                    ${this.getIconSvg(col.icon, 'w-3 h-3 text-white shrink-0')}
+                                                                    <span>${col.name}</span>
+                                                                </span>
+                                                                <span class="text-xs text-gray-400 font-semibold">0</span>
                                                             </div>
-                                                        </form>
-                                                    </div>
-                                                    <div class="flex items-center justify-between px-3 pt-2 text-xs">
-                                                        <button type="button"
-                                                                x-show="quickAddColumnId !== ${col.id}"
-                                                                @click="openQuickAddTask(${col.id})"
-                                                                class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition cursor-pointer pl-6">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                                            Add task
-                                                        </button>
-                                                        <div x-show="quickAddColumnId === ${col.id}"></div>
-                                                        <span class="text-[11px] font-semibold text-gray-400">Count 0</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                            <div x-show="accordionOpen" class="space-y-1 pt-1">
+                                                                <div id="list-tasks-column-${col.id}"
+                                                                     data-column-id="${col.id}"
+                                                                     data-column-name="${col.name}"
+                                                                     class="project-detail-list-dropzone space-y-1 min-h-[44px]">
+                                                                </div>
+                                                                <div x-show="quickAddColumnId === ${col.id}" x-cloak class="my-2 p-2.5 bg-blue-50/40 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800/50 shadow-2xs">
+                                                                    <form @submit.prevent="submitQuickTask(${col.id})" class="flex items-center gap-3">
+                                                                        <div class="w-4 h-4 rounded-full border-2 border-dashed border-gray-300 shrink-0 ml-1"></div>
+                                                                        <input type="text"
+                                                                               x-model="quickTaskTitle"
+                                                                               x-ref="quickTaskListInput_${col.id}"
+                                                                               @keydown.escape="quickAddColumnId = null; quickTaskTitle = ''"
+                                                                               placeholder="Type task title and press Enter..."
+                                                                               class="flex-1 text-xs font-semibold px-3.5 py-2 rounded-xl border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                                                                        <div class="flex items-center gap-2 shrink-0">
+                                                                            <button type="button" @click="quickAddColumnId = null; quickTaskTitle = ''" class="px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
+                                                                                Cancel
+                                                                            </button>
+                                                                            <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">
+                                                                                Save Task
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                                <div class="flex items-center justify-between px-3 pt-2 text-xs">
+                                                                    <button type="button"
+                                                                            x-show="quickAddColumnId !== ${col.id}"
+                                                                            @click="openQuickAddTask(${col.id})"
+                                                                            class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition cursor-pointer pl-6">
+                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                                        Add task
+                                                                    </button>
+                                                                    <div x-show="quickAddColumnId === ${col.id}"></div>
+                                                                    <span class="text-[11px] font-semibold text-gray-400">Count 0</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    `;
                                     const tempDiv = document.createElement('div');
                                     tempDiv.innerHTML = listSecHtml.trim();
                                     if (tempDiv.firstElementChild) {
@@ -2628,53 +2648,53 @@
                             const listDropzone = document.getElementById(`list-tasks-column-${columnId}`);
                             if (listDropzone && data.task) {
                                 const rowHtml = `
-                                        <div class="list-task-row grid grid-cols-12 gap-2 py-2.5 px-3 hover:bg-gray-50/90 dark:hover:bg-gray-800/60 rounded-xl transition-all items-center group cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-gray-750"
-                                             data-task-id="${data.task.id}"
-                                             data-priority="${data.task.priority || 'medium'}"
-                                             data-assignee-ids=""
-                                             data-labels=""
-                                             data-due=""
-                                             data-is-done="0"
-                                             data-sprint-id="${data.task.sprint_id || ''}"
-                                             data-milestone-id="${data.task.milestone_id || ''}"
-                                             onclick="window.openTask(${data.task.id})">
-                                            <div class="col-span-4 flex items-center gap-2.5 min-w-0 pr-2">
-                                                <span class="list-drag-handle cursor-grab active:cursor-grabbing text-gray-300 group-hover:text-gray-500 p-0.5 shrink-0" onclick="event.stopPropagation()">
-                                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 5a2 2 0 11-4 0 2 2 0 014 0zM9 12a2 2 0 11-4 0 2 2 0 014 0zM9 19a2 2 0 11-4 0 2 2 0 014 0zM19 5a2 2 0 11-4 0 2 2 0 014 0zM19 12a2 2 0 11-4 0 2 2 0 014 0zM19 19a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                                </span>
-                                                <span data-complete-btn
-                                                        class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 border-2 border-gray-300 text-transparent">
-                                                    <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                </span>
-                                                <span class="text-xs font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 truncate">
-                                                    ${data.task.title}
-                                                </span>
-                                            </div>
-                                            <div class="col-span-1 list-priority-container flex items-center gap-1.5 text-xs font-bold text-blue-600">
-                                                <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                                <span class="truncate">Normal</span>
-                                            </div>
-                                            <div class="col-span-1 list-assignee-container flex items-center">
-                                                <span class="text-xs text-gray-300">—</span>
-                                            </div>
-                                            <div class="col-span-2 list-labels-container flex items-center gap-1.5 flex-wrap">
-                                                <span class="text-xs text-gray-300">—</span>
-                                            </div>
-                                            <div class="col-span-2 list-due-container flex items-center text-xs">
-                                                <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
-                                            </div>
-                                            <div class="col-span-1 list-checklist-container flex items-center">
-                                                <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
-                                            </div>
-                                            <div class="col-span-1 list-details-container flex items-center justify-end gap-2 text-xs">
-                                                <span class="inline-flex items-center gap-1 text-[11px] text-gray-300 dark:text-gray-600">
-                                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                                                    <span>0</span>
-                                                </span>
-                                                <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 dark:text-gray-600 dark:group-hover:text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                            </div>
-                                        </div>
-                                    `;
+                                                    <div class="list-task-row grid grid-cols-12 gap-2 py-2.5 px-3 hover:bg-gray-50/90 dark:hover:bg-gray-800/60 rounded-xl transition-all items-center group cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-gray-750"
+                                                         data-task-id="${data.task.id}"
+                                                         data-priority="${data.task.priority || 'medium'}"
+                                                         data-assignee-ids=""
+                                                         data-labels=""
+                                                         data-due=""
+                                                         data-is-done="0"
+                                                         data-sprint-id="${data.task.sprint_id || ''}"
+                                                         data-milestone-id="${data.task.milestone_id || ''}"
+                                                         onclick="window.openTask(${data.task.id})">
+                                                        <div class="col-span-4 flex items-center gap-2.5 min-w-0 pr-2">
+                                                            <span class="list-drag-handle cursor-grab active:cursor-grabbing text-gray-300 group-hover:text-gray-500 p-0.5 shrink-0" onclick="event.stopPropagation()">
+                                                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 5a2 2 0 11-4 0 2 2 0 014 0zM9 12a2 2 0 11-4 0 2 2 0 014 0zM9 19a2 2 0 11-4 0 2 2 0 014 0zM19 5a2 2 0 11-4 0 2 2 0 014 0zM19 12a2 2 0 11-4 0 2 2 0 014 0zM19 19a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                            </span>
+                                                            <span data-complete-btn
+                                                                    class="w-4 h-4 rounded-full flex items-center justify-center transition-colors shrink-0 border-2 border-gray-300 text-transparent">
+                                                                <svg class="w-2.5 h-2.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                            </span>
+                                                            <span class="text-xs font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600 truncate">
+                                                                ${data.task.title}
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-span-1 list-priority-container flex items-center gap-1.5 text-xs font-bold text-blue-600">
+                                                            <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                                            <span class="truncate">Normal</span>
+                                                        </div>
+                                                        <div class="col-span-1 list-assignee-container flex items-center">
+                                                            <span class="text-xs text-gray-300">—</span>
+                                                        </div>
+                                                        <div class="col-span-2 list-labels-container flex items-center gap-1.5 flex-wrap">
+                                                            <span class="text-xs text-gray-300">—</span>
+                                                        </div>
+                                                        <div class="col-span-2 list-due-container flex items-center text-xs">
+                                                            <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
+                                                        </div>
+                                                        <div class="col-span-1 list-checklist-container flex items-center">
+                                                            <span class="text-[11px] text-gray-300 dark:text-gray-600">—</span>
+                                                        </div>
+                                                        <div class="col-span-1 list-details-container flex items-center justify-end gap-2 text-xs">
+                                                            <span class="inline-flex items-center gap-1 text-[11px] text-gray-300 dark:text-gray-600">
+                                                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                                                <span>0</span>
+                                                            </span>
+                                                            <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 dark:text-gray-600 dark:group-hover:text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                        </div>
+                                                    </div>
+                                                `;
                                 const tempRowDiv = document.createElement('div');
                                 tempRowDiv.innerHTML = rowHtml.trim();
                                 if (tempRowDiv.firstElementChild) {

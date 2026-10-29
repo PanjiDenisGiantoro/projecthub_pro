@@ -59,11 +59,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
 
         {{-- Projects Card --}}
-        <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 shadow-xs hover:shadow-md transition-all duration-200 p-5 flex flex-col justify-between">
+        <a href="{{ route('projects.index') }}" class="group bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 p-5 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Projects</span>
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Total Projects</span>
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
                         </svg>
@@ -82,7 +82,7 @@
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>{{ $stats['projects']['completed'] }} done
                 </span>
             </div>
-        </div>
+        </a>
 
         {{-- Sprints Card --}}
         <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 shadow-xs hover:shadow-md transition-all duration-200 p-5 flex flex-col justify-between">
@@ -111,29 +111,32 @@
         </div>
 
         {{-- Tasks Card --}}
-        <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 shadow-xs hover:shadow-md transition-all duration-200 p-5 flex flex-col justify-between">
+        <a href="{{ route('projects.index') }}" class="group bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 shadow-xs hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-200 p-5 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-3">
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Task Completion</span>
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Task Completion</span>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                 </div>
+                @php
+                    $taskStat = $stats['tasks'];
+                @endphp
                 <div class="flex items-baseline gap-2">
-                    <p class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tabular-nums">{{ $stats['tasks']['completion_rate'] }}%</p>
-                    <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">({{ $stats['tasks']['done'] }}/{{ $stats['tasks']['total'] }} done)</span>
+                    <p class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tabular-nums">{{ $taskStat['completion_rate'] }}%</p>
+                    <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">({{ $taskStat['done'] }}/{{ $taskStat['total'] }} done)</span>
                 </div>
                 <div class="mt-2.5 w-full bg-slate-100 dark:bg-gray-700/60 h-2 rounded-full overflow-hidden">
-                    <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: {{ $stats['tasks']['completion_rate'] }}%"></div>
+                    <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: {{ $taskStat['completion_rate'] }}%"></div>
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 dark:border-gray-800/80 flex items-center justify-between text-xs font-medium">
-                <span class="text-blue-600 dark:text-blue-400">{{ $stats['tasks']['in_progress'] }} in progress</span>
-                <span class="text-amber-600 dark:text-amber-400">{{ $stats['tasks']['review'] }} in review</span>
+                <span class="text-blue-600 dark:text-blue-400">{{ $taskStat['in_progress'] }} in progress</span>
+                <span class="text-amber-600 dark:text-amber-400">{{ $taskStat['review'] }} in review</span>
             </div>
-        </div>
+        </a>
 
         {{-- Quality / Tickets Card --}}
         <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 shadow-xs hover:shadow-md transition-all duration-200 p-5 flex flex-col justify-between">

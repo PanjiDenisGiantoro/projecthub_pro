@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanyRolePermission;
+use App\Models\RoleCompany;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -14,7 +15,14 @@ class PermissionWebController extends Controller
     {
         $cid    = $this->tenantId();
         $groups = config('permissions');
-        $roles  = Role::whereNotIn('name', ['admin'])->orderBy('name')->get();
+        $rolesQuery = Role::whereNotIn('name', ['admin'])->orderBy('name');
+
+        if ($cid !== null) {
+            $ownedByOthers = RoleCompany::where('company_id', '!=', $cid)->pluck('role_id');
+            $rolesQuery->whereNotIn('id', $ownedByOthers);
+        }
+
+        $roles  = $rolesQuery->get();
 
         // Sembunyikan seksi paket yang tidak dibeli perusahaan ini — sama seperti
         // logika $showTm/$showHris di layouts/sidebar-nav.blade.php. Super admin
@@ -70,10 +78,13 @@ class PermissionWebController extends Controller
             return back()->with('error', "Role '{$roleName}' tidak ditemukan.");
         }
 
-        $allPerms     = collect(config('permissions'))->flatMap(fn($items) => array_keys($items))->toArray();
-        $newPermNames = array_intersect($request->input('permissions', []), $allPerms);
-
         $cid = $this->tenantId();
+        if ($cid !== null) {
+            $owner = RoleCompany::where('role_id', $role->id)->first();
+            if ($owner && $owner->company_id !== $cid) {
+                abort(403);
+            }
+        }
 
         if ($cid === null) {
             $role->syncPermissions($newPermNames);
@@ -110,6 +121,12 @@ class PermissionWebController extends Controller
 
         $role = Role::findByName($roleName, 'web');
         if ($role) {
+            if ($cid !== null) {
+                $owner = RoleCompany::where('role_id', $role->id)->first();
+                if ($owner && $owner->company_id !== $cid) {
+                    abort(403);
+                }
+            }
             CompanyRolePermission::where('company_id', $cid)->where('role_id', $role->id)->delete();
         }
 

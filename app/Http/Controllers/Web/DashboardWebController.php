@@ -21,19 +21,19 @@ class DashboardWebController extends Controller
 {
     public function index(Request $request)
     {
-        $user       = auth()->user();
-        $activePkg  = session('active_package', 'task_management');
+        $user = auth()->user();
+        $activePkg = session('active_package', 'task_management');
 
         // ── HRIS Dashboard ──────────────────────────────────────────────────
         if ($activePkg === 'hris' && !$user->hasRole('client') && in_array('hris', $user->accessiblePackages())) {
-            $companyId      = $user->company_id;
-            $totalKaryawan  = User::where('company_id', $companyId)
+            $companyId = $user->company_id;
+            $totalKaryawan = User::where('company_id', $companyId)
                 ->where('is_super_admin', false)
                 ->whereDoesntHave('roles', fn($r) => $r->where('name', 'client'))
                 ->count();
-            $totalDept      = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
-            $hadirHariIni   = \App\Models\Attendance::where('company_id', $companyId)->whereDate('date', now()->toDateString())->where('status', 'hadir')->count();
-            $cutiPending    = \App\Models\LeaveRequest::where('company_id', $companyId)->where('status', 'pending')->count();
+            $totalDept = \App\Models\OrganizationUnit::where('company_id', $companyId)->count();
+            $hadirHariIni = \App\Models\Attendance::where('company_id', $companyId)->whereDate('date', now()->toDateString())->where('status', 'hadir')->count();
+            $cutiPending = \App\Models\LeaveRequest::where('company_id', $companyId)->where('status', 'pending')->count();
 
             $hrisCharts = Cache::remember("dashboard.hris.charts.{$companyId}.v1", 60, function () use ($companyId) {
                 // Tren kehadiran 14 hari terakhir, per status
@@ -50,7 +50,7 @@ class DashboardWebController extends Controller
                     return [
                         'label' => $date->locale('id')->isoFormat('D/M'),
                         'hadir' => (int) ($counts['hadir'] ?? 0),
-                        'izin'  => (int) ($counts['izin'] ?? 0),
+                        'izin' => (int) ($counts['izin'] ?? 0),
                         'sakit' => (int) ($counts['sakit'] ?? 0),
                         'alpha' => (int) ($counts['alpha'] ?? 0),
                     ];
@@ -78,12 +78,12 @@ class DashboardWebController extends Controller
 
                 // Reimburse per kategori, bulan ini
                 $reimburseLabels = [
-                    'transport'  => 'Transport',
-                    'makan'      => 'Makan',
-                    'akomodasi'  => 'Akomodasi',
-                    'medis'      => 'Medis',
-                    'pulsa'      => 'Pulsa',
-                    'lainnya'    => 'Lainnya',
+                    'transport' => 'Transport',
+                    'makan' => 'Makan',
+                    'akomodasi' => 'Akomodasi',
+                    'medis' => 'Medis',
+                    'pulsa' => 'Pulsa',
+                    'lainnya' => 'Lainnya',
                 ];
                 $reimburseRaw = \App\Models\Reimbursement::where('company_id', $companyId)
                     ->whereYear('expense_date', now()->year)->whereMonth('expense_date', now()->month)
@@ -94,19 +94,19 @@ class DashboardWebController extends Controller
                 ])->values();
 
                 return [
-                    'attendance_trend'        => $attendanceTrend,
+                    'attendance_trend' => $attendanceTrend,
                     'attendance_status_month' => $attendanceStatusMonth,
-                    'leave_status_year'       => $leaveStatusYear,
-                    'overtime_monthly'        => $overtimeMonthly,
-                    'reimburse_by_category'   => $reimburseByCategory,
+                    'leave_status_year' => $leaveStatusYear,
+                    'overtime_monthly' => $overtimeMonthly,
+                    'reimburse_by_category' => $reimburseByCategory,
                 ];
             });
 
             return view('dashboard.hris', compact('totalKaryawan', 'totalDept', 'hadirHariIni', 'cutiPending') + $hrisCharts);
         }
 
-        $companies    = collect();
-        $cid          = $user->company_id;
+        $companies = collect();
+        $cid = $user->company_id;
         $isSuperAdmin = (bool) $user->is_super_admin;
 
         if ($isSuperAdmin) {
@@ -130,8 +130,8 @@ class DashboardWebController extends Controller
             return view('dashboard.admin', $this->selfScopedDashboardData($user));
         }
 
-        // Cache key: scoped by user for regular users, or by company for superadmin
-        $ckey = $isSuperAdmin ? ($cid ?? 'all') : "u_{$user->id}";
+        // Cache key: scoped by user and company
+        $ckey = "u_{$user->id}_c" . ($cid ?? 'all');
 
         // Project filter scope for non-superadmin users
         $projectFilter = function ($q) use ($user, $isSuperAdmin, $cid) {
@@ -164,52 +164,102 @@ class DashboardWebController extends Controller
             }
         };
 
-        $stats = Cache::remember("dashboard.admin.stats.{$ckey}.v3", 60, function () use ($projectFilter) {
-            $totalTasks  = Task::whereHas('project', $projectFilter)->count();
-            $doneTasks   = Task::whereHas('project', $projectFilter)->where('status', 'done')->count();
-            $inProgTasks = Task::whereHas('project', $projectFilter)->where('status', 'in_progress')->count();
-            $reviewTasks = Task::whereHas('project', $projectFilter)->where('status', 'review')->count();
-            $todoTasks   = Task::whereHas('project', $projectFilter)->where('status', 'todo')->count();
+        $stats = Cache::remember("dashboard.admin.stats.{$ckey}.v7", 60, function () use ($projectFilter, $user, $cid) {
+            $totalTasks = Task::whereHas('project', $projectFilter)->count();
+            $doneTasks = Task::whereHas('project', $projectFilter)->where(function ($q) {
+                $q->whereIn('status', ['done', 'completed', 'Completed'])
+                    ->orWhereNotNull('completed_at')
+                    ->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $inProgTasks = Task::whereHas('project', $projectFilter)->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['in_progress', 'In Progress'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['in_progress', 'progress'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $reviewTasks = Task::whereHas('project', $projectFilter)->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['review', 'Review', 'qa', 'QA', 'on_hold', 'On Hold'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['review', 'testing', 'qa', 'on_hold'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $todoTasks = Task::whereHas('project', $projectFilter)->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['todo', 'To Do'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['todo', 'to_do', 'backlog'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
             $openTickets = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->count();
 
-            $tickNow  = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
+            // Task completion khusus yang di-assign ke user yang sedang login
+            $myTasksQuery = Task::where(function ($q) use ($user) {
+                $q->where('assigned_to', $user->id)
+                    ->orWhereHas('members', fn($m) => $m->where('user_id', $user->id));
+            });
+            if ($cid) {
+                $myTasksQuery->whereHas('project', fn($q) => $q->where('company_id', $cid));
+            }
+
+            $myTotalTasks = (clone $myTasksQuery)->count();
+            $myDoneTasks = (clone $myTasksQuery)->where(function ($q) {
+                $q->whereIn('status', ['done', 'completed', 'Completed'])
+                    ->orWhereNotNull('completed_at')
+                    ->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myInProgTasks = (clone $myTasksQuery)->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['in_progress', 'In Progress'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['in_progress', 'progress'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myReviewTasks = (clone $myTasksQuery)->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['review', 'Review', 'qa', 'QA', 'on_hold', 'On Hold'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['review', 'testing', 'qa', 'on_hold'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myCompletionRate = $myTotalTasks > 0 ? round($myDoneTasks / $myTotalTasks * 100, 1) : 0;
+
+            $tickNow = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
             $tickPrev = BugTicket::whereHas('project', $projectFilter)->whereIn('status', ['open', 'assigned'])->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
             $tickChange = $tickPrev > 0 ? round(($tickNow - $tickPrev) / $tickPrev * 100, 1) : null;
 
             $projectsQuery = Project::query()->tap($projectFilter);
-            $sprintsQuery  = Sprint::whereHas('project', $projectFilter);
+            $sprintsQuery = Sprint::whereHas('project', $projectFilter);
 
             return [
-                'projects'         => [
-                    'total'     => (clone $projectsQuery)->count(),
-                    'active'    => (clone $projectsQuery)->where('status', 'active')->count(),
+                'projects' => [
+                    'total' => (clone $projectsQuery)->count(),
+                    'active' => (clone $projectsQuery)->where('status', 'active')->count(),
                     'completed' => (clone $projectsQuery)->where('status', 'completed')->count(),
                     'new_month' => (clone $projectsQuery)->whereYear('created_at', now()->year)->whereMonth('created_at', now()->month)->count(),
                 ],
-                'sprints'          => [
-                    'total'     => (clone $sprintsQuery)->count(),
-                    'active'    => (clone $sprintsQuery)->where('status', 'active')->count(),
+                'sprints' => [
+                    'total' => (clone $sprintsQuery)->count(),
+                    'active' => (clone $sprintsQuery)->where('status', 'active')->count(),
                     'completed' => (clone $sprintsQuery)->where('status', 'completed')->count(),
-                    'planned'   => (clone $sprintsQuery)->where('status', 'planned')->count(),
+                    'planned' => (clone $sprintsQuery)->where('status', 'planned')->count(),
                 ],
-                'tasks'            => [
-                    'total'           => $totalTasks,
-                    'in_progress'     => $inProgTasks,
-                    'review'          => $reviewTasks,
-                    'todo'            => $todoTasks,
-                    'done'            => $doneTasks,
-                    'done_this_week'  => Task::whereHas('project', $projectFilter)->where('status', 'done')->where('updated_at', '>=', now()->startOfWeek())->count(),
+                'tasks' => [
+                    'total' => $totalTasks,
+                    'in_progress' => $inProgTasks,
+                    'review' => $reviewTasks,
+                    'todo' => $todoTasks,
+                    'done' => $doneTasks,
+                    'done_this_week' => Task::whereHas('project', $projectFilter)->where(fn($q) => $q->whereIn('status', ['done', 'completed', 'Completed'])->orWhereNotNull('completed_at')->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true)))->where('updated_at', '>=', now()->startOfWeek())->count(),
                     'completion_rate' => $totalTasks > 0 ? round($doneTasks / $totalTasks * 100, 1) : 0,
                 ],
-                'tasks_dist'       => [
-                    'done'        => $doneTasks,
-                    'in_progress' => $inProgTasks,
-                    'review'      => $reviewTasks,
-                    'todo'        => $todoTasks,
+                'my_tasks' => [
+                    'total' => $myTotalTasks,
+                    'in_progress' => $myInProgTasks,
+                    'review' => $myReviewTasks,
+                    'done' => $myDoneTasks,
+                    'completion_rate' => $myCompletionRate,
                 ],
-                'tickets'          => [
-                    'open'        => $openTickets,
-                    'breached'    => BugTicket::whereHas('project', $projectFilter)->where('sla_breached', true)->count(),
+                'tasks_dist' => [
+                    'done' => $doneTasks,
+                    'in_progress' => $inProgTasks,
+                    'review' => $reviewTasks,
+                    'todo' => $todoTasks,
+                ],
+                'tickets' => [
+                    'open' => $openTickets,
+                    'breached' => BugTicket::whereHas('project', $projectFilter)->where('sla_breached', true)->count(),
                     'week_change' => $tickChange,
                 ],
                 'pending_requests' => CustomerRequest::whereHas('project', $projectFilter)->where('status', 'waiting_approval')->count(),
@@ -235,8 +285,8 @@ class DashboardWebController extends Controller
                 $date = now()->subDays($daysAgo);
                 $dStr = $date->toDateString();
                 return [
-                    'date'    => $date->format('d M'),
-                    'done'    => (int) ($doneRows[$dStr] ?? 0),
+                    'date' => $date->format('d M'),
+                    'done' => (int) ($doneRows[$dStr] ?? 0),
                     'created' => (int) ($createdRows[$dStr] ?? 0),
                 ];
             })->values()->toArray();
@@ -272,13 +322,13 @@ class DashboardWebController extends Controller
             ->limit(6)
             ->get()
             ->map(fn($t) => [
-                'type'    => 'task',
-                'status'  => $t->status,
-                'user'    => $t->assignee,
+                'type' => 'task',
+                'status' => $t->status,
+                'user' => $t->assignee,
                 'project' => $t->project?->name,
                 'message' => $t->status === 'done' ? 'menyelesaikan task' : 'sedang mengerjakan task',
                 'subject' => $t->title,
-                'time'    => $t->updated_at,
+                'time' => $t->updated_at,
             ])
             ->concat(
                 BugTicket::with(['reporter', 'project:id,slug,name'])->whereHas('project', $projectFilter)
@@ -286,13 +336,13 @@ class DashboardWebController extends Controller
                     ->limit(4)
                     ->get()
                     ->map(fn($t) => [
-                        'type'    => 'ticket',
-                        'status'  => $t->status,
-                        'user'    => $t->reporter,
+                        'type' => 'ticket',
+                        'status' => $t->status,
+                        'user' => $t->reporter,
                         'project' => $t->project?->name,
                         'message' => 'membuka tiket',
                         'subject' => "#{$t->id} {$t->title}",
-                        'time'    => $t->created_at,
+                        'time' => $t->created_at,
                     ])
             )
             ->sortByDesc('time')->take(6)->values();
@@ -313,14 +363,14 @@ class DashboardWebController extends Controller
             ->get();
 
         return view('dashboard.admin', [
-            'stats'               => $stats,
-            'task_velocity'       => $taskVelocity,
+            'stats' => $stats,
+            'task_velocity' => $taskVelocity,
             'active_sprints_list' => $activeSprintsList,
-            'top_projects'        => $topProjects,
-            'recent_activities'   => $recentActivities,
-            'recent_tickets'      => $recentTickets,
-            'upcoming_deadlines'  => $upcomingDeadlines,
-            'companies'           => $companies,
+            'top_projects' => $topProjects,
+            'recent_activities' => $recentActivities,
+            'recent_tickets' => $recentTickets,
+            'upcoming_deadlines' => $upcomingDeadlines,
+            'companies' => $companies,
             'selected_company_id' => $cid,
         ]);
     }
@@ -334,65 +384,126 @@ class DashboardWebController extends Controller
      */
     private function selfScopedDashboardData($user): array
     {
-        // Proyek milik user: yang ia pimpin (manager_id) atau ia jadi anggota tim.
+        // Proyek milik user: yang ia pimpin (manager_id), ia jadi anggota tim,
+        // atau ada task yang di-assign ke dia di proyek tersebut.
         // Global scope company_id pada model Project sudah membatasi ke company-nya.
         $myProjectIds = Project::where(function ($q) use ($user) {
             $q->where('manager_id', $user->id)
-              ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
+                ->orWhereHas('members', fn($m) => $m->where('user_id', $user->id))
+                ->orWhereHas('tasks', fn($t) => $t->where('assigned_to', $user->id)->orWhereHas('members', fn($m) => $m->where('user_id', $user->id)));
         })->pluck('id');
 
         $uid = $user->id;
 
         // Base query reusable
-        $myTasks   = fn () => Task::where('assigned_to', $uid);
-        $myTickets = fn () => BugTicket::where(fn ($q) => $q->where('assignee_id', $uid)->orWhere('reporter_id', $uid));
+        $myTasks = fn() => Task::where(function ($q) use ($uid) {
+            $q->where('assigned_to', $uid)
+                ->orWhereHas('members', fn($m) => $m->where('user_id', $uid));
+        });
+        $myTickets = fn() => BugTicket::where(fn($q) => $q->where('assignee_id', $uid)->orWhere('reporter_id', $uid));
 
-        $stats = Cache::remember("dashboard.self.{$uid}.stats.v1", 60, function () use ($myProjectIds, $myTasks, $myTickets) {
-            $totalTasks  = (clone $myTasks())->count();
-            $doneTasks   = (clone $myTasks())->where('status', 'done')->count();
-            $inProgTasks = (clone $myTasks())->where('status', 'in_progress')->count();
-            $reviewTasks = (clone $myTasks())->where('status', 'review')->count();
-            $todoTasks   = (clone $myTasks())->where('status', 'todo')->count();
+        $stats = Cache::remember("dashboard.self.{$uid}.stats.v7", 60, function () use ($myProjectIds, $myTasks, $myTickets) {
+            // Task pribadi (assigned to this user)
+            $myTotalTasks = (clone $myTasks())->count();
+            $myDoneTasks = (clone $myTasks())->where(function ($q) {
+                $q->whereIn('status', ['done', 'completed', 'Completed'])
+                    ->orWhereNotNull('completed_at')
+                    ->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myInProgTasks = (clone $myTasks())->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['in_progress', 'In Progress'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['in_progress', 'progress'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myReviewTasks = (clone $myTasks())->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['review', 'Review', 'qa', 'QA', 'on_hold', 'On Hold'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['review', 'testing', 'qa', 'on_hold'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myTodoTasks = (clone $myTasks())->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['todo', 'To Do'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['todo', 'to_do', 'backlog'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $myCompletionRate = $myTotalTasks > 0 ? round($myDoneTasks / $myTotalTasks * 100, 1) : 0;
+
+            // Seluruh task di project (All Progress)
+            $allTasksQuery = fn() => Task::whereIn('project_id', $myProjectIds);
+            $allTotalTasks = (clone $allTasksQuery())->count();
+            $allDoneTasks = (clone $allTasksQuery())->where(function ($q) {
+                $q->whereIn('status', ['done', 'completed', 'Completed'])
+                    ->orWhereNotNull('completed_at')
+                    ->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $allInProgTasks = (clone $allTasksQuery())->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['in_progress', 'In Progress'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['in_progress', 'progress'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $allReviewTasks = (clone $allTasksQuery())->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['review', 'Review', 'qa', 'QA', 'on_hold', 'On Hold'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['review', 'testing', 'qa', 'on_hold'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $allTodoTasks = (clone $allTasksQuery())->where(function ($q) {
+                $q->where(fn($sub) => $sub->whereIn('status', ['todo', 'To Do'])->orWhereHas('boardColumn', fn($bc) => $bc->whereIn('slug', ['todo', 'to_do', 'backlog'])))
+                    ->whereNull('completed_at')
+                    ->whereDoesntHave('boardColumn', fn($bc) => $bc->where('is_done', true));
+            })->count();
+            $allCompletionRate = $allTotalTasks > 0 ? round($allDoneTasks / $allTotalTasks * 100, 1) : 0;
 
             $openTickets = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->count();
-            $tickNow  = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
+            $tickNow = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->where('created_at', '>=', now()->startOfWeek())->count();
             $tickPrev = (clone $myTickets())->whereIn('status', ['open', 'assigned'])->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
             $tickChange = $tickPrev > 0 ? round(($tickNow - $tickPrev) / $tickPrev * 100, 1) : null;
 
             $projectsQuery = Project::whereIn('id', $myProjectIds);
-            $sprintsQuery  = Sprint::whereIn('project_id', $myProjectIds);
+            $sprintsQuery = Sprint::whereIn('project_id', $myProjectIds);
+
+            $myTasksArray = [
+                'total' => $myTotalTasks,
+                'in_progress' => $myInProgTasks,
+                'review' => $myReviewTasks,
+                'todo' => $myTodoTasks,
+                'done' => $myDoneTasks,
+                'done_this_week' => (clone $myTasks())->where(fn($q) => $q->whereIn('status', ['done', 'completed', 'Completed'])->orWhereNotNull('completed_at')->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true)))->where('updated_at', '>=', now()->startOfWeek())->count(),
+                'completion_rate' => $myCompletionRate,
+            ];
+
+            $allTasksArray = [
+                'total' => $allTotalTasks,
+                'in_progress' => $allInProgTasks,
+                'review' => $allReviewTasks,
+                'todo' => $allTodoTasks,
+                'done' => $allDoneTasks,
+                'done_this_week' => (clone $allTasksQuery())->where(fn($q) => $q->whereIn('status', ['done', 'completed', 'Completed'])->orWhereNotNull('completed_at')->orWhereHas('boardColumn', fn($bc) => $bc->where('is_done', true)))->where('updated_at', '>=', now()->startOfWeek())->count(),
+                'completion_rate' => $allCompletionRate,
+            ];
 
             return [
-                'projects'         => [
-                    'total'     => (clone $projectsQuery)->count(),
-                    'active'    => (clone $projectsQuery)->where('status', 'active')->count(),
+                'projects' => [
+                    'total' => (clone $projectsQuery)->count(),
+                    'active' => (clone $projectsQuery)->where('status', 'active')->count(),
                     'completed' => (clone $projectsQuery)->where('status', 'completed')->count(),
                     'new_month' => (clone $projectsQuery)->whereYear('created_at', now()->year)->whereMonth('created_at', now()->month)->count(),
                 ],
-                'sprints'          => [
-                    'total'     => (clone $sprintsQuery)->count(),
-                    'active'    => (clone $sprintsQuery)->where('status', 'active')->count(),
+                'sprints' => [
+                    'total' => (clone $sprintsQuery)->count(),
+                    'active' => (clone $sprintsQuery)->where('status', 'active')->count(),
                     'completed' => (clone $sprintsQuery)->where('status', 'completed')->count(),
-                    'planned'   => (clone $sprintsQuery)->where('status', 'planned')->count(),
+                    'planned' => (clone $sprintsQuery)->where('status', 'planned')->count(),
                 ],
-                'tasks'            => [
-                    'total'           => $totalTasks,
-                    'in_progress'     => $inProgTasks,
-                    'review'          => $reviewTasks,
-                    'todo'            => $todoTasks,
-                    'done'            => $doneTasks,
-                    'done_this_week'  => (clone $myTasks())->where('status', 'done')->where('updated_at', '>=', now()->startOfWeek())->count(),
-                    'completion_rate' => $totalTasks > 0 ? round($doneTasks / $totalTasks * 100, 1) : 0,
+                'tasks' => $allTasksArray,
+                'my_tasks' => $myTasksArray,
+                'tasks_dist' => [
+                    'done' => $allDoneTasks,
+                    'in_progress' => $allInProgTasks,
+                    'review' => $allReviewTasks,
+                    'todo' => $allTodoTasks,
                 ],
-                'tasks_dist'       => [
-                    'done'        => $doneTasks,
-                    'in_progress' => $inProgTasks,
-                    'review'      => $reviewTasks,
-                    'todo'        => $todoTasks,
-                ],
-                'tickets'          => [
-                    'open'        => $openTickets,
-                    'breached'    => (clone $myTickets())->where('sla_breached', true)->count(),
+                'tickets' => [
+                    'open' => $openTickets,
+                    'breached' => (clone $myTickets())->where('sla_breached', true)->count(),
                     'week_change' => $tickChange,
                 ],
                 'pending_requests' => CustomerRequest::whereIn('project_id', $myProjectIds)->where('status', 'waiting_approval')->count(),
@@ -410,8 +521,8 @@ class DashboardWebController extends Controller
                 $date = now()->subDays($daysAgo);
                 $dStr = $date->toDateString();
                 return [
-                    'date'    => $date->format('d M'),
-                    'done'    => (int) ($doneRows[$dStr] ?? 0),
+                    'date' => $date->format('d M'),
+                    'done' => (int) ($doneRows[$dStr] ?? 0),
                     'created' => (int) ($createdRows[$dStr] ?? 0),
                 ];
             })->values()->toArray();
@@ -420,13 +531,13 @@ class DashboardWebController extends Controller
         $activeSprintsList = Sprint::whereIn('project_id', $myProjectIds)
             ->where('status', 'active')
             ->with(['project:id,name,company_id'])
-            ->withCount(['tasks', 'tasks as done_tasks_count' => fn ($q) => $q->where('status', 'done')])
+            ->withCount(['tasks', 'tasks as done_tasks_count' => fn($q) => $q->where('status', 'done')])
             ->orderBy('end_date')
             ->limit(4)
             ->get();
 
         $topProjects = Project::with('client')
-            ->withCount(['tasks', 'tasks as done_tasks_count' => fn ($q) => $q->where('status', 'done'), 'sprints'])
+            ->withCount(['tasks', 'tasks as done_tasks_count' => fn($q) => $q->where('status', 'done'), 'sprints'])
             ->whereIn('id', $myProjectIds)
             ->whereIn('status', ['active', 'on_hold', 'draft'])
             ->orderByDesc('updated_at')
@@ -438,28 +549,28 @@ class DashboardWebController extends Controller
             ->orderByDesc('updated_at')
             ->limit(6)
             ->get()
-            ->map(fn ($t) => [
-                'type'    => 'task',
-                'status'  => $t->status,
-                'user'    => $t->assignee,
+            ->map(fn($t) => [
+                'type' => 'task',
+                'status' => $t->status,
+                'user' => $t->assignee,
                 'project' => $t->project?->name,
                 'message' => $t->status === 'done' ? 'menyelesaikan task' : 'sedang mengerjakan task',
                 'subject' => $t->title,
-                'time'    => $t->updated_at,
+                'time' => $t->updated_at,
             ])
             ->concat(
                 (clone $myTickets())->with(['reporter', 'project:id,name'])
                     ->orderByDesc('created_at')
                     ->limit(4)
                     ->get()
-                    ->map(fn ($t) => [
-                        'type'    => 'ticket',
-                        'status'  => $t->status,
-                        'user'    => $t->reporter,
+                    ->map(fn($t) => [
+                        'type' => 'ticket',
+                        'status' => $t->status,
+                        'user' => $t->reporter,
                         'project' => $t->project?->name,
                         'message' => 'membuka tiket',
                         'subject' => "#{$t->id} {$t->title}",
-                        'time'    => $t->created_at,
+                        'time' => $t->created_at,
                     ])
             )
             ->sortByDesc('time')->take(6)->values();
@@ -479,14 +590,14 @@ class DashboardWebController extends Controller
             ->get();
 
         return [
-            'stats'               => $stats,
-            'task_velocity'       => $taskVelocity,
+            'stats' => $stats,
+            'task_velocity' => $taskVelocity,
             'active_sprints_list' => $activeSprintsList,
-            'top_projects'        => $topProjects,
-            'recent_activities'   => $recentActivities,
-            'recent_tickets'      => $recentTickets,
-            'upcoming_deadlines'  => $upcomingDeadlines,
-            'companies'           => collect(), // tanpa pemilih company untuk member
+            'top_projects' => $topProjects,
+            'recent_activities' => $recentActivities,
+            'recent_tickets' => $recentTickets,
+            'upcoming_deadlines' => $upcomingDeadlines,
+            'companies' => collect(), // tanpa pemilih company untuk member
             'selected_company_id' => null,
         ];
     }
@@ -495,22 +606,22 @@ class DashboardWebController extends Controller
     {
         $stats = Cache::remember("dashboard.member.{$user->id}.stats", 60, function () use ($user) {
             return [
-                'todo'             => Task::where('assigned_to', $user->id)->where('status', 'todo')->count(),
-                'in_progress'      => Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
-                'done_week'        => Task::where('assigned_to', $user->id)->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                'hours_week'       => round(TimeLog::where('user_id', $user->id)->whereBetween('started_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('minutes') / 60, 1),
-                'open_tickets'     => BugTicket::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->whereIn('status', ['open', 'assigned'])->count(),
-                'pending_requests' => CustomerRequest::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->where('status', 'waiting_approval')->count(),
-                'active_campaigns' => Campaign::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->where('status', 'active')->count(),
-                'pending_review'   => CustomerRequest::whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->where('status', 'waiting_approval')->count(),
+                'todo' => Task::where('assigned_to', $user->id)->where('status', 'todo')->count(),
+                'in_progress' => Task::where('assigned_to', $user->id)->where('status', 'in_progress')->count(),
+                'done_week' => Task::where('assigned_to', $user->id)->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'hours_week' => round(TimeLog::where('user_id', $user->id)->whereBetween('started_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('minutes') / 60, 1),
+                'open_tickets' => BugTicket::whereHas('project', fn($q) => $q->where('company_id', $user->company_id))->whereIn('status', ['open', 'assigned'])->count(),
+                'pending_requests' => CustomerRequest::whereHas('project', fn($q) => $q->where('company_id', $user->company_id))->where('status', 'waiting_approval')->count(),
+                'active_campaigns' => Campaign::whereHas('project', fn($q) => $q->where('company_id', $user->company_id))->where('status', 'active')->count(),
+                'pending_review' => CustomerRequest::whereHas('project', fn($q) => $q->where('company_id', $user->company_id))->where('status', 'waiting_approval')->count(),
             ];
         });
 
         return [
-            'my_tasks'       => Task::where('assigned_to', $user->id)->whereIn('status', ['todo', 'in_progress'])->with(['project', 'milestone'])->orderBy('due_date')->limit(10)->get(),
-            'campaigns'      => Campaign::with('project')->whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->latest()->limit(5)->get(),
-            'recent_tickets' => BugTicket::with(['project'])->whereHas('project', fn ($q) => $q->where('company_id', $user->company_id))->whereIn('status', ['open', 'assigned', 'in_progress'])->orderByDesc('created_at')->limit(6)->get(),
-            'stats'          => $stats,
+            'my_tasks' => Task::where('assigned_to', $user->id)->whereIn('status', ['todo', 'in_progress'])->with(['project', 'milestone'])->orderBy('due_date')->limit(10)->get(),
+            'campaigns' => Campaign::with('project')->whereHas('project', fn($q) => $q->where('company_id', $user->company_id))->latest()->limit(5)->get(),
+            'recent_tickets' => BugTicket::with(['project'])->whereHas('project', fn($q) => $q->where('company_id', $user->company_id))->whereIn('status', ['open', 'assigned', 'in_progress'])->orderByDesc('created_at')->limit(6)->get(),
+            'stats' => $stats,
         ];
     }
 
@@ -522,10 +633,10 @@ class DashboardWebController extends Controller
      */
     public function v2(Request $request)
     {
-        $user      = auth()->user();
+        $user = auth()->user();
         $isManager = $user->hasRole(['admin', 'member']);
         $companies = collect();
-        $cid       = null;
+        $cid = null;
 
         if ($isManager) {
             if ($user->is_super_admin) {
@@ -549,15 +660,15 @@ class DashboardWebController extends Controller
             fn($q) => $q->where('assigned_to', $user->id)
         );
 
-        $totalTasks      = $tasksBase()->count();
-        $doneTasks       = $tasksBase()->where('status', 'done')->count();
+        $totalTasks = $tasksBase()->count();
+        $doneTasks = $tasksBase()->where('status', 'done')->count();
         $inProgressTasks = $tasksBase()->where('status', 'in_progress')->count();
-        $reviewTasks     = $tasksBase()->where('status', 'review')->count();
-        $todoTasks       = $tasksBase()->where('status', 'todo')->count();
-        $completionRate  = $totalTasks > 0 ? (int) round($doneTasks / $totalTasks * 100) : 0;
+        $reviewTasks = $tasksBase()->where('status', 'review')->count();
+        $todoTasks = $tasksBase()->where('status', 'todo')->count();
+        $completionRate = $totalTasks > 0 ? (int) round($doneTasks / $totalTasks * 100) : 0;
 
-        $doneThisWeek   = $tasksBase()->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
-        $activeLast7d   = $tasksBase()->where('updated_at', '>=', now()->subDays(7))->count();
+        $doneThisWeek = $tasksBase()->where('status', 'done')->whereBetween('updated_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $activeLast7d = $tasksBase()->where('updated_at', '>=', now()->subDays(7))->count();
         $engagementRate = $totalTasks > 0 ? (int) round($activeLast7d / $totalTasks * 100) : 0;
 
         $teamCollaborations = $isManager
@@ -565,33 +676,33 @@ class DashboardWebController extends Controller
             : $tasksBase()->distinct('project_id')->count('project_id');
 
         $stats = [
-            'total_tasks'      => $totalTasks,
-            'done_tasks'       => $doneTasks,
-            'in_progress'      => $inProgressTasks,
-            'review'           => $reviewTasks,
-            'todo'             => $todoTasks,
-            'completion_rate'  => $completionRate,
-            'done_this_week'   => $doneThisWeek,
-            'engagement_rate'  => $engagementRate,
-            'collaborations'   => $teamCollaborations,
+            'total_tasks' => $totalTasks,
+            'done_tasks' => $doneTasks,
+            'in_progress' => $inProgressTasks,
+            'review' => $reviewTasks,
+            'todo' => $todoTasks,
+            'completion_rate' => $completionRate,
+            'done_this_week' => $doneThisWeek,
+            'engagement_rate' => $engagementRate,
+            'collaborations' => $teamCollaborations,
         ];
 
         // ── Task summary (kolom kanan, mirip panel "Task Summary") ──────────
         $taskSummary = [
             'upcoming' => $tasksBase()->with(['project', 'assignee'])->where('status', 'todo')->orderBy('due_date')->limit(4)->get(),
-            'ongoing'  => $tasksBase()->with(['project', 'assignee'])->whereIn('status', ['in_progress', 'review'])->orderBy('due_date')->limit(4)->get(),
+            'ongoing' => $tasksBase()->with(['project', 'assignee'])->whereIn('status', ['in_progress', 'review'])->orderBy('due_date')->limit(4)->get(),
             'complete' => $tasksBase()->with(['project', 'assignee'])->where('status', 'done')->orderByDesc('updated_at')->limit(4)->get(),
         ];
 
         // ── Meeting (project/sprint/milestone/task/tiket dengan jadwal) ─────
         $meetings = $this->collectMeetingsV2($projectFilter, $user->hasRole('client'), $user->id);
-        $todaySchedule    = $meetings->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isToday())->values();
+        $todaySchedule = $meetings->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isToday())->values();
         $upcomingMeetings = $meetings->filter(fn($m) => !$m['startsAt'] || $m['startsAt']->isFuture())->take(6)->values();
 
         $meetingsThisMonth = $meetings->filter(fn($m) => $m['startsAt'] && $m['startsAt']->isCurrentMonth());
         $meetingStats = [
-            'total'    => $meetingsThisMonth->count(),
-            'past'     => $meetingsThisMonth->filter(fn($m) => $m['startsAt']->isPast())->count(),
+            'total' => $meetingsThisMonth->count(),
+            'past' => $meetingsThisMonth->filter(fn($m) => $m['startsAt']->isPast())->count(),
             'upcoming' => $meetingsThisMonth->filter(fn($m) => $m['startsAt']->isFuture())->count(),
         ];
 
@@ -607,7 +718,7 @@ class DashboardWebController extends Controller
             return ['label' => $day->locale('id')->isoFormat('dd'), 'hours' => round($minutes / 60, 1)];
         })->values();
         $totalHoursWeek = round($weeklyHours->sum('hours'), 1);
-        $avgHoursDay    = round($totalHoursWeek / 7, 1);
+        $avgHoursDay = round($totalHoursWeek / 7, 1);
 
         // ── Heatmap aktivitas: task selesai per hari, 4 minggu terakhir ──────
         $doneDates = $tasksBase()->where('status', 'done')
@@ -625,18 +736,18 @@ class DashboardWebController extends Controller
         });
 
         return view('dashboard.v2', [
-            'stats'              => $stats,
-            'taskSummary'        => $taskSummary,
-            'todaySchedule'      => $todaySchedule,
-            'upcomingMeetings'   => $upcomingMeetings,
-            'meetingStats'       => $meetingStats,
-            'weeklyHours'        => $weeklyHours,
-            'totalHoursWeek'     => $totalHoursWeek,
-            'avgHoursDay'        => $avgHoursDay,
-            'activityGrid'       => $activityGrid,
-            'companies'          => $companies,
-            'selectedCompanyId'  => $cid,
-            'isManager'          => $isManager,
+            'stats' => $stats,
+            'taskSummary' => $taskSummary,
+            'todaySchedule' => $todaySchedule,
+            'upcomingMeetings' => $upcomingMeetings,
+            'meetingStats' => $meetingStats,
+            'weeklyHours' => $weeklyHours,
+            'totalHoursWeek' => $totalHoursWeek,
+            'avgHoursDay' => $avgHoursDay,
+            'activityGrid' => $activityGrid,
+            'companies' => $companies,
+            'selectedCompanyId' => $cid,
+            'isManager' => $isManager,
         ]);
     }
 
@@ -652,36 +763,52 @@ class DashboardWebController extends Controller
         Project::query()->tap($projectFilter)->tap($scopeToClient)
             ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
             ->get()->each(fn($p) => $meetings->push([
-                'type' => 'project', 'title' => $p->name, 'project' => $p->name,
-                'startsAt' => $p->meeting_starts_at, 'meetLink' => $p->google_meet_link,
-                'organizer' => null, 'url' => route('projects.show', $p),
+                'type' => 'project',
+                'title' => $p->name,
+                'project' => $p->name,
+                'startsAt' => $p->meeting_starts_at,
+                'meetLink' => $p->google_meet_link,
+                'organizer' => null,
+                'url' => route('projects.show', $p),
             ]));
 
         Sprint::with(['project', 'meetingOrganizer'])
             ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
             ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
             ->get()->each(fn($s) => $meetings->push([
-                'type' => 'sprint', 'title' => $s->name, 'project' => $s->project?->name,
-                'startsAt' => $s->meeting_starts_at, 'meetLink' => $s->google_meet_link,
-                'organizer' => $s->meetingOrganizer?->name, 'url' => route('sprints.show', [$s->project ?? $s->project_id, $s->id]),
+                'type' => 'sprint',
+                'title' => $s->name,
+                'project' => $s->project?->name,
+                'startsAt' => $s->meeting_starts_at,
+                'meetLink' => $s->google_meet_link,
+                'organizer' => $s->meetingOrganizer?->name,
+                'url' => route('sprints.show', [$s->project ?? $s->project_id, $s->id]),
             ]));
 
         Milestone::with(['project', 'meetingOrganizer'])
             ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
             ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
             ->get()->each(fn($m) => $meetings->push([
-                'type' => 'milestone', 'title' => $m->title, 'project' => $m->project?->name,
-                'startsAt' => $m->meeting_starts_at, 'meetLink' => $m->google_meet_link,
-                'organizer' => $m->meetingOrganizer?->name, 'url' => ($m->project ?? $m->project_id) ? route('projects.show', $m->project ?? $m->project_id) : '#',
+                'type' => 'milestone',
+                'title' => $m->title,
+                'project' => $m->project?->name,
+                'startsAt' => $m->meeting_starts_at,
+                'meetLink' => $m->google_meet_link,
+                'organizer' => $m->meetingOrganizer?->name,
+                'url' => ($m->project ?? $m->project_id) ? route('projects.show', $m->project ?? $m->project_id) : '#',
             ]));
 
         Task::with(['project', 'assignee', 'meetingOrganizer'])->whereNull('deleted_at')
             ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
             ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
             ->get()->each(fn($t) => $meetings->push([
-                'type' => 'task', 'title' => $t->title, 'project' => $t->project?->name,
-                'startsAt' => $t->meeting_starts_at, 'meetLink' => $t->google_meet_link,
-                'organizer' => $t->meetingOrganizer?->name, 'assignee' => $t->assignee,
+                'type' => 'task',
+                'title' => $t->title,
+                'project' => $t->project?->name,
+                'startsAt' => $t->meeting_starts_at,
+                'meetLink' => $t->google_meet_link,
+                'organizer' => $t->meetingOrganizer?->name,
+                'assignee' => $t->assignee,
                 'url' => route('tasks.show', [$t->project ?? $t->project_id, $t->id]),
             ]));
 
@@ -689,9 +816,13 @@ class DashboardWebController extends Controller
             ->whereHas('project', fn($q) => $q->tap($projectFilter)->when($isCustomer, $scopeToClient))
             ->where(fn($q) => $q->whereNotNull('meeting_starts_at')->orWhereNotNull('google_meet_link'))
             ->get()->each(fn($t) => $meetings->push([
-                'type' => 'ticket', 'title' => $t->title, 'project' => $t->project?->name,
-                'startsAt' => $t->meeting_starts_at, 'meetLink' => $t->google_meet_link,
-                'organizer' => null, 'url' => route('tickets.show', $t->id),
+                'type' => 'ticket',
+                'title' => $t->title,
+                'project' => $t->project?->name,
+                'startsAt' => $t->meeting_starts_at,
+                'meetLink' => $t->google_meet_link,
+                'organizer' => null,
+                'url' => route('tickets.show', $t->id),
             ]));
 
         return $meetings->sortBy(fn($m) => $m['startsAt'] ?? now()->addCentury())->values();
@@ -703,7 +834,7 @@ class DashboardWebController extends Controller
         $companyId = $user->company_id;
 
         $query = User::query()
-            ->when($companyId && ! $user->is_super_admin, fn($q) => $q->where('company_id', $companyId))
+            ->when($companyId && !$user->is_super_admin, fn($q) => $q->where('company_id', $companyId))
             ->whereDoesntHave('roles', fn($q) => $q->where('name', 'client'))
             ->with([
                 'roles',
