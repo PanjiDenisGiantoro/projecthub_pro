@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
+    // Token API (aplikasi mobile) kedaluwarsa setelah 30 hari tidak dipakai:
+    // setiap aplikasi dibuka, /auth/refresh memperpanjang masa berlakunya.
+    public const TOKEN_TTL_DAYS = 30;
+
     public function login(Request $request)
     {
         $request->validate([
@@ -29,7 +34,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Your account is inactive.'], 403);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], now()->addDays(self::TOKEN_TTL_DAYS))->plainTextToken;
 
         return response()->json([
             'user' => $user->load('roles'),
@@ -46,6 +51,23 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user()->load('roles'));
+    }
+
+    // Sliding expiry: token yang sama diperpanjang, bukan diganti, supaya
+    // respons yang hilang di jalan tidak membuat aplikasi memegang token mati.
+    public function refresh(Request $request)
+    {
+        $token = $request->user()->currentAccessToken();
+        $expiresAt = now()->addDays(self::TOKEN_TTL_DAYS);
+
+        if ($token instanceof PersonalAccessToken) {
+            $token->forceFill(['expires_at' => $expiresAt])->save();
+        }
+
+        return response()->json([
+            'user' => $request->user()->load('roles'),
+            'expires_at' => $expiresAt->toIso8601String(),
+        ]);
     }
 
     public function register(Request $request)
@@ -65,7 +87,7 @@ class AuthController extends Controller
 
         $user->assignRole('client');
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], now()->addDays(self::TOKEN_TTL_DAYS))->plainTextToken;
 
         return response()->json([
             'user' => $user->load('roles'),
