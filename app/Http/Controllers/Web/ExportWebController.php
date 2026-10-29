@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TimesheetExport;
 use App\Exports\GenericReportExport;
 use App\Exports\ProjectReportExport;
+use App\Exports\GanttChartExport;
 
 class ExportWebController extends Controller
 {
@@ -69,49 +70,26 @@ class ExportWebController extends Controller
         return $pdf->download("ringkasan-developer-{$project->id}.pdf");
     }
 
-    public function ganttExcel(Project $project)
+    public function ganttExcel(Request $request, Project $project)
     {
-        $tasks = $this->buildGanttTasks($project);
-
-        $rows = $tasks->map(function ($t) {
-            $barStart = $t->start_date ?? $t->due_date ?? $t->sprint?->start_date;
-            $barEnd   = $t->due_date   ?? $t->start_date ?? $t->sprint?->end_date;
-
-            return [
-                'task'      => $t->title,
-                'milestone' => $t->milestone?->title ?? '—',
-                'sprint'    => $t->sprint?->name ?? 'Backlog',
-                'assignee'  => $t->assignee?->name ?? '—',
-                'status'    => ucfirst(str_replace('_', ' ', $t->status)),
-                'mulai'     => $barStart?->format('d/m/Y') ?? '—',
-                'selesai'   => $barEnd?->format('d/m/Y') ?? '—',
-            ];
-        });
-
-        $columns = [
-            'task' => 'Task', 'milestone' => 'Milestone', 'sprint' => 'Sprint',
-            'assignee' => 'Assignee', 'status' => 'Status', 'mulai' => 'Mulai', 'selesai' => 'Selesai',
-        ];
+        ['sprints' => $sprints, 'ganttTasks' => $tasks, 'ganttStart' => $ganttStart, 'ganttEnd' => $ganttEnd] = $this->ganttData($project, $request);
+        $chart = $this->buildGanttChart($sprints, $tasks, $ganttStart, $ganttEnd);
 
         return Excel::download(
-            new GenericReportExport($columns, $rows, 'Gantt Chart'),
-            "gantt-{$project->id}.xlsx"
+            new GanttChartExport($project, $chart, $ganttStart, $ganttEnd),
+            "gantt-{$project->id}-{$ganttStart->format('Ymd')}-{$ganttEnd->format('Ymd')}.xlsx"
         );
     }
 
-    public function ganttPdf(Project $project)
+    public function ganttPdf(Request $request, Project $project)
     {
-        $ganttTasks = $this->buildGanttTasks($project);
+        ['sprints' => $sprints, 'ganttTasks' => $tasks, 'ganttStart' => $ganttStart, 'ganttEnd' => $ganttEnd] = $this->ganttData($project, $request);
+        $chart = $this->buildGanttChart($sprints, $tasks, $ganttStart, $ganttEnd);
 
-        $allStarts = $ganttTasks->map(fn($t) => $t->start_date ?? $t->due_date ?? $t->sprint?->start_date)->filter();
-        $allEnds   = $ganttTasks->map(fn($t) => $t->due_date ?? $t->start_date ?? $t->sprint?->end_date)->filter();
-        $ganttStart = $allStarts->min() ?? now()->startOfWeek();
-        $ganttEnd   = $allEnds->max()   ?? now()->addDays(30);
-
-        $pdf = Pdf::loadView('exports.gantt_pdf', compact('project', 'ganttTasks', 'ganttStart', 'ganttEnd'))
+        $pdf = Pdf::loadView('exports.gantt_pdf', compact('project', 'chart', 'ganttStart', 'ganttEnd'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download("gantt-{$project->id}.pdf");
+        return $pdf->download("gantt-{$project->id}-{$ganttStart->format('Ymd')}-{$ganttEnd->format('Ymd')}.pdf");
     }
 
     public function projectReportPdf(Project $project)
@@ -149,13 +127,96 @@ class ExportWebController extends Controller
         ])->values();
     }
 
-    private function buildGanttTasks(Project $project): Collection
+    /** Sprint & task sama persis dengan tampilan Gantt di tab timesheet (termasuk filter periode). */
+    private function ganttData(Project $project, Request $request): array
     {
-        return $project->tasks()
-            ->with(['milestone', 'assignee', 'sprint'])
-            ->where(fn($q) => $q->whereNotNull('start_date')->orWhereNotNull('due_date')->orWhereNotNull('sprint_id'))
-            ->orderBy('milestone_id')
-            ->orderBy('start_date')
-            ->get();
+        $data = app(ProjectWebController::class)->ganttData($project, $request);
+        $data['sprints']->load(['milestone', 'lead']);
+
+        return $data;
+    }
+
+    /** @return array{0: ?\Carbon\Carbon, 1: ?\Carbon\Carbon, 2: string} mulai, selesai, keterangan */
+    private function taskEffectiveDates($t): array
+    {
+        $start = $t->start_date ?? $t->due_date ?? $t->sprint?->start_date;
+        $end   = $t->due_date ?? $t->start_date ?? $t->sprint?->end_date;
+        $note  = ($t->start_date || $t->due_date) ? '' : ($start ? 'Tanggal mengikuti sprint' : 'Tanggal belum diisi');
+
+        return [$start, $end, $note];
+    }
+
+    /**
+     * Susun gantt seperti tampilan web: kolom waktu (per hari, atau per minggu kalau periode > 45 hari),
+     * lalu baris grup Sprint + grup per milestone berisi task, lengkap dengan posisi bar per kolom.
+     */
+    private function buildGanttChart(Collection $sprints, Collection $tasks, \Carbon\CarbonInterface $ganttStart, \Carbon\CarbonInterface $ganttEnd): array
+    {
+        $dayNames   = [1 => 'Sen', 2 => 'Sel', 3 => 'Rab', 4 => 'Kam', 5 => 'Jum', 6 => 'Sab', 7 => 'Min'];
+        $monthNames = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $statusColors = ['todo' => '#6366f1', 'in_progress' => '#3b82f6', 'review' => '#a855f7', 'done' => '#22c55e'];
+
+        $byWeek = $ganttStart->diffInDays($ganttEnd) + 1 > 45;
+        $units = [];
+        $cur = $byWeek ? $ganttStart->copy()->startOfWeek() : $ganttStart->copy()->startOfDay();
+        while ($cur->lte($ganttEnd)) {
+            $units[] = [
+                'start'   => $cur->copy(),
+                'month'   => $monthNames[$cur->month] . ' ' . $cur->year,
+                'label'   => $byWeek ? $cur->format('d') . '/' . $cur->format('m') : $cur->format('d'),
+                'sub'     => $byWeek ? 'Mg ' . $cur->isoWeek : $dayNames[$cur->dayOfWeekIso],
+                'weekend' => !$byWeek && $cur->dayOfWeekIso >= 6,
+                'today'   => $byWeek ? now()->between($cur, $cur->copy()->endOfWeek()) : $cur->isToday(),
+            ];
+            $byWeek ? $cur->addWeek() : $cur->addDay();
+        }
+        $last = count($units) - 1;
+        $unitIndex = function (\Carbon\CarbonInterface $d) use ($units, $last) {
+            for ($i = $last; $i >= 0; $i--) {
+                if ($units[$i]['start']->lte($d)) return $i;
+            }
+            return -1;
+        };
+        $bar = function (?\Carbon\CarbonInterface $start, ?\Carbon\CarbonInterface $end) use ($unitIndex, $last, $ganttStart, $ganttEnd) {
+            if (!$start && !$end) return null;
+            $start = ($start ?? $end)->copy()->startOfDay();
+            $end = ($end ?? $start)->copy()->startOfDay();
+            if ($end->lt($start)) $end = $start->copy();
+            $si = $unitIndex($start);
+            $ei = $unitIndex($end);
+            if ($ei < 0 || $si > $last) return null;
+            return ['from' => max(0, $si), 'to' => min($last, $ei), 'clipStart' => $start->lt($ganttStart), 'clipEnd' => $end->gt($ganttEnd)];
+        };
+        $fmt = fn (?\Carbon\CarbonInterface $d) => $d?->format('d/m/Y') ?? '—';
+
+        $rows = [];
+        if ($sprints->isNotEmpty()) {
+            $rows[] = ['kind' => 'group', 'label' => 'Sprint', 'count' => $sprints->count() . ' sprint', 'color' => '#7e22ce', 'bg' => '#faf5ff'];
+            foreach ($sprints as $s) {
+                $rows[] = [
+                    'kind' => 'sprint', 'name' => $s->name, 'sub' => $s->milestone?->title ?? '—', 'pic' => $s->lead?->name ?? '—',
+                    'status' => $s->statusLabel(), 'start' => $fmt($s->start_date), 'end' => $fmt($s->end_date),
+                    'note' => ($s->start_date && $s->end_date) ? '' : 'Tanggal belum diisi',
+                    'bar' => ($s->start_date && $s->end_date) ? $bar($s->start_date, $s->end_date) : null,
+                    'color' => '#9333ea', 'estimated' => false,
+                ];
+            }
+        }
+        foreach ($tasks->groupBy(fn ($t) => $t->milestone?->title ?? 'Tanpa Milestone') as $milestone => $mTasks) {
+            $rows[] = ['kind' => 'group', 'label' => $milestone, 'count' => $mTasks->count() . ' task', 'color' => '#1d4ed8', 'bg' => '#eff6ff'];
+            foreach ($mTasks as $t) {
+                [$start, $end, $note] = $this->taskEffectiveDates($t);
+                $rows[] = [
+                    'kind' => 'task', 'name' => $t->title, 'sub' => $t->sprint?->name ?? 'Backlog', 'pic' => $t->assignee?->name ?? '—',
+                    'status' => ucfirst(str_replace('_', ' ', $t->status)), 'start' => $fmt($start), 'end' => $fmt($end),
+                    'note' => $note, 'bar' => $bar($start, $end),
+                    'color' => $statusColors[$t->status] ?? '#6366f1', 'estimated' => $note !== '',
+                ];
+            }
+        }
+
+        return ['units' => $units, 'byWeek' => $byWeek, 'rows' => $rows, 'legend' => [
+            'Sprint' => '#9333ea', 'To Do' => '#6366f1', 'In Progress' => '#3b82f6', 'Review' => '#a855f7', 'Done' => '#22c55e',
+        ]];
     }
 }

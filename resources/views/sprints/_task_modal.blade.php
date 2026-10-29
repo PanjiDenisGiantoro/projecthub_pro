@@ -1826,7 +1826,7 @@
             {{-- ============================================================
             CUSTOM MODAL: UNSAVED CHANGES CONFIRMATION
             ============================================================ --}}
-            <div x-show="unsavedConfirmOpen" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div x-show="unsavedConfirmOpen" x-cloak class="fixed inset-0 z-[110] flex items-center justify-center p-4">
                 <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" @click="unsavedConfirmOpen = false"></div>
                 <div
                     class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-10 p-6 space-y-4">
@@ -1863,7 +1863,7 @@
             CUSTOM MODAL: DELETE CHECKLIST GROUP CONFIRMATION
             ============================================================ --}}
             <div x-show="deleteChecklistGroupConfirmOpen" x-cloak
-                class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                class="fixed inset-0 z-[110] flex items-center justify-center p-4">
                 <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                     @click="deleteChecklistGroupConfirmOpen = false">
                 </div>
@@ -1903,7 +1903,7 @@
             CUSTOM MODAL: DELETE ATTACHMENT CONFIRMATION
             ============================================================ --}}
             <div x-show="deleteAttachmentConfirmOpen" x-cloak
-                class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                class="fixed inset-0 z-[110] flex items-center justify-center p-4">
                 <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                     @click="deleteAttachmentConfirmOpen = false"></div>
                 <div
@@ -1941,7 +1941,7 @@
             {{-- ============================================================
             CARD 06: KONFIRMASI HAPUS TASK MODAL (Destructive)
             ============================================================ --}}
-            <div x-show="deleteConfirmOpen" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div x-show="deleteConfirmOpen" x-cloak class="fixed inset-0 z-[110] flex items-center justify-center p-4">
                 {{-- Sub-backdrop --}}
                 <div x-show="deleteConfirmOpen" x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"

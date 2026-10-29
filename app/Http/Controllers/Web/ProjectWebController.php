@@ -689,7 +689,10 @@ class ProjectWebController extends Controller
             ->when($to, fn ($q) => $q->whereDate('started_at', '<=', $to));
     }
 
-    private function buildTimesheetData(Project $project, Request $request): array
+    /**
+     * Data Gantt (rentang tanggal, sprint, task) — dipakai tab timesheet & export Excel/PDF supaya isinya sama.
+     */
+    public function ganttData(Project $project, Request $request): array
     {
         // Filter rentang tanggal Gantt Chart: default bulan berjalan saat ini (1 bulan penuh)
         $startDateInput = $request->input('start_date', $request->input('gantt_start', $request->input('from')));
@@ -712,25 +715,6 @@ class ProjectWebController extends Controller
         }
 
         $ganttDays = max(1, (int) $ganttStart->diffInDays($ganttEnd) + 1);
-
-        // Agregasi langsung di DB (bukan load semua row time_logs ke PHP) supaya ringan
-        // walau time log-nya sudah ribuan baris — cuma butuh total per user, bukan detailnya.
-        $summary = $this->timeLogsQuery($project, $request)
-            ->selectRaw('user_id, ROUND(SUM(minutes) / 60, 2) as total_hours, COUNT(*) as logs_count')
-            ->groupBy('user_id')
-            ->with('user')
-            ->get()
-            ->map(fn ($row) => [
-                'user' => $row->user,
-                'total_hours' => (float) $row->total_hours,
-                'logs_count' => $row->logs_count,
-            ])
-            ->values();
-
-        // Preview 15 log terbaru buat tab ringkas di halaman project — detail lengkap +
-        // pagination ada di halaman Timesheet penuh (route projects.timesheet).
-        $recentLogs = $this->timeLogsQuery($project, $request)->orderByDesc('started_at')->limit(15)->get();
-        $recentLogsTotal = $this->timeLogsQuery($project, $request)->count();
 
         // Effective start/end per task: own dates, else its sprint's dates
         $effStart = fn ($t) => $t->start_date ?? $t->due_date ?? $t->sprint?->start_date;
@@ -765,6 +749,32 @@ class ProjectWebController extends Controller
                 return $s->lte($ganttEnd) && $e->gte($ganttStart);
             })
             ->values();
+
+        return compact('sprints', 'ganttTasks', 'ganttStart', 'ganttEnd', 'ganttDays');
+    }
+
+    private function buildTimesheetData(Project $project, Request $request): array
+    {
+        ['sprints' => $sprints, 'ganttTasks' => $ganttTasks, 'ganttStart' => $ganttStart, 'ganttEnd' => $ganttEnd, 'ganttDays' => $ganttDays] = $this->ganttData($project, $request);
+
+        // Agregasi langsung di DB (bukan load semua row time_logs ke PHP) supaya ringan
+        // walau time log-nya sudah ribuan baris — cuma butuh total per user, bukan detailnya.
+        $summary = $this->timeLogsQuery($project, $request)
+            ->selectRaw('user_id, ROUND(SUM(minutes) / 60, 2) as total_hours, COUNT(*) as logs_count')
+            ->groupBy('user_id')
+            ->with('user')
+            ->get()
+            ->map(fn ($row) => [
+                'user' => $row->user,
+                'total_hours' => (float) $row->total_hours,
+                'logs_count' => $row->logs_count,
+            ])
+            ->values();
+
+        // Preview 15 log terbaru buat tab ringkas di halaman project — detail lengkap +
+        // pagination ada di halaman Timesheet penuh (route projects.timesheet).
+        $recentLogs = $this->timeLogsQuery($project, $request)->orderByDesc('started_at')->limit(15)->get();
+        $recentLogsTotal = $this->timeLogsQuery($project, $request)->count();
 
         return compact('summary', 'recentLogs', 'recentLogsTotal', 'sprints', 'ganttTasks', 'ganttStart', 'ganttEnd', 'ganttDays');
     }

@@ -153,25 +153,40 @@
                         <span class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">{{ $sprints->count() }} Sprints</span>
                     </div>
                     @foreach($sprints as $sprint)
-                    <div class="h-11 relative px-4 bg-white dark:bg-gray-850 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2" x-data="{edit:false}">
+                    <div class="h-11 relative px-4 bg-white dark:bg-gray-850 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2"
+                         x-data="{edit:false, pos:{top:0,left:0}}" @click.outside="edit = false" @scroll.window="edit = false" @keydown.escape.window="edit = false">
                         <div class="min-w-0">
                             <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate" title="{{ $sprint->name }}">
                                 {{ $sprint->name }}
                             </p>
+                            @if($sprint->start_date && $sprint->end_date)
                             <p class="text-[10px] text-gray-400">
-                                {{ $sprint->start_date?->format('d M') ?? '—' }} → {{ $sprint->end_date?->format('d M Y') ?? '—' }}
+                                {{ $sprint->start_date->format('d M') }} → {{ $sprint->end_date->format('d M Y') }}
                             </p>
+                            @else
+                            <p class="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400" title="Tanggal sprint belum lengkap">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                @if(!$sprint->start_date && !$sprint->end_date)
+                                    Tanggal belum diisi
+                                @elseif(!$sprint->start_date)
+                                    Mulai belum diisi → {{ $sprint->end_date->format('d M Y') }}
+                                @else
+                                    {{ $sprint->start_date->format('d M') }} → selesai belum diisi
+                                @endif
+                            </p>
+                            @endif
                         </div>
                         @if(!auth()->user()->hasRole('client'))
-                        <button type="button" @click="edit = !edit" @click.outside="edit = false"
+                        {{-- Popup pakai position:fixed agar tidak terpotong container overflow-x-auto saat gantt pendek --}}
+                        <button type="button" @click="const r = $el.getBoundingClientRect(); pos = {top: r.bottom + 4, left: Math.max(8, r.right - 256)}; edit = !edit"
                                 class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-1 rounded shrink-0 cursor-pointer" title="Edit tanggal sprint">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </button>
 
-                        <div x-show="edit" x-cloak x-transition
-                             class="absolute z-30 left-4 top-full mt-1 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3.5">
+                        <div x-show="edit" x-cloak x-transition :style="`top:${pos.top}px;left:${pos.left}px`"
+                             class="fixed z-50 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3.5">
                             <form method="POST" action="{{ route('sprints.update', [$project, $sprint]) }}" class="space-y-2.5">
                                 @csrf @method('PUT')
                                 <input type="hidden" name="name" value="{{ $sprint->name }}">
@@ -232,6 +247,12 @@
                                             <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                             {{ $t->sprint->name ?? 'Backlog' }}
                                         </span>
+                                        @if(!$t->start_date && !$t->due_date)
+                                        <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 rounded font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300" title="Task belum punya tanggal mulai/deadline">
+                                            <svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                            Tanpa tanggal
+                                        </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -340,7 +361,12 @@
                             </span>
                         </div>
                         @else
-                        <span class="absolute top-1/2 -translate-y-1/2 left-2 text-[10px] text-gray-300 italic">Belum ada tanggal</span>
+                        <div class="absolute inset-0 flex items-center pointer-events-none">
+                            <span class="sticky left-[328px] ml-2 inline-flex items-center gap-1 px-2.5 h-6 rounded-lg border border-dashed border-amber-400 dark:border-amber-500/70 bg-amber-50 dark:bg-amber-950/40 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                Sprint belum ada tanggal — atur lewat ikon pensil
+                            </span>
+                        </div>
                         @endif
                     </div>
                     @endforeach
@@ -361,6 +387,9 @@
 
                     @foreach($mTasks as $t)
                     @php
+                        // Task tanpa tanggal: pakai tanggal sprint sebagai perkiraan (bar putus-putus), kalau sprint juga kosong tampilkan penanda
+                        $tNoDates = !$t->start_date && !$t->due_date;
+                        $tUsesSprint = $tNoDates && $t->sprint?->start_date && $t->sprint?->end_date;
                         $barStart = ($t->start_date ?? $t->due_date ?? $t->sprint?->start_date ?? $ganttStart)->copy()->startOfDay();
                         $barEnd   = ($t->due_date   ?? $t->start_date ?? $t->sprint?->end_date   ?? $ganttEnd)->copy()->startOfDay();
                         if ($barEnd->lt($barStart)) {
@@ -420,10 +449,20 @@
                         </div>
 
                         {{-- Task bar --}}
-                        <div class="absolute top-1/2 -translate-y-1/2 h-6 flex items-center overflow-hidden shadow-xs cursor-pointer hover:shadow-md hover:brightness-105 transition {{ $roundedClass }}"
-                             style="left: {{ $barLeftStyle }}; width: {{ $barWidthStyle }}; background-color: {{ $barColor }}; opacity: {{ $barOpacity }};"
+                        @if($tNoDates && !$tUsesSprint)
+                        <div class="absolute inset-0 flex items-center pointer-events-none">
+                            <button type="button" @click="if(window.openTask) window.openTask({{ $t->id }})"
+                                    class="pointer-events-auto sticky left-[328px] ml-2 inline-flex items-center gap-1 px-2.5 h-6 rounded-lg border border-dashed border-amber-400 dark:border-amber-500/70 bg-amber-50 dark:bg-amber-950/40 text-[11px] font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition cursor-pointer"
+                                    title="Klik untuk buka task & isi tanggal">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                <span class="truncate max-w-[220px]">{{ $t->title }}</span> — belum ada tanggal
+                            </button>
+                        </div>
+                        @else
+                        <div class="absolute top-1/2 -translate-y-1/2 h-6 flex items-center overflow-hidden shadow-xs cursor-pointer hover:shadow-md hover:brightness-105 transition {{ $roundedClass }} {{ $tUsesSprint ? 'border-2 border-dashed border-white/80 dark:border-gray-900/60' : '' }}"
+                             style="left: {{ $barLeftStyle }}; width: {{ $barWidthStyle }}; background-color: {{ $barColor }}; opacity: {{ $tUsesSprint ? '0.55' : $barOpacity }};"
                              @click="if(window.openTask) window.openTask({{ $t->id }})"
-                             title="{{ $t->title }} [{{ $t->sprint?->name ?? 'Backlog' }}]: {{ $barStart->format('d M') }} → {{ $barEnd->format('d M Y') }}">
+                             title="{{ $t->title }} [{{ $t->sprint?->name ?? 'Backlog' }}]: {{ $barStart->format('d M') }} → {{ $barEnd->format('d M Y') }}{{ $tUsesSprint ? ' (task belum ada tanggal, mengikuti tanggal sprint)' : '' }}">
                             {{-- Time log marks --}}
                             @foreach($logSegs as $seg)
                             <div class="absolute h-full bg-white/30 rounded pointer-events-none"
@@ -440,6 +479,7 @@
                                 @endif
                             </span>
                         </div>
+                        @endif
                     </div>
                     @endforeach
                     @endforeach

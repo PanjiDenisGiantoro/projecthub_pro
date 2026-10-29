@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.bak-20261026-mailpw
 .phpactor.json
 .phpunit.result.cache
 /.fleet

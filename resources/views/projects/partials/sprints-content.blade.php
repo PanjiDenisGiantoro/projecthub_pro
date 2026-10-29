@@ -613,66 +613,123 @@ SPRINTS DASHBOARD & MANAGEMENT (Card & Roadmap, Sprint List Table)
                 </div>
 
                 {{-- Roadmap Timeline Container --}}
-                <div class="overflow-x-auto">
-                    <div class="min-w-[550px] space-y-4">
-                        {{-- Timeline Header Scale --}}
-                        <div
-                            class="flex border-b border-gray-200 dark:border-gray-700 pb-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                            @php
-                                $spCursor = $sprintMinDate->copy();
-                                $spMonthSegments = [];
-                                while ($spCursor->lte($sprintMaxDate)) {
-                                    $spMonthSegments[] = $spCursor->copy();
-                                    $spCursor->addMonth();
-                                }
-                            @endphp
-                            @foreach($spMonthSegments as $mSeg)
-                                <div class="flex-1 text-center border-r border-gray-100 dark:border-gray-800 last:border-r-0">
-                                    {{ $mSeg->format('M Y') }}
-                                </div>
+                @php
+                    $rmPct = fn($date) => round(max(0, min(100, $sprintMinDate->diffInDays($date) / $totalSprintRoadmapDays * 100)), 2);
+                    $rmMonths = [];
+                    $rmCursor = $sprintMinDate->copy()->startOfMonth();
+                    while ($rmCursor->lte($sprintMaxDate)) {
+                        $rmMonths[] = ['label' => $rmCursor->format('M Y'), 'left' => $rmPct($rmCursor), 'width' => $rmPct($rmCursor->copy()->endOfMonth()) - $rmPct($rmCursor)];
+                        $rmCursor->addMonthNoOverflow();
+                    }
+                    $rmToday = now()->between($sprintMinDate, $sprintMaxDate) ? $rmPct(now()) : null;
+                    // Grouping per status, urut tanggal mulai (sprint tanpa tanggal di akhir grup)
+                    $rmGroups = collect([
+                        'active'    => ['label' => 'Sedang Berjalan', 'dot' => 'bg-indigo-500', 'bar' => 'bg-gradient-to-r from-indigo-600 to-purple-600', 'text' => 'text-indigo-700 dark:text-indigo-300'],
+                        'planned'   => ['label' => 'Direncanakan', 'dot' => 'bg-slate-400', 'bar' => 'bg-slate-500 dark:bg-slate-600', 'text' => 'text-slate-600 dark:text-slate-300'],
+                        'completed' => ['label' => 'Selesai', 'dot' => 'bg-emerald-500', 'bar' => 'bg-emerald-600', 'text' => 'text-emerald-700 dark:text-emerald-300'],
+                    ])->map(function ($g, $key) use ($allSprints) {
+                        $g['sprints'] = $allSprints
+                            ->filter(fn($s) => ($s->status ?: 'planned') === $key || ($key === 'active' && in_array($s->status, ['in_progress', 'at_risk'], true)))
+                            ->sortBy(fn($s) => $s->start_date?->timestamp ?? PHP_INT_MAX)
+                            ->values();
+                        return $g;
+                    })->filter(fn($g) => $g['sprints']->isNotEmpty());
+                    $rmGridLines = function () use ($rmMonths, $rmToday) {
+                        $html = '';
+                        foreach (array_slice($rmMonths, 1) as $m) {
+                            $html .= '<div class="absolute inset-y-0 border-l border-dashed border-gray-200 dark:border-gray-700" style="left:' . $m['left'] . '%"></div>';
+                        }
+                        if ($rmToday !== null) {
+                            $html .= '<div class="absolute inset-y-0 w-px bg-rose-400/80 z-10" style="left:' . $rmToday . '%"></div>';
+                        }
+                        return $html;
+                    };
+                @endphp
+                <div class="overflow-x-auto -mx-1 px-1">
+                    <div class="min-w-[550px]">
+                        {{-- Timeline Header Scale (lebar bulan proporsional dengan jumlah hari) --}}
+                        <div class="relative h-7 border-b border-gray-200 dark:border-gray-700 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            @foreach($rmMonths as $m)
+                                <div class="absolute inset-y-0 flex items-center justify-center border-l border-gray-100 dark:border-gray-800 first:border-l-0 truncate"
+                                     style="left: {{ $m['left'] }}%; width: {{ $m['width'] }}%">{{ $m['label'] }}</div>
                             @endforeach
+                            @if($rmToday !== null)
+                                <span class="absolute -bottom-px -translate-x-1/2 px-1.5 py-px rounded bg-rose-500 text-white text-[9px] font-bold normal-case tracking-normal z-10"
+                                      style="left: {{ $rmToday }}%">Hari ini</span>
+                            @endif
                         </div>
 
-                        {{-- Sprint Roadmap Bars --}}
-                        <div class="space-y-3 pt-2">
-                            @foreach($allSprints as $sprint)
-                                @php
-                                    $start = $sprint->start_date ?? $sprintMinDate;
-                                    $end = $sprint->end_date ?? $start->copy()->addDays(14);
-                                    if ($start->lt($sprintMinDate))
-                                        $start = $sprintMinDate->copy();
-                                    if ($end->gt($sprintMaxDate))
-                                        $end = $sprintMaxDate->copy();
+                        @forelse($rmGroups as $gKey => $group)
+                            {{-- Group header --}}
+                            <div class="flex items-center gap-2 mt-4 mb-2">
+                                <span class="w-2 h-2 rounded-full {{ $group['dot'] }}"></span>
+                                <span class="text-[11px] font-bold uppercase tracking-wider {{ $group['text'] }}">{{ $group['label'] }}</span>
+                                <span class="text-[10px] font-semibold px-1.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">{{ $group['sprints']->count() }}</span>
+                                <span class="flex-1 h-px bg-gray-100 dark:bg-gray-800"></span>
+                            </div>
 
-                                    $offsetDays = max(0, $sprintMinDate->diffInDays($start));
-                                    $durationDays = max(1, $start->diffInDays($end));
-                                    $leftPercent = round(($offsetDays / $totalSprintRoadmapDays) * 100, 2);
-                                    $widthPercent = max(6, min(100 - $leftPercent, round(($durationDays / $totalSprintRoadmapDays) * 100, 2)));
-                                    $spPct = $sprint->taskProgressPercent();
-                                @endphp
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-1.5">
-                                            <span
-                                                class="font-extrabold text-[10px] font-mono text-indigo-600 dark:text-indigo-400">{{ $sprint->code ?? ('SP-' . $sprint->id) }}</span>
-                                            <span
-                                                class="font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">{{ $sprint->name }}</span>
+                            <div class="rounded-xl border border-gray-100 dark:border-gray-750 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
+                                @foreach($group['sprints'] as $sprint)
+                                    @php
+                                        $hasDates = $sprint->start_date && $sprint->end_date;
+                                        $spPct = $sprint->taskProgressPercent();
+                                        if ($hasDates) {
+                                            $leftPercent = $rmPct($sprint->start_date);
+                                            $rightPercent = $rmPct($sprint->end_date->copy()->addDay());
+                                            $widthPercent = max(3, $rightPercent - $leftPercent);
+                                            $leftPercent = min($leftPercent, 100 - $widthPercent);
+                                            $clipStart = $sprint->start_date->lt($sprintMinDate);
+                                            $clipEnd = $sprint->end_date->gt($sprintMaxDate);
+                                        }
+                                    @endphp
+                                    <div class="px-3 py-2.5 bg-white dark:bg-gray-850 hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition">
+                                        <div class="flex items-center justify-between gap-3 mb-1.5 text-xs">
+                                            <div class="flex items-center gap-1.5 min-w-0">
+                                                <span class="shrink-0 px-1.5 py-px rounded text-[10px] font-extrabold font-mono bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">{{ $sprint->code ?? ('SP-' . $sprint->id) }}</span>
+                                                <button type="button"
+                                                        @click="window.filterTasksBySprint({{ $sprint->id }}, '{{ addslashes($sprint->name) }}')"
+                                                        class="font-bold text-gray-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 truncate text-left cursor-pointer transition"
+                                                        title="{{ $sprint->name }} — lihat task">{{ $sprint->name }}</button>
+                                                <span class="shrink-0 text-[10px] text-gray-400">{{ $sprint->tasks->count() }} task</span>
+                                            </div>
+                                            @if($hasDates)
+                                                <span class="shrink-0 text-[10px] font-semibold text-gray-500 dark:text-gray-400 tabular-nums">
+                                                    {{ $sprint->start_date->format('d M') }} – {{ $sprint->end_date->format('d M Y') }}
+                                                </span>
+                                            @else
+                                                <span class="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                                                    {{ $sprint->start_date ? $sprint->start_date->format('d M') . ' – selesai belum diisi' : ($sprint->end_date ? 'Mulai belum diisi – ' . $sprint->end_date->format('d M Y') : 'Tanggal belum diisi') }}
+                                                </span>
+                                            @endif
                                         </div>
-                                        <span class="text-[10px] font-bold text-gray-500">{{ $start->format('d M') }} –
-                                            {{ $end->format('d M') }} ({{ $spPct }}%)</span>
-                                    </div>
 
-                                    {{-- Bar Track --}}
-                                    <div
-                                        class="relative w-full h-8 bg-gray-50 dark:bg-gray-800/60 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-750">
-                                        <div class="absolute top-1 bottom-1 rounded-lg shadow-2xs flex items-center px-2.5 text-[11px] font-bold text-white transition-all duration-300 {{ $sprint->status === 'completed' ? 'bg-emerald-600' : 'bg-gradient-to-r from-indigo-600 to-purple-600' }}"
-                                            style="left: {{ $leftPercent }}%; width: {{ $widthPercent }}%">
-                                            <span class="truncate">{{ $sprint->name }}</span>
+                                        {{-- Bar Track --}}
+                                        <div class="relative h-6 rounded-lg bg-gray-50 dark:bg-gray-800/60">
+                                            {!! $rmGridLines() !!}
+                                            @if($hasDates)
+                                                <div class="absolute inset-y-0.5 overflow-hidden shadow-2xs {{ $group['bar'] }} {{ $clipStart ? 'rounded-l-none' : 'rounded-l-md' }} {{ $clipEnd ? 'rounded-r-none' : 'rounded-r-md' }}"
+                                                     style="left: {{ $leftPercent }}%; width: {{ $widthPercent }}%"
+                                                     title="{{ $sprint->name }}: {{ $sprint->start_date->format('d M') }} – {{ $sprint->end_date->format('d M Y') }} · {{ $spPct }}% selesai">
+                                                    {{-- Progress fill --}}
+                                                    <div class="absolute inset-y-0 left-0 bg-white/25" style="width: {{ min(100, $spPct) }}%"></div>
+                                                    <div class="relative h-full flex items-center justify-between gap-1 px-2 text-[10px] font-bold text-white">
+                                                        <span class="truncate">@if($clipStart)&laquo; @endif{{ $spPct }}%</span>
+                                                        @if($clipEnd)<span class="opacity-75">&raquo;</span>@endif
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <div class="absolute inset-0.5 flex items-center justify-center rounded-md border border-dashed border-amber-300 dark:border-amber-600/60 bg-amber-50/80 dark:bg-amber-950/30 text-[10px] font-semibold text-amber-700 dark:text-amber-300 z-20">
+                                                    Belum dijadwalkan — atur tanggal sprint untuk tampil di roadmap
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
-                                </div>
-                            @endforeach
-                        </div>
+                                @endforeach
+                            </div>
+                        @empty
+                            <div class="py-10 text-center text-xs text-gray-400">Belum ada sprint.</div>
+                        @endforelse
                     </div>
                 </div>
             </div>
