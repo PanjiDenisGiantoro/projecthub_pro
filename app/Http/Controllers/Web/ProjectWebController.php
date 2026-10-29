@@ -275,6 +275,10 @@ class ProjectWebController extends Controller
         if ($tabKey === 'overview') {
             $data['recentFilesTotal'] = $project->files()->count();
         }
+        $data['projectStatuses'] = $project->getProjectStatuses();
+        $data['projectLabels'] = $project->labels()->orderBy('name')->get();
+        $data['columns'] = $project->boardColumns()->orderBy('sort_order')->get();
+
         if (in_array($tabKey, ['tasks', 'milestones', 'sprints'], true)) {
             $data['assignableUsers'] = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
         }

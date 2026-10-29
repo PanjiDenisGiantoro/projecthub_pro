@@ -71,6 +71,7 @@ use App\Http\Controllers\Web\TaskMemberWebController;
 use App\Http\Controllers\Web\TaskChecklistWebController;
 use App\Http\Controllers\Web\TaskAttachmentWebController;
 use App\Http\Controllers\Web\LabelWebController;
+use App\Http\Controllers\Web\ProjectStatusWebController;
 use App\Http\Controllers\Web\TeamNotificationWebController;
 use App\Http\Controllers\Web\TicketWebController;
 use App\Http\Controllers\Web\UserWebController;
@@ -265,6 +266,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
         Route::delete('/projects/{project}/labels/{label}', [LabelWebController::class, 'destroy'])->name('labels.destroy');
         Route::post('/projects/{project}/tasks/{task}/labels/{label}', [LabelWebController::class, 'attachToTask'])->name('tasks.labels.attach');
         Route::delete('/projects/{project}/tasks/{task}/labels/{label}', [LabelWebController::class, 'detachFromTask'])->name('tasks.labels.detach');
+
+        // Project Task Statuses
+        Route::get('/projects/{project}/statuses', [ProjectStatusWebController::class, 'index'])->name('projects.statuses.index');
+        Route::post('/projects/{project}/statuses', [ProjectStatusWebController::class, 'store'])->name('projects.statuses.store');
+        Route::delete('/projects/{project}/statuses/{status}', [ProjectStatusWebController::class, 'destroy'])->name('projects.statuses.destroy');
 
         // Task Members (multi-assign)
         Route::post('/projects/{project}/tasks/{task}/members', [TaskMemberWebController::class, 'add'])->name('tasks.members.add');

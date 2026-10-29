@@ -133,11 +133,12 @@ class SprintWebController extends Controller
             }
         }
 
+        $projectStatuses = $project->getProjectStatuses();
         $projectLabels = $project->labels()->orderBy('name')->get();
         $assignableUsers = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
         $milestones = $project->milestones()->get();
 
-        return view('sprints.show', compact('project', 'sprint', 'columns', 'projectLabels', 'assignableUsers', 'milestones'));
+        return view('sprints.show', compact('project', 'sprint', 'columns', 'projectStatuses', 'projectLabels', 'assignableUsers', 'milestones'));
     }
 
     public function update(Request $request, Project $project, Sprint $sprint, GoogleCalendarService $calendar)

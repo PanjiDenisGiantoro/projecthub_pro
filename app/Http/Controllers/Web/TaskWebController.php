@@ -45,10 +45,11 @@ class TaskWebController extends Controller
         $milestones = $project->milestones()->get();
         $developers = User::role('member')->where('is_active', true)->where('company_id', $project->company_id)->get();
         $columns = $project->boardColumns()->orderBy('sort_order')->get();
+        $projectStatuses = $project->getProjectStatuses();
         $projectLabels = $project->labels()->orderBy('name')->get();
         $assignableUsers = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
 
-        return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers', 'columns', 'projectLabels', 'assignableUsers'));
+        return view('tasks.index', compact('project', 'tasks', 'milestones', 'developers', 'columns', 'projectStatuses', 'projectLabels', 'assignableUsers'));
     }
 
     public function allTasks(Request $request)
@@ -334,9 +335,26 @@ class TaskWebController extends Controller
             $data['due_date'] = $request->filled('due_date') ? \Carbon\Carbon::parse($request->due_date)->format('Y-m-d') : null;
         }
 
-        // Centang selesai hanya tanda; tidak mengubah status maupun bucket.
+        // Sync status dan completed_at
         if ($request->has('completed')) {
-            $data['completed_at'] = $request->boolean('completed') ? ($task->completed_at ?? now()) : null;
+            $isComp = $request->boolean('completed');
+            $data['completed_at'] = $isComp ? ($task->completed_at ?? now()) : null;
+            if ($isComp && !$request->filled('status')) {
+                $data['status'] = 'Completed';
+            } elseif (!$isComp && !$request->filled('status') && in_array(strtolower((string)$task->status), ['completed', 'done'])) {
+                $data['status'] = 'In Progress';
+            }
+        }
+
+        if ($request->filled('status')) {
+            $data['status'] = $request->status;
+            if (in_array(strtolower($request->status), ['completed', 'done'])) {
+                $data['completed_at'] = $task->completed_at ?? now();
+            } else {
+                if (!$request->boolean('completed')) {
+                    $data['completed_at'] = null;
+                }
+            }
         }
 
         if ($request->filled('board_column_id') && !$request->filled('status')) {
@@ -345,8 +363,13 @@ class TaskWebController extends Controller
                 $data['status'] = $col->slug;
             }
         } elseif ($request->filled('status') && $request->status !== $old && !$request->filled('board_column_id')) {
-            $column = BoardColumn::where('project_id', $project->id)->where('slug', $request->status)->first();
-            $data['board_column_id'] = $column->id ?? $task->board_column_id;
+            $statusSlug = \Illuminate\Support\Str::slug($request->status, '_');
+            $column = BoardColumn::where('project_id', $project->id)
+                ->where(fn($q) => $q->where('slug', $request->status)->orWhere('slug', $statusSlug))
+                ->first();
+            if ($column) {
+                $data['board_column_id'] = $column->id;
+            }
         }
 
         $task->update($data);

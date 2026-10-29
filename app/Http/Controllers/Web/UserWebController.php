@@ -12,6 +12,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Package;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\RoleCompany;
 use App\Models\Shift;
 use App\Models\StructuralLevel;
 use App\Models\User;
@@ -221,7 +222,11 @@ class UserWebController extends Controller
             return redirect()->route('users.index')->with('plan_limit', $limits->limitNotice('user'));
         }
 
-        $roles = Role::whereNotIn('name', ['tester', 'client'])->get();
+        $cid = auth()->user()->company_id;
+        $ownedByOthers = $cid !== null ? RoleCompany::where('company_id', '!=', $cid)->pluck('role_id') : collect();
+        $roles = Role::whereNotIn('name', ['tester', 'client'])
+            ->whereNotIn('id', $ownedByOthers)
+            ->get();
         $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
@@ -306,7 +311,11 @@ class UserWebController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::all();
+        $cid = auth()->user()->company_id;
+        $ownedByOthers = $cid !== null ? RoleCompany::where('company_id', '!=', $cid)->pluck('role_id') : collect();
+        $roles = Role::whereNotIn('name', ['tester', 'client'])
+            ->whereNotIn('id', $ownedByOthers)
+            ->get();
         $structuralLevels = StructuralLevel::active()->where('company_id', auth()->user()->company_id)->get();
         $organizationUnits = OrganizationUnit::orderedTree(auth()->user()->company_id);
         $projects = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
@@ -331,7 +340,7 @@ class UserWebController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|exists:roles,name',
+            'role' => 'required|exists:roles,name|not_in:client,tester',
             'structural_level_id' => 'nullable|exists:structural_levels,id',
             'organization_unit_id' => 'nullable|exists:organization_units,id',
             'shift_id' => ['nullable', Rule::exists('shifts', 'id')->where('company_id', auth()->user()->company_id)],
