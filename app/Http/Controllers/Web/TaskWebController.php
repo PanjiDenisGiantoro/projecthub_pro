@@ -324,7 +324,6 @@ class TaskWebController extends Controller
             'due_date',
             'estimated_hours',
             'board_column_id',
-            'cover_image_path',
             'recurring_definition_id'
         );
 
@@ -461,12 +460,13 @@ class TaskWebController extends Controller
         }
 
         // Remove cover
-        if ($task->cover_image_path) {
+        $hadCover = (bool) $task->cover_image_path;
+        if ($hadCover) {
             Storage::disk('public')->delete($task->cover_image_path);
         }
         $task->update(['cover_image_path' => null]);
 
-        if (function_exists('activity')) {
+        if ($hadCover && function_exists('activity')) {
             activity('task')
                 ->performedOn($task)
                 ->causedBy(auth()->user())
@@ -690,8 +690,17 @@ class TaskWebController extends Controller
                         if ($item) {
                             $wasDone = (bool) $item->is_done;
                             $wasTitle = $item->title;
-                            if ($wasDone !== $isDone || $wasTitle !== $itemTitle) {
+                            if ($wasTitle !== $itemTitle) {
                                 $changed = true;
+                            }
+                            // Centang/uncentang kini disimpan lewat Save modal: catat log per item
+                            // seperti TaskChecklistWebController::updateItem.
+                            if ($wasDone !== $isDone && function_exists('activity')) {
+                                activity('task')
+                                    ->performedOn($task)
+                                    ->causedBy(auth()->user())
+                                    ->withProperties(['item_title' => $itemTitle, 'is_done' => $isDone])
+                                    ->log($isDone ? 'checklist_item_completed' : 'checklist_item_uncompleted');
                             }
                             $item->update([
                                 'title' => $itemTitle,
@@ -749,9 +758,12 @@ class TaskWebController extends Controller
         } elseif ($request->has('cover_image_path')) {
             $coverPath = $request->input('cover_image_path');
             if (empty($coverPath)) {
-                if ($task->cover_image_path) {
-                    Storage::disk('public')->delete($task->cover_image_path);
+                // Modal selalu mengirim cover_image_path; tanpa cover lama,
+                // tidak ada yang dihapus — jangan catat log palsu.
+                if (! $task->cover_image_path) {
+                    return;
                 }
+                Storage::disk('public')->delete($task->cover_image_path);
                 $task->update(['cover_image_path' => null]);
 
                 if (function_exists('activity')) {
@@ -920,7 +932,7 @@ class TaskWebController extends Controller
 
         $priorityLabels = [
             'urgent' => 'Urgent',
-            'high' => 'Important',
+            'high' => 'High',
             'medium' => 'Medium',
             'low' => 'Low',
         ];

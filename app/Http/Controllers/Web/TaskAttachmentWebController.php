@@ -38,6 +38,10 @@ class TaskAttachmentWebController extends Controller
 
             $file = $request->file('file');
             $path = $file->store("task-attachments/{$task->id}", 'public');
+            if (! $path) {
+                report(new \RuntimeException("Gagal menyimpan attachment task {$task->id} ke disk public."));
+                return response()->json(['ok' => false, 'message' => 'Gagal menyimpan file di server, silakan coba lagi atau hubungi admin.'], 500);
+            }
 
             $attachment = $task->attachments()->create([
                 'type'       => 'file',
@@ -154,6 +158,12 @@ class TaskAttachmentWebController extends Controller
         }
 
         $path = Storage::disk('public')->putFileAs("task-attachments/{$task->id}", $file, Str::random(40) . '.' . $ext);
+        // Gagal tulis (mis. folder bukan milik www-data): potongan disimpan supaya bisa dicoba ulang.
+        if (! $path) {
+            @unlink($assembled);
+            report(new \RuntimeException("Gagal menyimpan attachment task {$task->id} ke disk public."));
+            return response()->json(['ok' => false, 'message' => 'Gagal menyimpan file di server, silakan coba lagi atau hubungi admin.'], 500);
+        }
         $mime = $file->getMimeType();
         $disk->deleteDirectory($dir);
 

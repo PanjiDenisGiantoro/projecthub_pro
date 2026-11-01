@@ -1560,13 +1560,26 @@
 
                                                 {{-- Info --}}
                                                 <div class="min-w-0">
-                                                    <a :href="att.url || ('/storage/' + att.file_path)" target="_blank"
-                                                        class="text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 block truncate"
-                                                        x-text="att.file_name || att.display_name || 'Attachment'"></a>
+                                                    <template x-if="att.type === 'link'">
+                                                        <a :href="att.url" target="_blank"
+                                                            class="text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 block truncate"
+                                                            x-text="att.file_name || att.display_name || 'Attachment'"></a>
+                                                    </template>
+                                                    <template x-if="att.type === 'file' && !isBrokenAttachment(att)">
+                                                        <a :href="'/storage/' + att.file_path" :download="att.file_name"
+                                                            class="text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 block truncate"
+                                                            x-text="att.file_name || 'Attachment'"></a>
+                                                    </template>
+                                                    <template x-if="isBrokenAttachment(att)">
+                                                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block truncate"
+                                                            x-text="att.file_name || 'Attachment'"></span>
+                                                    </template>
                                                     <div
                                                         class="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
-                                                        <span
+                                                        <span x-show="!isBrokenAttachment(att)"
                                                             x-text="att.type === 'link' ? ('Web Link • ' + getDomainFromUrl(att.url)) : (formatFileSize(att.file_size) + ' • Added today')"></span>
+                                                        <span x-show="isBrokenAttachment(att)" class="text-red-500">
+                                                            File gagal tersimpan — hapus &amp; upload ulang</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1584,8 +1597,8 @@
                                                         </svg>
                                                     </button>
                                                 </template>
-                                                <template x-if="att.type === 'file'">
-                                                    <a :href="'/storage/' + att.file_path" download
+                                                <template x-if="att.type === 'file' && !isBrokenAttachment(att)">
+                                                    <a :href="'/storage/' + att.file_path" :download="att.file_name" title="Download"
                                                         class="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-slate-50 transition">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -2824,23 +2837,11 @@
                 }
             },
 
-            async toggleChecklistItem(cl, item) {
-                const newState = !item.is_done;
-                item.is_done = newState;
-                try {
-                    await fetch(`/projects/{{ $project->slug }}/tasks/${this.task.id}/checklists/${cl.id}/items/${item.id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ is_done: newState })
-                    });
-                } catch (err) {
-                    item.is_done = !newState;
-                    console.error(err);
-                }
+            // Centang hanya mengubah tampilan; disimpan lewat saveTask() (payload.checklists),
+            // jadi "Discard Changes" benar-benar membatalkan perubahan checklist.
+            toggleChecklistItem(cl, item) {
+                item.is_done = !item.is_done;
+                this.markDirty();
             },
 
             async deleteChecklistItem(cl, item, index) {
@@ -3161,6 +3162,10 @@
                 if (!att) return false;
                 const ext = (att.file_name || '').split('.').pop().toLowerCase();
                 return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+            },
+            // file_path "0"/kosong = penyimpanan gagal saat upload (file tidak ada di server).
+            isBrokenAttachment(att) {
+                return att && att.type === 'file' && (!att.file_path || att.file_path === '0');
             },
             getFileExtension(fileName) {
                 if (!fileName) return 'FILE';

@@ -114,7 +114,8 @@
                 slides: [
                     { quote: 'Kelola project, tim, dan operasional dalam satu tempat.', title: 'Project Management', sub: 'Kanban board & sprint planning' },
                     { quote: 'Diskusi tim lebih cepat dengan chat, forum, dan meeting terintegrasi.', title: 'Kolaborasi Tim', sub: 'Chat proyek, forum & direct message' },
-                    { quote: 'Pantau tiket, absensi, cuti, dan reimburse tanpa pindah aplikasi.', title: 'Operasional & HRIS', sub: 'Tiket, absensi & pengajuan' },
+                    { quote: 'Atur, tugaskan, dan lacak setiap task hingga selesai tepat waktu.', title: 'Task Management', sub: 'Assignee, prioritas & deadline' },
+                    { quote: 'Simpan dokumentasi dan pengetahuan tim agar mudah dicari kapan saja.', title: 'Knowledge Base', sub: 'Artikel & dokumentasi per proyek' },
                 ],
                 next() { this.i = (this.i + 1) % this.slides.length },
                 prev() { this.i = (this.i - 1 + this.slides.length) % this.slides.length },
