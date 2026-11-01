@@ -41,17 +41,21 @@ class ProjectWebController extends Controller
             },
         ]);
 
-        if ($user->hasRole('client')) {
-            $query->where('client_id', $user->id);
-        } elseif (! $user->is_super_admin) {
-            // Selain super admin (termasuk role 'admin'), hanya melihat proyek
-            // yang ia pimpin atau ia menjadi anggota timnya — selaras dengan
-            // ProjectPolicy::view().
-            $query->where(function ($q) use ($user) {
-                $q->where('manager_id', $user->id)
-                  ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
-            });
-        }
+        // Scope akses dipakai bersama oleh list dan kartu KPI supaya angkanya selaras.
+        $accessScope = function ($q) use ($user) {
+            if ($user->hasRole('client')) {
+                $q->where('client_id', $user->id);
+            } elseif (! $user->is_super_admin) {
+                // Selain super admin (termasuk role 'admin'), hanya melihat proyek
+                // yang ia pimpin atau ia menjadi anggota timnya — selaras dengan
+                // ProjectPolicy::view().
+                $q->where(function ($sub) use ($user) {
+                    $sub->where('manager_id', $user->id)
+                        ->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id));
+                });
+            }
+        };
+        $query->tap($accessScope);
 
         // Search filter
         if ($request->filled('search')) {
@@ -110,10 +114,7 @@ class ProjectWebController extends Controller
         }
 
         // Summary KPI stats (tenant and role scoped)
-        $statsBase = Project::query();
-        if ($user->hasRole('client')) {
-            $statsBase->where('client_id', $user->id);
-        }
+        $statsBase = Project::query()->tap($accessScope);
         $stats = [
             'total'       => (clone $statsBase)->count(),
             'completed'   => (clone $statsBase)->where('status', 'completed')->count(),
@@ -174,17 +175,16 @@ class ProjectWebController extends Controller
 
         BoardColumnTemplate::default()?->applyTo($project);
 
-        // Pembuat & Lead otomatis masuk tim, supaya tidak kehilangan akses ke
+        // Pembuat, Lead & Client otomatis masuk tim, supaya tidak kehilangan akses ke
         // proyek (non-superadmin hanya melihat proyek yang ia pimpin/ikuti).
-        $this->ensureMembers($project, [auth()->id(), $project->manager_id]);
+        $this->ensureMembers($project, [auth()->id(), $project->manager_id, $project->client_id]);
 
-        $this->notifier->notifyManagers(
+        $this->notifier->notifyProjectTeam(
+            $project,
             'new_project',
             'Proyek Baru Dibuat',
             "Proyek \"{$project->name}\" baru saja dibuat oleh ".auth()->user()->name.'.',
             ['project_id' => $project->id],
-            push: true,
-            companyId: $project->company_id
         );
 
         if ($request->input('redirect_to') === 'index') {
@@ -458,7 +458,7 @@ class ProjectWebController extends Controller
             'images' => [...$keptImages, ...$newImages],
         ]);
 
-        $this->ensureMembers($project, [$project->manager_id]);
+        $this->ensureMembers($project, [$project->manager_id, $project->client_id]);
 
         if ($request->input('redirect_to') === 'index') {
             return redirect()->route('projects.index')->with('success', 'Proyek berhasil diperbarui.');

@@ -190,8 +190,9 @@ class AppServiceProvider extends ServiceProvider
                 'description'   => 'Security disclosure approved via approval #' . $approval->id,
             ]);
 
-            // Notify all project members
-            $notifier->notifyManagers(
+            // Notify all project members (hanya tim project, bukan semua company)
+            $notifier->notifyProjectTeam(
+                $ticket->project,
                 'security_disclosed',
                 'Security Ticket Disclosed',
                 "Security ticket \"{$ticket->title}\" has been approved for disclosure.",

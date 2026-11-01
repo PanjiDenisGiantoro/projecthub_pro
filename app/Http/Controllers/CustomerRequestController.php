@@ -43,13 +43,12 @@ class CustomerRequestController extends Controller
         ]);
 
         // Notify members directly — no separate marketing review step
-        $this->notifier->notifyByRole(
-            'member',
+        $this->notifier->notifyProjectTeam(
+            $customerRequest->project,
             'request_needs_approval',
             'Request Needs Approval',
             "Customer submitted: {$customerRequest->title}",
             ['request_id' => $customerRequest->id],
-            companyId: $customerRequest->project->company_id
         );
 
         return response()->json($customerRequest->load(['project', 'customer']), 201);

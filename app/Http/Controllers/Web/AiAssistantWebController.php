@@ -405,13 +405,15 @@ class AiAssistantWebController extends Controller
             'status'      => 'draft',
         ]);
 
-        $this->notifier->notifyManagers(
+        // Pembuat otomatis masuk tim (sama seperti buat proyek biasa) supaya tetap punya akses.
+        \App\Models\ProjectMember::firstOrCreate(['project_id' => $project->id, 'user_id' => auth()->id()]);
+
+        $this->notifier->notifyProjectTeam(
+            $project,
             'new_project',
             'Proyek Baru Dibuat',
             "Proyek \"{$project->name}\" baru saja dibuat oleh " . auth()->user()->name . " (lewat AI Assistant).",
             ['project_id' => $project->id],
-            push: true,
-            companyId: $project->company_id
         );
 
         return response()->json([

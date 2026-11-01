@@ -61,12 +61,12 @@ class BugTicketController extends Controller
         // Auto-watch reporter
         $ticket->watchers()->firstOrCreate(['user_id' => $request->user()->id]);
 
-        $this->notifier->notifyManagers(
+        $this->notifier->notifyProjectTeam(
+            $project,
             'new_ticket',
             'New Bug Ticket',
             "New {$ticket->priority} ticket: {$ticket->title}",
             ['ticket_id' => $ticket->id, 'project_id' => $project->id],
-            companyId: $project->company_id
         );
 
         return response()->json($ticket->load(['reporter', 'slaPolicy']), 201);

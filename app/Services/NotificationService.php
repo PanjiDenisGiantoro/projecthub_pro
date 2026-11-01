@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\PhNotification;
+use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\User;
 use App\Notifications\PushNotification;
 
@@ -33,6 +35,30 @@ class NotificationService
     public function notifyCompany(int $companyId, string $type, string $title, string $message, array $data = [], bool $push = true): void
     {
         User::where('company_id', $companyId)->where('is_active', true)
+            ->each(fn($user) => $this->send($user->id, $type, $title, $message, $data, $push));
+    }
+
+    /**
+     * Kirim notifikasi hanya ke anggota tim project (project_members + lead), dibatasi
+     * company project tsb. Client tidak ikut, sama seperti notifyManagers sebelumnya.
+     */
+    public function notifyProjectTeam(?Project $project, string $type, string $title, string $message, array $data = [], bool $push = true, ?int $excludeUserId = null): void
+    {
+        if (! $project || ! $project->company_id) {
+            return;
+        }
+
+        $userIds = ProjectMember::where('project_id', $project->id)->pluck('user_id')
+            ->push($project->manager_id)
+            ->filter()
+            ->unique();
+
+        User::whereIn('id', $userIds)
+            ->where('company_id', $project->company_id)
+            ->where('is_active', true)
+            ->when($excludeUserId, fn($q) => $q->where('id', '!=', $excludeUserId))
+            ->get()
+            ->reject(fn($user) => $user->hasRole('client'))
             ->each(fn($user) => $this->send($user->id, $type, $title, $message, $data, $push));
     }
 

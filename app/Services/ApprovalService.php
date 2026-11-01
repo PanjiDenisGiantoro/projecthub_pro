@@ -257,7 +257,8 @@ class ApprovalService
                     ['approval_id' => $approval->id]
                 );
 
-                app(NotificationService::class)->notifyManagers(
+                // Tanpa company pengaju, jangan broadcast ke semua company.
+                if ($approval->requester?->company_id) app(NotificationService::class)->notifyManagers(
                     'approval_expired',
                     'Approval Expired Without Decision',
                     "Approval \"{$approval->action}\" (ID #{$approval->id}) expired.",

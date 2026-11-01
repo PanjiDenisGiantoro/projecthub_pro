@@ -56,7 +56,7 @@ class RequestWebController extends Controller
             'status'      => 'waiting_approval',
         ]);
 
-        $this->notifier->notifyByRole('member', 'request_needs_approval', 'Request Needs Approval', "Customer submitted: {$cr->title}", ['request_id' => $cr->id], companyId: $cr->project->company_id);
+        $this->notifier->notifyProjectTeam($cr->project, 'request_needs_approval', 'Request Needs Approval', "Customer submitted: {$cr->title}", ['request_id' => $cr->id]);
 
         return redirect()->route('requests.show', $cr)->with('success', 'Request submitted successfully.');
     }

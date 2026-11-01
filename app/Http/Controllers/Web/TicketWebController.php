@@ -132,7 +132,7 @@ class TicketWebController extends Controller
         $this->storeAttachments($ticket, $request);
 
         $this->sla->applyPolicy($ticket);
-        $this->notifier->notifyManagers('new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id], companyId: $project->company_id);
+        $this->notifier->notifyProjectTeam($project, 'new_ticket', 'Tiket Baru', "Tiket {$ticket->priority}: {$ticket->title}", ['ticket_id' => $ticket->id]);
         $this->teamNotifier->notify($project, '🐞 Tiket Baru', "[{$ticket->priority}] \"{$ticket->title}\" dilaporkan oleh " . auth()->user()->name . '.');
 
         if ($project->meeting_auto_create) {

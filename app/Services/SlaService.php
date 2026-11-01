@@ -82,12 +82,12 @@ class SlaService
 
                 SlaLog::create(['ticket_id' => $ticket->id, 'event_type' => 'breached']);
 
-                app(NotificationService::class)->notifyManagers(
+                app(NotificationService::class)->notifyProjectTeam(
+                    $ticket->project,
                     'sla_breached',
                     'SLA Breach Alert',
                     "Ticket \"{$ticket->title}\" has breached its SLA!",
                     ['ticket_id' => $ticket->id, 'project_id' => $ticket->project_id],
-                    companyId: $ticket->project?->company_id
                 );
 
                 if ($ticket->assignee_id) {
@@ -122,12 +122,12 @@ class SlaService
                 if (now()->gte($warningAt) && !$ticket->slaLogs()->where('event_type', 'warning')->exists()) {
                     SlaLog::create(['ticket_id' => $ticket->id, 'event_type' => 'warning']);
 
-                    app(NotificationService::class)->notifyManagers(
+                    app(NotificationService::class)->notifyProjectTeam(
+                        $ticket->project,
                         'sla_warning',
                         'SLA Warning',
                         "Ticket \"{$ticket->title}\" is at {$percent}% of SLA time.",
                         ['ticket_id' => $ticket->id],
-                        companyId: $ticket->project?->company_id
                     );
                 }
             });
