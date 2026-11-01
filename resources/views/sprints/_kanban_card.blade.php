@@ -38,7 +38,7 @@
 <div class="kanban-card group relative bg-white dark:bg-gray-800 rounded-2xl transition-all duration-150 cursor-pointer overflow-hidden select-none mb-3"
      data-task-id="{{ $task->id }}"
      data-priority="{{ $task->priority }}"
-     data-assignee-ids="{{ $allMembers->pluck('id')->join(',') }}"
+     data-assignee-ids="{{ $allMembers->pluck('id')->push($task->assigned_to)->filter()->unique()->join(',') }}"
      data-labels="{{ $task->labels->pluck('id')->join(',') }}"
      data-due="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
      data-is-done="{{ $isDone ? '1' : '0' }}"

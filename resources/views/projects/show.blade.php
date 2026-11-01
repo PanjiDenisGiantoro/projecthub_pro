@@ -908,7 +908,7 @@
                                                                     class="text-xs font-bold uppercase truncate text-gray-900 dark:text-white">{{ $col->name }}</span>
                                                             </div>
                                                             <span
-                                                                class="text-[10.5px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 shrink-0">{{ $colTasks->count() }}</span>
+                                                                class="column-counter text-[10.5px] font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 shrink-0">{{ $colTasks->count() }}</span>
                                                         </div>
 
                                                         <p
@@ -1149,7 +1149,7 @@
                                                         @endphp
                                                         <div class="list-task-row grid grid-cols-12 gap-2 py-2.5 px-3 hover:bg-gray-50/90 dark:hover:bg-gray-800/60 rounded-xl transition-all items-center group cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-gray-750"
                                                             data-task-id="{{ $task->id }}" data-priority="{{ $task->priority }}"
-                                                            data-assignee-ids="{{ $allMembers->pluck('id')->join(',') }}"
+                                                            data-assignee-ids="{{ $allMembers->pluck('id')->push($task->assigned_to)->filter()->unique()->join(',') }}"
                                                             data-labels="{{ $task->labels->pluck('id')->join(',') }}"
                                                             data-due="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
                                                             data-is-done="{{ $isDone ? '1' : '0' }}"
@@ -1850,6 +1850,26 @@
                         if (foundM) this.filterMilestoneName = foundM.title;
                     }
 
+                    // Setelah task disimpan dari modal: samakan atribut filter di semua tampilan
+                    // (kartu board diganti card_html, baris list belum) lalu terapkan ulang filter.
+                    window.addEventListener('task-updated', (e) => {
+                        const t = e.detail && e.detail.task;
+                        if (t && t.id) {
+                            const ids = (t.members || []).map(m => String(m.id));
+                            if (t.assigned_to) ids.push(String(t.assigned_to));
+                            const due = t.due_date ? String(t.due_date).split('T')[0] : '';
+                            document.querySelectorAll(`.kanban-card[data-task-id="${t.id}"], .list-task-row[data-task-id="${t.id}"]`).forEach(el => {
+                                el.dataset.assigneeIds = [...new Set(ids)].join(',');
+                                el.dataset.sprintId = t.sprint_id || '';
+                                el.dataset.milestoneId = t.milestone_id || '';
+                                el.dataset.priority = t.priority || '';
+                                el.dataset.labels = (t.labels || []).map(l => l.id).join(',');
+                                el.dataset.due = due;
+                            });
+                        }
+                        this.$nextTick(() => this.applyFilters());
+                    });
+
                     this.$watch('taskView', (val) => {
                         localStorage.setItem('projecthub_task_view', val);
                         this.$nextTick(() => {
@@ -2050,15 +2070,16 @@
                 },
 
                 updateCounters() {
+                    // Hanya hitung kartu yang tidak disembunyikan filter, supaya angka kolom sesuai filter aktif.
+                    const visible = el => !el.classList.contains('hidden') && el.style.display !== 'none';
                     // Update board counters
                     document.querySelectorAll('#project-detail-kanban-columns .kanban-column').forEach(col => {
-                        const count = col.querySelectorAll('.kanban-card').length;
-                        const counter = col.querySelector('.column-counter');
-                        if (counter) counter.textContent = count;
+                        const count = Array.from(col.querySelectorAll('.kanban-card')).filter(visible).length;
+                        col.querySelectorAll('.column-counter').forEach(counter => counter.textContent = count);
                     });
                     // Update list counters
                     document.querySelectorAll('.project-detail-list-dropzone').forEach(dz => {
-                        const count = dz.querySelectorAll('.list-task-row').length;
+                        const count = Array.from(dz.querySelectorAll('.list-task-row')).filter(visible).length;
                         const card = dz.closest('.space-y-2');
                         if (card) {
                             const counter = card.querySelector('.text-xs.text-gray-400.font-semibold');
@@ -2149,6 +2170,7 @@
 
                     filterItems(document.querySelectorAll('.kanban-card'));
                     filterItems(document.querySelectorAll('.list-task-row'), true);
+                    this.updateCounters();
                 },
 
                 clearAllFilters() {
