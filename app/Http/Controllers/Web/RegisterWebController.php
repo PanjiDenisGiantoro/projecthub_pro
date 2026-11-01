@@ -69,7 +69,12 @@ class RegisterWebController extends Controller
         $request->validate([
             'name'         => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
-            'company_name' => 'required|string|max:255',
+            'company_name' => ['required', 'string', 'max:255', function ($attribute, $value, $fail) {
+                // Nama perusahaan dikunci unik (abaikan huruf besar/kecil & spasi di ujung).
+                if (Company::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($value))])->exists()) {
+                    $fail('Nama perusahaan ini sudah terdaftar.');
+                }
+            }],
             'password'     => ['required', 'string', 'confirmed', Password::defaults()],
             'plan'         => ['required', \Illuminate\Validation\Rule::in($selectablePlans)],
             'modules'      => [$selectableModules->isEmpty() ? 'nullable' : 'required', 'array'],
