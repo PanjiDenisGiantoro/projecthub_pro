@@ -656,6 +656,21 @@
                                 $clientName = $project->client?->name ?? 'Internal Team';
                                 $clientOrg = $project->client?->organizationUnit?->name
                                     ?? ($project->client?->company?->name ?? 'Enterprise B2B');
+
+                                $projectPayload = json_encode([
+                                    'id' => $project->id,
+                                    'slug' => $project->slug,
+                                    'name' => $project->name,
+                                    'description' => $project->description,
+                                    'client_id' => $project->client_id,
+                                    'manager_id' => $project->manager_id,
+                                    'start_date' => $project->start_date ? $project->start_date->format('Y-m-d') : null,
+                                    'end_date' => $project->end_date ? $project->end_date->format('Y-m-d') : null,
+                                    'budget' => $project->budget,
+                                    'status' => $project->status,
+                                    'images' => $project->images ?? [],
+                                    'image_urls' => $projectImages,
+                                ]);
                             @endphp
                             <tr class="hover:bg-gray-50/60 transition-colors">
                                 {{-- Project Name --}}
