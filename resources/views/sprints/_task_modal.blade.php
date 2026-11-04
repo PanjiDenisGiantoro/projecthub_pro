@@ -847,7 +847,7 @@
                                     <div>
                                         <div class="flex items-center gap-1">
                                             <label
-                                                class="text-xs font-semibold text-slate-500 dark:text-slate-400">Bucket</label>
+                                                class="text-xs font-semibold text-slate-500 dark:text-slate-400">Move card</label>
                                         </div>
 
                                         <div class="relative" x-data="{ bucketOpen: false }">
