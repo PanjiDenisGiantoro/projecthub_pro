@@ -2,15 +2,16 @@
      MILESTONES DASHBOARD & MANAGEMENT (Card & Roadmap, Hierarchy Table, Hierarchy Diagram)
      ============================================================ --}}
 @php
-    $allMilestones = $project->milestones()->with(['assignee', 'sprints.lead', 'sprints.tasks.assignee', 'standaloneTasks.assignee', 'tasks.assignee'])->get();
+    // $allMilestones, $milestoneMonth (null = semua bulan) & $milestoneTotalCount
+    // disiapkan ProjectWebController::show (difilter per bulan).
+    $allMilestones = $allMilestones ?? collect();
+    $milestoneMonth = $milestoneMonth ?? null;
+    $milestoneTotalCount = $milestoneTotalCount ?? $allMilestones->count();
+    $milestoneMonthUrl = fn ($month) => request()->fullUrlWithQuery(['month' => $month]);
     $totalMilestones = $allMilestones->count();
     $completedMilestones = $allMilestones->where('status', 'completed')->count();
     $inProgressMilestones = $allMilestones->whereIn('status', ['in_progress', 'active'])->count();
     $atRiskMilestones = $allMilestones->filter(fn($m) => $m->status === 'at_risk' || $m->isOverdue())->count();
-
-    // Standalone tasks (not in sprint and not in milestone, or tasks directly in milestone)
-    $allProjectTasks = $project->tasks;
-    $allProjectSprints = $project->sprints;
 
     // Timeline scale calculation for Roadmap
     $minDate = now()->startOfMonth();
@@ -142,6 +143,28 @@
 
         {{-- Filters & Action Buttons --}}
         <div class="flex items-center gap-2.5 flex-wrap justify-end">
+            {{-- Month Filter (server-side) --}}
+            <div class="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-1 py-0.5 shadow-2xs">
+                @if($milestoneMonth)
+                    <a href="{{ $milestoneMonthUrl($milestoneMonth->copy()->subMonth()->format('Y-m')) }}" title="Bulan sebelumnya"
+                        class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                @endif
+                <input type="month" value="{{ $milestoneMonth?->format('Y-m') }}"
+                    @change="if ($event.target.value) window.location.href = @js($milestoneMonthUrl('__M__')).replace('__M__', $event.target.value)"
+                    class="bg-transparent border-0 p-0 px-1 text-xs font-medium text-slate-700 dark:text-slate-300 focus:ring-0 dark:[color-scheme:dark]">
+                @if($milestoneMonth)
+                    <a href="{{ $milestoneMonthUrl($milestoneMonth->copy()->addMonth()->format('Y-m')) }}" title="Bulan berikutnya"
+                        class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="{{ $milestoneMonthUrl('all') }}" class="px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-blue-600 rounded-lg">Semua</a>
+                @else
+                    <a href="{{ $milestoneMonthUrl(now()->format('Y-m')) }}" class="px-2 py-1 text-[11px] font-semibold text-blue-600 rounded-lg">Bulan ini</a>
+                @endif
+            </div>
+
             {{-- Search Bar --}}
             <div class="relative min-w-[190px]">
                 <input type="text" x-model="searchQuery" placeholder="Search milestones..."
@@ -374,10 +397,18 @@
                 </svg>
             </div>
             <div class="space-y-1.5 max-w-md mx-auto">
+                @if($milestoneTotalCount > 0 && $milestoneMonth)
+                    <h3 class="text-lg font-black text-gray-900 dark:text-white">Tidak ada milestone di {{ $milestoneMonth->translatedFormat('F Y') }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Project ini punya {{ $milestoneTotalCount }} milestone di bulan lain.
+                        <a href="{{ $milestoneMonthUrl('all') }}" class="text-blue-600 font-semibold hover:underline">Tampilkan semua</a>
+                    </p>
+                @else
                 <h3 class="text-lg font-black text-gray-900 dark:text-white">No Milestones Defined Yet</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                     Group sprints and deliverables into structured phases to track progress toward high-level business goals.
                 </p>
+                @endif
             </div>
             @if(!auth()->user()->hasRole('client'))
                 <button type="button" @click="openCreateMilestoneModal()"
@@ -1159,7 +1190,7 @@ function milestonesDashboardData() {
         openCreateMilestoneModal() {
             this.milestoneModalMode = 'create';
             this.milestoneForm = {
-                code: 'MS-' + String({{ $allMilestones->count() + 1 }}).padStart(2, '0'),
+                code: 'MS-' + String({{ $milestoneTotalCount + 1 }}).padStart(2, '0'),
                 title: '',
                 description: '',
                 start_date: '',

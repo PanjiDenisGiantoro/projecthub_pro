@@ -260,7 +260,7 @@ class ProjectWebController extends Controller
 
         $project->load(['client', 'manager']);
 
-        if (in_array($tabKey, ['overview', 'tasks', 'milestones', 'sprints'], true)) {
+        if (in_array($tabKey, ['overview', 'tasks', 'sprints'], true)) {
             $project->load([
                 'milestones' => fn ($q) => $q->with(['assignee', 'tasks.assignee', 'sprints.lead', 'sprints.tasks.assignee', 'standaloneTasks.assignee'])->orderByDesc('created_at'),
                 'tasks' => fn ($q) => $q->with(['assignee', 'members', 'labels', 'checklists.items', 'attachments', 'milestone', 'boardColumn'])->withCount(['comments', 'attachments'])->orderBy('sort_order'),
@@ -281,6 +281,43 @@ class ProjectWebController extends Controller
 
         if (in_array($tabKey, ['tasks', 'milestones', 'sprints'], true)) {
             $data['assignableUsers'] = $project->members()->with('user')->get()->pluck('user')->push($project->manager)->filter()->unique('id')->values();
+        }
+
+        if ($tabKey === 'milestones') {
+            // Filter bulan (default bulan berjalan) supaya tab tidak memuat semua
+            // milestone + seluruh sprint/task di dalamnya sekaligus.
+            $monthParam = (string) $request->query('month', '');
+            $monthStart = null;
+            if ($monthParam !== 'all') {
+                try {
+                    $monthStart = preg_match('/^\d{4}-\d{2}$/', $monthParam)
+                        ? \Carbon\Carbon::createFromFormat('!Y-m', $monthParam)->startOfMonth()
+                        : now()->startOfMonth();
+                } catch (\Throwable) {
+                    $monthStart = now()->startOfMonth();
+                }
+            }
+
+            $milestonesQuery = $project->milestones()
+                ->with(['assignee', 'sprints.lead', 'sprints.tasks.assignee', 'sprints.tasks.boardColumn', 'standaloneTasks.assignee', 'standaloneTasks.boardColumn', 'tasks.assignee', 'tasks.boardColumn'])
+                ->orderByRaw('COALESCE(start_date, due_date, DATE(created_at))');
+            if ($monthStart) {
+                // Milestone yang rentang tanggalnya beririsan dengan bulan terpilih;
+                // tanpa tanggal sama sekali → pakai tanggal dibuat.
+                $milestonesQuery
+                    ->whereRaw('COALESCE(start_date, due_date, DATE(created_at)) <= ?', [$monthStart->copy()->endOfMonth()->toDateString()])
+                    ->whereRaw('COALESCE(due_date, start_date, DATE(created_at)) >= ?', [$monthStart->toDateString()]);
+            }
+
+            $data['allMilestones'] = $milestonesQuery->get();
+            $data['milestoneMonth'] = $monthStart;
+            $data['milestoneTotalCount'] = $project->milestones()->count();
+
+            // Daftar pilihan untuk modal assign (ringan, tanpa checklist/attachment).
+            $project->load([
+                'tasks' => fn ($q) => $q->with(['assignee', 'sprint', 'boardColumn'])->orderBy('sort_order'),
+                'sprints' => fn ($q) => $q->with(['lead', 'tasks.boardColumn'])->orderBy('start_date'),
+            ]);
         }
 
         switch ($tabKey) {
