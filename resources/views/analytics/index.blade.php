@@ -27,19 +27,54 @@
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
                     <span>Metrik produktivitas tim, penyelesaian tugas, dan status SLA.</span>
                     <span>&bull;</span>
-                    <span class="text-xs text-slate-400">Periode aktif: {{ $period }} hari terakhir</span>
+                    <span class="text-xs text-slate-400">Periode: {{ \Illuminate\Support\Carbon::parse($startDate)->translatedFormat('d M Y') }} – {{ \Illuminate\Support\Carbon::parse($endDate)->translatedFormat('d M Y') }} ({{ $rangeDays }} hari)</span>
+                    @if($selectedUser)
+                    <span>&bull;</span>
+                    <span class="text-xs font-semibold text-blue-600 dark:text-blue-400">User: {{ $selectedUser->name }}</span>
+                    @endif
                 </p>
             </div>
 
-            {{-- Period Filter Pills --}}
-            <div class="flex items-center gap-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-1 shadow-xs shrink-0">
-                @foreach([7 => '7 Hari', 14 => '14 Hari', 30 => '30 Hari', 90 => '3 Bulan'] as $val => $label)
-                <a href="{{ route('analytics.index', ['period' => $val]) }}"
-                   class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $period == $val ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700' }}">
-                    {{ $label }}
-                </a>
-                @endforeach
-            </div>
+            {{-- Filter: range tanggal + (admin) per user --}}
+            <form method="GET" action="{{ route('analytics.index') }}"
+                  class="flex flex-col sm:flex-row sm:items-end gap-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl p-2 shadow-xs shrink-0 w-full sm:w-auto">
+                @if($isAdmin)
+                <label class="flex flex-col gap-1 min-w-0">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">User</span>
+                    <select name="user_id" onchange="this.form.submit()"
+                            class="w-full sm:w-52 px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                        <option value="">Semua user</option>
+                        @if(auth()->user()->is_super_admin)
+                            @foreach($companyUsers->groupBy(fn ($u) => $u->company?->name ?? 'Tanpa company') as $companyName => $users)
+                            <optgroup label="{{ $companyName }}">
+                                @foreach($users as $u)
+                                <option value="{{ $u->id }}" @selected($selectedUser?->id === $u->id)>{{ $u->name }}</option>
+                                @endforeach
+                            </optgroup>
+                            @endforeach
+                        @else
+                            @foreach($companyUsers as $u)
+                            <option value="{{ $u->id }}" @selected($selectedUser?->id === $u->id)>{{ $u->name }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </label>
+                @endif
+                <label class="flex flex-col gap-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">Dari</span>
+                    <input type="date" name="start_date" value="{{ $startDate }}" max="{{ $endDate }}"
+                           class="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">Sampai</span>
+                    <input type="date" name="end_date" value="{{ $endDate }}" min="{{ $startDate }}"
+                           class="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                </label>
+                <button type="submit"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors">
+                    Terapkan
+                </button>
+            </form>
         </div>
     </div>
 
@@ -155,8 +190,8 @@
         <div class="lg:col-span-2 bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 p-5 shadow-xs">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Output Mingguan: Task Dibuat vs Selesai</h3>
-                    <p class="text-xs text-slate-400 dark:text-slate-500">Performa penyelesaian sprint dalam 8 minggu terakhir</p>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Output {{ $bucketLabel }}: Task Dibuat vs Selesai</h3>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">Task dibuat vs diselesaikan pada periode terpilih</p>
                 </div>
                 <div class="flex items-center gap-3 text-xs font-medium">
                     <span class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
@@ -220,7 +255,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white">Top Developer (Jam Kerja)</h3>
-                    <p class="text-xs text-slate-400">Total waktu tercatat {{ $period }} hari terakhir</p>
+                    <p class="text-xs text-slate-400">Total waktu tercatat pada periode terpilih</p>
                 </div>
                 <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,11 +382,11 @@
         <div class="bg-white dark:bg-gray-850 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 p-5 shadow-xs">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Tren Task Dibuat per Hari</h3>
-                    <p class="text-xs text-slate-400">Volume pembuatan task baru dalam 14 hari terakhir</p>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Tren Task Dibuat ({{ $bucketLabel }})</h3>
+                    <p class="text-xs text-slate-400">Volume pembuatan task baru pada periode terpilih</p>
                 </div>
                 <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
-                    14 Hari
+                    {{ $rangeDays }} Hari
                 </span>
             </div>
             <div class="h-56">
