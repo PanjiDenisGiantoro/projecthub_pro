@@ -1,0 +1,556 @@
+{
+  "info": {
+    "name": "Flovig — Billing / Langganan & Profile API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API langganan perusahaan (DOKU). Jalankan **Auth › Login** dulu — token otomatis disimpan ke variable `token`.\n\nUrutan beli paket: Packages → Quote → Checkout (buka `payment_url`) → Order Detail (cek status)."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://flovig.com/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "user@example.com"
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "package_id",
+      "value": "4"
+    },
+    {
+      "key": "users",
+      "value": "9"
+    },
+    {
+      "key": "cycle",
+      "value": "monthly"
+    },
+    {
+      "key": "payment_method",
+      "value": "VIRTUAL_ACCOUNT_BRI"
+    },
+    {
+      "key": "order_number",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login & simpan token ke variable `token`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.token) pm.collectionVariables.set('token', j.token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Subscription (status langganan)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/subscription",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "subscription"
+              ]
+            },
+            "description": "Paket aktif, `active_until`, `days_remaining`, `is_expired`, dan limit user/proyek/storage."
+          }
+        },
+        {
+          "name": "Packages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/packages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "packages"
+              ]
+            },
+            "description": "Paket yang bisa dibeli mandiri (halaman Perpanjang / Upgrade Paket). `is_owned` = paket yang sedang dimiliki."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.data && j.data.length && !pm.collectionVariables.get('package_id')) pm.collectionVariables.set('package_id', j.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payment Methods",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/payment-methods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "payment-methods"
+              ]
+            },
+            "description": "Metode pembayaran aktif + biaya layanan (`fee_flat`, `fee_percent`)."
+          }
+        },
+        {
+          "name": "Quote",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/packages/{{package_id}}/quote?users={{users}}&cycle={{cycle}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "packages",
+                "{{package_id}}",
+                "quote"
+              ],
+              "query": [
+                {
+                  "key": "users",
+                  "value": "{{users}}"
+                },
+                {
+                  "key": "cycle",
+                  "value": "{{cycle}}"
+                }
+              ]
+            },
+            "description": "Rincian harga: subtotal, PPN, promo, dan total per metode bayar (`fees[]`).\n\n- `users` opsional (default = jumlah user aktif perusahaan)\n- `cycle`: `monthly` | `yearly`"
+          }
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/checkout/{{package_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "checkout",
+                "{{package_id}}"
+              ]
+            },
+            "description": "Membuat order + transaksi DOKU. **Membuat transaksi sungguhan.** Buka `payment_url` di browser/webview untuk membayar.\n\nResponse 201: `payment_url`, `data` (order). 422 = validasi / metode tidak tersedia, 502 = DOKU gagal.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"users\": \"{{users}}\",\n  \"cycle\": \"{{cycle}}\",\n  \"payment_method\": \"{{payment_method}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.data && j.data.order_number) pm.collectionVariables.set('order_number', j.data.order_number);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Orders (riwayat transaksi)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/orders?page=1&per_page=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Riwayat transaksi langganan perusahaan (paginasi Laravel). Butuh permission `access billing`.\n\nTiap baris: `order_number`, `package.name`, `cycle_label` (\"9 user · Bulanan\"), `amount_label`, `breakdown` (subtotal/PPN/biaya layanan), `status` + `status_label` (Menunggu Pembayaran/Lunas/Gagal/Kedaluwarsa), `created_at`, `paid_at`, `is_payable`, `invoice_url`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.data && j.data.length && !pm.collectionVariables.get('order_number')) pm.collectionVariables.set('order_number', j.data[0].order_number);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Order Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/orders/{{order_number}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "orders",
+                "{{order_number}}"
+              ]
+            },
+            "description": "Detail satu order. Bisa dipakai polling status setelah pembayaran (`status` jadi `paid`)."
+          }
+        },
+        {
+          "name": "Order Pay (lanjutkan pembayaran)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/orders/{{order_number}}/pay",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "orders",
+                "{{order_number}}",
+                "pay"
+              ]
+            },
+            "description": "Ambil `payment_url` untuk order pending yang belum lewat batas bayar. 422 bila sudah tidak bisa dibayar."
+          }
+        },
+        {
+          "name": "Order Invoice PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/billing/orders/{{order_number}}/invoice",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "billing",
+                "orders",
+                "{{order_number}}",
+                "invoice"
+              ]
+            },
+            "description": "Download invoice PDF (gunakan *Send and Download*)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            },
+            "description": "Profil user yang sedang login."
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            },
+            "description": "Kirim hanya field yang diubah.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"timezone\": \"Asia/Jakarta\",\n  \"email_notifications_enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profile/avatar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profile",
+                "avatar"
+              ]
+            },
+            "description": "multipart/form-data, field `avatar` (maks 2 MB).",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Avatar",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profile/avatar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profile",
+                "avatar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profile/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profile",
+                "password"
+              ]
+            },
+            "description": "Token perangkat lain dicabut; token ini tetap berlaku.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"\",\n  \"password\": \"\",\n  \"password_confirmation\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

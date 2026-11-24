@@ -2,12 +2,28 @@
      MILESTONES DASHBOARD & MANAGEMENT (Card & Roadmap, Hierarchy Table, Hierarchy Diagram)
      ============================================================ --}}
 @php
-    // $allMilestones, $milestoneMonth (null = semua bulan) & $milestoneTotalCount
-    // disiapkan ProjectWebController::show (difilter per bulan).
+    // $allMilestones & variabel filter periode disiapkan ProjectWebController::show.
     $allMilestones = $allMilestones ?? collect();
+    $milestoneFilterMode = $milestoneFilterMode ?? 'all';   // month | range | all
     $milestoneMonth = $milestoneMonth ?? null;
+    $milestoneRangeFrom = $milestoneRangeFrom ?? null;
+    $milestoneRangeTo = $milestoneRangeTo ?? null;
     $milestoneTotalCount = $milestoneTotalCount ?? $allMilestones->count();
-    $milestoneMonthUrl = fn ($month) => request()->fullUrlWithQuery(['month' => $month]);
+    $milestonePeriodUrl = fn (array $q) => url()->current() . '?' . http_build_query(array_merge(request()->except(['month', 'from', 'to']), $q));
+    $milestoneMonthUrl = fn ($month) => $milestonePeriodUrl(['month' => $month]);
+    $milestonePeriodLabel = match ($milestoneFilterMode) {
+        'month' => $milestoneMonth->translatedFormat('F Y'),
+        'range' => $milestoneRangeFrom->translatedFormat('j M Y') . ' – ' . $milestoneRangeTo->translatedFormat('j M Y'),
+        default => 'semua periode',
+    };
+    $msToday = now();
+    $msQuarterStart = $msToday->copy()->firstOfQuarter();
+    $milestoneRangePresets = [
+        'Kuartal ini' => [$msQuarterStart->toDateString(), $msToday->copy()->lastOfQuarter()->toDateString()],
+        'Kuartal lalu' => [$msQuarterStart->copy()->subQuarter()->toDateString(), $msQuarterStart->copy()->subDay()->toDateString()],
+        '3 bulan ke depan' => [$msToday->copy()->startOfMonth()->toDateString(), $msToday->copy()->addMonths(2)->endOfMonth()->toDateString()],
+        'Tahun ini' => [$msToday->copy()->startOfYear()->toDateString(), $msToday->copy()->endOfYear()->toDateString()],
+    ];
     $totalMilestones = $allMilestones->count();
     $completedMilestones = $allMilestones->where('status', 'completed')->count();
     $inProgressMilestones = $allMilestones->whereIn('status', ['in_progress', 'active'])->count();
@@ -143,26 +159,72 @@
 
         {{-- Filters & Action Buttons --}}
         <div class="flex items-center gap-2.5 flex-wrap justify-end">
-            {{-- Month Filter (server-side) --}}
-            <div class="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-1 py-0.5 shadow-2xs">
-                @if($milestoneMonth)
+            {{-- Period Filter (server-side): bulan / rentang tanggal / semua --}}
+            <div class="relative flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-1 py-0.5 shadow-2xs"
+                x-data="{ openRange: false, from: @js($milestoneRangeFrom?->toDateString() ?? now()->startOfMonth()->toDateString()), to: @js($milestoneRangeTo?->toDateString() ?? now()->endOfMonth()->toDateString()) }">
+                @if($milestoneFilterMode === 'month')
                     <a href="{{ $milestoneMonthUrl($milestoneMonth->copy()->subMonth()->format('Y-m')) }}" title="Bulan sebelumnya"
                         class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     </a>
-                @endif
-                <input type="month" value="{{ $milestoneMonth?->format('Y-m') }}"
-                    @change="if ($event.target.value) window.location.href = @js($milestoneMonthUrl('__M__')).replace('__M__', $event.target.value)"
-                    class="bg-transparent border-0 p-0 px-1 text-xs font-medium text-slate-700 dark:text-slate-300 focus:ring-0 dark:[color-scheme:dark]">
-                @if($milestoneMonth)
+                    <input type="month" value="{{ $milestoneMonth->format('Y-m') }}"
+                        @change="if ($event.target.value) window.location.href = @js($milestoneMonthUrl('__M__')).replace('__M__', $event.target.value)"
+                        class="bg-transparent border-0 p-0 px-1 text-xs font-medium text-slate-700 dark:text-slate-300 focus:ring-0 dark:[color-scheme:dark]">
                     <a href="{{ $milestoneMonthUrl($milestoneMonth->copy()->addMonth()->format('Y-m')) }}" title="Bulan berikutnya"
                         class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
-                    <a href="{{ $milestoneMonthUrl('all') }}" class="px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-blue-600 rounded-lg">Semua</a>
                 @else
-                    <a href="{{ $milestoneMonthUrl(now()->format('Y-m')) }}" class="px-2 py-1 text-[11px] font-semibold text-blue-600 rounded-lg">Bulan ini</a>
+                    <button type="button" @click="openRange = !openRange"
+                        class="px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        {{ $milestoneFilterMode === 'range' ? $milestonePeriodLabel : 'Semua periode' }}
+                    </button>
+                    <a href="{{ $milestoneMonthUrl(now()->format('Y-m')) }}" class="px-2 py-1 text-[11px] font-semibold text-blue-600 rounded-lg whitespace-nowrap">Bulan ini</a>
                 @endif
+
+                <span class="w-px h-4 bg-slate-200 dark:bg-slate-700"></span>
+                <button type="button" @click="openRange = !openRange" title="Rentang tanggal"
+                    class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold rounded-lg {{ $milestoneFilterMode === 'range' ? 'text-blue-600 bg-blue-50 dark:bg-blue-950/50' : 'text-slate-500 hover:text-blue-600' }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Rentang</span>
+                </button>
+                @if($milestoneFilterMode !== 'all')
+                    <a href="{{ $milestoneMonthUrl('all') }}" class="px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-blue-600 rounded-lg">Semua</a>
+                @endif
+
+                {{-- Popover rentang tanggal --}}
+                <div x-show="openRange" @click.outside="openRange = false" x-cloak
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    class="absolute right-0 top-full mt-1.5 w-72 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-3 z-50 space-y-3">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rentang Tanggal</div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        @foreach($milestoneRangePresets as $presetLabel => [$pFrom, $pTo])
+                            <button type="button" @click="from = @js($pFrom); to = @js($pTo)"
+                                :class="from === @js($pFrom) && to === @js($pTo) ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/50' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'"
+                                class="px-2 py-1.5 text-[11px] font-semibold rounded-lg border transition">{{ $presetLabel }}</button>
+                        @endforeach
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="space-y-1">
+                            <span class="text-[10px] font-semibold text-slate-500">Dari</span>
+                            <input type="date" x-model="from"
+                                class="w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 dark:[color-scheme:dark] focus:outline-none focus:border-blue-500">
+                        </label>
+                        <label class="space-y-1">
+                            <span class="text-[10px] font-semibold text-slate-500">Sampai</span>
+                            <input type="date" x-model="to" :min="from"
+                                class="w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 dark:[color-scheme:dark] focus:outline-none focus:border-blue-500">
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" @click="openRange = false" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700">Batal</button>
+                        <button type="button" :disabled="!from || !to"
+                            @click="window.location.href = @js($milestonePeriodUrl(['from' => '__F__', 'to' => '__T__'])).replace('__F__', from).replace('__T__', to)"
+                            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg">Terapkan</button>
+                    </div>
+                </div>
             </div>
 
             {{-- Search Bar --}}
@@ -397,10 +459,10 @@
                 </svg>
             </div>
             <div class="space-y-1.5 max-w-md mx-auto">
-                @if($milestoneTotalCount > 0 && $milestoneMonth)
-                    <h3 class="text-lg font-black text-gray-900 dark:text-white">Tidak ada milestone di {{ $milestoneMonth->translatedFormat('F Y') }}</h3>
+                @if($milestoneTotalCount > 0 && $milestoneFilterMode !== 'all')
+                    <h3 class="text-lg font-black text-gray-900 dark:text-white">Tidak ada milestone di {{ $milestonePeriodLabel }}</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Project ini punya {{ $milestoneTotalCount }} milestone di bulan lain.
+                        Project ini punya {{ $milestoneTotalCount }} milestone di periode lain.
                         <a href="{{ $milestoneMonthUrl('all') }}" class="text-blue-600 font-semibold hover:underline">Tampilkan semua</a>
                     </p>
                 @else

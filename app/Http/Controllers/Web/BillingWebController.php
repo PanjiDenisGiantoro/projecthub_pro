@@ -10,6 +10,7 @@ use App\Models\PpnRate;
 use App\Models\SubscriptionOrder;
 use App\Models\User;
 use App\Services\DokuService;
+use App\Services\SubscriptionCheckoutService;
 use App\Support\PlanLimits;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -56,10 +57,11 @@ class BillingWebController extends Controller
     /** Jumlah user aktif perusahaan — default jumlah user yang ditagih. */
     private function companyUserCount(?int $companyId): int
     {
-        return max(1, User::where('company_id', $companyId)->where('is_active', true)->count());
+        // Sama dengan hitungan kuota: semua user (aktif/nonaktif) tanpa client.
+        return max(1, PlanLimits::forCompany($companyId)->userCount());
     }
 
-    /** GET /billing/history — riwayat pembayaran perusahaan. */
+    /** GET /billing/history — Subscribe & Usage: pemakaian kuota paket + riwayat pembayaran perusahaan. */
     public function history(Request $request)
     {
         abort_unless(Auth::user()->can('access billing'), 403);
@@ -70,7 +72,10 @@ class BillingWebController extends Controller
             ->paginate($this->perPage($request))
             ->withQueryString();
 
-        return view('billing.history', compact('orders'));
+        $limits    = PlanLimits::forUser(Auth::user());
+        $breakdown = collect($limits->storageBreakdown())->filter()->sortDesc();
+
+        return view('billing.history', compact('orders', 'limits', 'breakdown'));
     }
 
     /** GET /billing/history/{order}/invoice — invoice PDF untuk satu order langganan. */
@@ -139,47 +144,16 @@ class BillingWebController extends Controller
             return back()->withErrors(['payment_method' => 'Metode pembayaran tidak tersedia.']);
         }
 
-        // Biaya layanan ditanggung customer, dihitung dari harga + PPN; DOKU dikunci ke metode terpilih.
-        $quote = $package->quote($request->integer('users'), $request->input('cycle'), $registrant->company_id);
-        $fee   = $method->feeFor($quote['total']);
-
-        $order = SubscriptionOrder::create([
-            'order_number'          => 'SUB-' . now()->format('YmdHis') . '-' . Str::upper(Str::random(6)),
-            'user_id'               => $registrant->id,
-            'company_id'            => $registrant->company_id,
-            'package_id'            => $package->id,
-            'package_name'          => $package->name,
-            'billing_cycle'         => $quote['cycle'],
-            'user_count'            => $quote['users'],
-            'promo_id'              => $quote['promo']?->id,
-            'promo_name'            => $quote['promo']?->name,
-            'discount_amount'       => $quote['discount'],
-            'subtotal'              => $quote['subtotal'],
-            'ppn_rate'              => $quote['rate'],
-            'ppn_amount'            => $quote['ppn'],
-            'payment_method_code'   => $method->code,
-            'payment_method_name'   => $method->name,
-            'fee_amount'            => $fee,
-            'amount'                => $quote['total'] + $fee,
-            'duration_days'         => $quote['duration_days'],
-            'status'                => 'pending',
-        ]);
-
         try {
-            $result = $this->doku->createPayment($order);
+            $order = app(SubscriptionCheckoutService::class)
+                ->checkout($registrant, $package, $request->integer('users'), $request->input('cycle'), $method);
         } catch (\Throwable $e) {
-            Log::error('Checkout DOKU gagal', ['order_number' => $order->order_number, 'error' => $e->getMessage()]);
+            Log::error('Checkout DOKU gagal', ['package' => $package->slug, 'error' => $e->getMessage()]);
 
             return back()->with('error', 'Gagal membuat transaksi pembayaran. Silakan coba lagi.');
         }
 
-        $order->update([
-            'snap_token'         => $result['token_id'] ?? null,
-            'payment_url'        => $result['url'],
-            'payment_expires_at' => now()->addMinutes((int) config('services.doku.payment_due_minutes', 60)),
-        ]);
-
-        return redirect()->away($result['url']);
+        return redirect()->away($order->payment_url);
     }
 
     /** GET /billing/finish — halaman kembali setelah user menyelesaikan/membatalkan pembayaran di DOKU. */

@@ -35,7 +35,7 @@ class UserController extends Controller
         ]);
 
         $limits = PlanLimits::current();
-        if ($request->boolean('is_active', true) && ! $limits->canAddUser()) {
+        if ($request->role !== 'client' && ! $limits->canAddUser()) {
             return response()->json(['message' => $limits->limitMessage('user'), 'upgrade_url' => route('billing.renew')], 403);
         }
 
@@ -68,6 +68,12 @@ class UserController extends Controller
             'is_active'            => 'sometimes|boolean',
             'organization_unit_id' => 'nullable|exists:organization_units,id',
         ]);
+
+        // Client tidak dihitung kuota; mengubah client jadi role lain menambah pemakaian slot user.
+        $limits = PlanLimits::forUser($request->user());
+        if ($request->role && $request->role !== 'client' && $user->hasRole('client') && ! $limits->canAddUser()) {
+            return response()->json(['message' => $limits->limitMessage('user'), 'upgrade_url' => route('billing.renew')], 403);
+        }
 
         $user->update($request->only('name', 'email', 'is_active', 'timezone', 'organization_unit_id'));
 

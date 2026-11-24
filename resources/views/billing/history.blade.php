@@ -1,16 +1,20 @@
 @extends('layouts.app')
-@section('title', 'Riwayat Pembayaran')
-@section('page-title', 'Riwayat Pembayaran')
+@section('title', 'Subscribe & Usage')
+@section('page-title', 'Subscribe & Usage')
 
 @section('content')
-<div class="py-4">
-    <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-gray-500">Riwayat transaksi langganan perusahaan Anda.</p>
+<div class="py-4 space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-gray-500">Pemakaian kuota paket dan riwayat transaksi langganan perusahaan Anda.</p>
         <a href="{{ route('billing.renew') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             Perpanjang / Upgrade Paket
         </a>
     </div>
 
+    @include('billing.partials.usage')
+
+    <div class="space-y-3">
+    <h2 class="text-sm font-semibold text-gray-700">Riwayat Pembayaran</h2>
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
@@ -98,6 +102,7 @@
             {{ $orders->links() }}
             @endif
         </div>
+    </div>
     </div>
 </div>
 @endsection

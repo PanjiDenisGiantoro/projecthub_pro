@@ -129,7 +129,7 @@
                             </svg>
                             <span>Upload Foto Profil</span>
                             <input type="file" name="avatar" accept="image/*" class="hidden"
-                                onchange="document.getElementById('hero-avatar-upload-form').submit()">
+                                onchange="openAvatarPreview(this)">
                         </label>
                     </form>
 
@@ -315,7 +315,7 @@
 
                         <div class="flex-1 w-full space-y-3">
                             <form method="POST" action="{{ route('profile.avatar') }}" enctype="multipart/form-data"
-                                class="space-y-3">
+                                id="card-avatar-upload-form" class="space-y-3">
                                 @csrf
                                 @method('PUT')
 
@@ -325,25 +325,9 @@
                                             class="px-4 py-2.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 text-center transition-all bg-slate-50/50 dark:bg-slate-800/30">
                                             <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Pilih
                                                 Foto Baru</span>
-                                            <input type="file" name="avatar" accept="image/*" class="hidden" onchange="
-                                                                           if (this.files && this.files[0]) {
-                                                                               const reader = new FileReader();
-                                                                               reader.onload = function(e) {
-                                                                                   const prev = document.getElementById('avatar-card-preview');
-                                                                                   if (prev) prev.src = e.target.result;
-                                                                                   const hero = document.getElementById('avatar-preview-hero');
-                                                                                   if (hero) hero.src = e.target.result;
-                                                                               };
-                                                                               reader.readAsDataURL(this.files[0]);
-                                                                               document.getElementById('save-avatar-btn').classList.remove('opacity-50', 'pointer-events-none');
-                                                                           }
-                                                                       ">
+                                            <input type="file" name="avatar" accept="image/*" class="hidden" onchange="openAvatarPreview(this)">
                                         </div>
                                     </label>
-                                    <button type="submit" id="save-avatar-btn"
-                                        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-500/20 cursor-pointer">
-                                        Simpan Foto
-                                    </button>
                                 </div>
                             </form>
 
@@ -574,4 +558,82 @@
         </div>
 
     </div>
+    {{-- Preview foto profil: foto baru hanya disimpan setelah user menekan "Simpan Foto". --}}
+    <div id="avatar-preview-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+        role="dialog" aria-modal="true" aria-labelledby="avatar-preview-title" onclick="if (event.target === this) closeAvatarPreview()">
+        <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6">
+            <h3 id="avatar-preview-title" class="text-base font-bold text-slate-900 dark:text-white">Pratinjau Foto Profil</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Foto belum disimpan. Periksa dulu sebelum mengganti foto profil.</p>
+            <div class="mt-5 flex flex-col items-center gap-3">
+                <img id="avatar-preview-img" alt="Pratinjau foto profil"
+                    class="w-40 h-40 rounded-full object-cover ring-4 ring-slate-100 dark:ring-slate-800 shadow-md">
+                <p id="avatar-preview-name" class="text-xs text-slate-500 dark:text-slate-400 max-w-full truncate"></p>
+                <p id="avatar-preview-error" class="hidden text-xs font-semibold text-rose-600 dark:text-rose-400 text-center"></p>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button type="button" onclick="closeAvatarPreview()"
+                    class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="button" id="avatar-preview-save" onclick="saveAvatarPreview()"
+                    class="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-500/20 transition cursor-pointer disabled:opacity-50 disabled:pointer-events-none">
+                    Simpan Foto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            let activeInput = null;
+            let objectUrl = null;
+            const MAX_BYTES = 2 * 1024 * 1024; // sama dengan validasi server (max:2048 KB)
+            const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            const el = id => document.getElementById(id);
+
+            window.openAvatarPreview = function (input) {
+                const file = input.files && input.files[0];
+                if (!file) return;
+                activeInput = input;
+                if (objectUrl) URL.revokeObjectURL(objectUrl);
+                objectUrl = URL.createObjectURL(file);
+                el('avatar-preview-img').src = objectUrl;
+                el('avatar-preview-name').textContent = file.name + ' • ' + Math.round(file.size / 1024) + ' KB';
+
+                let error = '';
+                if (!ALLOWED.includes(file.type)) error = 'Format harus JPG, PNG, GIF, atau WEBP.';
+                else if (file.size > MAX_BYTES) error = 'Ukuran foto maksimal 2 MB.';
+                el('avatar-preview-error').textContent = error;
+                el('avatar-preview-error').classList.toggle('hidden', !error);
+                el('avatar-preview-save').disabled = !!error;
+                el('avatar-preview-save').textContent = 'Simpan Foto';
+
+                const modal = el('avatar-preview-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            };
+
+            window.closeAvatarPreview = function () {
+                const modal = el('avatar-preview-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                // Batal: kosongkan pilihan supaya tidak ada yang tersimpan & file yang sama bisa dipilih lagi.
+                if (activeInput) activeInput.value = '';
+                activeInput = null;
+                if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+            };
+
+            window.saveAvatarPreview = function () {
+                if (!activeInput) return;
+                const btn = el('avatar-preview-save');
+                btn.disabled = true;
+                btn.textContent = 'Menyimpan...';
+                activeInput.form.submit();
+            };
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && !el('avatar-preview-modal').classList.contains('hidden')) closeAvatarPreview();
+            });
+        })();
+    </script>
 @endsection

@@ -17,6 +17,8 @@
                 <th class="text-left px-6 py-3 font-medium">Perusahaan</th>
                 <th class="text-left px-6 py-3 font-medium">Kontak</th>
                 <th class="text-center px-6 py-3 font-medium">Unit Organisasi</th>
+                <th class="text-left px-6 py-3 font-medium">User</th>
+                <th class="text-left px-6 py-3 font-medium">Project</th>
                 <th class="text-left px-6 py-3 font-medium">Storage</th>
                 <th class="text-left px-6 py-3 font-medium">Terdaftar</th>
                 <th class="text-center px-6 py-3 font-medium">Status</th>
@@ -49,7 +51,26 @@
                     $maxBytes   = $limits->maxStorageBytes();
                     $usedPct    = $maxBytes ? min(100, $usedBytes / $maxBytes * 100) : null;
                     $barColor   = $usedPct === null ? 'bg-slate-500' : ($usedPct >= 90 ? 'bg-red-500' : ($usedPct >= 70 ? 'bg-amber-500' : 'bg-blue-500'));
+                    $pctColor   = fn (?float $p) => $p === null ? 'bg-slate-500' : ($p >= 100 ? 'bg-red-500' : ($p >= 80 ? 'bg-amber-500' : 'bg-blue-500'));
+                    // User: semua user perusahaan (aktif & nonaktif) kecuali client — sama dengan hitungan kuota paket.
+                    $quotaCells = [
+                        ['used' => $limits->userCount(), 'max' => $limits->maxUsers(), 'note' => 'tanpa client'],
+                        ['used' => $limits->projectCount(), 'max' => $limits->maxProjects(), 'note' => 'tanpa yang dihapus'],
+                    ];
                 @endphp
+                @foreach($quotaCells as $cell)
+                    @php $pct = $cell['max'] ? min(100, $cell['used'] / $cell['max'] * 100) : null; @endphp
+                    <td class="px-6 py-4" style="min-width: 110px">
+                        <p class="text-xs text-slate-300">
+                            {{ number_format($cell['used'], 0, ',', '.') }}
+                            <span class="text-slate-500">/ {{ \App\Models\Package::limitDisplay($cell['max']) }}</span>
+                        </p>
+                        <div class="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                            <div class="h-full rounded-full {{ $pctColor($pct) }}" style="width: {{ $pct === null ? 0 : max(1, $pct) }}%"></div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">{{ $cell['note'] }}{{ $pct !== null ? ' · ' . round($pct) . '%' : '' }}</p>
+                    </td>
+                @endforeach
                 <td class="px-6 py-4 min-w-[160px]">
                     <p class="text-xs text-slate-300">
                         {{ \App\Support\PlanLimits::humanBytes($usedBytes) }}
@@ -91,7 +112,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="7" class="px-6 py-12 text-center text-slate-500">Belum ada perusahaan.</td>
+                <td colspan="9" class="px-6 py-12 text-center text-slate-500">Belum ada perusahaan.</td>
             </tr>
             @endforelse
         </tbody>
@@ -141,6 +162,17 @@
                         <div class="h-full rounded-full" :class="barBg(storage.percent)" :style="'width:' + (storage.percent ?? 0) + '%'"></div>
                     </div>
                     <p class="text-xs text-slate-500 mt-2" x-show="storage.remaining">Sisa: <span class="text-slate-300" x-text="storage.remaining"></span></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <div class="rounded-xl bg-white/5 px-4 py-3">
+                        <p class="text-[11px] text-slate-500 uppercase tracking-wide">User (tanpa client)</p>
+                        <p class="text-sm font-semibold text-white mt-0.5" x-text="storage.users"></p>
+                    </div>
+                    <div class="rounded-xl bg-white/5 px-4 py-3">
+                        <p class="text-[11px] text-slate-500 uppercase tracking-wide">Project</p>
+                        <p class="text-sm font-semibold text-white mt-0.5" x-text="storage.projects"></p>
+                    </div>
                 </div>
 
                 <p class="text-xs text-slate-500 uppercase tracking-wide mt-5 mb-2">Rincian per menu</p>

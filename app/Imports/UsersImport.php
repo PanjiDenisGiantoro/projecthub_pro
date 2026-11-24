@@ -176,9 +176,8 @@ class UsersImport implements ToCollection, WithHeadingRow, WithMultipleSheets
                 $data['custom_fields'] = $this->collectCustomFieldValues($row, $existing);
             }
 
-            // User baru / diaktifkan kembali menambah kuota user paket.
-            $activating = ($data['is_active'] ?? true) && ! $existing?->is_active;
-            if ($activating && ! PlanLimits::forCompany($this->companyId)->canAddUser()) {
+            // Hanya user baru yang menambah kuota (user nonaktif juga sudah dihitung).
+            if (! $existing && $role?->name !== 'client' && ! PlanLimits::forCompany($this->companyId)->canAddUser()) {
                 $this->errors[] = "Baris {$line}: " . PlanLimits::forCompany($this->companyId)->limitMessage('user');
                 continue;
             }

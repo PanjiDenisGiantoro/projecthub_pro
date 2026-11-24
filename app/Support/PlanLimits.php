@@ -112,10 +112,13 @@ class PlanLimits
         return $paid ?: $this->plan->max_users;
     }
 
-    /** User aktif perusahaan, tanpa akun client (portal klien tidak dihitung). */
+    /**
+     * Semua user perusahaan (aktif maupun nonaktif), tanpa akun client (portal klien tidak dihitung).
+     * Menonaktifkan user tidak membebaskan slot; slot kosong hanya bila user dihapus.
+     */
     public function userCount(): int
     {
-        return User::where('company_id', $this->companyId)->where('is_active', true)
+        return User::where('company_id', $this->companyId)
             ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))
             ->count();
     }
@@ -239,9 +242,11 @@ class PlanLimits
             ? ['user', $this->maxUsers()]
             : ['project', $this->maxProjects()];
 
+        $hint = $resource === 'user' ? ' (user nonaktif tetap dihitung; hapus user yang tidak dipakai untuk mengosongkan slot)' : '';
+
         return [
             'title'   => 'Batas paket tercapai',
-            'message' => "Paket {$this->planName()} Anda maksimal {$max} {$label}. Upgrade paket untuk menambah {$label} lagi.",
+            'message' => "Paket {$this->planName()} Anda maksimal {$max} {$label}{$hint}. Upgrade paket untuk menambah {$label} lagi.",
             'url'     => route('billing.renew'),
         ];
     }

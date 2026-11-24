@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityLogController;
+use App\Http\Controllers\Api\BillingController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectWorkspaceController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Web\CalendarWebController;
 use App\Http\Controllers\Web\ChatWebController;
 use App\Http\Controllers\Web\DirectMessageWebController;
@@ -36,6 +41,9 @@ use Illuminate\Support\Facades\Route;
 // ─── Public Auth ─────────────────────────────────────────────────────────────
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/google', [AuthController::class, 'google'])->middleware('throttle:10,1');
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:6,1');
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:6,1');
 
 // ─── Protected Routes ─────────────────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -44,6 +52,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+
+    // Profile (user yang sedang login)
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -79,7 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{user}', [UserController::class, 'show']);
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
-        Route::get('/roles', [UserController::class, 'roles']);
+        Route::get('/roles', [RoleController::class, 'index']);
 
         // SLA Policies
         Route::get('/sla-policies', [SlaPolicyController::class, 'index']);
@@ -121,11 +136,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/requests/{customerRequest}/reject', [CustomerRequestController::class, 'reject']);
         Route::put('/requests/{customerRequest}/complete', [CustomerRequestController::class, 'complete']);
 
-        // Invoices
-        Route::post('/invoices', [InvoiceController::class, 'store']);
-        Route::put('/invoices/{invoice}', [InvoiceController::class, 'update']);
-        Route::put('/invoices/{invoice}/send', [InvoiceController::class, 'send']);
-        Route::put('/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
+        // Invoices (permission-gated, sama dengan web)
+        Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('can:create invoice');
+        Route::middleware('can:update invoice')->group(function () {
+            Route::put('/invoices/{invoice}', [InvoiceController::class, 'update']);
+            Route::put('/invoices/{invoice}/send', [InvoiceController::class, 'send']);
+            Route::put('/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
+        });
     });
 
     // ─── Projects ────────────────────────────────────────────────────────────
@@ -215,9 +232,39 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/{project}/timesheet', [TimeLogController::class, 'timesheet']);
 
     // ─── Invoices (read) ─────────────────────────────────────────────────────
-    Route::get('/invoices', [InvoiceController::class, 'index']);
-    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
-    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf']);
+    Route::middleware('can:access invoices')->group(function () {
+        Route::get('/invoices', [InvoiceController::class, 'index']);
+        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
+        Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf']);
+    });
+
+    // ─── Role, Permission & Activity Log (permission-gated, sama dengan web) ──
+    Route::middleware('can:manage permissions')->group(function () {
+        Route::post('/roles', [RoleController::class, 'store']);
+        Route::get('/roles/{role}', [RoleController::class, 'show']);
+        Route::put('/roles/{role}', [RoleController::class, 'update']);
+        Route::delete('/roles/{role}', [RoleController::class, 'destroy']);
+
+        Route::get('/permissions', [PermissionController::class, 'index']);
+        Route::put('/permissions/{role}', [PermissionController::class, 'update']);
+        Route::post('/permissions/{role}/reset', [PermissionController::class, 'reset']);
+
+        Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+    });
+
+    // ─── Langganan / Billing (DOKU) ──────────────────────────────────────
+    Route::prefix('billing')->group(function () {
+        Route::get('/subscription', [BillingController::class, 'subscription']);
+        Route::get('/usage', [BillingController::class, 'usage']);
+        Route::get('/packages', [BillingController::class, 'packages']);
+        Route::get('/payment-methods', [BillingController::class, 'paymentMethods']);
+        Route::get('/packages/{package}/quote', [BillingController::class, 'quote']);
+        Route::post('/checkout/{package}', [BillingController::class, 'checkout']);
+        Route::get('/orders', [BillingController::class, 'orders']);
+        Route::get('/orders/{order:order_number}', [BillingController::class, 'show']);
+        Route::get('/orders/{order:order_number}/pay', [BillingController::class, 'pay']);
+        Route::get('/orders/{order:order_number}/invoice', [BillingController::class, 'invoice']);
+    });
 
     // ─── Proyek: sprint, file, budget, risiko, anggota, komentar task ──────
     Route::get('/projects/{project}/sprints', [ProjectWorkspaceController::class, 'sprints']);

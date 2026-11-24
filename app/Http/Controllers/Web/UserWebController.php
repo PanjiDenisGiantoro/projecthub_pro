@@ -238,7 +238,7 @@ class UserWebController extends Controller
     public function store(Request $request)
     {
         $limits = PlanLimits::current();
-        if ($request->boolean('is_active', true) && ! $limits->canAddUser()) {
+        if (! $limits->canAddUser()) {
             return back()->withInput($request->except('password', 'password_confirmation'))->with('plan_limit', $limits->limitNotice('user'));
         }
 
@@ -331,7 +331,8 @@ class UserWebController extends Controller
     public function update(Request $request, User $user)
     {
         $limits = PlanLimits::current();
-        if (! $user->is_active && $request->boolean('is_active') && ! $user->hasRole('client') && ! $limits->canAddUser()) {
+        // Semua user (aktif/nonaktif) sudah dihitung; hanya client yang dijadikan user biasa menambah pemakaian slot.
+        if ($user->hasRole('client') && ! $limits->canAddUser()) {
             return back()->withInput()->with('plan_limit', $limits->limitNotice('user'));
         }
 

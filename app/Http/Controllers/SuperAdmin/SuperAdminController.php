@@ -69,6 +69,8 @@ class SuperAdminController extends Controller
             'limit'     => $limits->storageLimitLabel(),
             'remaining' => $max === null ? null : PlanLimits::humanBytes(max(0, $max - $used)),
             'percent'   => $max ? min(100, round($used / $max * 100, 1)) : null,
+            'users'     => $limits->userCount() . ' / ' . \App\Models\Package::limitDisplay($limits->maxUsers()),
+            'projects'  => $limits->projectCount() . ' / ' . \App\Models\Package::limitDisplay($limits->maxProjects()),
             'items'     => collect($breakdown)->sortDesc()->map(fn ($bytes, $label) => [
                 'label'   => $label,
                 'size'    => PlanLimits::humanBytes($bytes),

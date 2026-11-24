@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Project;
@@ -11,21 +12,53 @@ use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
+    use HasPerPage;
+
     public function __construct(private NotificationService $notifier) {}
 
     public function index(Request $request)
     {
-        $user = $request->user();
-
-        $query = Invoice::with(['project', 'client'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id));
+        $user      = $request->user();
+        $baseQuery = Invoice::query();
 
         if ($user->hasRole('client')) {
-            $query->where('client_id', $user->id);
+            $baseQuery->where('client_id', $user->id);
         }
 
-        return response()->json($query->latest()->paginate(15));
+        // Ringkasan KPI (sama dengan halaman web /invoices), dihitung sebelum filter status/search.
+        $stats = [
+            'total_amount'   => (float) (clone $baseQuery)->sum('total'),
+            'paid_amount'    => (float) (clone $baseQuery)->where('status', 'paid')->sum('total'),
+            'pending_amount' => (float) (clone $baseQuery)->whereIn('status', ['sent', 'draft'])->sum('total'),
+            'overdue_amount' => (float) (clone $baseQuery)->where('status', 'overdue')->sum('total'),
+            'total_count'    => (clone $baseQuery)->count(),
+            'paid_count'     => (clone $baseQuery)->where('status', 'paid')->count(),
+            'pending_count'  => (clone $baseQuery)->whereIn('status', ['sent', 'draft'])->count(),
+            'overdue_count'  => (clone $baseQuery)->where('status', 'overdue')->count(),
+        ];
+
+        $invoices = (clone $baseQuery)->with(['project', 'client'])
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->project_id, fn($q) => $q->where('project_id', $request->project_id))
+            ->when($request->search, function ($q) use ($request) {
+                $term = $request->search;
+                $q->where(function ($sub) use ($term) {
+                    $sub->where('invoice_number', 'like', "%{$term}%")
+                        ->orWhereHas('client', fn($c) => $c->where('name', 'like', "%{$term}%"))
+                        ->orWhereHas('project', fn($p) => $p->where('name', 'like', "%{$term}%"));
+                });
+            })
+            ->latest()
+            ->paginate($this->perPage($request, 15))
+            ->withQueryString();
+
+        return response()->json(array_merge($invoices->toArray(), [
+            'stats'  => $stats,
+            'can'    => [
+                'create' => $user->can('create invoice'),
+                'update' => $user->can('update invoice'),
+            ],
+        ]));
     }
 
     public function store(Request $request)
@@ -63,6 +96,8 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
+        $this->authorizeClient($invoice);
+
         return response()->json($invoice->load(['project', 'client', 'items']));
     }
 
@@ -114,10 +149,19 @@ class InvoiceController extends Controller
 
     public function downloadPdf(Invoice $invoice)
     {
+        $this->authorizeClient($invoice);
+
         $invoice->load(['project', 'client', 'items']);
 
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
 
         return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
+    }
+
+    /** Client hanya boleh melihat invoice miliknya sendiri. */
+    private function authorizeClient(Invoice $invoice): void
+    {
+        $user = auth()->user();
+        abort_if($user->hasRole('client') && $invoice->client_id !== $user->id, 403);
     }
 }

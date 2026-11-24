@@ -40,6 +40,7 @@ return [
         'client_secret'     => env('GOOGLE_CLIENT_SECRET'),
         'redirect'          => env('GOOGLE_REDIRECT_URI'),
         'calendar_redirect' => env('GOOGLE_CALENDAR_REDIRECT_URI'),
+        'mobile_client_ids' => env('GOOGLE_MOBILE_CLIENT_IDS', ''),
     ],
 
     'midtrans' => [
