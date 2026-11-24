@@ -30,6 +30,7 @@ use App\Http\Controllers\TicketChecklistController;
 use App\Http\Controllers\TicketTemplateController;
 use App\Http\Controllers\TimeLogController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Web\AiAssistantWebController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public Auth ─────────────────────────────────────────────────────────────
@@ -267,6 +268,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/forums/{forum}/messages/{message}', [ForumWebController::class, 'update']);
     Route::delete('/forums/{forum}/messages/{message}', [ForumWebController::class, 'destroy']);
     Route::post('/forums/{forum}/read', [ForumWebController::class, 'markRead']);
+
+    // ─── AI Assistant / Runa (controller sama dengan web) ───────────────────
+    // /ai/chat: text/plain streaming (balasan biasa) ATAU JSON {reply, action}
+    // (usulan aksi). Lihat docs/API_AI_ASSISTANT_MOBILE.md.
+    Route::post('/ai/chat', [AiAssistantWebController::class, 'chat'])->middleware('throttle:20,1');
+    Route::post('/ai/execute-action', [AiAssistantWebController::class, 'executeAction'])->middleware('throttle:20,1');
 
     // ─── HRIS (mobile) ──────────────────────────────────────────────────────
     Route::prefix('hris')->middleware('package:hris')->group(function () {

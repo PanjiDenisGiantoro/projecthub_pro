@@ -119,6 +119,125 @@ class AiAssistantWebController extends Controller
         ];
     }
 
+    /**
+     * Data nyata milik user yang login, disisipkan ke system prompt supaya Runa
+     * bisa jawab "siapa saja anggota tim", "proyek apa saja" dll tanpa mengarang
+     * (model 1B pasti halu kalau datanya tidak ada). Dibatasi sesuai hak akses
+     * yang sama dengan halaman web: daftar anggota cuma untuk yang punya
+     * permission "access users", proyek cuma yang bisa dilihat user (company
+     * scope + aturan sama seperti executeCreateTask). Dipotong jumlahnya supaya
+     * prompt tetap pendek — prompt panjang = lambat di server CPU.
+     */
+    private function companyContext(): string
+    {
+        $user  = auth()->user();
+        $lines = ['DATA PERUSAHAAN (akurat, dari database, per ' . now()->format('d M Y') . '):'];
+        $lines[] = "User yang sedang chat: {$user->name} (role: " . ($user->getRoleNames()->join(', ') ?: '-') . ')';
+
+        $members = $this->visibleMembers();
+        if ($members === null) {
+            $lines[] = 'ANGGOTA TIM: user ini tidak punya akses melihat daftar anggota (arahkan ke admin).';
+        } else {
+            $lines[] = "ANGGOTA TIM AKTIF (total {$members->count()} orang" . ($members->count() >= 50 ? ', hanya 50 pertama' : '') . '):';
+            foreach ($members->values() as $i => $m) {
+                $lines[] = ($i + 1) . ". {$m->name} — " . ($m->roles->pluck('name')->join('/') ?: '-');
+            }
+        }
+
+        $projects = $this->visibleProjects();
+        $lines[] = "PROYEK YANG BISA DIAKSES USER INI (total {$projects->count()}" . ($projects->count() >= 30 ? ', hanya 30 terbaru' : '') . '):';
+        foreach ($projects->values() as $i => $p) {
+            $lines[] = ($i + 1) . ". {$p->name} — status {$p->status}, progress " . (int) $p->progress . '%'
+                . ($p->manager ? ", manager {$p->manager->name}" : '');
+        }
+
+        $lines[] = 'ATURAN: kalau ditanya anggota tim / proyek, jawab HANYA dari daftar di atas dan sebutkan SEMUA '
+            . 'item di daftar itu (jangan cuma satu), nama persis seperti tertulis. Kalau yang ditanya tidak ada di data itu, bilang datanya tidak '
+            . 'tersedia dan arahkan ke menu terkait — JANGAN mengarang nama, jumlah, atau contoh.';
+
+        return implode("\n", $lines);
+    }
+
+    /** Anggota aktif (non-client) satu company; null kalau user tidak punya permission "access users". */
+    private function visibleMembers(): ?\Illuminate\Support\Collection
+    {
+        $user = auth()->user();
+        if (!$user->company_id || !$user->can('access users')) {
+            return null;
+        }
+
+        return \App\Models\User::with('roles:id,name')
+            ->where('company_id', $user->company_id)
+            ->where('is_active', true)
+            ->whereDoesntHave('roles', fn ($r) => $r->where('name', 'client'))
+            ->orderBy('name')
+            ->limit(50)
+            ->get(['id', 'name']);
+    }
+
+    /** Proyek yang bisa dilihat user (company scope + aturan sama seperti executeCreateTask). */
+    private function visibleProjects(): \Illuminate\Support\Collection
+    {
+        $user  = auth()->user();
+        $query = Project::query();
+        if (!$user->hasRole(['admin', 'member'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('manager_id', $user->id)
+                    ->orWhere('client_id', $user->id)
+                    ->orWhereHas('members', fn ($q2) => $q2->where('user_id', $user->id));
+            });
+        }
+
+        return $query->with('manager:id,name')->latest()->limit(30)->get(['id', 'name', 'status', 'progress', 'manager_id']);
+    }
+
+    /**
+     * Pertanyaan "daftar" yang jelas (siapa saja anggota tim / proyek apa saja)
+     * dijawab langsung dari database, tidak lewat model — llama3.2:1b terbukti
+     * tidak konsisten (kadang cuma sebut 1 nama, kadang bilang tidak tahu walau
+     * datanya ada di prompt). Pertanyaan "cara/bagaimana/tambah/..." tetap ke
+     * model karena itu minta panduan, bukan daftar. null = bukan pertanyaan daftar.
+     */
+    private function directAnswer(array $messages): ?string
+    {
+        $lastUser = collect($messages)->last(fn ($m) => ($m['role'] ?? null) === 'user');
+        $text     = strtolower($lastUser['content'] ?? '');
+
+        if ($text === '' || preg_match('/\b(cara|bagaimana|gimana|kenapa|mengapa|tambah\w*|hapus\w*|undang\w*|invite|buat\w*|bikin\w*|edit|ubah|ganti|keluar\w*)\b/u', $text)) {
+            return null;
+        }
+
+        $asksList = '(siapa|nama|daftar|list|sebut\w*|apa\s*(saja|aja)|mana\s*(saja|aja)|berapa|semua|lihat)';
+
+        if (preg_match("/\\b{$asksList}\\b.*\\b(tim|team|anggota|member|karyawan|pegawai|staff|staf)\\b|\\b(tim|team|anggota|member|karyawan|pegawai|staff|staf)\\w*\\b.*\\b{$asksList}\\b/u", $text)) {
+            $members = $this->visibleMembers();
+            if ($members === null) {
+                return 'Maaf, akun Anda tidak punya akses untuk melihat daftar anggota tim. Silakan hubungi admin perusahaan Anda.';
+            }
+            if ($members->isEmpty()) {
+                return 'Belum ada anggota tim aktif di perusahaan Anda.';
+            }
+
+            return "Anggota tim aktif di perusahaan Anda ({$members->count()} orang" . ($members->count() >= 50 ? ', 50 pertama' : '') . "):\n"
+                . $members->values()->map(fn ($m, $i) => ($i + 1) . ". {$m->name} — " . ($m->roles->pluck('name')->join('/') ?: '-'))->join("\n")
+                . "\n\nDetail lengkap bisa dilihat di menu Anggota Tim.";
+        }
+
+        if (preg_match("/\\b{$asksList}\\b.*\\b(proyek|projek|project)\\w*\\b|\\b(proyek|projek|project)\\w*\\b.*\\b{$asksList}\\b/u", $text)) {
+            $projects = $this->visibleProjects();
+            if ($projects->isEmpty()) {
+                return 'Belum ada proyek yang bisa Anda akses.';
+            }
+
+            return "Proyek yang bisa Anda akses ({$projects->count()}" . ($projects->count() >= 30 ? ', 30 terbaru' : '') . "):\n"
+                . $projects->values()->map(fn ($p, $i) => ($i + 1) . ". {$p->name} — status {$p->status}, progress " . (int) $p->progress . '%'
+                    . ($p->manager ? ", manager {$p->manager->name}" : ''))->join("\n")
+                . "\n\nDetail lengkap bisa dilihat di menu Proyek.";
+        }
+
+        return null;
+    }
+
     public function chat(Request $request)
     {
         $request->validate([
@@ -128,7 +247,7 @@ class AiAssistantWebController extends Controller
         ]);
 
         $messages = [
-            ['role' => 'system', 'content' => config('ai_assistant.system_prompt')],
+            ['role' => 'system', 'content' => config('ai_assistant.system_prompt') . "\n\n" . $this->companyContext()],
             ...$request->messages,
         ];
 
@@ -150,6 +269,12 @@ class AiAssistantWebController extends Controller
         // cuma saat pesan user kelihatan minta buat proyek/task).
         if (!empty($tools)) {
             return $this->chatWithTools($messages, $tools);
+        }
+
+        // Pertanyaan daftar tim/proyek → jawab langsung dari DB (format sama
+        // dengan jalur streaming: text/plain), tidak lewat model.
+        if (($direct = $this->directAnswer($request->messages)) !== null) {
+            return response($direct, 200, ['Content-Type' => 'text/plain; charset=utf-8', 'Cache-Control' => 'no-cache']);
         }
 
         // Jalur normal (mayoritas pesan): streaming token-per-token supaya user
@@ -418,6 +543,7 @@ class AiAssistantWebController extends Controller
 
         return response()->json([
             'message' => "Proyek \"{$project->name}\" berhasil dibuat.",
+            'project_id' => $project->id,
             'url'     => route('projects.show', $project),
         ]);
     }
@@ -486,6 +612,8 @@ class AiAssistantWebController extends Controller
 
         return response()->json([
             'message' => "Task \"{$task->title}\" berhasil ditambahkan ke proyek \"{$project->name}\".",
+            'project_id' => $project->id,
+            'task_id'    => $task->id,
             'url'     => route('tasks.show', [$project, $task]),
         ]);
     }
