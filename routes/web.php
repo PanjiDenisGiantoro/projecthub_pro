@@ -304,6 +304,11 @@ Route::middleware(['auth', 'check.active', 'verified'])->group(function () {
     Route::get('/projects/{project}/tickets/all', [TicketWebController::class, 'index'])->name('tickets.index');
     Route::get('/projects/{project}/tickets/create', [TicketWebController::class, 'create'])->name('tickets.create');
     Route::post('/projects/{project}/tickets', [TicketWebController::class, 'store'])->name('tickets.store');
+    // Aturan SLA tiket per proyek (tab Tickets) — hak ubah dicek di controller
+    Route::middleware('can:view,project')->group(function () {
+        Route::put('/projects/{project}/tickets-sla', [\App\Http\Controllers\Web\TicketSlaWebController::class, 'update'])->name('tickets.sla.update');
+        Route::delete('/projects/{project}/tickets-sla', [\App\Http\Controllers\Web\TicketSlaWebController::class, 'reset'])->name('tickets.sla.reset');
+    });
     Route::get('/tickets/{ticket}', [TicketWebController::class, 'show'])->name('tickets.show');
     Route::put('/tickets/{ticket}', [TicketWebController::class, 'update'])->name('tickets.update');
     Route::post('/tickets/{ticket}/comments', [TicketWebController::class, 'addComment'])->name('tickets.comment');

@@ -28,6 +28,14 @@
         'low'      => ['label' => 'Low',      'dot' => 'bg-slate-400', 'badge' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', 'desc' => 'Minor / perbaikan kecil'],
     ];
 
+    // Tampilkan target selesai SLA di pilihan prioritas (form buat/edit tiket).
+    $slaRules = $slaRules ?? app(\App\Services\SlaService::class)->rulesForProject($project->id);
+    foreach ($priorityMeta as $pk => $pm) {
+        if (isset($slaRules[$pk])) {
+            $priorityMeta[$pk]['desc'] = $pm['desc'] . ' · selesai ≤ ' . \App\Models\SlaPolicy::humanMinutes($slaRules[$pk]['resolution']);
+        }
+    }
+
     $typeMeta = [
         'bug'         => ['label' => 'Bug',         'badge' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'],
         'issue'       => ['label' => 'Issue',       'badge' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'],
@@ -118,7 +126,7 @@
             ? $t->assignees
             : ($t->assignee ? collect([$t->assignee]) : collect());
 
-        $slaRemaining = $t->sla_due_at ? max(0, now()->diffInMinutes($t->sla_due_at, false)) : null;
+        $slaRemaining = $t->sla_due_at ? (int) max(0, now()->diffInMinutes($t->sla_due_at, false)) : null;
         $slaRemainingText = $slaRemaining !== null
             ? ($slaRemaining > 0 ? floor($slaRemaining / 60) . 'j ' . ($slaRemaining % 60) . 'm' : 'Terlewat')
             : '—';
@@ -140,7 +148,7 @@
             'status_badge'        => $statusMeta[$t->status ?? 'open']['badge'] ?? '',
             'status_dot'          => $statusMeta[$t->status ?? 'open']['dot'] ?? '',
             'error_category'      => $t->error_category ?? '',
-            'error_category_label'=> $errorCategories[$t->error_category]['label'] ?? ($t->error_category ? ucfirst($t->error_category) : '—'),
+            'error_category_label'=> $errorCategories[$t->error_category ?? '']['label'] ?? ($t->error_category ? ucfirst($t->error_category) : '—'),
             'solution'            => $t->solution ?? '',
             'milestone_id'        => $t->milestone_id ? (string) $t->milestone_id : '',
             'milestone_title'     => $t->milestone ? $t->milestone->title : null,
@@ -511,6 +519,9 @@
         </div>
     </div>
 
+    {{-- ── 1b. Aturan SLA Tiket (bisa diubah manager proyek / admin) ───── --}}
+    @include('projects.partials.tickets-sla-rules')
+
     {{-- ── 2. Main Section Card (No Border, No Shadow per Request) ──────── --}}
     <div class="bg-white dark:bg-gray-850 rounded-2xl">
         {{-- Card Header: Title + Create Ticket Button (View All Hidden) --}}
@@ -680,7 +691,7 @@
                         <th class="px-4 py-3.5">Milestone</th>
                         <th class="px-4 py-3.5">Prioritas</th>
                         <th class="px-4 py-3.5">Status</th>
-                        <th class="px-4 py-3.5">SLA</th>
+                        <th class="px-4 py-3.5">Target Selesai (SLA)</th>
                         <th class="px-4 py-3.5">Petugas (Assignee)</th>
                         <th class="px-4 py-3.5">Dibuat</th>
                         <th class="px-6 py-3.5 text-right">Aksi</th>
@@ -788,18 +799,22 @@
                                 </span>
                             </td>
 
-                            {{-- SLA --}}
+                            {{-- SLA: target selesai (end date tiket) + status --}}
                             <td class="px-4 py-3.5 whitespace-nowrap">
-                                @if($ticket->sla_breached)
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300">
-                                        <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                        BREACHED
-                                    </span>
-                                @elseif($ticket->sla_due_at)
-                                    <span class="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1" title="{{ $ticket->sla_due_at->format('d M Y H:i') }}">
-                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                        {{ $ticket->sla_due_at->diffForHumans() }}
-                                    </span>
+                                @php
+                                    $slaSt = $ticket->slaState();
+                                    $slaMeta = \App\Models\BugTicket::SLA_STATES[$slaSt];
+                                @endphp
+                                @if($ticket->sla_due_at)
+                                    <div class="flex flex-col gap-1" title="Target selesai {{ $ticket->sla_due_at->format('d M Y H:i') }}">
+                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                            {{ $ticket->sla_due_at->format('d M, H:i') }}
+                                        </span>
+                                        <span class="inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-bold {{ $slaMeta['badge'] }}">
+                                            {{ $slaMeta['label'] }}@if(in_array($slaSt, ['on_track', 'at_risk'])) · {{ $ticket->sla_due_at->diffForHumans(['parts' => 1, 'short' => true]) }}@endif
+                                        </span>
+                                    </div>
                                 @else
                                     <span class="text-xs text-gray-400">—</span>
                                 @endif
@@ -2085,7 +2100,7 @@
                             </div>
                             <div class="flex items-center justify-between text-[11px] text-gray-400">
                                 <span>Terpakai: <strong class="text-gray-600 dark:text-gray-300 font-semibold" x-text="detailTicket.sla_percent + '%'"></strong></span>
-                                <span x-text="'Batas: ' + detailTicket.sla_due_at"></span>
+                                <span x-text="'Target selesai: ' + detailTicket.sla_due_at"></span>
                             </div>
                         </div>
                     </template>

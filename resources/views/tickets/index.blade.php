@@ -81,7 +81,7 @@
                         <th class="px-4 py-3 text-left">Status</th>
                         <th class="px-4 py-3 text-left">Reporter</th>
                         <th class="px-4 py-3 text-left">Assignee</th>
-                        <th class="px-4 py-3 text-left">SLA</th>
+                        <th class="px-4 py-3 text-left">Target Selesai (SLA)</th>
                         <th class="px-4 py-3 text-left">Dibuat</th>
                         <th class="px-4 py-3"></th>
                     </tr>
@@ -117,7 +117,9 @@
                             <td class="px-4 py-3 text-gray-600">{{ $ticket->assignee->name ?? '—' }}</td>
                             <td class="px-4 py-3 text-xs text-gray-500">
                                 @if($ticket->sla_due_at)
-                                    {{ $ticket->sla_due_at->diffForHumans() }}
+                                    @php $slaMeta = \App\Models\BugTicket::SLA_STATES[$ticket->slaState()]; @endphp
+                                    <span class="block font-medium text-gray-700">{{ $ticket->sla_due_at->format('d M Y H:i') }}</span>
+                                    <span class="badge {{ $slaMeta['badge'] }}">{{ $slaMeta['label'] }}</span>
                                 @else — @endif
                             </td>
                             <td class="px-4 py-3 text-gray-500">{{ $ticket->created_at->format('d M Y') }}</td>

@@ -439,6 +439,8 @@ class ProjectWebController extends Controller
                     'resolved' => $project->tickets()->whereIn('status', ['resolved', 'closed'])->count(),
                     'breached' => $project->tickets()->where('sla_breached', true)->count(),
                 ];
+                $data['slaRules']     = app(\App\Services\SlaService::class)->rulesForProject($project->id);
+                $data['canManageSla'] = \App\Http\Controllers\Web\TicketSlaWebController::canManage($project);
                 break;
 
             case 'timesheet':

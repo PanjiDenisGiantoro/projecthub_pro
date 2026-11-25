@@ -33,6 +33,42 @@ class BugTicket extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Prioritas berubah lewat jalur mana pun (web, API, bulk action, approval
+        // eskalasi) → target SLA dihitung ulang dari waktu tiket dibuat.
+        static::updating(function (BugTicket $ticket) {
+            if ($ticket->isDirty('priority') && !$ticket->isDirty('sla_due_at')) {
+                app(\App\Services\SlaService::class)->fillDueDates($ticket);
+            }
+        });
+    }
+
+    /** on_track | at_risk | breached | met | missed | paused | none — untuk badge SLA. */
+    public function slaState(): string
+    {
+        if (!$this->sla_due_at) return 'none';
+        if (in_array($this->status, ['resolved', 'closed'], true)) {
+            $doneAt = $this->resolved_at ?? $this->closed_at ?? $this->updated_at;
+            return $doneAt && $doneAt->gt($this->sla_due_at) ? 'missed' : 'met';
+        }
+        if ($this->sla_paused) return 'paused';
+        if ($this->sla_breached || $this->sla_due_at->isPast()) return 'breached';
+        $pct       = $this->sla_percent_used;
+        $threshold = $this->slaPolicy?->escalation_at_percent ?? \App\Services\SlaService::ESCALATION_DEFAULT;
+        return $pct !== null && $pct >= $threshold ? 'at_risk' : 'on_track';
+    }
+
+    public const SLA_STATES = [
+        'on_track' => ['label' => 'Aman',      'badge' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'],
+        'at_risk'  => ['label' => 'Berisiko',  'badge' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'],
+        'breached' => ['label' => 'Terlewat',  'badge' => 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300'],
+        'met'      => ['label' => 'Tercapai',  'badge' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'],
+        'missed'   => ['label' => 'Telat selesai', 'badge' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'],
+        'paused'   => ['label' => 'Dijeda',    'badge' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'],
+        'none'     => ['label' => '—',         'badge' => 'text-gray-400'],
+    ];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logAll()->useLogName('ticket');
@@ -75,11 +111,13 @@ class BugTicket extends Model
         return max(0, (int) now()->diffInMinutes($this->sla_due_at, false));
     }
 
+    /** % waktu SLA terpakai, dari rentang created_at → sla_due_at (tidak bergantung policy). */
     public function getSlaPercentUsedAttribute(): ?int
     {
-        if (!$this->slaPolicy || !$this->sla_due_at) return null;
-        $total = $this->slaPolicy->resolution_minutes;
-        $elapsed = $total - ($this->sla_remaining_minutes ?? 0);
-        return (int) round(($elapsed / $total) * 100);
+        if (!$this->sla_due_at || !$this->created_at) return null;
+        $total = $this->created_at->diffInMinutes($this->sla_due_at);
+        if ($total <= 0) return 100;
+        $until = $this->sla_paused && $this->sla_paused_at ? $this->sla_paused_at : now();
+        return max(0, (int) round($this->created_at->diffInMinutes($until) / $total * 100));
     }
 }

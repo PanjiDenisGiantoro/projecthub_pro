@@ -308,6 +308,11 @@ class AiAssistantWebController extends Controller
             return $this->answerAttendance();
         }
 
+        // 3a. Aturan SLA tiket (per proyek kalau nama proyek disebut).
+        if (preg_match('/\b(sla|prioritas tiket|target selesai)\b/u', $text)) {
+            return $this->answerSlaRules($this->mentionedProject($text));
+        }
+
         // 3. Tiket bug.
         if (preg_match('/\b(tiket|ticket|bug)\w*\b/u', $text)) {
             return $this->answerTickets((bool) preg_match("/{$me}/u", $text));
@@ -463,6 +468,24 @@ class AiAssistantWebController extends Controller
         return implode("\n", $lines);
     }
 
+    private function answerSlaRules(?Project $project): string
+    {
+        $rules = app(\App\Services\SlaService::class)->rulesForProject($project?->id);
+        $lines = [($project ? "Aturan SLA tiket proyek \"{$project->name}\"" : 'Aturan SLA tiket (default)')
+            . ' — target dihitung sejak tiket dibuat:'];
+        foreach ($rules as $key => $r) {
+            $meta    = \App\Models\SlaPolicy::PRIORITIES[$key];
+            $lines[] = "• {$meta['label']}: respons ≤ " . \App\Models\SlaPolicy::humanMinutes($r['response'])
+                . ', selesai ≤ ' . \App\Models\SlaPolicy::humanMinutes($r['resolution'])
+                . ($r['business_hours'] ? ' (jam kerja)' : '') . " — {$meta['desc']}";
+        }
+        $lines[] = $project
+            ? "\nAturan bisa dilihat & diubah (manager proyek/admin) di tab Tickets proyek."
+            : "\nTiap proyek bisa punya aturan sendiri di tab Tickets proyek — sebut nama proyeknya untuk melihat aturan proyek itu.";
+
+        return implode("\n", $lines);
+    }
+
     private function answerTickets(bool $mineOnly): string
     {
         $uid  = auth()->id();
@@ -472,7 +495,7 @@ class AiAssistantWebController extends Controller
 
         $list = ($mineOnly ? $mine : $base)->with('project:id,name')
             ->orderByRaw("field(priority, 'critical', 'urgent', 'high', 'medium', 'low')")->latest()
-            ->limit(10)->get(['id', 'project_id', 'title', 'priority', 'status', 'sla_due_at']);
+            ->limit(10)->get(['id', 'project_id', 'title', 'priority', 'status', 'sla_due_at', 'sla_breached', 'sla_paused', 'sla_paused_at', 'sla_policy_id', 'created_at', 'resolved_at', 'closed_at', 'updated_at']);
         $count = ($mineOnly ? (clone $mine) : (clone $base))->count();
 
         if ($count === 0) {
@@ -483,7 +506,7 @@ class AiAssistantWebController extends Controller
             . " ({$count}" . ($count > 10 ? ', 10 teratas' : '') . "):\n"
             . $list->values()->map(fn ($t, $i) => ($i + 1) . ". {$t->title} — proyek " . ($t->project->name ?? '-')
                 . ", prioritas {$t->priority}, status {$t->status}"
-                . ($t->sla_due_at ? ', SLA ' . self::fmtDate($t->sla_due_at) : ''))->join("\n")
+                . ($t->sla_due_at ? ', target selesai ' . $t->sla_due_at->format('d M Y H:i') . ' (' . BugTicket::SLA_STATES[$t->slaState()]['label'] . ')' : ''))->join("\n")
             . "\n\nDetail lengkap bisa dilihat di menu Bug Tickets.";
     }
 
