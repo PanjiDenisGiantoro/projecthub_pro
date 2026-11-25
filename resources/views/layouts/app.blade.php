@@ -730,9 +730,20 @@
                                 <p class="text-sm font-semibold" style="color:var(--fl-text-h,#1a0a3d)"
                                     x-text="m.action.label"></p>
                                 <div class="text-xs space-y-0.5" style="color:var(--fl-text-muted,#6b7280)">
-                                    <p><strong>Name:</strong> <span x-text="m.action.args.name"></span></p>
-                                    <p x-show="m.action.args.description"><strong>Description:</strong> <span
-                                            x-text="m.action.args.description"></span></p>
+                                    <template x-if="m.action.details && m.action.details.length">
+                                        <div class="space-y-0.5">
+                                            <template x-for="d in m.action.details" :key="d.label">
+                                                <p class="whitespace-pre-line break-words"><strong x-text="d.label + ':'"></strong> <span x-text="d.value"></span></p>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="!(m.action.details && m.action.details.length)">
+                                        <div class="space-y-0.5">
+                                            <p x-show="m.action.args.name || m.action.args.title"><strong>Name:</strong> <span x-text="m.action.args.name || m.action.args.title"></span></p>
+                                            <p x-show="m.action.args.description"><strong>Description:</strong> <span
+                                                    x-text="m.action.args.description"></span></p>
+                                        </div>
+                                    </template>
                                 </div>
                                 <template x-if="m.action.status === 'pending'">
                                     <div class="flex gap-2 pt-1">
@@ -752,7 +763,7 @@
                                 <p x-show="m.action.status === 'done'" class="text-xs font-medium" style="color:#10b981"
                                     x-text="m.action.resultMessage"></p>
                                 <a x-show="m.action.status === 'done' && m.action.url" :href="m.action.url"
-                                    class="text-xs font-semibold underline" style="color:#7c3aed">Open project →</a>
+                                    class="text-xs font-semibold underline" style="color:#7c3aed" x-text="m.action.tool === 'create_project' ? 'Open project →' : 'Open task →'"></a>
                                 <p x-show="m.action.status === 'error'" class="text-xs font-medium"
                                     style="color:#ef4444" x-text="m.action.resultMessage"></p>
                                 <p x-show="m.action.status === 'cancelled'" class="text-xs italic"
